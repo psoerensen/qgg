@@ -1,2 +1,2 @@
 # qgg
-R package for genomic feature model analyses
+Statistical tools for Quantitative Genetic Analyses
