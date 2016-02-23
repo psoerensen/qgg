@@ -831,23 +831,6 @@ bgfm <- function(y=NULL, g=NULL, nsamp=50, nburn=10, nsave=10000, tol=0.001) {
 #      
 # }
 # 
-# # http://www.r-bloggers.com/fortran-and-r-speed-things-up/
-# #   
-# #   y <- rnorm(100000)
-# # x <- rnorm(100000)
-# # yx <- sum(x*y)
-# # system.time(for ( i in 1:100000) {
-# #   crossprod(y,x)*2
-# # })
-# # system.time(for ( i in 1:10000000) {
-# #   yx[1]-yx[1]*2-yx[1]*2
-# # })
-# # cvs <- function(yx=NULL, p=NULL){
-# #   for ( i in 1:p) {
-# #     yx[1]-yx[1]*2-yx[1]*2
-# #   }
-# # }
-# # system.time(cvs(yx=yx, p=10000))
 # 
 # ssvs <- function(e=e, X=X, b=b, dxx=dxx, mu=mu, g=g, sigma2=sigma2, p0=p0, p1=p1, g0=g0, g1=g1, hgprior=hgprior) {
 #      
