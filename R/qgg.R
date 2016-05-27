@@ -291,16 +291,12 @@ gfm <- function(fm=NULL, weights=NULL, W=NULL,sets=NULL,K=NULL, data=NULL,valida
           e <- eigen(G)                                    # eigen value decomposition of the matrix G
           U <- e$vectors                                   # eigen vectors
           e <- e$values                                    # eigen values
-          #e[e<tol] <- tol
-          #D <- diag(1/e)                                   # set inverse D to 1/e
           ie <- e
           ie[e>tol] <- 1/e[e>tol]
-          #ie[e<tol] <- tol
           ie[e<tol] <- 0
           D <- diag(ie)                                   # set inverse D to 1/e
           G <- U%*%D%*%t(U)           		                        # compute inverse
           ldet <- sum(log(e[e>tol])) 
-          #ldet <- sum(log(e)) 
           colnames(G) <- rownames(G) <- rn
           return(list(G=G,ldet=ldet))                      # log determinant 
      } 
@@ -929,13 +925,14 @@ writeDMU <- function(model=NULL,data=NULL,Klist=NULL,tol=0.001){
      write(" ", file = dir.file, append = TRUE)
      
      write("$MODEL", file = dir.file, append = TRUE)
-     write(1, file = dir.file, append = TRUE)
-     write(0, file = dir.file, append = TRUE)
+     write(1, file = dir.file, append = TRUE)     # Number of traits
+     write(0, file = dir.file, append = TRUE)     # Weights - one line for each trait
      write(c(1,0,model$n$factors,1:model$n$factors), file = dir.file, append = TRUE, ncolumns = 3+model$n$factors  )
      write(c(model$n$random,1:model$n$random), file = dir.file, append = TRUE, ncolumns = 1+model$n$random  )
      #write(c(length(frvar),1:length(frvar)), file = dir.file, append = TRUE, ncolumns = 1+length(frvar)  )
-     write(0, file = dir.file, append = TRUE)
-     write(0, file = dir.file, append = TRUE)
+     write(0, file = dir.file, append = TRUE)     # Number of regression followed by the column ids (one line for each trait)
+     write(0, file = dir.file, append = TRUE)     # Number of residual covariances that are assumed to be zero
+     #write(0, file = dir.file, append = TRUE)    # Trait number combination for zero residual covariance 
      write(" ", file = dir.file, append = TRUE)
      
      for (i in 1:model$n$random) {
@@ -993,13 +990,30 @@ rename.and.clean.windows <- function (jobname=NULL)
      junk.files <- c("DMU1.log","DMUAI.log",paste("COR",1:20,sep=""),"CODE_TABLE", "DMU1.dir", "DMUAI.dir", "DMU_LOG", 
                      "DUMMY", "FSPAKWK", "Latest_parm", "LEVAL", "MODINF", 
                      "PARIN", "RCDATA_I", "RCDATA_R", "INBREED", "AINV1", 
-                     "AINV2", "PEDFILE1", "PEDFILE2", "fort.81","fort.66")
+                     "AINV2", "PEDFILE1", "PEDFILE2", "fort.81","fort.66","fort.99")
      del.files <- ll.ff[ll.ff %in% junk.files]
      if (length(del.files)>0) 
           for (kk in 1:length(del.files)) my.system(paste("del ", 
                                                           del.files[kk], sep = ""))
 }
 
+rename.and.clean <- function (jobname=NULL) 
+{
+     ll.ff <- list.files()
+     ll.name <- c("SOL", "PAROUT", "PAROUT_STD", "PEDDATA", "RESIDUAL", 
+                  "LLIK", "SOL_STD")
+     ll <- ll.name[ll.name %in% ll.ff]
+     for (kk in ll) system(paste("mv ", kk, " ", jobname, ".", 
+                                 kk, sep = ""))
+     junk.files <- c("DMU1.log","DMUAI.log",paste("COR",1:20,sep=""),"CODE_TABLE", "DMU1.dir", "DMUAI.dir", "DMU_LOG", 
+                     "DUMMY", "FSPAKWK", "Latest_parm", "LEVAL", "MODINF", 
+                     "PARIN", "RCDATA_I", "RCDATA_R", "INBREED", "AINV1", 
+                     "AINV2", "PEDFILE1", "PEDFILE2", "fort.81","fort.66","fort.99")
+     del.files <- ll.ff[ll.ff %in% junk.files]
+     if (length(del.files)) 
+          for (kk in 1:length(del.files)) system(paste("rm ", del.files[kk], 
+                                                       sep = ""))
+}
 
 # Execute DMU 
 executeDMU <- function(bin=NULL) {
@@ -1014,14 +1028,33 @@ executeDMU <- function(bin=NULL) {
      
      out <- paste(jobname, ".dmuai.lst", sep = "")
      dir <- paste(jobname, ".DIR", sep = "")
-     "my.system" <- function(cmd) return(system(paste(Sys.getenv("COMSPEC"), 
-                                                      "/c", cmd)))
-     my.system("set MKL_NUM_THREADS=1")
-     test <- my.system(paste(shQuote(dmu1), " < ", dir, " > ", out, sep = ""))
-     if (test == 0 & "MODINF" %in% list.files()) {
-          test <- my.system(paste(shQuote(dmuai), " < ", dir, " >> ", out, sep = ""))
+
+     HW <- Sys.info()["machine"]
+     OS <- .Platform$OS.type
+     
+     if (OS=="windows") {
+          "my.system" <- function(cmd) return(system(paste(Sys.getenv("COMSPEC"), 
+                                                           "/c", cmd)))
+          my.system("set MKL_NUM_THREADS=1")
+          test <- my.system(paste(shQuote(dmu1), " < ", dir, " > ", out, sep = ""))
+          if (test == 0 & "MODINF" %in% list.files()) {
+               test <- my.system(paste(shQuote(dmuai), " < ", dir, " >> ", out, sep = ""))
+          }
+          rename.and.clean.windows(jobname)
      }
-     rename.and.clean.windows(jobname)
+     if (!OS=="windows") {
+          ll.ff <- list.files()
+          if (!("dmu1" %in% ll.ff)) 
+          system(paste("cp ", dmu1, " dmu1", sep = ""))
+          if (!("dmuai" %in% ll.ff))
+          system(paste("cp ", dmuai, " dmuai", sep = ""))
+          system("export MKL_NUM_THREADS=1")
+          test <- system(paste("time ./dmu1 < ", dir, "> ", out))
+          if (test == 0 & "MODINF" %in% list.files()) {
+               test <- system(paste("time ./dmuai >> ", out))
+          }
+          rename.and.clean(jobname)
+     }
      
 }
 
