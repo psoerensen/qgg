@@ -10,13 +10,13 @@ setTest(stat = NULL, W = NULL, sets = NULL, nperm = NULL,
 \arguments{
 \item{stat}{is a vector of single marker statistics (e.g. marker effects, t-stat, p-values)}
 
-\item{W}{matrix of centered and scaled genotypes (used if method=cvs or score)}
+\item{W}{matrix of centered and scaled genotypes (used if method=cvat or score)}
 
 \item{sets}{is a list of marker sets  - names corresponds to rownames in stat}
 
 \item{nperm}{is the number of permutations}
 
-\item{method}{including sum, cvs, hyperG, score}
+\item{method}{including sum, cvat, hyperG, score}
 
 \item{threshold}{used if method=hyperG}
 }
@@ -53,8 +53,8 @@ sets <- list(A=as.character(1:100),B=as.character(101:1000),C=as.character(1001:
 # Set test based on sums
 res <- setTest(stat=fit$s**2,sets=sets, method="sum", nperm=100)
 
-# Set test based on cvs
-res <- setTest(stat=fit$s,W=W, sets=sets,method="cvs", nperm=100)
+# Set test based on cvat
+res <- setTest(stat=fit$s,W=W, sets=sets,method="cvat", nperm=100)
 
 # Set test based on hyperG
 res <- setTest(stat=fit$p,sets=sets, method="hyperG", threshold=0.05)

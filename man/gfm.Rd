@@ -16,7 +16,7 @@ gfm(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL,
 
 \item{sets}{a list of marker sets corresponding to column names in W}
 
-\item{K}{a list of correlation matrices}
+\item{K}{a list of relationship/correlation matrices}
 
 \item{data}{a data frame containing the phenotypic observations and fixed factors specified in the model statements}
 
