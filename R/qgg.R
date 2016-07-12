@@ -266,9 +266,10 @@ gfm <- function(fm=NULL, weights=NULL, W=NULL,sets=NULL,K=NULL, data=NULL,valida
           return(list(b=b[,1],vb=vb))
      }
 
-     computeG <- function(W=NULL,pdf=TRUE) {
+#' @export
+     computeG <- function(W=NULL,miss=0,pdf=TRUE) {
           SS <- tcrossprod(W)        # compute crossproduct all SNPs
-          N <- tcrossprod(!W==0)     # compute number of observation all SNPs
+          N <- tcrossprod(!W==miss)     # compute number of observation all SNPs
           G <- SS/N
           if (pdf) G <- makepdf(G)
           return(list(G=G,SS=SS,N=N))
@@ -286,7 +287,7 @@ gfm <- function(fm=NULL, weights=NULL, W=NULL,sets=NULL,K=NULL, data=NULL,valida
           return(G)                      
      } 
      
-     ginv <- function(G=NULL, tol=NULL) {
+     qggginv <- function(G=NULL, tol=NULL) {
           rn <- rownames(G)
           e <- eigen(G)                                    # eigen value decomposition of the matrix G
           U <- e$vectors                                   # eigen vectors
@@ -323,8 +324,8 @@ gfm <- function(fm=NULL, weights=NULL, W=NULL,sets=NULL,K=NULL, data=NULL,valida
 #' @param stat is a vector of single marker statistics (e.g. marker effects, t-stat, p-values)
 #' @param sets is a list of marker sets  - names corresponds to rownames in stat
 #' @param nperm is the number of permutations
-#' @param W matrix of centered and scaled genotypes (used if method=cvs or score)
-#' @param method including sum, cvs, hyperG, score
+#' @param W matrix of centered and scaled genotypes (used if method=cvat or score)
+#' @param method including sum, cvat, hyperG, score
 #' @param threshold used if method=hyperG
 #' @return Returns a dataframe including 
 #' \item{setT}{marker set test statistics} 
@@ -352,8 +353,8 @@ gfm <- function(fm=NULL, weights=NULL, W=NULL,sets=NULL,K=NULL, data=NULL,valida
 #' # Set test based on sums 
 #' res <- setTest(stat=fit$s**2,sets=sets, method="sum", nperm=100)
 #' 
-#' # Set test based on cvs 
-#' res <- setTest(stat=fit$s,W=W, sets=sets,method="cvs", nperm=100)
+#' # Set test based on cvat 
+#' res <- setTest(stat=fit$s,W=W, sets=sets,method="cvat", nperm=100)
 #' 
 #' # Set test based on hyperG 
 #' res <- setTest(stat=fit$p,sets=sets, method="hyperG", threshold=0.05)
@@ -361,7 +362,7 @@ gfm <- function(fm=NULL, weights=NULL, W=NULL,sets=NULL,K=NULL, data=NULL,valida
 #' @export
 setTest <- function(stat=NULL, W=NULL, sets=NULL, nperm=NULL, method="sum", threshold=0.05) {
   if(method=="sum") setT <- sumTest(stat=stat, sets=sets, nperm=nperm) 
-  if(method=="cvs") setT <- cvsTest(s=stat, W=W, sets=sets, nperm=nperm) 
+  if(method=="cvat") setT <- cvat(s=stat, W=W, sets=sets, nperm=nperm) 
   if(method=="hyperG") setT <- hgTest(p=stat, sets=sets, threshold=threshold) 
   if(method=="score") setT <- scoreTest(e=e, W=W, sets=sets, nperm=nperm) 
   return(setT)
@@ -436,14 +437,14 @@ msetTest <- function(stat=NULL, sets=NULL, nperm=NULL, method="sum") {
 #' fm <- y ~ mu
 #' fit <- gfm(fm=fm,W=W,sets=list(colnames(W)),data=data)
 #' 
-#' # CVS set test 
+#' # cvat set test 
 #' sets <- list(A=as.character(1:100),B=as.character(101:1000),C=as.character(1001:5000),D=as.character(5001:10000))
-#' res <- cvsTest(s=fit$s,W=W,sets=sets,nperm=100)
+#' res <- cvat(s=fit$s,W=W,sets=sets,nperm=100)
 #' res
 #' 
 #' 
 #' @export
-cvsTest <- function(s=NULL,g=NULL, W=NULL, sets=NULL, nperm=100){
+cvat <- function(s=NULL,g=NULL, W=NULL, sets=NULL, nperm=100){
      Ws <-   t(t(W)*as.vector(s))
      if (is.null(g)) g <- W%*%s   
      cvs <- colSums(as.vector(g)*Ws)
@@ -540,7 +541,7 @@ covSets <- function(W=NULL,g=NULL,sets=NULL, level2=FALSE) {
      sets <- sets[nsets>0]
      nsets <- nsets[nsets>0]
      
-     WWi <- ginv(W%*%t(W),tol=0.0001)$G
+     WWi <- qggginv(W%*%t(W),tol=0.0001)$G
      b <- as.vector(crossprod(W,WWi%*%g))
      names(b) <- colnames(W)
      Wb <-   t(t(W)*as.vector(b))
@@ -561,7 +562,7 @@ covSets <- function(W=NULL,g=NULL,sets=NULL, level2=FALSE) {
      hcovf <- (vf+covf)/var(g)
      cv <- cbind( nsets, vf,hvf,covf,hcovf, cvs,
                   vf/nsets,hvf/nsets,covf/nsets,hcovf/nsets,cvs/nsets)
-     colnames(cv) <- c("nset","varf","hf","covf","hcovf","cvs","varf pr snp","hf pr snp","covf pr snp","hcovf pr snp","cvs pr snp")
+     colnames(cv) <- c("nset","varf","hf","covf","hcovf","cvat","varf pr snp","hf pr snp","covf pr snp","hcovf pr snp","cvat pr snp")
      
      ##########################################################
      # level 2 
@@ -577,7 +578,7 @@ covSets <- function(W=NULL,g=NULL,sets=NULL, level2=FALSE) {
                hcovf <- (vf+covf)/var(gf)
                cvs <- apply(Wf,2,function(x){x%*%gf})
                cf <- cbind(vf,hvf,covf,hcovf,cvs)
-               colnames(cf) <- c("varf","hf","covf","hcovf","cvs")
+               colnames(cf) <- c("varf","hf","covf","hcovf","cvat")
                cf
           })
      }
@@ -795,10 +796,12 @@ bgfm <- function(y=NULL, g=NULL, nsamp=50, nburn=10, nsave=10000, tol=0.001) {
 
 
 # Main function for reml analyses suing DMU
-aireml <- function(fm=NULL,vfm=NULL,Klist=NULL, data=NULL,validate=NULL, bin=NULL) {
+aireml <- function(fm=NULL,vfm=NULL,Klist=NULL, restrict=NULL, data=NULL,validate=NULL, bin=NULL) {
      tol <- 0.001
      fit <- cvfit <- NULL
-     model <- modelDMU(fm=fm,vfm=vfm, data=data)
+     #model <- extractModel(fm=fm, data=data)
+     model <- lapply(fm,function(x) {extractModel(fm=x,data=data)})
+     model <- modelDMU(model=model, restrict=restrict)
      flevels <- writeDMU(model=model,data=data,Klist=Klist)
      executeDMU(bin=bin)
      fit <- readDMU(model=model,flevels=flevels)
@@ -817,7 +820,7 @@ aireml <- function(fm=NULL,vfm=NULL,Klist=NULL, data=NULL,validate=NULL, bin=NUL
 
 
 # Extract model information from fm and vfm 
-modelDMU <- function(fm=NULL,vfm=NULL, data=NULL) {
+extractModel <- function(fm=NULL, data=NULL) {
      
      vtype <- sapply(data,class)
      
@@ -857,15 +860,6 @@ modelDMU <- function(fm=NULL,vfm=NULL, data=NULL) {
      nfixed <- length(ffvar)
      nfactors <- nrandom+nfixed 
      
-     #vvartype <- rep("I",length(vvar))
-     #names(vvartype) <- vvar
-     #cvvar <- t(sapply(vfm, function(x) {
-     #     x <- unlist( strsplit( as.character(x),split="~", fixed=TRUE))[-1]
-     #}))
-     #rownames(cvvar) <- cvvar[,1]
-     #cvvar <- cvvar[,-1]
-     #vvartype[names(cvvar)] <- "COR"
-     
      variables <- list( fixed=ffvar,
                         regression=frvar,
                         random=vvar,
@@ -885,6 +879,43 @@ modelDMU <- function(fm=NULL,vfm=NULL, data=NULL) {
                   covtype=vvartype,
                   covmat=cvvar)
      ) 
+}
+
+modelDMU <- function(model=NULL, restrict=NULL) {
+     
+     fixed <- unique(unlist(lapply(model,function(x){x$fixed})))
+     random <- unique(unlist(lapply(model,function(x){x$random})))
+     regression <- unique(unlist(lapply(model,function(x){x$regression})))
+     response <- unique(unlist(lapply(model,function(x){x$response})))
+     covmat <- NULL
+     for (i in 1:length(model)) {
+          covmat <- c(covmat,model[[i]]$covmat) 
+     }
+     covmat <- covmat[!duplicated(names(covmat))]
+     model$nt <- length(model)
+     model$absorb <- rep(0,model$nt)
+     
+     model$data <- NULL
+     model$data$missing <- -9999
+     model$data$variables <- c(fixed,random,response,regression)
+     model$data$nvariables <- length(model$data$variables)
+     model$data$nintegers <- sum(length(fixed)+length(random))
+     model$data$nreals <- sum(length(response)+length(regression))
+     
+     model$data$integers <- 1:model$data$nintegers
+     names(model$data$integers) <- c(fixed,random)
+     model$data$reals <- 1:model$data$nreals
+     names(model$data$reals) <- c(response,regression)
+     model$data$random <- 1:length(random)
+     names(model$data$random) <- random
+     model$data$covmat <- covmat
+     model$restrict <- NULL
+     model$restrict$nresiduals <- model$restrict$residuals <- 0
+     if(!is.null(restrict)) {
+          model$restrict$nresiduals <- nrow(restrict$residuals)
+          model$restrict$residuals <- t(restrict$residuals)
+     }
+     return(model)
 }
 
 # Recode factors for DMU 
@@ -916,34 +947,50 @@ writeDMU <- function(model=NULL,data=NULL,Klist=NULL,tol=0.001){
      write(paste("$ANALYSE", 1,1,0,0), 
            file = dir.file, append = TRUE)
      write(" ", file = dir.file, append = TRUE)
-     write(c("$DATA ASCII (", model$n$factors, ",", model$n$response+model$n$regression, 
-             ",", -9999, ") data.txt"), file = dir.file, append = TRUE, 
+     write(c("$DATA ASCII (", model$data$nintegers, ",", model$data$nreals, 
+             ",", model$data$missing, ") data.txt"), file = dir.file, append = TRUE, 
            ncolumns = 12, sep = "")
      write(" ", file = dir.file, append = TRUE)
      write("$VARIABLE", file = dir.file, append = TRUE)
-     write(model$variables, file = dir.file, append = TRUE, ncolumns = model$n$variables )
+     write(model$data$variables, file = dir.file, append = TRUE, ncolumns = model$data$nvariables )
      write(" ", file = dir.file, append = TRUE)
      
      write("$MODEL", file = dir.file, append = TRUE)
-     write(1, file = dir.file, append = TRUE)     # Number of traits
-     write(0, file = dir.file, append = TRUE)     # Weights - one line for each trait
-     write(c(1,0,model$n$factors,1:model$n$factors), file = dir.file, append = TRUE, ncolumns = 3+model$n$factors  )
-     write(c(model$n$random,1:model$n$random), file = dir.file, append = TRUE, ncolumns = 1+model$n$random  )
-     #write(c(length(frvar),1:length(frvar)), file = dir.file, append = TRUE, ncolumns = 1+length(frvar)  )
-     write(0, file = dir.file, append = TRUE)     # Number of regression followed by the column ids (one line for each trait)
-     write(0, file = dir.file, append = TRUE)     # Number of residual covariances that are assumed to be zero
-     #write(0, file = dir.file, append = TRUE)    # Trait number combination for zero residual covariance 
+     write(model$nt, file = dir.file, append = TRUE)     # Number of traits
+     write(model$absorb, file = dir.file, append = TRUE,ncolumns=1)     # Weights - one line for each trait
+     
+     for (i in 1:model$nt) {
+          write(c(model$data$reals[model[[i]]$response],
+                  0,model[[i]]$n$factors,
+                  model$data$integers[model[[i]]$factors]), 
+                file = dir.file, append = TRUE, ncolumns = 3+model[[i]]$n$factors  )
+     }
+     
+     for (i in 1:model$nt) {
+          write(c(model[[i]]$n$random,model$data$random[model[[i]]$random]), file = dir.file, append = TRUE, ncolumns = 1+model[[i]]$n$random  )
+     }
+     
+     for (i in 1:model$nt) {
+          write(c(model[[i]]$n$regression,
+                  model$data$reals[model[[i]]$regression]), 
+                file = dir.file, append = TRUE, ncolumns = 1+model[[i]]$n$regression  )
+     }
+     
+     write(model$restrict$nresiduals, file = dir.file, append = TRUE)     # Number of residual covariances that are assumed to be zero
+     #if (model$restrict$nresiduals==0)
+     #write(model$restrict$residuals, file = dir.file, append = TRUE,ncolumns = 1, sep = " ")    # Trait number combination for zero residual covariance 
+     #if (model$restrict$nresiduals>0)
+     write(model$restrict$residuals, file = dir.file, append = TRUE,ncolumns = 2, sep = " ")    # Trait number combination for zero residual covariance 
      write(" ", file = dir.file, append = TRUE)
      
-     for (i in 1:model$n$random) {
-          if(model$covtype[i]=="COR") {
-               vvarname <- names(model$covtype)[i]
-               vvarfile <- paste(vvarname,".txt",sep="")
-               
-               write(c("$VAR_STR",i,"COR", "ASCII",vvarfile), file = dir.file, append = TRUE, 
-                     ncolumns = 5, sep = " ")
-          }
-     }  
+     if(length(model$data$covmat)>0) {
+       for (i in 1:length(model$data$covmat)) {
+         vvarname <- names(model$data$covmat)[i]
+         vvarfile <- paste(vvarname,".txt",sep="")
+         write(c("$VAR_STR",model$data$random[vvarname],"COR", "ASCII",vvarfile), file = dir.file, append = TRUE, 
+               ncolumns = 5, sep = " ")
+       }  
+     }
      write(" ", file = dir.file, append = TRUE)
      
      write(c("$DMUAI", format(c(10,0.0000001,0.000001,1,0,0),scientific=FALSE)), 
@@ -956,21 +1003,23 @@ writeDMU <- function(model=NULL,data=NULL,Klist=NULL,tol=0.001){
      # Write DMU data file
      data.file <- "data.txt"
      # Recode data (factors only) (check recoding this again)
-     rec <- recodeDMU(data[,model$factors])
-     data[,model$factors] <- rec$data
-     write.table(format(data[,model$variables], scientific = FALSE), file = data.file, 
+     rec <- recodeDMU(data[,names(model$data$integers)])
+     data[,names(model$data$integers)] <- rec$data
+     write.table(format(data[,model$data$variables], scientific = FALSE), file = data.file, 
                  quote = FALSE, col.names = FALSE, sep = "\t", row.names = FALSE)
      
      # Write DMU cor data files
      if(!is.null(Klist)) {
-          for ( i in 1:length(model$covmat) ) {
-               vvarname <- names(model$covmat)[i]
+          for ( i in 1:length(model$data$covmat) ) {
+               vvarname <- names(model$data$covmat)[i]
                vvarfile <- paste(vvarname,".txt",sep="")
-               iG <- ginv(Klist[[model$covmat[i]]], tol=tol)
+               iG <- qggginv(Klist[[ model$data$covmat[i] ]], tol=tol)
                colnames(iG$G) <- rownames(iG$G) <- rec$rlevels[[vvarname]][rownames(iG$G)]
                writeG(G=iG$G, filename=vvarfile, ldet=iG$ldet)
           }
      }
+      
+     
      return(flevels=rec$flevels)
      
 }
@@ -1071,23 +1120,35 @@ readDMU <- function(model=NULL, flevels=NULL) {
      fit$llik <- as.numeric(llik[12])
      cls1 <- grep("Theta",llik)
      cls2 <- grep("ASD",llik)
-     fit$sigma <- as.numeric(llik[(cls1+1):(cls2-1)])
-     fit$asd <- as.numeric(llik[(cls2+1):length(llik)])
-     names(fit$sigma) <- names(fit$asd) <- c(model$random,"e")
+     #fit$sigma <- as.numeric(llik[(cls1+1):(cls2-1)])
+     #fit$asd <- as.numeric(llik[(cls2+1):length(llik)])
+     #names(fit$sigma) <- names(fit$asd) <- c(model$random,"e")
      
      sol <- as.matrix(read.table(paste(jobname,".SOL",sep=""), as.is = TRUE)[-1, , drop = FALSE])
      blue <- sol[sol[,1]==2,c(2,4:6,8:9)]  # "=2" is estimates effects for fixed factors
      blup <- sol[sol[,1]==3,c(2,4:6,8:9)]  # "=3" is estimates effects for random factors
-     f <- NULL
-     for(i in 1:model$n$random){
-          f[[i]] <- blup[blup[,2]==i,5]
-          names(f[[i]]) <- flevels[[model$random[i]]][blup[blup[,2]==i,3]]
+
+     f <- vector("list",length=model$nt)
+     for (i in 1:model$nt) {
+        names(f)[i] <- model[[i]]$response
+          for(j in 1:model[[i]]$n$random){
+          f[[i]][[j]] <- blup[blup[,1]==i & blup[,2]==j,5:6]
+          rownames(f[[i]][[j]]) <- flevels[[model[[i]]$random[j]]][blup[blup[,1]==i & blup[,2]==j,3]]
+          colnames(f[[i]][[j]]) <- c("Estimate","SE") 
+          names(f[[i]])[j] <- model[[i]]$random[j]
+          } 
      }
-     names(f) <- model$random
      fit$f <- f
      
-     #fit$sigma <- as.matrix(read.table(paste(jobname,".PAROUT",sep="")))
-     #fit$asd <- scan(paste(jobname,".PAROUT_STD",sep=""), what = character(0), quiet = TRUE)
+     sigma <- as.matrix(read.table(paste(jobname,".PAROUT",sep="")))
+     asd <- as.matrix(read.table(paste(jobname,".PAROUT_STD",sep=""),skip=1,nrow=nrow(sigma)))
+     fit$sigma <- cbind(sigma,asd[,3])
+     colnames(fit$sigma) <- c("Random ID","Row ID","Col ID","Estimate","ASD")
+     rownames(fit$sigma) <- 1:nrow(sigma)
+
+     fit$covsigma <- as.matrix(read.table(paste(jobname,".PAROUT_STD",sep=""),skip=1+nrow(sigma)))
+     colnames(fit$covsigma) <- c("Random ID","Random ID","Correlation","ASE")
+     rownames(fit$covsigma) <- 1:nrow(fit$covsigma)
      
      resi <- as.matrix(read.table(paste(jobname, ".RESIDUAL", 
                                         sep = "")))
