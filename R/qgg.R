@@ -33,7 +33,7 @@
 #' @param weights a vector of weights for the residual variance
 #' @param W a matrix centered and scaled genotypes or other types of molecular data
 #' @param sets a list of marker sets corresponding to column names in W 
-#' @param K a list of relationship/correlation matrices
+#' @param K a list of relationship / correlation matrices
 #' @param data a data frame containing the phenotypic observations and fixed factors specified in the model statements
 #' @param validate a matrix or a list with the ids of validation sets corresponding to the rows in data
 #' @param mkplots a logical indicating whether or not to make plots
@@ -78,7 +78,7 @@
 #' nsets <- 50
 #' 
 #' # Validation sets may be inputted as matrices or lists
-#' validate <- replicate(nsets, sample(1:n, as.integer(n/fold))) # matrix input
+#' validate <- replicate(nsets, sample(1:n, as.integer(n / fold))) # matrix input
 #'   fitGB <- gfm(fm = fm, W = W, sets = setsGB, data = data, validate = validate)
 #'   fitGF <- gfm(fm = fm, W = W, sets = setsGF, data = data, validate = validate)
 #'   fitGT <- gfm(fm = fm, W = W, sets = setsGT, data = data, validate = validate)
@@ -113,40 +113,43 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
      mf <- eval(mf, parent.frame())
      y <- model.response(mf)
      X <- model.matrix(mf, data = data)
-     if (ncol(X) == 2) {
-          if (sum(colnames(X) == c("(Intercept)", "mu")) == 2) X <- matrix(X[, 1], ncol = 1)
-     }
+     if (ncol(X) == 2) {if (sum(colnames(X) == c("(Intercept)", "mu")) == 2) X <- matrix(X[, 1], ncol = 1)}
      n <- length(y)
      
      # Validation sets
-     if(is.null(validate)) {validate <- matrix(-c(1:n), nrow = n, ncol = 1)}
-     if(is.matrix(validate)) nvsets <- ncol(validate)
-     if(is.list(validate)) nvsets <- length(validate)
+     if (is.null(validate)) {validate <- matrix(-c(1:n), nrow = n, ncol = 1)}
+     if (is.matrix(validate)) nvsets <- ncol(validate)
+     if (is.list(validate)) nvsets <- length(validate)
      
      # Check input data
-     if (!is.null(sets)) {if (any(!sapply(sets, is.character))) stop("Sets not character variables")}
-     if (!is.null(W)) {if (any(!is.character(colnames(W)))) stop("Column names of W is not character variables")}
+     if (!is.null(sets)) {if (any(!sapply(sets, is.character)))
+          stop("Sets not character variables")}
+     if (!is.null(W)) {if (any(!is.character(colnames(W))))
+          stop("Column names of W is not character variables")}
      if (!is.null(sets)) {if (any(!unlist(sapply(sets, function(x){x %in% colnames(W)})))) 
           stop("Sets does not match column names of W")}
      if (!is.null(sets)) {if (any(!sapply(sets, is.character))) 
           stop("Sets not character variables")}
      #if (any(!apply(validate, 2, is.integer))) stop("Validation sets not integer variables")
-     if (is.matrix(validate)) {if(max(validate) > n) stop("Validation sets contains integer values larger than n=number of observations")}
-     if (is.list(validate)) {if(max(unlist(validate)) > n) stop("Validation sets contains integer values larger than n=number of observations")}
-     if (!is.null(weights)) {if (!length(weights) == nrow(W)) stop("nrow(W) not equal to length(weights)")}
+     if (is.matrix(validate)) {if(max(validate) > n)
+          stop("Validation sets contains integer values larger than n = number of observations")}
+     if (is.list(validate)) {if(max(unlist(validate)) > n)
+          stop("Validation sets contains integer values larger than n = number of observations")}
+     if (!is.null(weights)) {if (!length(weights) == nrow(W))
+          stop("nrow(W) not equal to length(weights)")}
      
      # Compute K matrices
-     if(is.null(sets) & is.null(K)) {K[[1]] <- (W %*% t(W))/ncol(W)}
+     if (is.null(sets) & is.null(K)) {K[[1]] <- (W %*% t(W)) / ncol(W)}
      nk <- length(K)
      nsets <- NULL
-     if(!is.null(sets)) {
+     if (!is.null(sets)) {
           nsets <- length(sets)
           m <- sapply(sets, length)
-          for (i in 1:nsets) {K[[i + nk]] <- (W[, sets[[i]]] %*% t(W[, sets[[i]]]))/m[i]}
+          for (i in 1:nsets) {K[[i + nk]] <- (W[, sets[[i]]] %*% t(W[, sets[[i]]])) / m[i]}
           names(K)[(nk + 1):(nk + nsets)] <- names(sets)
      }
-     if(is.null(nsets)) {nsets <- nk}
-     if(!is.null(sets)) {nsets <- nsets + nk}
+     if (is.null(nsets)) {nsets <- nk}
+     if (!is.null(sets)) {nsets <- nsets + nk}
      if (is.null(names(K))) names(K) <- paste("C", 1:nsets, sep = "")
      K[[nsets + 1]] <- diag(1, n)
      identity <- TRUE
@@ -165,8 +168,8 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
      pa <- mspe <- sigmas <- ypred <- yobs <- NULL
      s <- vs <- Vf <- NULL
      for (i in 1:nvsets) {
-          if(is.matrix(validate)) v <- validate[, i]
-          if(is.list(validate)) v <- validate[[i]]
+          if (is.matrix(validate)) v <- validate[, i]
+          if (is.list(validate)) v <- validate[[i]]
           t <- (1:n)[-v]
           fit <- regress(fm, vfm, identity = identity, verbose = 1, pos = rep(TRUE, nsets + 1),
                          data = droplevels(data[t, ]))
@@ -175,7 +178,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           f <- fv <- NULL
           for (j in 1:nsets) {f <- cbind(f, (K[[j]][t, t] * fit$sigma[j]) %*% fit$W %*% (y[t] - fit$fitted))}
           for (j in 1:nsets) {fv <- cbind(fv, (K[[j]][v, t] * fit$sigma[j]) %*% fit$W %*% (y[t] - fit$fitted))}
-          if(nsets == 1 & nk == 0) {
+          if (nsets == 1 & nk == 0) {
                Vf <- NULL
                P <- fit$W %*% fit$Q
                for (j in 1:nsets) { 
@@ -193,18 +196,18 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           }
           
           if (length(t) < n) {
-               if(any(!fit$X == X[t, ])) stop("!fit$X[t, ] == X[t, ] problem with design matrices for fixed effects")
+               if (any(!fit$X == X[t, ])) stop("!fit$X[t, ] == X[t, ] problem with design matrices for fixed effects")
                #yhat <- fit$fitted[1] + V[v, t] %*% fit$W %*% (y[t] - fit$fitted)
                yhat <- X[v, ] %*% fit$beta + V[v, t] %*% fit$W %*% (y[t] - fit$fitted)
                pa <- c(pa, cor(yhat, y[v])) 
-               mspe <- c(mspe, sum((yhat - y[v])**2)/length(v))
+               mspe <- c(mspe, sum((yhat - y[v])**2) / length(v))
                sigmas <- rbind(sigmas, fit$sigma)
                ypred <- c(ypred, yhat)
                yobs <- c(yobs, y[v])
           }
      }
      # Make plots
-     if (nvsets>1&mkplots) {
+     if (nvsets > 1 & mkplots) {
           colnames(sigmas) <- names(K)
           layout(matrix(1:4, ncol = 2))
           boxplot(pa, main = "Predictive Ability", ylab = "Correlation")
@@ -241,7 +244,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
      computeG <- function(W = NULL, miss = 0, pdf = TRUE) {
           SS <- tcrossprod(W)                              # compute crossproduct, all SNPs
           N <- tcrossprod(!W == miss)                      # compute number of observations, all SNPs
-          G <- SS/N
+          G <- SS / N
           if (pdf) G <- makepdf(G)
           return(list(G = G, SS = SS, N = N))
      }  
@@ -264,7 +267,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           U <- e$vectors                                   # eigen vectors
           e <- e$values                                    # eigen values
           ie <- e
-          ie[e > tol] <- 1/e[e > tol]
+          ie[e > tol] <- 1 / e[e > tol]
           ie[e < tol] <- 0
           D <- diag(ie)                                    # set inverse D to 1/e
           G <- U %*% D %*% t(U)           		         # compute inverse
