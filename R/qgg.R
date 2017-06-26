@@ -29,14 +29,14 @@
 #' Currently depend on R library regress. 
 #' Plug-in avaliable for DMU. Future release may use customized REML procedures.    
 #' 
-#' @param fm a formula with model statement for the fixed factors in the linear mixed model
-#' @param weights a vector of weights for the residual variance
-#' @param W a matrix centered and scaled genotypes or other types of molecular data
-#' @param sets a list of marker sets corresponding to column names in W 
-#' @param K a list of relationship / correlation matrices
-#' @param data a data frame containing the phenotypic observations and fixed factors specified in the model statements
-#' @param validate a matrix or a list with the ids of validation sets corresponding to the rows in data
-#' @param mkplots a logical indicating whether or not to make plots
+#' @param fm formula with model statement for the fixed factors in the linear mixed model
+#' @param weights vector of weights for the residual variance
+#' @param W matrix centered and scaled genotypes or other types of molecular data
+#' @param sets list of marker sets corresponding to column names in W 
+#' @param K list of relationship / correlation matrices
+#' @param data data frame containing the phenotypic observations and fixed factors specified in the model statements
+#' @param validate matrix or a list with the ids of validation sets corresponding to the rows in data
+#' @param mkplots logical indicating whether or not to make plots
 #' @return Returns results in a list structure including 
 #' \item{f}{matrix of predicted random effects (training set)} 
 #' \item{fv}{matrix of predicted random effects validation set} 
@@ -109,6 +109,7 @@
 #' 
 
 gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data = NULL, validate = NULL, mkplots = TRUE) {
+     
      mf <- model.frame(fm, data = data, na.action = na.pass)
      mf <- eval(mf, parent.frame())
      y <- model.response(mf)
@@ -131,9 +132,9 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
      if (!is.null(sets)) {if (any(!sapply(sets, is.character))) 
           stop("Sets not character variables")}
      #if (any(!apply(validate, 2, is.integer))) stop("Validation sets not integer variables")
-     if (is.matrix(validate)) {if(max(validate) > n)
+     if (is.matrix(validate)) {if (max(validate) > n)
           stop("Validation sets contains integer values larger than n = number of observations")}
-     if (is.list(validate)) {if(max(unlist(validate)) > n)
+     if (is.list(validate)) {if (max(unlist(validate)) > n)
           stop("Validation sets contains integer values larger than n = number of observations")}
      if (!is.null(weights)) {if (!length(weights) == nrow(W))
           stop("nrow(W) not equal to length(weights)")}
@@ -194,7 +195,6 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
                     }
                }
           }
-          
           if (length(t) < n) {
                if (any(!fit$X == X[t, ])) stop("!fit$X[t, ] == X[t, ] problem with design matrices for fixed effects")
                #yhat <- fit$fitted[1] + V[v, t] %*% fit$W %*% (y[t] - fit$fitted)
@@ -206,6 +206,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
                yobs <- c(yobs, y[v])
           }
      }
+     
      # Make plots
      if (nvsets > 1 & mkplots) {
           colnames(sigmas) <- names(K)
@@ -217,17 +218,22 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           coef  <- lm(ypred ~ yobs)$coef
           abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
      }
-     return(list(f = f, fv = fv, Vf = Vf, s = s, vs = vs, sigmas = sigmas, pa = pa, mspe = mspe, ypred = ypred, yobs = yobs, fit = fit, validate = validate))
+     
+     return(list(f = f, fv = fv, Vf = Vf, s = s, vs = vs, sigmas = sigmas, pa = pa, mspe = mspe, ypred = ypred, 
+                 yobs = yobs, fit = fit, validate = validate))
+
 }
 
 
 
 ####################################################################################################################
      f2b <- function(W = NULL, f = NULL, Vf = NULL) {
+          
           if (!nrow(W) == length(f)) {stop("nrow(W) == length(f) is false")}
           WW <- W %*% t(W)
           WWi <- (MASS:::ginv)(WW)
           b <- t(W) %*% WWi %*% f
+          
           if (!is.null(Vf)) {
                WWWi <- crossprod(W, WWi)
                remove(WWi)
@@ -237,19 +243,26 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
                remove(WWWi)
                remove(Vf)
           }
+          
           return(list(b = b[, 1], vb = vb))
+     
      }
 
 #' @export
+
      computeG <- function(W = NULL, miss = 0, pdf = TRUE) {
+          
           SS <- tcrossprod(W)                              # compute crossproduct, all SNPs
           N <- tcrossprod(!W == miss)                      # compute number of observations, all SNPs
           G <- SS / N
           if (pdf) G <- makepdf(G)
+          
           return(list(G = G, SS = SS, N = N))
+     
      }  
      
      makepdf <- function(G = NULL, tol = 0.0001) {
+          
           rn <- rownames(G)
           e <- eigen(G)                                    # eigen value decomposition, matrix G
           U <- e$vectors                                   # eigen vectors
@@ -258,10 +271,13 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           D <- diag(e)                                   
           G <- U %*% D %*% t(U)                        # compute pdf
           colnames(G) <- rownames(G) <- rn
+          
           return(G)                      
+     
      } 
      
      qggginv <- function(G = NULL, tol = NULL) {
+          
           rn <- rownames(G)
           e <- eigen(G)                                    # eigen value decomposition, matrix G
           U <- e$vectors                                   # eigen vectors
@@ -273,7 +289,9 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           G <- U %*% D %*% t(U)                        # compute inverse
           ldet <- sum(log(e[e > tol])) 
           colnames(G) <- rownames(G) <- rn
+          
           return(list(G = G, ldet = ldet))                 # log determinant 
+     
      } 
 
 
@@ -287,23 +305,22 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
 #' @description
 #' Set test based on summing the single genetic marker test statistics.
 #' The sum test is powerful if the genomic feature harbors many genetic markers having small to moderate effects. 
-#' 
-#'                        
+#'                       
 #' @details
 #' The singler marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS. 
 #' The distribution of this test statistic under the null hypothesis (associated markers are picked at random from the total 
 #' number of tested genetic markers) is difficult to describe in terms of exact or approximate 
 #' distributions, and an empirical distribution is required.
 #'                        
-#' @param stat a vector of single marker statistics (e.g. marker effects, t-stat, p-values)
-#' @param sets a list of marker sets  - names corresponds to rownames in stat
-#' @param nperm the number of permutations
-#' @param W a matrix of centered and scaled genotypes (used if method = cvat or score)
+#' @param stat vector of single marker statistics (e.g. marker effects, t-stat, p-values)
+#' @param sets list of marker sets  - names corresponds to rownames in stat
+#' @param nperm number of permutations
+#' @param W matrix of centered and scaled genotypes (used if method = cvat or score)
 #' @param method including sum, cvat, hyperG, score
 #' @param threshold used if method = hyperG
 #' @return Returns a dataframe including 
 #' \item{setT}{marker set test statistics} 
-#' \item{nset}{number of markers in the set }
+#' \item{nset}{number of markers in the set}
 #' \item{p}{p-value for marker set}
 #' @author Peter Sørensen
 #' @references Genomic BLUP Derived Set Tests Identify Genetic Variants Associated with Schizophrenia in Functionally Associated Biological Processes. Under review, Genetics (2015). Rohde PD, Demontis D, The GEMS Group, Børglum AD, Sørensen P.
@@ -323,7 +340,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
 #' fit$p <- pt(fit$s / sqrt(fit$vs), df = fit$df, lower.tail = FALSE) 
 #' 
 #' sets <- list(A = as.character(1:100), B = as.character(101:1000), C = as.character(1001:5000), D = as.character(5001:10000))
-
+#'
 #' # Set test based on sums 
 #' res <- setTest(stat = fit$s**2, sets = sets, method = "sum", nperm = 100)
 #' 
@@ -334,44 +351,55 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
 #' res <- setTest(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
 #' 
 #' @export
+#'
+
 setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
+     
   if (method == "sum") setT <- sumTest(stat = stat, sets = sets, nperm = nperm) 
   if (method == "cvat") setT <- cvat(s = stat, W = W, sets = sets, nperm = nperm) 
   if (method == "hyperG") setT <- hgTest(p = stat, sets = sets, threshold = threshold) 
-  if (method == "score") setT <- scoreTest(e = e, W = W, sets = sets, nperm = nperm) 
+  if (method == "score") setT <- scoreTest(e = e, W = W, sets = sets, nperm = nperm)
+     
   return(setT)
+
 }
 
 
 sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
-  if (method == "mean") setT <- sapply( sets,function(x){ mean(stat[x]) })
-  if (method == "sum") setT <- sapply( sets,function(x){ sum(stat[x]) })
-  if (method == "max") setT <- sapply( sets,function(x){ max(stat[x]) })
+     
+  if (method == "mean") setT <- sapply(sets, function(x) {mean(stat[x])})
+  if (method == "sum") setT <- sapply(sets, function(x) {sum(stat[x])})
+  if (method == "max") setT <- sapply(sets, function(x) {max(stat[x])})
   if (!is.null(nperm)) {
-    p <- rep(0,length(sets)) 
+    p <- rep(0, length(sets)) 
     n <- length(stat)
-    nset <- sapply(sets,length)
+    nset <- sapply(sets, length)
     rws <- 1:n
     names(rws) <- names(stat)
-    sets <- lapply(sets, function(x) { rws[x] })
-    for ( i in 1:nperm ) {
-      rws <- sample(1:n,1)
-      o <- c(rws:n,1:(rws-1))
+    sets <- lapply(sets, function(x) {rws[x]}) 
+    for (i in 1:nperm) {
+      rws <- sample(1:n, 1)
+      o <- c(rws:n, 1:(rws - 1))
       pstat <- stat[o]
-      if(method=="mean") setTP <- sapply(sets,function(x){ mean(pstat[x]) })
-      if(method=="sum") setTP <- sapply(sets,function(x){ sum(pstat[x]) })
-      if(method=="max") setTP <- sapply(sets,function(x){ max(pstat[x]) })
-      p <- p + as.numeric(setT>setTP) 
-    }
-    p <- 1-p/nperm
-    setT <- data.frame(setT,nset,p)
+      if (method == "mean") setTP <- sapply(sets, function(x) {mean(pstat[x])})
+      if (method == "sum") setTP <- sapply(sets, function(x) {sum(pstat[x])})
+      if (method == "max") setTP <- sapply(sets, function(x) {max(pstat[x])})
+      p <- p + as.numeric(setT > setTP) 
+    }  
+    p <- 1 - p / nperm
+    setT <- data.frame(setT, nset, p)
   }
+     
   return(setT)
+
 }
-msetTest <- function(stat=NULL, sets=NULL, nperm=NULL, method="sum") {
-     setT <- apply(stat,2,function(x) { setTest(stat=x,sets=sets,nperm=nperm,method=method) })
+
+msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
+     
+     setT <- apply(stat, 2, function(x) {setTest(stat = x, sets = sets, nperm = nperm, method = method)})
      names(setT) <- colnames(stat)
      setT  
+
 } 
 
 ####################################################################################################################
@@ -382,7 +410,7 @@ msetTest <- function(stat=NULL, sets=NULL, nperm=NULL, method="sum") {
 #' Genetic marker set tests based on the covariance statistics for a set of genetic markers
 #' 
 #' @details
-#' The covariance test statistic is derived from a GBLUP( or GFBLUP) model fit. It is a measure of covariance between the total genomic effect for all markers 
+#' The covariance test statistic is derived from a GBLUP (or GFBLUP) model fit. It is a measure of covariance between the total genomic effect for all markers 
 #' and the genomic effect for the genetic markers in the genomic feature. It also relates to the explained sums of
 #' squares for the genetic markers. 
 #' The distribution of this test statistic under the null hypothesis is difficult to describe in terms of exact or approximate 
@@ -390,50 +418,55 @@ msetTest <- function(stat=NULL, sets=NULL, nperm=NULL, method="sum") {
 #' 
 #' @param g vector (or list) of genetic effects obtained from a linear mixed model fit (GBLUP of GFBLUP)
 #' @param s vector (or list) of single marker effects obtained from a linear mixed model fit (GBLUP of GFBLUP)
-#' @param W matrix of centered and scaled genotypes (nxm)
+#' @param W matrix of centered and scaled genotypes (n x m)
 #' @param sets list of marker sets corresponding to columns in W
 #' @param nperm number of permutations
 #' @return Returns a dataframe including 
 #' \item{setT}{covariance test statistics} 
-#' \item{nset}{number of markers in the set }
-#' \item{p}{p-value }
+#' \item{nset}{number of markers in the set}
+#' \item{p}{p-value}
 #' @author Peter Sørensen
 #' @references Genomic BLUP Derived Set Tests Identify Genetic Variants Associated with Schizophrenia in Functionally Associated Biological Processes. Under review, Genetics (2015). Rohde PD, Demontis D, The GEMS Group, Børglum AD, Sørensen P.
 #' @examples
 #' 
 #' # Simulate data
-#' W <- matrix(rnorm(2000000),ncol=10000)
+#' W <- matrix(rnorm(2000000), ncol = 10000)
 #'   colnames(W) <- as.character(1:ncol(W))
-#' y <- rowSums(W[,1:10]) + rowSums(W[,1001:1010]) + rnorm(nrow(W))
+#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
 #' 
 #' # REML analyses 
-#' data <- data.frame(y=y,mu=1)
+#' data <- data.frame(y = y, mu = 1)
 #' fm <- y ~ mu
-#' fit <- gfm(fm=fm,W=W,sets=list(colnames(W)),data=data)
+#' fit <- gfm(fm = fm, W = W, sets = list(colnames(W)), data = data)
 #' 
 #' # cvat set test 
-#' sets <- list(A=as.character(1:100),B=as.character(101:1000),C=as.character(1001:5000),D=as.character(5001:10000))
-#' res <- cvat(s=fit$s,W=W,sets=sets,nperm=100)
+#' sets <- list(A = as.character(1:100), B = as.character(101:1000), C = as.character(1001:5000), D = as.character(5001:10000))
+#' res <- cvat(s = fit$s, W = W, sets = sets, nperm = 100)
 #' res
 #' 
-#' 
 #' @export
-cvat <- function(s=NULL,g=NULL, W=NULL, sets=NULL, nperm=100){
-     Ws <-   t(t(W)*as.vector(s))
-     if (is.null(g)) g <- W%*%s   
-     cvs <- colSums(as.vector(g)*Ws)
-     #setT <- setTest( stat=cvs, sets=sets, nperm=nperm, method="sum")$p
+#'
+
+cvat <- function(s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 100) {
+     
+     Ws <- t(t(W) * as.vector(s))
+     if (is.null(g)) g <- W %*% s   
+     cvs <- colSums(as.vector(g) * Ws)
+     #setT <- setTest(stat = cvs, sets = sets, nperm = nperm, method = "sum")$p
      #names(setT) <- names(sets)
-     setT <- setTest( stat=cvs, sets=sets, nperm=nperm, method="sum")
-     if(!is.null(names(sets)))  rownames(setT) <- names(sets)
+     setT <- setTest(stat = cvs, sets = sets, nperm = nperm, method = "sum")
+     if (!is.null(names(sets))) rownames(setT) <- names(sets)
      return(setT)
+
 }
 
-scoreTest <- function(e=NULL,W=NULL, sets=NULL, nperm=100){
-     we2 <- as.vector((t(W)%*%e)**2)   
+scoreTest <- function(e = NULL, W = NULL, sets = NULL, nperm = 100) {
+     
+     we2 <- as.vector((t(W) %*% e)**2)   
      names(we2) <- colnames(W)       
-     setT <- setTest( stat=we2, sets=sets, nperm=nperm, method="sum")$p
+     setT <- setTest(stat = we2, sets = sets, nperm = nperm, method = "sum")$p
      return(setT)
+
 }
 
 
@@ -442,84 +475,83 @@ scoreTest <- function(e=NULL,W=NULL, sets=NULL, nperm=100){
 #' 
 #' Genetic marker set tests based on the hyperG test
 #' 
-#' 
 #' @description
 #' Genetic marker set tests based on the hyperG test statistics for a set of genetic markers.
 #'
-#'
 #' @details
-#' The hyperG marker set test is based on the idea to identify the association between two types of classification 
-#' of the markers: 1) classified as being in a predefined set of markers (i.e. genomic feature), 
-#' and 2) classified as being associated to the trait phenotype. 
-#' This can be formulated and tested in a number of ways. Here we consider a test statistic based 
-#' on counting the number of genetic markers in the feature that are associated to trait phenotype. 
-#' Test based on the count test statistic is likely to have high power to detect association if the genomic 
-#' feature harbours genetic markers with large effects. 
+#' The hyperG marker set test tests a predefined set of markers (i.e. those within a particular genomic feature)
+#' for an association with the trait phenotype.
 #' Under the null hypothesis (associated markers are picked at random from the total number of tested 
-#' genetic markers) it is assumed that the observed count statistics is a realization from a hypergeometric 
-#' distribution
-#' Test based on the count test statistic is likely to have high power to detect association if the genomic 
-#' feature harbours genetic markers with large effects.
-
+#' genetic markers) it is assumed that the observed count statistic is a realization from a hypergeometric 
+#' distribution.
+#' This hypothesis can be formulated and tested in a number of ways. Here we consider a test statistic based 
+#' on counting the number of genetic markers in the feature that are associated to trait phenotype. 
+#' A test based on the count test statistic is likely to have high power to detect association if the genomic 
+#' feature harbours genetic markers with large effects. 
 #' 
-#' @param p is a vector of single marker p-values (e.g. based on a t-stat)
-#' @param sets is a list of marker sets  - names corresponds to rownames in stat
-#' @param threshold is the single marker p-value cut-off
-#' @return Returns a vector of p values with length equal to the number of sets 
+#' @param p vector of single marker p-values (e.g. based on a t-stat)
+#' @param sets list of marker sets - names corresponds to rownames in stat
+#' @param threshold single marker p-value cut-off
+#' @return Returns vector of p values with length equal to the number of sets 
 #' @author Peter Sørensen
 #' @references Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. In: Proceedings, 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada, 2014. Dunn Rohde P, Edwards SM, Sarup PM, Sørensen P. 
 #' @examples
 #' 
 #' # Simulate data
-#' W <- matrix(rnorm(2000000),ncol=10000)
+#' W <- matrix(rnorm(2000000), ncol = 10000)
 #'   colnames(W) <- as.character(1:ncol(W))
-#' y <- rowSums(W[,1:10]) + rowSums(W[,1001:1010]) + rnorm(nrow(W))
+#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
 #' 
 #' # REML analyses 
-#' data <- data.frame(y=y,mu=1)
+#' data <- data.frame(y = y, mu = 1)
 #' fm <- y ~ mu
-#' fit <- gfm(fm=fm,W=W,sets=list(colnames(W)),data=data)
+#' fit <- gfm(fm = fm, W = W, sets = list(colnames(W)), data = data)
 #' 
 #' # hyperG set test 
-#' sets <- list(A=as.character(1:100),B=as.character(101:1000),C=as.character(1001:5000),D=as.character(5001:10000))
-#' p <- pt(fit$s/fit$vs)
-#' res <- hgTest(p=p,sets=sets,threshold=0.05)
+#' sets <- list(A = as.character(1:100), B = as.character(101:1000), C = as.character(1001:5000), D = as.character(5001:10000))
+#' p <- pt(fit$s / fit$vs)
+#' res <- hgTest(p = p, sets = sets, threshold = 0.05)
 #' 
 #' @export
-hgTest <- function(p=NULL,sets=NULL,threshold=0.05) {
+#'
+
+hgTest <- function(p = NULL, sets = NULL, threshold = 0.05) {
+     
      N <- length(p)
-     Na <- sum(p<threshold)
-     Nna <- N-Na
-     Nf <- sapply(sets,length)
-     Naf <- sapply(sets, function(x) { sum(p[x]<threshold) })
-     Nnaf <- Nf-Naf
-     Nanf <- Na-Naf
-     Nnanf <- Nna-Nnaf
-     phyperg <- 1-phyper(Naf-1, Nf, N-Nf, Na)
+     Na <- sum(p < threshold)
+     Nna <- N - Na
+     Nf <- sapply(sets, length)
+     Naf <- sapply(sets, function(x) {sum(p[x] < threshold)})
+     Nnaf <- Nf - Naf
+     Nanf <- Na - Naf
+     Nnanf <- Nna - Nnaf
+     phyperg <- 1 - phyper(Naf - 1, Nf, N - Nf, Na)
      phyperg
+
 }
 
 ####################################################################################################################
 #' 
 #' covSets 
 #' 
-#'
 #' @description
 #' Partitioning of covariance using genetic marker sets.
 #' 
 #' @export
-covSets <- function(W=NULL,g=NULL,sets=NULL, level2=FALSE) {
+#'
+
+covSets <- function(W = NULL, g = NULL, sets = NULL, level2 = FALSE) {
      
-     W <- W[,unlist(sets)]
-     nsets <- sapply(sets,length)
-     sets <- sets[nsets>0]
-     nsets <- nsets[nsets>0]
+     W <- W[, unlist(sets)]
+     nsets <- sapply(sets, length)
+     sets <- sets[nsets > 0]
+     nsets <- nsets[nsets > 0]
      
-     WWi <- qggginv(W%*%t(W),tol=0.0001)$G
-     b <- as.vector(crossprod(W,WWi%*%g))
+     WWi <- qggginv(W %*% t(W), tol = 0.0001)$G
+     b <- as.vector(crossprod(W, WWi %*% g))
      names(b) <- colnames(W)
-     Wb <-   t(t(W)*as.vector(b))
-     gWb <- colSums(as.vector(g)*Wb)
+     Wb <-   t(t(W) * as.vector(b))
+     gWb <- colSums(as.vector(g) * Wb)
      
      cv <- cvSet <- NULL
      
@@ -527,36 +559,42 @@ covSets <- function(W=NULL,g=NULL,sets=NULL, level2=FALSE) {
      # level 1 
      ##########################################################
      
-     f <- sapply(sets,function(x){ rowSums(as.matrix(Wb[,x]))})
-     cvs <- apply(f,2,function(x){x%*%g})
+     f <- sapply(sets, function(x) {rowSums(as.matrix(Wb[, x]))})
+     cvs <- apply(f, 2, function(x) {x %*% g})
      Vf <- var(f)
      vf <- diag(Vf)
      covf <- rowSums(Vf) - vf
-     hvf <- vf/var(g)
-     hcovf <- (vf+covf)/var(g)
-     cv <- cbind( nsets, vf,hvf,covf,hcovf, cvs,
-                  vf/nsets,hvf/nsets,covf/nsets,hcovf/nsets,cvs/nsets)
-     colnames(cv) <- c("nset","varf","hf","covf","hcovf","cvat","varf pr snp","hf pr snp","covf pr snp","hcovf pr snp","cvat pr snp")
+     hvf <- vf / var(g)
+     hcovf <- (vf + covf) / var(g)
+     cv <- cbind(nsets, vf, hvf, covf, hcovf, cvs,
+                  vf / nsets, hvf / nsets, covf / nsets, hcovf / nsets, cvs / nsets)
+     colnames(cv) <- c("nset", "varf", "hf", "covf", "hcovf", "cvat", "varf pr snp", "hf pr snp", "covf pr snp", 
+                       "hcovf pr snp", "cvat pr snp")
      
      ##########################################################
      # level 2 
      ##########################################################
+     
      if (level2) {
-          cvSet <- lapply(sets,function(x){
-               Wf <- as.matrix(Wb[,x])
+          cvSet <- lapply(sets, function(x) {
+               
+               Wf <- as.matrix(Wb[, x])
                gf <- rowSums(Wf)
                Vf <- var(Wf)
                vf <- diag(Vf)
                covf <- rowSums(Vf) - vf
-               hvf <- vf/var(gf)
-               hcovf <- (vf+covf)/var(gf)
-               cvs <- apply(Wf,2,function(x){x%*%gf})
-               cf <- cbind(vf,hvf,covf,hcovf,cvs)
-               colnames(cf) <- c("varf","hf","covf","hcovf","cvat")
+               hvf <- vf / var(gf)
+               hcovf <- (vf + covf) / var(gf)
+               cvs <- apply(Wf, 2, function(x) {x %*% gf})
+               cf <- cbind(vf, hvf, covf, hcovf, cvs)
+               colnames(cf) <- c("varf", "hf", "covf", "hcovf", "cvat")
                cf
+               
           })
      }
-     list(cvf=cv,cvfSet=cvSet, f=f)
+     
+     list(cvf = cv, cvfSet = cvSet, f = f)
+     
 }
 
 
@@ -574,7 +612,7 @@ covSets <- function(W=NULL,g=NULL,sets=NULL, level2=FALSE) {
 #' Different genetic models (e.g. additive, dominance, gene by gene and gene by environment interactions) can be specified.
 #' 
 #' @details
-#' The models are implemented using empirical Bayesian methods.The hyperparameters of the dispersion parameters of the Bayesian model can
+#' The models are implemented using empirical Bayesian methods. The hyperparameters of the dispersion parameters of the Bayesian model can
 #' be obtained from prior information or estimated by maximum likelihood, and conditional on these, the model is fitted using
 #' Markov chain Monte Carlo. Furthermore a spectral decomposition of genomic feature relationship matrices plays an 
 #' important computational role in the Markov chain Monte Carlo strategy implemented,
@@ -594,7 +632,10 @@ covSets <- function(W=NULL,g=NULL,sets=NULL, level2=FALSE) {
 #' \item{g}{g is a list of G matrices (g$G), prior (co)variances (g$sigma), prior degrees of freedom (g$sigma),  prior distribution (g$ds)}
 #' @author Peter Sørensen
 #' @references Genetic control of environmental variation of two quantitative traits of Drosophila melanogaster revealed by whole-genome sequencing. Genetics (2015) 201(2):487-97. Sørensen P, de los Campos G, Morgante F, Mackay TFC and Sorensen D.
+#'
 #' @export
+#'
+
 bgfm <- function(y=NULL, g=NULL, nsamp=50, nburn=10, nsave=10000, tol=0.001) {
   # nsamp is the number of samples
   y <- as.matrix(y)
@@ -767,7 +808,7 @@ bgfm <- function(y=NULL, g=NULL, nsamp=50, nburn=10, nsave=10000, tol=0.001) {
 #'   str(fit)
 #' 
 #' @export
-
+#'
 
 # Main function for reml analyses suing DMU
 aireml <- function(fm=NULL,vfm=NULL,Klist=NULL, restrict=NULL, data=NULL,validate=NULL, bin=NULL) {
@@ -1192,7 +1233,10 @@ writeG <- function(G=NULL, filename=NULL, clear=TRUE, ldet=NULL) {
 # #' \item{mus}{number of markers in the set }
 # #' @author Peter Sørensen
 # #' @references Genetic control of environmental variation of two quantitative traits of Drosophila melanogaster revealed by whole-genome sequencing. Genetics (2015) 201(2):487-97. Sørensen P, de los Campos G, Morgante F, Mackay TFC and Sorensen D.
+# #'
 # #' @export
+# #'
+#
 # hssvs <- function( y=NULL, X=NULL, set=NULL, p1=NULL, g0=NULL, nsamp=100, hgprior=list(sce0=0.001, scg0=0.001, dfe0=4, dfg0=4)) {
 #      
 #      n <- length(y)                           # number of observations
