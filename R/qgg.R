@@ -256,7 +256,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           e <- e$values                                    # eigen values
           e[e < tol] <- tol
           D <- diag(e)                                   
-          G <- U %*% D %*% t(U)          	              # compute pdf
+          G <- U %*% D %*% t(U)                        # compute pdf
           colnames(G) <- rownames(G) <- rn
           return(G)                      
      } 
@@ -270,7 +270,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           ie[e > tol] <- 1 / e[e > tol]
           ie[e < tol] <- 0
           D <- diag(ie)                                    # set inverse D to 1/e
-          G <- U %*% D %*% t(U)           		         # compute inverse
+          G <- U %*% D %*% t(U)                        # compute inverse
           ldet <- sum(log(e[e > tol])) 
           colnames(G) <- rownames(G) <- rn
           return(list(G = G, ldet = ldet))                 # log determinant 
@@ -290,17 +290,17 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
 #' 
 #'                        
 #' @details
-#' The singler marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAs. 
+#' The singler marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS. 
 #' The distribution of this test statistic under the null hypothesis (associated markers are picked at random from the total 
 #' number of tested genetic markers) is difficult to describe in terms of exact or approximate 
 #' distributions, and an empirical distribution is required.
 #'                        
-#' @param stat is a vector of single marker statistics (e.g. marker effects, t-stat, p-values)
-#' @param sets is a list of marker sets  - names corresponds to rownames in stat
-#' @param nperm is the number of permutations
-#' @param W matrix of centered and scaled genotypes (used if method=cvat or score)
+#' @param stat a vector of single marker statistics (e.g. marker effects, t-stat, p-values)
+#' @param sets a list of marker sets  - names corresponds to rownames in stat
+#' @param nperm the number of permutations
+#' @param W a matrix of centered and scaled genotypes (used if method = cvat or score)
 #' @param method including sum, cvat, hyperG, score
-#' @param threshold used if method=hyperG
+#' @param threshold used if method = hyperG
 #' @return Returns a dataframe including 
 #' \item{setT}{marker set test statistics} 
 #' \item{nset}{number of markers in the set }
@@ -311,42 +311,42 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
 #' @examples
 #' 
 #' # Simulate data
-#' W <- matrix(rnorm(2000000),ncol=10000)
+#' W <- matrix(rnorm(2000000), ncol = 10000)
 #'   colnames(W) <- as.character(1:ncol(W))
-#' y <- rowSums(W[,1:10]) + rowSums(W[,1001:1010]) + rnorm(nrow(W))
+#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
 #' 
 #' # REML analyses 
-#' data <- data.frame(y=y,mu=1)
+#' data <- data.frame(y = y, mu = 1)
 #' fm <- y ~ mu
-#' fit <- gfm(fm=fm,W=W,sets=list(colnames(W)),data=data)
+#' fit <- gfm(fm = fm, W = W, sets = list(colnames(W)), data = data)
 #' fit$df <- 10
-#' fit$p <- pt(fit$s/sqrt(fit$vs),df=fit$df, lower.tail=FALSE) 
+#' fit$p <- pt(fit$s / sqrt(fit$vs), df = fit$df, lower.tail = FALSE) 
 #' 
-#' sets <- list(A=as.character(1:100),B=as.character(101:1000),C=as.character(1001:5000),D=as.character(5001:10000))
+#' sets <- list(A = as.character(1:100), B = as.character(101:1000), C = as.character(1001:5000), D = as.character(5001:10000))
 
 #' # Set test based on sums 
-#' res <- setTest(stat=fit$s**2,sets=sets, method="sum", nperm=100)
+#' res <- setTest(stat = fit$s**2, sets = sets, method = "sum", nperm = 100)
 #' 
 #' # Set test based on cvat 
-#' res <- setTest(stat=fit$s,W=W, sets=sets,method="cvat", nperm=100)
+#' res <- setTest(stat = fit$s, W = W, sets = sets, method = "cvat", nperm = 100)
 #' 
 #' # Set test based on hyperG 
-#' res <- setTest(stat=fit$p,sets=sets, method="hyperG", threshold=0.05)
+#' res <- setTest(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
 #' 
 #' @export
-setTest <- function(stat=NULL, W=NULL, sets=NULL, nperm=NULL, method="sum", threshold=0.05) {
-  if(method=="sum") setT <- sumTest(stat=stat, sets=sets, nperm=nperm) 
-  if(method=="cvat") setT <- cvat(s=stat, W=W, sets=sets, nperm=nperm) 
-  if(method=="hyperG") setT <- hgTest(p=stat, sets=sets, threshold=threshold) 
-  if(method=="score") setT <- scoreTest(e=e, W=W, sets=sets, nperm=nperm) 
+setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
+  if (method == "sum") setT <- sumTest(stat = stat, sets = sets, nperm = nperm) 
+  if (method == "cvat") setT <- cvat(s = stat, W = W, sets = sets, nperm = nperm) 
+  if (method == "hyperG") setT <- hgTest(p = stat, sets = sets, threshold = threshold) 
+  if (method == "score") setT <- scoreTest(e = e, W = W, sets = sets, nperm = nperm) 
   return(setT)
 }
 
 
-sumTest <- function(stat=NULL, sets=NULL, nperm=NULL, method="sum") {
-  if(method=="mean") setT <- sapply( sets,function(x){ mean(stat[x]) })
-  if(method=="sum") setT <- sapply( sets,function(x){ sum(stat[x]) })
-  if(method=="max") setT <- sapply( sets,function(x){ max(stat[x]) })
+sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
+  if (method == "mean") setT <- sapply( sets,function(x){ mean(stat[x]) })
+  if (method == "sum") setT <- sapply( sets,function(x){ sum(stat[x]) })
+  if (method == "max") setT <- sapply( sets,function(x){ max(stat[x]) })
   if (!is.null(nperm)) {
     p <- rep(0,length(sets)) 
     n <- length(stat)
