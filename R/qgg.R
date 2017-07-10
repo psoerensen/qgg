@@ -658,10 +658,10 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
   
   U <- D <- sigmas <- vector(length = nset, mode = "list")
   for (i in 1:nset) {                    
-    e <- eigen(g$G[[i]])                    # eigen value decomposition of the matrix G
+    e <- eigen(g$G[[i]])                   # eigen value decomposition of the matrix G
     ev <- e$values
-    U[[i]] <- e$vectors[, ev > tol]            # keep eigen vector if ev>tol
-    D[[i]] <- e$values[ev > tol]              # keep eigen value if ev>tol
+    U[[i]] <- e$vectors[, ev > tol]        # keep eigen vector if ev>tol
+    D[[i]] <- e$values[ev > tol]           # keep eigen value if ev>tol
     sigmas[[i]] <- matrix(NA, nrow = nsamp, ncol = (nt * (nt + 1)) / 2)
     for (j in 1:nt) {
       as <-  matrix(NA, nrow = sum(ev > tol), ncol = length(samples))
@@ -672,7 +672,7 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
   
   for (i in 1:nsamp) {                     # loop over the number of samples (nsamp)
        
-    for (j in 1:nset) {                   # loop over the number of sets
+    for (j in 1:nset) {                    # loop over the number of sets
       rhs <- NULL
          
       for (t in 1:nt) {
@@ -762,7 +762,6 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #############################################################################################
 # utility function for using DMU 
 #############################################################################################
-
 #' 
 #' Genomic Feature Model analyses implemented using Restriced Likelihood Methods in DMU
 #'
@@ -801,137 +800,137 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #' #bin <- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"
 #' 
 #' # Simulate data
-#' W <- matrix(rnorm(4000000),ncol=10000)
+#' W <- matrix(rnorm(4000000), ncol = 10000)
 #'   colnames(W) <- as.character(1:ncol(W))
 #'   rownames(W) <- as.character(1:nrow(W))
 #' 
-#' G <- W%*%t(W)/ncol(W)
+#' G <- W %*% t(W) / ncol(W)
 #'
-#' y <- rowSums(W[,1:10]) + rowSums(W[,1001:1010]) + 10*rnorm(nrow(W))
+#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + 10 * rnorm(nrow(W))
 #' 
-#' data <- data.frame(f=factor(sample(1:2,nrow(W),replace=TRUE)),g=factor(1:nrow(W)),y=y )
+#' data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
 #' 
-#' fm <- y ~ f +  (1|g~G) 
-#' Klist <- list( G=G )
+#' fm <- y ~ f + (1 | g~G) 
+#' Klist <- list(G = G)
 #' 
 #' 
-#' fit <- aireml(fm=fm,Klist=Klist,data=data)
+#' fit <- aireml(fm = fm, Klist = Klist, data = data)
 #'   str(fit)
 #' 
 #' @export
 #'
 
 # Main function for reml analyses suing DMU
-aireml <- function(fm=NULL,vfm=NULL,Klist=NULL, restrict=NULL, data=NULL,validate=NULL, bin=NULL) {
+aireml <- function(fm = NULL, vfm = NULL, Klist = NULL, restrict = NULL, data = NULL, validate = NULL, bin = NULL) {
+     
      tol <- 0.001
      fit <- cvfit <- NULL
-     #model <- extractModel(fm=fm, data=data)
-     model <- lapply(fm,function(x) {extractModel(fm=x,data=data)})
-     model <- modelDMU(model=model, restrict=restrict)
-     flevels <- writeDMU(model=model,data=data,Klist=Klist)
-     executeDMU(bin=bin)
-     fit <- readDMU(model=model,flevels=flevels)
-     if(!is.null(validate)) {
+     #model <- extractModel(fm = fm, data = data)
+     model <- lapply(fm, function(x) {extractModel(fm = x, data = data)})
+     model <- modelDMU(model = model, restrict = restrict)
+     flevels <- writeDMU(model = model, data = data, Klist = Klist)
+     executeDMU(bin = bin)
+     fit <- readDMU(model = model, flevels = flevels)
+     if (!is.null(validate)) {
           for (i in 1:ncol(validate)) {
                #set data missing
-               writeDMU(model=model,data=data,Klist=Klist)
-               executeDMU(bin=bin)
-               cvfit[[i]] <- readDMU(model=model,flevels=flevels)
+               writeDMU(model = model, data = data, Klist = Klist)
+               executeDMU(bin = bin)
+               cvfit[[i]] <- readDMU(model = model, flevels = flevels)
           }
           fit$cv <- cvfit
      }
-     return(fit=fit)
+     
+     return(fit = fit)
+     
 }
 
-
-
 # Extract model information from fm and vfm 
-extractModel <- function(fm=NULL, data=NULL) {
+extractModel <- function(fm = NULL, data = NULL) {
      
-     vtype <- sapply(data,class)
+     vtype <- sapply(data, class)
      
      ffvar <- frvar <- vvar <- yvar <- NULL 
      yvar <- as.character(fm)[2]
      
-     fmsplit <- unlist(strsplit(as.character(fm)[3],split="+", fixed=TRUE))
-     rwsR <- grep(")", fmsplit,fixed=TRUE)
+     fmsplit <- unlist(strsplit(as.character(fm)[3], split = "+", fixed = TRUE))
+     rwsR <- grep(")", fmsplit, fixed = TRUE)
      rwsF <- (1:length(fmsplit))[-rwsR]
      
      fvar <- fmsplit[rwsF]
-     fvar <- gsub(" ", "",fvar, fixed=TRUE)
-     ffvar <- fvar[vtype[fvar]=="factor"]
-     frvar <- fvar[vtype[fvar]=="numeric"]
+     fvar <- gsub(" ", "", fvar, fixed = TRUE)
+     ffvar <- fvar[vtype[fvar] == "factor"]
+     frvar <- fvar[vtype[fvar] == "numeric"]
      
      vvar <- fmsplit[rwsR]
-     vvar <- gsub("1 | ", "", vvar, fixed=TRUE)
-     vvar <- gsub("+", "",vvar, fixed=TRUE)
-     vvar <- gsub("(", "",vvar, fixed=TRUE)
-     vvar <- gsub(")", "",vvar, fixed=TRUE)
-     vvar <- gsub(" ", "",vvar, fixed=TRUE)
+     vvar <- gsub("1 | ", "", vvar, fixed = TRUE)
+     vvar <- gsub("+", "", vvar, fixed = TRUE)
+     vvar <- gsub("(", "", vvar, fixed = TRUE)
+     vvar <- gsub(")", "", vvar, fixed = TRUE)
+     vvar <- gsub(" ", "", vvar, fixed = TRUE)
      
-     vvar <- lapply(vvar, function(x) {
-          x <- unlist( strsplit( as.character(x),split="~", fixed=TRUE)) })
+     vvar <- lapply(vvar, function(x) {x <- unlist(strsplit(as.character(x), split = "~", fixed = TRUE))})
      
-     cvvar <- sapply(vvar,function(x){x[2]})
-     vvar <- sapply(vvar,function(x){x[1]})
+     cvvar <- sapply(vvar, function(x) {x[2]})
+     vvar <- sapply(vvar, function(x) {x[1]})
      names(cvvar) <- vvar
      cvvar <- cvvar[!is.na(cvvar)]    
-     vvartype <- rep("I",length(vvar))
+     vvartype <- rep("I", length(vvar))
      names(vvartype) <- vvar
      vvartype[names(cvvar)] <- "COR"
-     
      
      nreg <- length(frvar)
      nrandom <- length(vvar)
      nfixed <- length(ffvar)
-     nfactors <- nrandom+nfixed 
+     nfactors <- nrandom + nfixed 
      
-     variables <- list( fixed=ffvar,
-                        regression=frvar,
-                        random=vvar,
-                        response=yvar,
-                        factors=c(ffvar,vvar),
-                        variables=c(ffvar,vvar,yvar,frvar))
+     variables <- list(fixed = ffvar, 
+                       regression = frvar, 
+                       random = vvar, 
+                       response = yvar, 
+                       factors = c(ffvar, vvar), 
+                       variables = c(ffvar, vvar, yvar, frvar))
      
-     n <- as.data.frame(t(sapply(variables,length)))
+     n <- as.data.frame(t(sapply(variables, length)))
      
-     return(list( fixed=ffvar,
-                  regression=frvar,
-                  random=vvar,
-                  response=yvar,
-                  factors=c(ffvar,vvar),
-                  variables=c(ffvar,vvar,yvar,frvar),
-                  n=n,
-                  covtype=vvartype,
-                  covmat=cvvar)
+     return(list(fixed = ffvar, 
+                 regression = frvar, 
+                 random = vvar, 
+                 response = yvar, 
+                 factors = c(ffvar, vvar), 
+                 variables = c(ffvar, vvar, yvar, frvar), 
+                 n = n, 
+                 covtype = vvartype, 
+                 covmat = cvvar)
      ) 
+     
 }
 
-modelDMU <- function(model=NULL, restrict=NULL) {
+modelDMU <- function(model = NULL, restrict = NULL) {
      
-     fixed <- unique(unlist(lapply(model,function(x){x$fixed})))
-     random <- unique(unlist(lapply(model,function(x){x$random})))
-     regression <- unique(unlist(lapply(model,function(x){x$regression})))
-     response <- unique(unlist(lapply(model,function(x){x$response})))
+     fixed <- unique(unlist(lapply(model, function(x) {x$fixed})))
+     random <- unique(unlist(lapply(model, function(x) {x$random})))
+     regression <- unique(unlist(lapply(model, function(x) {x$regression})))
+     response <- unique(unlist(lapply(model, function(x) {x$response})))
      covmat <- NULL
      for (i in 1:length(model)) {
-          covmat <- c(covmat,model[[i]]$covmat) 
+          covmat <- c(covmat, model[[i]]$covmat) 
      }
      covmat <- covmat[!duplicated(names(covmat))]
      model$nt <- length(model)
-     model$absorb <- rep(0,model$nt)
+     model$absorb <- rep(0, model$nt)
      
      model$data <- NULL
      model$data$missing <- -9999
-     model$data$variables <- c(fixed,random,response,regression)
+     model$data$variables <- c(fixed, random, response, regression)
      model$data$nvariables <- length(model$data$variables)
-     model$data$nintegers <- sum(length(fixed)+length(random))
-     model$data$nreals <- sum(length(response)+length(regression))
+     model$data$nintegers <- sum(length(fixed) + length(random))
+     model$data$nreals <- sum(length(response) + length(regression))
      
      model$data$integers <- 1:model$data$nintegers
-     names(model$data$integers) <- c(fixed,random)
+     names(model$data$integers) <- c(fixed, random)
      model$data$reals <- 1:model$data$nreals
-     names(model$data$reals) <- c(response,regression)
+     names(model$data$reals) <- c(response, regression)
      model$data$random <- 1:length(random)
      names(model$data$random) <- random
      model$data$covmat <- covmat
@@ -941,11 +940,14 @@ modelDMU <- function(model=NULL, restrict=NULL) {
           model$restrict$nresiduals <- nrow(restrict$residuals)
           model$restrict$residuals <- t(restrict$residuals)
      }
+     
      return(model)
+     
 }
 
 # Recode factors for DMU 
-recodeDMU <- function(data=NULL) {
+recodeDMU <- function(data = NULL) {
+     
      flevels <- rlevels <- NULL
      for (i in 1:ncol(data)) {
           f <- data[, i]
@@ -953,153 +955,144 @@ recodeDMU <- function(data=NULL) {
           names(flevels[[i]]) <- 1:nlevels(f)
           rlevels[[i]] <- 1:nlevels(f)
           names(rlevels[[i]]) <- levels(f)
-          data[,i] <- names(flevels[[i]])[f]
+          data[, i] <- names(flevels[[i]])[f]
      }
      names(flevels) <- names(rlevels) <- colnames(data)
      head(data)
-     return(list(rlevels=rlevels,flevels=flevels,data=data)) 
+     
+     return(list(rlevels = rlevels, flevels = flevels, data = data))
+     
 }
 
-
 # Write DIR file, data file, and cor files for DMU 
-writeDMU <- function(model=NULL,data=NULL,Klist=NULL,tol=0.001){
+writeDMU <- function(model = NULL, data = NULL, Klist = NULL, tol = 0.001) {
      
      # Write DMU DIR file
      dir.file <- "gfm.DIR"
      write("$COMMENT", file = dir.file)
-     write("DIR file DMU generated from R ", file = dir.file, 
-           append = TRUE)
+     write("DIR file DMU generated from R ", file = dir.file, append = TRUE)
      write(" ", file = dir.file, append = TRUE)
-     write(paste("$ANALYSE", 1,1,0,0), 
-           file = dir.file, append = TRUE)
+     write(paste("$ANALYSE", 1, 1, 0, 0), file = dir.file, append = TRUE)
      write(" ", file = dir.file, append = TRUE)
-     write(c("$DATA ASCII (", model$data$nintegers, ",", model$data$nreals, 
-             ",", model$data$missing, ") data.txt"), file = dir.file, append = TRUE, 
-           ncolumns = 12, sep = "")
+     write(c("$DATA ASCII (", model$data$nintegers, ",", model$data$nreals, ",", model$data$missing, ") data.txt"),
+           file = dir.file, append = TRUE, ncolumns = 12, sep = "")
      write(" ", file = dir.file, append = TRUE)
      write("$VARIABLE", file = dir.file, append = TRUE)
-     write(model$data$variables, file = dir.file, append = TRUE, ncolumns = model$data$nvariables )
+     write(model$data$variables, file = dir.file, append = TRUE, ncolumns = model$data$nvariables)
      write(" ", file = dir.file, append = TRUE)
      
      write("$MODEL", file = dir.file, append = TRUE)
      write(model$nt, file = dir.file, append = TRUE)     # Number of traits
-     write(model$absorb, file = dir.file, append = TRUE,ncolumns=1)     # Weights - one line for each trait
+     write(model$absorb, file = dir.file, append = TRUE, ncolumns = 1)     # Weights - one line for each trait
      
      for (i in 1:model$nt) {
-          write(c(model$data$reals[model[[i]]$response],
-                  0,model[[i]]$n$factors,
-                  model$data$integers[model[[i]]$factors]), 
-                file = dir.file, append = TRUE, ncolumns = 3+model[[i]]$n$factors  )
+          write(c(model$data$reals[model[[i]]$response], 0, model[[i]]$n$factors, model$data$integers[model[[i]]$factors]), 
+                file = dir.file, append = TRUE, ncolumns = 3 + model[[i]]$n$factors)
      }
      
      for (i in 1:model$nt) {
-          write(c(model[[i]]$n$random,model$data$random[model[[i]]$random]), file = dir.file, append = TRUE, ncolumns = 1+model[[i]]$n$random  )
+          write(c(model[[i]]$n$random,model$data$random[model[[i]]$random]), file = dir.file, append = TRUE,
+                ncolumns = 1 + model[[i]]$n$random)
      }
      
      for (i in 1:model$nt) {
-          write(c(model[[i]]$n$regression,
-                  model$data$reals[model[[i]]$regression]), 
-                file = dir.file, append = TRUE, ncolumns = 1+model[[i]]$n$regression  )
+          write(c(model[[i]]$n$regression, model$data$reals[model[[i]]$regression]), file = dir.file, append = TRUE, 
+                ncolumns = 1 + model[[i]]$n$regression)
      }
      
      write(model$restrict$nresiduals, file = dir.file, append = TRUE)     # Number of residual covariances that are assumed to be zero
-     #if (model$restrict$nresiduals==0)
-     #write(model$restrict$residuals, file = dir.file, append = TRUE,ncolumns = 1, sep = " ")    # Trait number combination for zero residual covariance 
+     #if (model$restrict$nresiduals == 0)
+     #write(model$restrict$residuals, file = dir.file, append = TRUE, ncolumns = 1, sep = " ")    # Trait number combination for zero residual covariance 
      #if (model$restrict$nresiduals>0)
-     write(model$restrict$residuals, file = dir.file, append = TRUE,ncolumns = 2, sep = " ")    # Trait number combination for zero residual covariance 
+     write(model$restrict$residuals, file = dir.file, append = TRUE, ncolumns = 2, sep = " ")    # Trait number combination for zero residual covariance 
      write(" ", file = dir.file, append = TRUE)
      
-     if(length(model$data$covmat)>0) {
+     if (length(model$data$covmat) > 0) {
        for (i in 1:length(model$data$covmat)) {
          vvarname <- names(model$data$covmat)[i]
-         vvarfile <- paste(vvarname,".txt",sep="")
-         write(c("$VAR_STR",model$data$random[vvarname],"COR", "ASCII",vvarfile), file = dir.file, append = TRUE, 
+         vvarfile <- paste(vvarname, ".txt", sep = "")
+         write(c("$VAR_STR", model$data$random[vvarname], "COR", "ASCII", vvarfile), file = dir.file, append = TRUE, 
                ncolumns = 5, sep = " ")
        }  
      }
      write(" ", file = dir.file, append = TRUE)
      
-     write(c("$DMUAI", format(c(10,0.0000001,0.000001,1,0,0),scientific=FALSE)), 
-           file = dir.file, append = TRUE)
+     write(c("$DMUAI", format(c(10, 0.0000001, 0.000001, 1, 0, 0),scientific = FALSE)), file = dir.file, append = TRUE)
      write(" ", file = dir.file, append = TRUE)
      
      write("$RESIDUALS ASCII", file = dir.file, append = TRUE)
      
-     
      # Write DMU data file
      data.file <- "data.txt"
      # Recode data (factors only) (check recoding this again)
-     rec <- recodeDMU(data[,names(model$data$integers)])
-     data[,names(model$data$integers)] <- rec$data
-     write.table(format(data[,model$data$variables], scientific = FALSE), file = data.file, 
+     rec <- recodeDMU(data[, names(model$data$integers)])
+     data[, names(model$data$integers)] <- rec$data
+     write.table(format(data[, model$data$variables], scientific = FALSE), file = data.file, 
                  quote = FALSE, col.names = FALSE, sep = "\t", row.names = FALSE)
      
      # Write DMU cor data files
-     if(!is.null(Klist)) {
-          for ( i in 1:length(model$data$covmat) ) {
+     if (!is.null(Klist)) {
+          for (i in 1:length(model$data$covmat)) {
                vvarname <- names(model$data$covmat)[i]
-               vvarfile <- paste(vvarname,".txt",sep="")
-               iG <- qggginv(Klist[[ model$data$covmat[i] ]], tol=tol)
+               vvarfile <- paste(vvarname, ".txt", sep = "")
+               iG <- qggginv(Klist[[model$data$covmat[i]]], tol = tol)
                colnames(iG$G) <- rownames(iG$G) <- rec$rlevels[[vvarname]][rownames(iG$G)]
-               writeG(G=iG$G, filename=vvarfile, ldet=iG$ldet)
+               writeG(G = iG$G, filename = vvarfile, ldet = iG$ldet)
           }
      }
-      
      
-     return(flevels=rec$flevels)
+     return(flevels = rec$flevels)
      
 }
 
-
 # Remove DMU output files 
-rename.and.clean.windows <- function (jobname=NULL) 
-{
+rename.and.clean.windows <- function (jobname = NULL) {
+     
      ll.ff <- list.files()
      "my.system" <- function(cmd) return(system(paste(Sys.getenv("COMSPEC"), 
                                                       "/c", cmd),show.output.on.console = FALSE))
      ll.name <- c("SOL", "PAROUT", "PAROUT_STD", "PEDDATA", "RESIDUAL", 
                   "LLIK", "SOL_STD")
      ll <- ll.name[ll.name %in% ll.ff]
-     for (kk in ll) my.system(paste("move ", kk, " ", jobname, 
-                                    ".", kk, sep = ""))
-     junk.files <- c("DMU1.log","DMUAI.log",paste("COR",1:20,sep=""),"CODE_TABLE", "DMU1.dir", "DMUAI.dir", "DMU_LOG", 
+     for (kk in ll) {my.system(paste("move ", kk, " ", jobname, ".", kk, sep = ""))}
+     junk.files <- c("DMU1.log", "DMUAI.log", paste("COR", 1:20, sep = ""), "CODE_TABLE", "DMU1.dir", "DMUAI.dir", "DMU_LOG", 
                      "DUMMY", "FSPAKWK", "Latest_parm", "LEVAL", "MODINF", 
                      "PARIN", "RCDATA_I", "RCDATA_R", "INBREED", "AINV1", 
-                     "AINV2", "PEDFILE1", "PEDFILE2", "fort.81","fort.66","fort.99")
+                     "AINV2", "PEDFILE1", "PEDFILE2", "fort.81", "fort.66", "fort.99")
      del.files <- ll.ff[ll.ff %in% junk.files]
-     if (length(del.files)>0) 
-          for (kk in 1:length(del.files)) my.system(paste("del ", 
-                                                          del.files[kk], sep = ""))
+     if (length(del.files) > 0) { 
+          for (kk in 1:length(del.files)) {my.system(paste("del ", del.files[kk], sep = ""))}
+     }
+     
 }
 
-rename.and.clean <- function (jobname=NULL) 
-{
+rename.and.clean <- function (jobname = NULL) {
+     
      ll.ff <- list.files()
-     ll.name <- c("SOL", "PAROUT", "PAROUT_STD", "PEDDATA", "RESIDUAL", 
-                  "LLIK", "SOL_STD")
+     ll.name <- c("SOL", "PAROUT", "PAROUT_STD", "PEDDATA", "RESIDUAL", "LLIK", "SOL_STD")
      ll <- ll.name[ll.name %in% ll.ff]
-     for (kk in ll) system(paste("mv ", kk, " ", jobname, ".", 
-                                 kk, sep = ""))
-     junk.files <- c("DMU1.log","DMUAI.log",paste("COR",1:20,sep=""),"CODE_TABLE", "DMU1.dir", "DMUAI.dir", "DMU_LOG", 
+     for (kk in ll) system(paste("mv ", kk, " ", jobname, ".", kk, sep = ""))
+     junk.files <- c("DMU1.log", "DMUAI.log", paste("COR", 1:20, sep = ""), "CODE_TABLE", "DMU1.dir", "DMUAI.dir", "DMU_LOG", 
                      "DUMMY", "FSPAKWK", "Latest_parm", "LEVAL", "MODINF", 
                      "PARIN", "RCDATA_I", "RCDATA_R", "INBREED", "AINV1", 
-                     "AINV2", "PEDFILE1", "PEDFILE2", "fort.81","fort.66","fort.99")
+                     "AINV2", "PEDFILE1", "PEDFILE2", "fort.81", "fort.66", "fort.99")
      del.files <- ll.ff[ll.ff %in% junk.files]
-     if (length(del.files)) 
-          for (kk in 1:length(del.files)) system(paste("rm ", del.files[kk], 
-                                                       sep = ""))
+     if (length(del.files)) {
+          for (kk in 1:length(del.files)) {system(paste("rm ", del.files[kk], sep = ""))}
+     }
+
 }
 
 # Execute DMU 
-executeDMU <- function(bin=NULL) {
+executeDMU <- function(bin = NULL) {
      
      jobname <- "gfm"
      
      dmu1 <- "dmu1"
      dmuai <- "dmuai"
      
-     if(!is.null(bin)) dmu1 <- paste(bin,"dmu1",sep="/")
-     if(!is.null(bin)) dmuai <- paste(bin,"dmuai",sep="/")
+     if (!is.null(bin)) dmu1 <- paste(bin, "dmu1", sep = "/")
+     if (!is.null(bin)) dmuai <- paste(bin, "dmuai", sep = "/")
      
      out <- paste(jobname, ".dmuai.lst", sep = "")
      dir <- paste(jobname, ".DIR", sep = "")
@@ -1107,32 +1100,31 @@ executeDMU <- function(bin=NULL) {
      HW <- Sys.info()["machine"]
      OS <- .Platform$OS.type
      
-     if (OS=="windows") {
-          "my.system" <- function(cmd) return(system(paste(Sys.getenv("COMSPEC"), 
-                                                           "/c", cmd)))
-          my.system("set MKL_NUM_THREADS=1")
+     if (OS == "windows") {
+          "my.system" <- function(cmd) return(system(paste(Sys.getenv("COMSPEC"), "/c", cmd)))
+          my.system("set MKL_NUM_THREADS = 1")
           test <- my.system(paste(shQuote(dmu1), " < ", dir, " > ", out, sep = ""))
           if (test == 0 & "MODINF" %in% list.files()) {
                test <- my.system(paste(shQuote(dmuai), " < ", dir, " >> ", out, sep = ""))
           }
-          rename.and.clean.windows(jobname)
+          rename.and.clean.windows(jobname)  
      }
-     if (!OS=="windows") {
+     
+     if (!OS == "windows") {
           ll.ff <- list.files()
           if (!("dmu1" %in% ll.ff)) 
           system(paste("cp ", dmu1, " dmu1", sep = ""))
           if (!("dmuai" %in% ll.ff))
           system(paste("cp ", dmuai, " dmuai", sep = ""))
-          system("export MKL_NUM_THREADS=1")
+          system("export MKL_NUM_THREADS = 1")
           test <- system(paste("time ./dmu1 < ", dir, "> ", out))
           if (test == 0 & "MODINF" %in% list.files()) {
                test <- system(paste("time ./dmuai >> ", out))
           }
-          rename.and.clean(jobname)
+          rename.and.clean(jobname)  
      }
      
 }
-
 
 # Read DMU output files
 readDMU <- function(model=NULL, flevels=NULL) {
@@ -1141,77 +1133,79 @@ readDMU <- function(model=NULL, flevels=NULL) {
      
      fit <- NULL
      
-     llik <- scan(paste(jobname,".LLIK",sep=""), what = character(0), quiet = TRUE)
+     llik <- scan(paste(jobname, ".LLIK", sep = ""), what = character(0), quiet = TRUE)
      
      fit$llik <- as.numeric(llik[12])
-     cls1 <- grep("Theta",llik)
-     cls2 <- grep("ASD",llik)
-     #fit$sigma <- as.numeric(llik[(cls1+1):(cls2-1)])
-     #fit$asd <- as.numeric(llik[(cls2+1):length(llik)])
-     #names(fit$sigma) <- names(fit$asd) <- c(model$random,"e")
+     cls1 <- grep("Theta", llik)
+     cls2 <- grep("ASD", llik)
+     #fit$sigma <- as.numeric(llik[(cls1 + 1):(cls2 - 1)])
+     #fit$asd <- as.numeric(llik[(cls2 + 1):length(llik)])
+     #names(fit$sigma) <- names(fit$asd) <- c(model$random, "e")
      
-     sol <- as.matrix(read.table(paste(jobname,".SOL",sep=""), as.is = TRUE)[-1, , drop = FALSE])
-     blue <- sol[sol[,1]==2,c(2,4:6,8:9)]  # "=2" is estimates effects for fixed factors
-     blup <- sol[sol[,1]==3,c(2,4:6,8:9)]  # "=3" is estimates effects for random factors
+     sol <- as.matrix(read.table(paste(jobname, ".SOL", sep = ""), as.is = TRUE)[-1,  , drop = FALSE])
+     blue <- sol[sol[, 1] == 2, c(2, 4:6, 8:9)]  # "== 2" is estimates effects for fixed factors
+     blup <- sol[sol[, 1] == 3, c(2, 4:6, 8:9)]  # "== 3" is estimates effects for random factors
 
-     f <- vector("list",length=model$nt)
+     f <- vector("list", length = model$nt)
      for (i in 1:model$nt) {
         names(f)[i] <- model[[i]]$response
-          for(j in 1:model[[i]]$n$random){
-          f[[i]][[j]] <- blup[blup[,1]==i & blup[,2]==j,5:6]
-          rownames(f[[i]][[j]]) <- flevels[[model[[i]]$random[j]]][blup[blup[,1]==i & blup[,2]==j,3]]
-          colnames(f[[i]][[j]]) <- c("Estimate","SE") 
+          for (j in 1:model[[i]]$n$random) {
+          f[[i]][[j]] <- blup[blup[, 1] == i & blup[, 2] == j, 5:6]
+          rownames(f[[i]][[j]]) <- flevels[[model[[i]]$random[j]]][blup[blup[, 1] == i & blup[, 2] == j, 3]]
+          colnames(f[[i]][[j]]) <- c("Estimate", "SE") 
           names(f[[i]])[j] <- model[[i]]$random[j]
           } 
      }
      fit$f <- f
      
-     sigma <- as.matrix(read.table(paste(jobname,".PAROUT",sep="")))
-     asd <- as.matrix(read.table(paste(jobname,".PAROUT_STD",sep=""),skip=1,nrow=nrow(sigma)))
-     fit$sigma <- cbind(sigma,asd[,3])
-     colnames(fit$sigma) <- c("Random ID","Row ID","Col ID","Estimate","ASD")
+     sigma <- as.matrix(read.table(paste(jobname, ".PAROUT", sep = "")))
+     asd <- as.matrix(read.table(paste(jobname, ".PAROUT_STD", sep = ""), skip = 1, nrow = nrow(sigma)))
+     fit$sigma <- cbind(sigma, asd[, 3])
+     colnames(fit$sigma) <- c("Random ID", "Row ID", "Col ID", "Estimate", "ASD")
      rownames(fit$sigma) <- 1:nrow(sigma)
 
-     fit$covsigma <- as.matrix(read.table(paste(jobname,".PAROUT_STD",sep=""),skip=1+nrow(sigma)))
-     colnames(fit$covsigma) <- c("Random ID","Random ID","Correlation","ASE")
+     fit$covsigma <- as.matrix(read.table(paste(jobname, ".PAROUT_STD", sep = ""), skip = 1 + nrow(sigma)))
+     colnames(fit$covsigma) <- c("Random ID", "Random ID", "Correlation", "ASE")
      rownames(fit$covsigma) <- 1:nrow(fit$covsigma)
      
-     resi <- as.matrix(read.table(paste(jobname, ".RESIDUAL", 
-                                        sep = "")))
+     resi <- as.matrix(read.table(paste(jobname, ".RESIDUAL", sep = "")))
      nc <- ncol(resi)
      nn.per.tr <- 4 #if (object$glmm) 7 else 4
      
-     n.trait <- (nc - 1)/nn.per.tr
-     if (n.trait != round(n.trait)) 
-          stop("something wrong")
-     fit$residuals <- resi[, 1 + (((nn.per.tr - 2) * n.trait + 
-                                        1):((nn.per.tr - 1) * n.trait))]
+     n.trait <- (nc - 1) / nn.per.tr
+     if (n.trait != round(n.trait)) {stop("something wrong")}
+     fit$residuals <- resi[, 1 + (((nn.per.tr - 2) * n.trait + 1):((nn.per.tr - 1) * n.trait))]
      fit$fitted <- resi[, 1 + ((1 * n.trait + 1):(2 * n.trait))]
-     fit$hat.matrix <- resi[, 1 + (((nn.per.tr - 1) * n.trait + 
-                                         1):(nn.per.tr * n.trait))]
+     fit$hat.matrix <- resi[, 1 + (((nn.per.tr - 1) * n.trait + 1):(nn.per.tr * n.trait))]
      
      return(fit)
+     
 }
 
-vec2mat <- function(vec=NULL,n=NULL, rcnames=NULL) {
+vec2mat <- function(vec = NULL, n = NULL, rcnames = NULL) {
+     
      X <- diag(n)
-     X[lower.tri(X, diag=TRUE)] <- vec
+     X[lower.tri(X, diag = TRUE)] <- vec
      X <- X + t(X) - diag(diag(X))  
-     if(!is.null(rcnames)) { rownames(X) <- colnames(X) <- rcnames}
+     if(!is.null(rcnames)) {rownames(X) <- colnames(X) <- rcnames}
      X
+     
 }
 
-writeG <- function(G=NULL, filename=NULL, clear=TRUE, ldet=NULL) {
+writeG <- function(G = NULL, filename = NULL, clear = TRUE, ldet = NULL) {
+     
      if (clear) {file.remove(filename)}
      nr <- nrow(G) 
-     if(!is.null(ldet)) { write.table( t(c(0,0,ldet )),filename,quote=F,sep=" ",row.names=F, col.names=F, append=TRUE)}
-     for (i in 1:nr) {
-          out <- data.frame(rownames(G)[i], rownames(G)[i:nr], G[i:nr,i])
-          write.table( out,filename,quote=F,sep=" ",row.names=F, col.names=F, append=TRUE)
+     if (!is.null(ldet)) {write.table(t(c(0, 0, ldet)), filename, quote = F, sep = " ", row.names = F, 
+                                      col.names = F, append = TRUE)}
+     for (i in 1:nr) { 
+          out <- data.frame(rownames(G)[i], rownames(G)[i:nr], G[i:nr, i])
+          write.table(out, filename, quote = F, sep = " ", row.names = F, col.names = F, append = TRUE)
      }
+     
 }
 
-
+####################################################################################################################
 # #' 
 # #' Genomic feature model analyses using Bayesian Mixture Models
 # #'
@@ -1230,7 +1224,7 @@ writeG <- function(G=NULL, filename=NULL, clear=TRUE, ldet=NULL) {
 # #'
 # #' @param y is a vector of phenotypes 
 # #' @param X is a matrix of centered and scaled genotypes
-# #' @param set is a list of marker sets  - names corresponds to rownames in stat
+# #' @param set is a list of marker sets - names corresponds to rownames in stat
 # #' @param hgprior is a list of prior scale parameters (sce0 and scg0), prior degrees of freedom (dfe0 and dgf0),  prior distribution (not yet implemented)
 # #' @param nsamp is the number of samples after burnin
 # #' @param p1 prior proportion of elements in gamma to be set to one
@@ -1248,50 +1242,50 @@ writeG <- function(G=NULL, filename=NULL, clear=TRUE, ldet=NULL) {
 # #' @export
 # #'
 #
-# hssvs <- function( y=NULL, X=NULL, set=NULL, p1=NULL, g0=NULL, nsamp=100, hgprior=list(sce0=0.001, scg0=0.001, dfe0=4, dfg0=4)) {
+# hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
 #      
 #      n <- length(y)                           # number of observations
 #      p <- ncol(X)                             # number of regression variables
 #      dxx <- colSums(X**2)                     # diagonal elements of the X'X matrix
-#      p0 <- 1-p1                               # prior proportion of elements in gamma to be set to one
+#      p0 <- 1 - p1                             # prior proportion of elements in gamma to be set to one
 #      
-#      b <- rep(0,p)                            # initialize b
-#      g <- rep(0,p)                            # intialize g
+#      b <- rep(0, p)                           # initialize b
+#      g <- rep(0, p)                           # intialize g
 #      
 #      nset <- length(set)                      # number of sets
-#      pset <- sapply(set,length)
-#      for ( i in 1:nset) {
-#           n1 <- as.integer(pset[i]*p1) 
-#           cset <- abs(cor(y, X[,set[[i]]]))
-#           o <- order(cset,decreasing=TRUE)[1:n1]
+#      pset <- sapply(set, length)
+#      for (i in 1:nset) {
+#           n1 <- as.integer(pset[i] * p1) 
+#           cset <- abs(cor(y, X[, set[[i]]]))
+#           o <- order(cset, decreasing = TRUE)[1:n1]
 #           o <- set[[i]][o]
 #           g[o] <- 1
 #      }
 #      
 #      bset <- NULL                             # beta's within sets
 #      gset <- NULL                             # g's within sets
-#      for ( i in 1:nset ) {
+#      for (i in 1:nset) {
 #           bset[[i]] <- b[set[[i]]]
 #           gset[[i]] <- g[set[[i]]]
 #      }
 #      
 #      mu <- 0                                  # initilaize mu
-#      sigma2 <- var(y)/2                       # initialize sigma2
+#      sigma2 <- var(y) / 2                     # initialize sigma2
 #      g1 <- 1                                  # initialize slab variance
 #      if (is.null(g0)) g0 <- 1e-09             # initialize spike variance
 #      
-#      g0 <- rep(g0,nset)                       # spike variance for each set
-#      g1 <- rep(g1,nset)                       # slab variance for each set
+#      g0 <- rep(g0, nset)                      # spike variance for each set
+#      g1 <- rep(g1, nset)                      # slab variance for each set
 #      
-#      #Xs <- matrix(0,nrow=n,ncol=nset)         # matrix (n*nset) of genomic values one for each set
+#      #Xs <- matrix(0, nrow = n, ncol = nset)        # matrix (n*nset) of genomic values one for each set
 #      
 #      e <- as.vector(y)                        # initialize residuals
 #      
-#      for ( i in 1:nsamp ) {
+#      for (i in 1:nsamp) {
 #           
-#           for ( j in 1:nset) {
+#           for (j in 1:nset) {
 #                cls <- set[[j]]
-#                samp <- ssvs(e=e, X=X[,cls], b=bset[[j]], dxx=dxx[cls], mu=mu, g=gset[[j]], sigma2=sigma2, p0=p0, p1=p1, g0=g0[j], g1=g1[j], hgprior=hgprior)
+#                samp <- ssvs(e = e, X = X[, cls], b = bset[[j]], dxx = dxx[cls], mu = mu, g = gset[[j]], sigma2 = sigma2, p0 = p0, p1 = p1, g0=g0[j], g1 = g1[j], hgprior = hgprior)
 #                e <- samp$e
 #                bset[[j]] <- samp$b
 #                mu <- samp$mu
@@ -1299,40 +1293,37 @@ writeG <- function(G=NULL, filename=NULL, clear=TRUE, ldet=NULL) {
 #                gset[[j]] <- samp$g
 #                g0[j] <- samp$g0
 #                g1[j] <- samp$g1
-#                # Xs[,j] <- X[,cls]%*%bset[[j]]
+#                # Xs[, j] <- X[, cls] %*% bset[[j]]
 #           }
-#           #  h2 <- apply(Xs,2,var)
-#           #  h2 <- h2/var(y)
+#           #  h2 <- apply(Xs, 2, var)
+#           #  h2 <- h2 / var(y)
 #           #  barplot(h2)
 #           print("")
-#           print(c("round",i, "gset", sapply(gset,sum)))
-#           #  print(c("round",i, "mu, sigma2, cor(y,Xs)", c(mu,sigma2,cor(y,rowSums(Xs)))))
-#           #  print(c("round",i, "g0",g0 ))
-#           #  print(c("round",i, "g1",g1 ))
-#      }
-#      
+#           print(c("round", i, "gset", sapply(gset, sum)))
+#           #  print(c("round", i, "mu, sigma2, cor(y, Xs)", c(mu, sigma2, cor(y, rowSums(Xs)))))
+#           #  print(c("round", i, "g0", g0))
+#           #  print(c("round", i, "g1", g1))
+#      }  
 #      
 # }
 # 
 # # http://www.r-bloggers.com/fortran-and-r-speed-things-up/
 # #   
-# #   y <- rnorm(100000)
+# # y <- rnorm(100000)
 # # x <- rnorm(100000)
-# # yx <- sum(x*y)
-# # system.time(for ( i in 1:100000) {
-# #   crossprod(y,x)*2
-# # })
-# # system.time(for ( i in 1:10000000) {
-# #   yx[1]-yx[1]*2-yx[1]*2
-# # })
-# # cvs <- function(yx=NULL, p=NULL){
-# #   for ( i in 1:p) {
-# #     yx[1]-yx[1]*2-yx[1]*2
-# #   }
+# # yx <- sum(x * y)
+# # system.time(for (i in 1:100000) {crossprod(y, x) * 2})
+# # system.time(for (i in 1:10000000) {yx[1] - yx[1] * 2 - yx[1] * 2})
+# #
+# # cvs <- function(yx = NULL, p = NULL) {
+# #
+# #   for (i in 1:p) {yx[1] - yx[1] * 2 - yx[1] * 2}
+# #
 # # }
-# # system.time(cvs(yx=yx, p=10000))
+# #
+# # system.time(cvs(yx = yx, p = 10000))
 # 
-# ssvs <- function(e=e, X=X, b=b, dxx=dxx, mu=mu, g=g, sigma2=sigma2, p0=p0, p1=p1, g0=g0, g1=g1, hgprior=hgprior) {
+# ssvs <- function(e = e, X = X, b = b, dxx = dxx, mu = mu, g = g, sigma2 = sigma2, p0 = p0, p1 = p1, g0 = g0, g1 = g1, hgprior = hgprior) {
 #      
 #      n <- length(e)                           # number of observations
 #      p <- ncol(X)                             # number of regression variables
@@ -1342,63 +1333,60 @@ writeG <- function(G=NULL, filename=NULL, clear=TRUE, ldet=NULL) {
 #      dfe0 <- hgprior$dfe0                     # prior residual degrees of freedom
 #      dfg0 <- hgprior$dfg0                     # prior slab residual degrees of freedom
 #      
-#      
 #      # sample b and update residuals 
 #      bC <- b
-#      shrinkage <- rep(sigma2/g1,times=p)
-#      shrinkage[g==0] <- sigma2/g0 
+#      shrinkage <- rep(sigma2 / g1, times = p)
+#      shrinkage[g == 0] <- sigma2 / g0 
 #      xxs <- dxx + shrinkage
-#      for ( j in 1:p){
-#           rhs <- sum(X[,j]*e) + dxx[j]*bC[j]
-#           b[j] <- rnorm(1,mean=rhs/xxs[j],sd=sigma2/xxs[j])
-#           e  <- e - X[,j]*(b[j] - bC[j]) 
+#      for (j in 1:p) {
+#           rhs <- sum(X[, j] * e) + dxx[j] * bC[j]
+#           b[j] <- rnorm(1, mean = rhs / xxs[j], sd = sigma2 / xxs[j])
+#           e  <- e - X[, j] * (b[j] - bC[j]) 
 #      }
 #      
 #      # sample g0 
-#      scg00 <- sum((b**2)[g==0]) + scg0
-#      dfg00 <- sum(1-g) + dfg0 - 2 
-#      g0 <- scg00/rchisq(n=1, df=dfg00, ncp=0) 
+#      scg00 <- sum((b**2)[g == 0]) + scg0
+#      dfg00 <- sum(1 - g) + dfg0 - 2 
+#      g0 <- scg00 / rchisq(n = 1, df = dfg00, ncp = 0) 
 #      
 #      # sample g1 
-#      scg1 <- sum((b**2)[g==1]) + scg0
+#      scg1 <- sum((b**2)[g == 1]) + scg0
 #      dfg1 <- sum(g) + dfg0 - 2 
 #      for (k in 1:1000) {                      # scaling needs to be revised
-#           g1 <- scg1/rchisq(n=1, df=dfg1, ncp=0) 
-#           if(g1>g0) break                         # scaling needs to be revised
-#           if(k==1000) g1 <- g0                    # scaling needs to be revised
+#           g1 <- scg1 / rchisq(n = 1, df = dfg1, ncp = 0) 
+#           if(g1 > g0) break                   # scaling needs to be revised
+#           if(k == 1000) g1 <- g0              # scaling needs to be revised
 #      }                                        # scaling needs to be revised
 #      
-#      
 #      # sample g 
-#      ratio1 <- p1*(exp(-(b**2)/g1)/sqrt(g1))
-#      ratio0 <- p0*(exp(-(b**2)/g0)/sqrt(g0))
-#      ratio <- ratio1/ratio0
-#      u <- 1/(1-runif(p,0,1))
+#      ratio1 <- p1 * (exp(-(b**2) / g1) / sqrt(g1))
+#      ratio0 <- p0 * (exp(-(b**2) / g0) / sqrt(g0))
+#      ratio <- ratio1 / ratio0
+#      u <- 1 / (1 - runif(p, 0, 1))
 #      g[1:p] <- 0
-#      g[ratio>u] <- 1
-#      
+#      g[ratio > u] <- 1
 #      
 #      # sample mu and update residuals 
 #      muC <- mu
-#      mu <- rnorm(1,mean=mean(e+muC),sd=sigma2/n)
+#      mu <- rnorm(1, mean = mean(e + muC), sd = sigma2 / n)
 #      e <- e - mu + muC 
 #      
 #      # sample sigma 
 #      sce <- sum(e**2) + sce0
 #      dfe <- n + dfe0 - 2 
-#      sigma2 <- sce/rchisq(n=1, df=dfe, ncp=0) 
+#      sigma2 <- sce / rchisq(n = 1, df = dfe, ncp = 0) 
 #      
-#      
-#      return(list(e=e, mu=mu,b=b,sigma2=sigma2,g=g, g0=g0, g1=g1))
+#      return(list(e = e, mu = mu, b = b, sigma2 = sigma2, g = g, g0 = g0, g1 = g1))
 #      
 # }
 # 
+#
+#
 # ################################################################################
 # # Simulate data and test SSVS function
 # ################################################################################
 # 
-# 
-# # # simulated data set
+# # # Simulated data set
 # # X <- matrix(rnorm(10000000),nrow=1000)
 # # set1 <- sample(1:ncol(X),5)
 # # set2 <- sample(1:ncol(X),5)
