@@ -1383,25 +1383,24 @@ writeG <- function(G = NULL, filename = NULL, clear = TRUE, ldet = NULL) {
 # ################################################################################
 # 
 # # # Simulated data set
-# # X <- matrix(rnorm(10000000),nrow=1000)
-# # set1 <- sample(1:ncol(X),5)
-# # set2 <- sample(1:ncol(X),5)
-# # set1a <- unique(c(set1,sample(1:ncol(X),100)))
-# # set2a <- unique(c(set2,sample(1:ncol(X),100)))
-# # set3 <- (1:ncol(X))[-unique(c(set1a,set2a))]
+# # X <- matrix(rnorm(10000000), nrow = 1000)
+# # set1 <- sample(1:ncol(X), 5)
+# # set2 <- sample(1:ncol(X), 5)
+# # set1a <- unique(c(set1, sample(1:ncol(X), 100)))
+# # set2a <- unique(c(set2, sample(1:ncol(X), 100)))
+# # set3 <- (1:ncol(X))[-unique(c(set1a, set2a))]
 # # 
-# # y <- rowSums(X[,set1]) + rowSums(X[,set2]) + rnorm(nrow(X),mean=0,sd=1)       
+# # y <- rowSums(X[, set1]) + rowSums(X[, set2]) + rnorm(nrow(X), mean = 0, sd = 1)       
 # # 
-# # varE <- var( y - rowSums(X[,set1]) - rowSums(X[,set2]) ) 
+# # varE <- var(y - rowSums(X[, set1]) - rowSums(X[, set2])) 
 # # varE
 # # 
-# # h2 <- ( var(rowSums(X[,set1])) + var(rowSums(X[,set2])) )/var(y)
+# # h2 <- (var(rowSums(X[, set1])) + var(rowSums(X[, set2]))) / var(y)
 # # h2
 # # 
-# # set <- list(set1=set1a,set2=set2a,set3=set3)
+# # set <- list(set1 = set1a, set2 = set2a, set3 = set3)
 # # 
-# # res <- hssvs(y=y,X=X,set=set, p1=0.01,g0=0.0000001, nsamp=100)
-# 
+# # res <- hssvs(y = y, X = X, set = set, p1 = 0.01, g0 = 0.0000001, nsamp = 100)
 # 
 # 
 # 
@@ -1409,171 +1408,165 @@ writeG <- function(G = NULL, filename = NULL, clear = TRUE, ldet = NULL) {
 # # Multi Class Bayesian Regression function 
 # ################################################################################
 # 
-# 
-# mcbr <- function(y=NULL, X=NULL, nc=NULL, l1=NULL, l2=NULL, phi=NULL, nsamp=100 ) {
+# mcbr <- function(y = NULL, X = NULL, nc = NULL, l1 = NULL, l2 = NULL, phi = NULL, nsamp = 100) {
 #      
 #      n <- length(y)             # number of observations
 #      p <- ncol(X)               # number of regression variables
 #      
 #      dxx <- colSums(X**2)       # diagonal elements of the X'X matrix
 #      
-#      b <- as.numeric(rep(0,p))  # initialize b
+#      b <- as.numeric(rep(0, p)) # initialize b
 #      mu <- 0                    # initilaize mu
 #      
-#      if (is.null(l1))  l1 <- 1/(10**((1:nc)-4))                       # prior shape parameter lambda
-#      if (is.null(l2))  l2 <- rep(1/10**2,nc)                          # prior rate parameter lambda
-#      if (is.null(phi)) phi0 <- c(0.5,0.25,0.15,0.05,0.025,0.01,0.001)  # prior phi
+#      if (is.null(l1))  l1 <- 1 / (10**((1:nc) - 4))                    # prior shape parameter lambda
+#      if (is.null(l2))  l2 <- rep(1 / 10**2, nc)                        # prior rate parameter lambda
+#      if (is.null(phi)) phi0 <- c(0.5, 0.25, 0.15, 0.05, 0.025, 0.01, 0.001)  # prior phi
 #      phi <- phi0
-#      logphi <- log(phi)                                               # prior phi on the log scale
+#      logphi <- log(phi)                                                # prior phi on the log scale
 #      
-#      lambdak <- rep(1000,nc)                             # initialize lambdak one for each class
-#      lambda <- rep(1000,p)                               # initialize lambda one for each regressor
+#      lambdak <- rep(1000, nc)                             # initialize lambdak one for each class
+#      lambda <- rep(1000, p)                               # initialize lambda one for each regressor
 #      
-#      g <- rep(1,p)                                       # initialize class indicator variable
+#      g <- rep(1, p)                                       # initialize class indicator variable
 #      cors <- abs(cor(y, X))
-#      quants <- quantile(cors, probs=1-phi)
-#      for ( i in 1:nc) {
-#           #  g[cors>quants[i]] <- i 
+#      quants <- quantile(cors, probs = 1 - phi)
+#      for (i in 1:nc) {
+#           #  g[cors > quants[i]] <- i 
 #      }
 #      
-#      e <- as.vector(y - mu - X%*%b)     # initialize residuals
+#      e <- as.vector(y - mu - X %*% b)     # initialize residuals
 #      
-#      sigma2 <- var(e)/2                 # initialize sigma2
+#      sigma2 <- var(e) / 2                 # initialize sigma2
 #      
 #      
-#      for ( i in 1:nsamp ) {
+#      for (i in 1:nsamp) {
 #           
 #           # sample mu and update residuals 
 #           muC <- mu
-#           mu <- rnorm(1,mean=mean(e+muC),sd=sigma2/n)
+#           mu <- rnorm(1, mean = mean(e + muC), sd = sigma2 / n)
 #           e <- as.vector(e - mu + muC)
 #           
 #           # sample b and update residuals                      
 #           bC <- b
-#           xxs <- as.numeric(dxx + lambda*sigma2)                    
-#           for ( j in 1:p){
-#                rhs <- as.numeric(sum(X[,j]*e) + dxx[j]*bC[j])
-#                b[j] <- rnorm(1,mean=rhs/xxs[j],sd=sigma2/(xxs[j]))
-#                e  <- as.numeric(e - X[,j]*(b[j] - bC[j])) 
+#           xxs <- as.numeric(dxx + lambda * sigma2)                    
+#           for (j in 1:p) {
+#                rhs <- as.numeric(sum(X[, j] * e) + dxx[j] * bC[j])
+#                b[j] <- rnorm(1, mean = rhs / xxs[j], sd = sigma2 / (xxs[j]))
+#                e  <- as.numeric(e - X[, j] * (b[j] - bC[j])) 
 #           }
-#           e <- as.numeric(y - mu - X%*%b)                     # update residuals
+#           e <- as.numeric(y - mu - X %*% b)                     # update residuals
 #           
 #           # sample lambda
 #           b2 <- b**2
 #           l1k <- l1
 #           l2k <- l2
-#           for ( k in 1:nc ) {
-#                if(sum(g==k)>0) l1k[k] <- l1k[k] + sum(g==k)/2
-#                if(sum(g==k)>0) l2k[k] <- l2k[k] + sum(b2[g==k])/2
-#                lambdak[k] <- rgamma( n=1, shape=l1k[k], rate=l2k[k])      
-#                if(sum(g==k)>0) lambda[g==k] <- lambdak[k]
+#           for (k in 1:nc) {
+#                if (sum(g == k) > 0) l1k[k] <- l1k[k] + sum(g == k) / 2
+#                if (sum(g == k) > 0) l2k[k] <- l2k[k] + sum(b2[g == k]) / 2
+#                lambdak[k] <- rgamma(n = 1, shape = l1k[k], rate = l2k[k])      
+#                if (sum(g == k) > 0) lambda[g == k] <- lambdak[k]
 #           }
 #           loglambdak <- log(lambdak)
 #           
 #           # sample gamma
-#           for ( j in 1:p ) {
-#                probs <- -0.5*b2[j]*lambdak + logphi + 0.5*loglambdak
-#                g[j] <- (1:nc)[rmultinom(1,1,prob=exp(probs))==1]
+#           for (j in 1:p) {
+#                probs <- -0.5 * b2[j] * lambdak + logphi + 0.5 * loglambdak
+#                g[j] <- (1:nc)[rmultinom(1, 1, prob = exp(probs)) == 1]
 #           }
 #           
 #           # sample phi
-#           #phi <- rep(0.0001,nc)
+#           #phi <- rep(0.0001, nc)
 #           rws <- as.numeric(names(table(g)))
-#           #phi[rws] <- table(g)/p
-#           print(c(i,phi))
+#           #phi[rws] <- table(g) / p
+#           print(c(i, phi))
 #           
 #           # sample sigma                                       
 #           she <- n                                       
 #           sce <- sum(e**2)
-#           sigma2 <- sce/rchisq(n=1,df=she)                   
+#           sigma2 <- sce / rchisq(n = 1, df = she)                   
 #           
 #           plot(b)
 #           print(table(g))
-#           print(c(mu,sigma2))
+#           print(c(mu, sigma2))
 #           
 #      }
 #      
 # }
 # 
-# 
 # # Simulate data and test function
-# #X <- matrix(rnorm(10000000),nrow=1000)
-# #set <- sample(1:ncol(X),10)
-# #y <- rowSums(X[,set]) + rnorm(nrow(X),mean=0,sd=1)       
-# #h2 <- var(rowSums(X[,set]))/var(y)
+# #X <- matrix(rnorm(10000000), nrow = 1000)
+# #set <- sample(1:ncol(X), 10)
+# #y <- rowSums(X[, set]) + rnorm(nrow(X), mean = 0, sd = 1)       
+# #h2 <- var(rowSums(X[, set])) / var(y)
 # #
-# #mcbr(y=y, X=X, nc=7)
+# #mcbr(y = y, X = X, nc = 7)
 # 
-# 
-# 
-# 
-# bgL <- function(y=NULL, X=NULL, g=NULL, nsamp=100, hgprior=list(sce0=0.001, scg0=0.001, dfe0=4, dfg0=4)) {
+# bgL <- function(y = NULL, X = NULL, g = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
+#
 #      n <- length(y)           # number of observations
 #      nb <- ncol(X)            # number of regression variables
 #      ng <- length(unique(g))  # number of groups
 #      dxx <- colSums(X**2)     # diagonal elements of the X'X matrix
 #      
-#      b <- rep(0,nb)                           # initialize b
+#      b <- rep(0, nb)                          # initialize b
 #      mu <- 0                                  # initilaize mu
 #      sigma <- 1                               # initialize sigma
-#      g1 <- rep(1/nb,ng)                     # initialize slab variance
-#      g1 <- rep(0,ng)                     # initialize slab variance
-#      for ( j in 1:ng ){
-#           g1[j] <- 1/sum(g==j)
+#      g1 <- rep(1 / nb, ng)                    # initialize slab variance
+#      g1 <- rep(0, ng)                         # initialize slab variance
+#      for (j in 1:ng) {
+#           g1[j] <- 1 / sum(g == j)
 #      }
 #      print(g1)
-#      #g1 <- c(1,0.000001)                     # initialize slab variance
+#      #g1 <- c(1, 0.000001)                    # initialize slab variance
 #      
 #      sce0 <- hgprior$sce0                     # prior residual sums of squares
 #      scg0 <- hgprior$scg0                     # prior slab residual sums of squares
 #      dfe0 <- hgprior$dfe0                     # prior residual degrees of freedom
 #      dfg0 <- hgprior$dfg0                     # prior slab residual degrees of freedom
 #      
-#      e <- as.vector(y - mu - X%*%b)           # initialize residuals
+#      e <- as.vector(y - mu - X %*% b)         # initialize residuals
 #      
-#      for ( i in 1:nsamp ) {
+#      for (i in 1:nsamp) {
 #           
 #           # sample mu and update residuals 
 #           mu0 <- mu
-#           mu <- rnorm(1,mean=mean(e+mu0),sd=sigma/n)
+#           mu <- rnorm(1, mean = mean(e + mu0), sd = sigma / n)
 #           e <- e - mu + mu0 
 #           
 #           # sample b and update residuals 
 #           b0 <- b
-#           shrinkage <- rep(0,times=nb)
-#           for ( j in 1:ng ){
-#                shrinkage[g==j] <- sigma/g1[j]
+#           shrinkage <- rep(0, times = nb)
+#           for (j in 1:ng) {
+#                shrinkage[g == j] <- sigma / g1[j]
 #           }
 #           xxs <- dxx + shrinkage
-#           for ( j in 1:nb){
-#                rhs <- sum(X[,j]*e) + dxx[j]*b0[j]
-#                b[j] <- rnorm(1,mean=rhs/xxs[j],sd=sigma/xxs[j])
-#                e  <- e - X[,j]*(b[j] - b0[j]) 
+#           for (j in 1:nb) {
+#                rhs <- sum(X[, j] * e) + dxx[j] * b0[j]
+#                b[j] <- rnorm(1, mean = rhs / xxs[j], sd = sigma / xxs[j])
+#                e  <- e - X[, j] * (b[j] - b0[j]) 
 #           }
 #           
 #           # sample sigma 
 #           sce <- sum(e**2) + sce0
 #           dfe <- n + dfe0 - 2 
-#           sigma <- sce/rchisq(n=1, df=dfe, ncp=0) 
-#           #sigma <- sum(e**2)/rchisq(n=1, df=n-2, ncp=0) 
-#           
+#           sigma <- sce / rchisq(n = 1, df = dfe, ncp = 0) 
+#           #sigma <- sum(e**2) / rchisq(n = 1, df = n - 2, ncp = 0) 
 #           
 #           # sample g1 
-#           for ( j in 1:ng){
-#                scg1 <- sum((b**2)[g==j]) + scg0
-#                dfg1 <- sum(g==j) + dfg0 - 2 
-#                g1[j] <- scg1/rchisq(n=1, df=dfg1, ncp=0) 
+#           for (j in 1:ng) {
+#                scg1 <- sum((b**2)[g == j]) + scg0
+#                dfg1 <- sum(g == j) + dfg0 - 2 
+#                g1[j] <- scg1 / rchisq(n = 1, df = dfg1, ncp = 0) 
 #           }
 #           
-#           # sample g 
-#           
+#           # sample g
 #           print("")
-#           print(c("round",i, (1:nb)[g==1]))
-#           print(c("round",i, c(mu,sigma,g1)))
-#           print(c("round",i, b[g==1]))
+#           print(c("round", i, (1:nb)[g == 1]))
+#           print(c("round", i, c(mu, sigma, g1)))
+#           print(c("round", i, b[g == 1]))
 #      }
+#
 # }
-# 
 # 
 # 
 # 
@@ -1584,32 +1577,30 @@ writeG <- function(G = NULL, filename = NULL, clear = TRUE, ldet = NULL) {
 # #library(BLR)
 # #data(wheat)
 # #
-# #res1 <- ssvs(y=Y[,1],X=X,p1=0.01,g0=0.0000001, nsamp=100)     
-# #res2 <- ssvs(y=Y[,2],X=X,p1=0.01,g0=0.0000001, nsamp=100)     
-# #res4 <- ssvs(y=Y[,3],X=X,p1=0.01,g0=0.0000001, nsamp=100)     
-# #res5 <- ssvs(y=Y[,4],X=X,p1=0.01,g0=0.0000001, nsamp=100)     
-# 
-# 
+# #res1 <- ssvs(y = Y[, 1], X = X, p1 = 0.01, g0 = 0.0000001, nsamp = 100)     
+# #res2 <- ssvs(y = Y[, 2], X = X, p1 = 0.01, g0 = 0.0000001, nsamp = 100)     
+# #res4 <- ssvs(y = Y[, 3], X = X, p1 = 0.01, g0 = 0.0000001, nsamp = 100)     
+# #res5 <- ssvs(y = Y[, 4], X = X, p1 = 0.01, g0 = 0.0000001, nsamp = 100)     
+# #
 # # # simulated data set
-# # X <- matrix(rnorm(10000000),nrow=1000)
-# # set1 <- sample(1:ncol(X),50)
-# # set2 <- sample(1:ncol(X),50)
-# # set3 <- sample(1:ncol(X),50)
-# # set4 <- sample(1:ncol(X),50)
-# # set5 <- sample(1:ncol(X),50)
-# # g <- rep(6,times=ncol(X))
+# # X <- matrix(rnorm(10000000), nrow = 1000)
+# # set1 <- sample(1:ncol(X), 50)
+# # set2 <- sample(1:ncol(X), 50)
+# # set3 <- sample(1:ncol(X), 50)
+# # set4 <- sample(1:ncol(X), 50)
+# # set5 <- sample(1:ncol(X), 50)
+# # g <- rep(6, times = ncol(X))
 # # g[set1] <- 1
 # # g[set2] <- 2
 # # g[set3] <- 3
 # # g[set4] <- 4
 # # g[set5] <- 5
 # # 
-# # set <- unique(c(set1,set2,set3,set4,set5))
+# # set <- unique(c(set1, set2, set3, set4, set5))
 # # 
-# # y <- rowSums(X[,set]) + rnorm(nrow(X),mean=0,sd=20)       
+# # y <- rowSums(X[, set]) + rnorm(nrow(X), mean = 0, sd = 20)       
 # # 
-# # system.time( res <- bgL(y=y,X=X,g=g, nsamp=10) ) 
+# # system.time(res <- bgL(y = y, X = X, g = g, nsamp = 10)) 
 # # 
-# # 
-
-
+# #
+# #
