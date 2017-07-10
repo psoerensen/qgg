@@ -155,7 +155,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
      K[[nsets + 1]] <- diag(1, n)
      identity <- TRUE
      if (!is.null(weights)) {
-          K[[nsets + 1]] <- diag(1/weights)
+          K[[nsets + 1]] <- diag(1 / weights)
           identity <- FALSE
      }
      names(K)[nsets + 1] <- "e"
@@ -313,7 +313,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
 #' distributions, and an empirical distribution is required.
 #'                        
 #' @param stat vector of single marker statistics (e.g. marker effects, t-stat, p-values)
-#' @param sets list of marker sets  - names corresponds to rownames in stat
+#' @param sets list of marker sets - names corresponds to rownames in stat
 #' @param nperm number of permutations
 #' @param W matrix of centered and scaled genotypes (used if method = cvat or score)
 #' @param method including sum, cvat, hyperG, score
@@ -364,7 +364,6 @@ setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "
 
 }
 
-
 sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
      
   if (method == "mean") setT <- sapply(sets, function(x) {mean(stat[x])})
@@ -407,7 +406,7 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 #' Genetic marker set tests based on the covariance test
 #'
 #' @description
-#' Genetic marker set tests based on the covariance statistics for a set of genetic markers
+#' Genetic marker set tests based on the covariance statistics for a set of genetic markers.
 #' 
 #' @details
 #' The covariance test statistic is derived from a GBLUP (or GFBLUP) model fit. It is a measure of covariance between the total genomic effect for all markers 
@@ -550,7 +549,7 @@ covSets <- function(W = NULL, g = NULL, sets = NULL, level2 = FALSE) {
      WWi <- qggginv(W %*% t(W), tol = 0.0001)$G
      b <- as.vector(crossprod(W, WWi %*% g))
      names(b) <- colnames(W)
-     Wb <-   t(t(W) * as.vector(b))
+     Wb <- t(t(W) * as.vector(b))
      gWb <- colSums(as.vector(g) * Wb)
      
      cv <- cvSet <- NULL
@@ -566,8 +565,7 @@ covSets <- function(W = NULL, g = NULL, sets = NULL, level2 = FALSE) {
      covf <- rowSums(Vf) - vf
      hvf <- vf / var(g)
      hcovf <- (vf + covf) / var(g)
-     cv <- cbind(nsets, vf, hvf, covf, hcovf, cvs,
-                  vf / nsets, hvf / nsets, covf / nsets, hcovf / nsets, cvs / nsets)
+     cv <- cbind(nsets, vf, hvf, covf, hcovf, cvs, vf / nsets, hvf / nsets, covf / nsets, hcovf / nsets, cvs / nsets)
      colnames(cv) <- c("nset", "varf", "hf", "covf", "hcovf", "cvat", "varf pr snp", "hf pr snp", "covf pr snp", 
                        "hcovf pr snp", "cvat pr snp")
      
@@ -660,8 +658,8 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
   for (i in 1:nset) {                    
     e <- eigen(g$G[[i]])                   # eigen value decomposition of the matrix G
     ev <- e$values
-    U[[i]] <- e$vectors[, ev > tol]        # keep eigen vector if ev>tol
-    D[[i]] <- e$values[ev > tol]           # keep eigen value if ev>tol
+    U[[i]] <- e$vectors[, ev > tol]        # keep eigen vector if ev > tol
+    D[[i]] <- e$values[ev > tol]           # keep eigen value if ev > tol
     sigmas[[i]] <- matrix(NA, nrow = nsamp, ncol = (nt * (nt + 1)) / 2)
     for (j in 1:nt) {
       as <-  matrix(NA, nrow = sum(ev > tol), ncol = length(samples))
@@ -792,7 +790,6 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #' @references Partitioning of genomic variance reveals biologic pathways associated with udder health and milk production traits in dairy cattle. GSE (2015) 47:60. Edwards SM, Thomsen B, Madsen P, Sørensen P.
 #' @references Increased prediction accuracy using a genomic feature model including prior information on quantitative trait locus regions in purebred Danish Duroc pigs. BMC Genetics (2016) 17:11. Sarup P, Jensen J, OstersenT, Henryon M, Sørensen P.
 #' @examples
-#' 
 #' 
 #' library(qgg)
 #' 
@@ -1003,7 +1000,7 @@ writeDMU <- function(model = NULL, data = NULL, Klist = NULL, tol = 0.001) {
      write(model$restrict$nresiduals, file = dir.file, append = TRUE)     # Number of residual covariances that are assumed to be zero
      #if (model$restrict$nresiduals == 0)
      #write(model$restrict$residuals, file = dir.file, append = TRUE, ncolumns = 1, sep = " ")    # Trait number combination for zero residual covariance 
-     #if (model$restrict$nresiduals>0)
+     #if (model$restrict$nresiduals > 0)
      write(model$restrict$residuals, file = dir.file, append = TRUE, ncolumns = 2, sep = " ")    # Trait number combination for zero residual covariance 
      write(" ", file = dir.file, append = TRUE)
      
@@ -1017,7 +1014,7 @@ writeDMU <- function(model = NULL, data = NULL, Klist = NULL, tol = 0.001) {
      }
      write(" ", file = dir.file, append = TRUE)
      
-     write(c("$DMUAI", format(c(10, 0.0000001, 0.000001, 1, 0, 0),scientific = FALSE)), file = dir.file, append = TRUE)
+     write(c("$DMUAI", format(c(10, 0.0000001, 0.000001, 1, 0, 0), scientific = FALSE)), file = dir.file, append = TRUE)
      write(" ", file = dir.file, append = TRUE)
      
      write("$RESIDUALS ASCII", file = dir.file, append = TRUE)
@@ -1046,11 +1043,10 @@ writeDMU <- function(model = NULL, data = NULL, Klist = NULL, tol = 0.001) {
 }
 
 # Remove DMU output files 
-rename.and.clean.windows <- function (jobname = NULL) {
+rename.and.clean.windows <- function(jobname = NULL) {
      
      ll.ff <- list.files()
-     "my.system" <- function(cmd) return(system(paste(Sys.getenv("COMSPEC"), 
-                                                      "/c", cmd),show.output.on.console = FALSE))
+     "my.system" <- function(cmd) {return(system(paste(Sys.getenv("COMSPEC"), "/c", cmd), show.output.on.console = FALSE))}
      ll.name <- c("SOL", "PAROUT", "PAROUT_STD", "PEDDATA", "RESIDUAL", 
                   "LLIK", "SOL_STD")
      ll <- ll.name[ll.name %in% ll.ff]
@@ -1071,7 +1067,7 @@ rename.and.clean <- function (jobname = NULL) {
      ll.ff <- list.files()
      ll.name <- c("SOL", "PAROUT", "PAROUT_STD", "PEDDATA", "RESIDUAL", "LLIK", "SOL_STD")
      ll <- ll.name[ll.name %in% ll.ff]
-     for (kk in ll) system(paste("mv ", kk, " ", jobname, ".", kk, sep = ""))
+     for (kk in ll) {system(paste("mv ", kk, " ", jobname, ".", kk, sep = ""))}
      junk.files <- c("DMU1.log", "DMUAI.log", paste("COR", 1:20, sep = ""), "CODE_TABLE", "DMU1.dir", "DMUAI.dir", "DMU_LOG", 
                      "DUMMY", "FSPAKWK", "Latest_parm", "LEVAL", "MODINF", 
                      "PARIN", "RCDATA_I", "RCDATA_R", "INBREED", "AINV1", 
@@ -1101,7 +1097,7 @@ executeDMU <- function(bin = NULL) {
      OS <- .Platform$OS.type
      
      if (OS == "windows") {
-          "my.system" <- function(cmd) return(system(paste(Sys.getenv("COMSPEC"), "/c", cmd)))
+          "my.system" <- function(cmd) {return(system(paste(Sys.getenv("COMSPEC"), "/c", cmd)))}
           my.system("set MKL_NUM_THREADS = 1")
           test <- my.system(paste(shQuote(dmu1), " < ", dir, " > ", out, sep = ""))
           if (test == 0 & "MODINF" %in% list.files()) {
@@ -1127,7 +1123,7 @@ executeDMU <- function(bin = NULL) {
 }
 
 # Read DMU output files
-readDMU <- function(model=NULL, flevels=NULL) {
+readDMU <- function(model = NULL, flevels = NULL) {
      
      jobname <- "gfm"
      
@@ -1285,7 +1281,7 @@ writeG <- function(G = NULL, filename = NULL, clear = TRUE, ldet = NULL) {
 #           
 #           for (j in 1:nset) {
 #                cls <- set[[j]]
-#                samp <- ssvs(e = e, X = X[, cls], b = bset[[j]], dxx = dxx[cls], mu = mu, g = gset[[j]], sigma2 = sigma2, p0 = p0, p1 = p1, g0=g0[j], g1 = g1[j], hgprior = hgprior)
+#                samp <- ssvs(e = e, X = X[, cls], b = bset[[j]], dxx = dxx[cls], mu = mu, g = gset[[j]], sigma2 = sigma2, p0 = p0, p1 = p1, g0 = g0[j], g1 = g1[j], hgprior = hgprior)
 #                e <- samp$e
 #                bset[[j]] <- samp$b
 #                mu <- samp$mu
