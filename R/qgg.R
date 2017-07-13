@@ -127,7 +127,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           stop("Sets not character variables")}
      if (!is.null(W)) {if (any(!is.character(colnames(W))))
           stop("Column names of W is not character variables")}
-     if (!is.null(sets)) {if (any(!unlist(sapply(sets, function(x){x %in% colnames(W)})))) 
+     if (!is.null(sets)) {if (any(!unlist(sapply(sets, function(x) {x %in% colnames(W)})))) 
           stop("Sets does not match column names of W")}
      if (!is.null(sets)) {if (any(!sapply(sets, is.character))) 
           stop("Sets not character variables")}
@@ -269,7 +269,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           e <- e$values                                    # eigen values
           e[e < tol] <- tol
           D <- diag(e)                                   
-          G <- U %*% D %*% t(U)                             # compute pdf
+          G <- U %*% D %*% t(U)                            # compute pdf
           colnames(G) <- rownames(G) <- rn
           
           return(G)                      
@@ -285,8 +285,8 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           ie <- e
           ie[e > tol] <- 1 / e[e > tol]
           ie[e < tol] <- 0
-          D <- diag(ie)                                    # set inverse D to 1/e
-          G <- U %*% D %*% t(U)                             # compute inverse
+          D <- diag(ie)                                    # set inverse D to 1 / e
+          G <- U %*% D %*% t(U)                            # compute inverse
           ldet <- sum(log(e[e > tol])) 
           colnames(G) <- rownames(G) <- rn
           
@@ -775,15 +775,15 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #' 
 #' @param fm a formula with model statement for the linear mixed model 
 #' @param data a data frame containing the phenotypic observations and fixed factors specified in the model statements
-#' @param Klist a list of relationship/correlation matrices corresponding to random effects specified in vfm
+#' @param Klist a list of relationship / correlation matrices corresponding to random effects specified in vfm
 #' @param validate a matrix or a list with the ids of validation sets corresponding to the rows in data
 #' @param bin is the directory for DMU binaries (dmu1 and dmuai1)
 #' @return Returns results in a list structure including 
 #' \item{f}{list of predicted random effects} 
 #' \item{sigma}{estimated variance components} 
 #' \item{asd}{asymptotic standard deviation for the estimated variance components} 
-#' \item{fitted}{ fitted values from linear mixed model fit} 
-#' \item{residuals}{ residuals from linear mixed model fit} 
+#' \item{fitted}{fitted values from linear mixed model fit} 
+#' \item{residuals}{residuals from linear mixed model fit} 
 #' @author Peter Sørensen
 #' @references Mapping Variants to Gene Ontology Categories Improves Genomic Prediction for Quantitative Traits in Drosophila melanogaster. Under review Genetics (2016). Edwards SM, Sørensen IF, Sarup P, Mackay TF, Sørensen P. 
 #' @references Genomic BLUP Derived Set Tests Identify Genetic Variants Associated with Schizophrenia in Functionally Associated Biological Processes. Under review, Genetics (2015). Rohde PD, Demontis D, The GEMS Group, Børglum AD, Sørensen P.
