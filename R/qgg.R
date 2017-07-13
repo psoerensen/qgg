@@ -69,8 +69,8 @@
 #' 
 #' # Create framework for lists
 #' setsGB <- list(A = colnames(W)) # gblup model
-#' setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C2 = colnames(W)[2000:10000])   # gfblup model
-#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C2 = colnames(W)[1:10000]) # true model
+#' setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000])   # gfblup model
+#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
 #' 
 #' # REML analyses and cross validation
 #' n <- length(y)
@@ -99,11 +99,11 @@
 #' pc2 <- rnorm(200)
 #' f1 <- factor(rep(1:2, 100))
 #' 
-#' fmf <- y ~ pc1 + pc1 + f1
+#' fmf <- y ~ pc1 + pc2 + f1
 #' 
-#' fitGB <- gfm(fm = fmf, W = W, data = data.frame(y, pc1, pc1, f1), validate = validate)
-#' fitGF <- gfm(fm = fmf, W = W, sets = setsGF, data = data.frame(y, pc1, pc1, f1), validate = validate)
-#' fitGT <- gfm(fm = fmf, W = W, sets = setsGT, data = data.frame(y, pc1, pc1, f1), validate = validate)
+#' fitGB <- gfm(fm = fmf, W = W, data = data.frame(y, pc1, pc2, f1), validate = validate)
+#' fitGF <- gfm(fm = fmf, W = W, sets = setsGF, data = data.frame(y, pc1, pc2, f1), validate = validate)
+#' fitGT <- gfm(fm = fmf, W = W, sets = setsGT, data = data.frame(y, pc1, pc2, f1), validate = validate)
 #' 
 #' @export
 #' 
