@@ -778,7 +778,7 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 
 
 ####################################################################################################################
-#	Module 4: GREML analysis
+#  Module 4: GREML analysis
 ####################################################################################################################
 #'
 #' Genomic REML analysis
@@ -904,6 +904,7 @@ greml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, ids = NULL, theta 
 }
 
 ####################################################################################################################
+
 # REML interface functions for fortran
 
 write.reml <- function(y = NULL, X = NULL, G = NULL) {
@@ -990,6 +991,126 @@ clean.reml <- function(wkdir = NULL) {
 	file.remove(fnames)
       
 }
+
+
+
+####################################################################################################################
+#  Module 5: LMM marker test
+####################################################################################################################
+#'
+#' Linear mixed model marker test
+#'
+#' @description
+#' Marker test using linear mixed model (LMM) to test for an association of single markers with a phenotype.
+#'
+#' @details
+#' Linear mixed model single marker association (LMMA) statistics are based on either exact or approximate methods.
+#' Exact methods estimate variance components and effects of single markers jointly.
+#' Approximate methods estimate single marker effects conditionally.
+#'
+#' @param fit list of information about linear model fit
+#' @param W matrix of centered and scaled genotypes (n x m)
+#' @return Returns list including
+#' \item{Tgrammar}{GRAMMAR test statistic}
+#' \item{Tgblup}{GBLUP test statistic}
+#' \item{Tscore}{score test statistic}
+#' @author Peter Sørensen
+#' @references Chen, W. M., & Abecasis, G. R. (2007). Family-based association tests for genomewide association scans. The American Journal of Human Genetics, 81(5), 913-926.
+#' @references Loh, P. R., Tucker, G., Bulik-Sullivan, B. K., Vilhjalmsson, B. J., Finucane, H. K., Salem, R. M., ... & Patterson, N. (2015). Efficient Bayesian mixed-model analysis increases association power in large cohorts. Nature genetics, 47(3), 284-290.
+#' @references Kang, H. M., Sul, J. H., Zaitlen, N. A., Kong, S. Y., Freimer, N. B., Sabatti, C., & Eskin, E. (2010). Variance component model to account for sample structure in genome-wide association studies. Nature genetics, 42(4), 348-354.
+#' @references Lippert, C., Listgarten, J., Liu, Y., Kadie, C. M., Davidson, R. I., & Heckerman, D. (2011). FaST linear mixed models for genome-wide association studies. Nature methods, 8(10), 833-835.
+#' @references Listgarten, J., Lippert, C., Kadie, C. M., Davidson, R. I., Eskin, E., & Heckerman, D. (2012). Improved linear mixed models for genome-wide association studies. Nature methods, 9(6), 525-526.
+#' @references Listgarten, J., Lippert, C., & Heckerman, D. (2013). FaST-LMM-Select for addressing confounding from spatial structure and rare variants. Nature Genetics, 45(5), 470-471.
+#' @references Lippert, C., Quon, G., Kang, E. Y., Kadie, C. M., Listgarten, J., & Heckerman, D. (2013). The benefits of selecting phenotype-specific variants for applications of mixed models in genomics. Scientific reports, 3.
+#' @references Zhou, X., & Stephens, M. (2012). Genome-wide efficient mixed-model analysis for association studies. Nature genetics, 44(7), 821-824.
+#' @references Svishcheva, G. R., Axenovich, T. I., Belonogova, N. M., van Duijn, C. M., & Aulchenko, Y. S. (2012). Rapid variance components-based method for whole-genome association analysis. Nature genetics, 44(10), 1166-1170.
+#' @references Yang, J., Zaitlen, N. A., Goddard, M. E., Visscher, P. M., & Price, A. L. (2014). Advantages and pitfalls in the application of mixed-model association methods. Nature genetics, 46(2), 100-106.
+#' @references Bulik-Sullivan, B. K., Loh, P. R., Finucane, H. K., Ripke, S., Yang, J., Patterson, N., ... & Schizophrenia Working Group of the Psychiatric Genomics Consortium. (2015). LD Score regression distinguishes confounding from polygenicity in genome-wide association studies. Nature genetics, 47(3), 291-295.
+#' @examples
+#'
+#' # Simulate data
+#' W <- matrix(rnorm(20000000), ncol = 10000)
+#' 	colnames(W) <- as.character(1:ncol(W))
+#' 	rownames(W) <- as.character(1:nrow(W))
+#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
+#'
+#' # Create model
+#' data <- data.frame(y = y, mu = 1)
+#' fm <- y ~ 0 + mu
+#' X <- model.matrix(fm, data = data)
+#'
+#' # Create framework for lists
+#' setsGB <- list(A = colnames(W)) # gblup model
+#' setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
+#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
+#'
+#' # Compute G
+#' G <- computeG(W = W)
+#' 	GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
+#' 	GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
+#' 	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+#'
+#' # REML analyses and single marker association test
+#' fitGB <- reml(y = y, X = X, G = GB, verbose = TRUE)
+#' maGB <- lmma(fit = fitGB, W = W)
+#'
+#' @export
+#'
+
+mtestLMM <- function(fit = NULL, W = NULL) {
+
+	# Get linear model fit results
+	ids <- fit$ids
+	W <- W[ids, ]
+	n <- length(ids)
+	m <- fit$Glist$m
+	Sg <- fit$theta[1]
+	Py <- fit$Py
+	Vy <- fit$Vy
+     
+	yVy <- fit$yVy
+	trPG <- fit$trPG[1]
+	trVG <- fit$trVG[1]
+     
+	# Compute single marker, coefficients, test statistics and p-values
+	nW <- colSums(!W == 0)
+	WPy <- crossprod(W, Py)
+	WVy <- crossprod(W, Vy)
+	ww <- colSums(W**2)
+     
+	coef <- se <- stat <- p <- matrix(NA, nrow = ncol(W), ncol = 3)
+	colnames(coef) <- colnames(se) <- colnames(stat) <- colnames(p) <- c("Tgrammar-g", "Tgblup", "Tscore") 
+	rownames(coef) <- rownames(se) <- rownames(stat) <- rownames(p) <- colnames(W) 
+
+	coef[, 1] <- (WVy / ww) / (trVG / (n - 1))
+	coef[, 2] <- Sg * WPy / m
+	coef[, 3] <- (WVy / (trVG / m)) / m
+ 
+	se[, 1] <- ((yVy / ww) / (trVG / (n - 1))) / (n - 1)
+	se[, 2] <- (Sg**2) * trPG / m**2
+	se[, 3] <- (1 / (trVG / m)) / m
+ 
+	stat[, 1] <- coef[, 1]**2 / se[, 1]
+	stat[, 2] <- coef[, 2]**2 / se[, 2]
+	stat[, 3] <- coef[, 3]**2 / se[, 3]
+
+	p[, 1] <- pchisq(stat[, 1], df = 1, ncp = 0, lower.tail = FALSE)
+	p[, 2] <- pchisq(stat[, 2], df = 1, ncp = 0, lower.tail = FALSE)
+	p[, 3] <- pchisq(stat[, 3], df = 1, ncp = 0, lower.tail = FALSE)
+
+	Tgrammar <- data.frame(coef = coef[, 1], se = se[, 1], stat = stat[, 1], p = p[, 1]) 
+	Tgblup <- data.frame(coef = coef[, 2], se = se[, 2], stat = stat[, 2], p = p[, 2]) 
+	Tscore <- data.frame(coef = coef[, 3], se = se[, 3], stat = stat[, 3], p = p[, 3])
+      
+	return(list(Tgrammar = Tgrammar, Tgblup = Tgblup, Tscore = Tscore))
+     
+}
+
+load(file="...../fitG.Rdata")
+
+load W
+
+mtest <- mtestLMM(fit = fitG, W = W)
 
 
 
