@@ -447,7 +447,7 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 #'
 #' # Compute G
 #' G <- computeG(W = W)
-#'   GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
+#' 	GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
 #' 	GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
 #' 	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 #'
