@@ -227,6 +227,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
 
 
 ####################################################################################################################
+
      f2b <- function(W = NULL, f = NULL, Vf = NULL) {
           
           if (!nrow(W) == length(f)) {stop("nrow(W) == length(f) is false")}
@@ -627,7 +628,7 @@ covSets <- function(W = NULL, g = NULL, sets = NULL, level2 = FALSE) {
 #' \item{logCPO}{log CPOs}
 #' \item{g}{g is a list of G matrices (g$G), prior (co)variances (g$sigma), prior degrees of freedom (g$sigma),  prior distribution (g$ds)}
 #' @author Peter Sørensen
-#' @references Genetic control of environmental variation of two quantitative traits of Drosophila melanogaster revealed by whole-genome sequencing. Genetics (2015) 201(2):487-97. Sørensen P, de los Campos G, Morgante F, Mackay TFC and Sorensen D.
+#’ @references Sørensen, P., de los Campos, G., Morgante, F., Mackay, T. F., & Sorensen, D. (2015). Genetic control of environmental variation of two quantitative traits of Drosophila melanogaster revealed by whole-genome sequencing. Genetics, 201(2), 487-497.
 #'
 #' @export
 #'
@@ -785,10 +786,10 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #' \item{fitted}{fitted values from linear mixed model fit} 
 #' \item{residuals}{residuals from linear mixed model fit} 
 #' @author Peter Sørensen
-#' @references Mapping Variants to Gene Ontology Categories Improves Genomic Prediction for Quantitative Traits in Drosophila melanogaster. Under review Genetics (2016). Edwards SM, Sørensen IF, Sarup P, Mackay TF, Sørensen P. 
-#' @references Genomic BLUP Derived Set Tests Identify Genetic Variants Associated with Schizophrenia in Functionally Associated Biological Processes. Under review, Genetics (2015). Rohde PD, Demontis D, The GEMS Group, Børglum AD, Sørensen P.
-#' @references Partitioning of genomic variance reveals biologic pathways associated with udder health and milk production traits in dairy cattle. GSE (2015) 47:60. Edwards SM, Thomsen B, Madsen P, Sørensen P.
-#' @references Increased prediction accuracy using a genomic feature model including prior information on quantitative trait locus regions in purebred Danish Duroc pigs. BMC Genetics (2016) 17:11. Sarup P, Jensen J, OstersenT, Henryon M, Sørensen P.
+#' @references Edwards, S. M., Sørensen, I. F., Sarup, P., Mackay, T. F., & Sørensen, P. (2016). Genomic prediction for quantitative traits is improved by mapping variants to gene ontology categories in Drosophila melanogaster. Genetics, 203(4), 1871-1883.
+#’ @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Børglum, A. D., & Sørensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
+#’ @references Edwards, S. M., Thomsen, B., Madsen, P., & Sørensen, P. (2015). Partitioning of genomic variance reveals biological pathways associated with udder health and milk production traits in dairy cattle. Genetics Selection Evolution, 47(1), 60.
+#’ @references Sarup, P., Jensen, J., Ostersen, T., Henryon, M., & Sørensen, P. (2016). Increased prediction accuracy using a genomic feature model including prior information on quantitative trait locus regions in purebred Danish Duroc pigs. BMC genetics, 17(1), 11.
 #' @examples
 #' 
 #' library(qgg)
@@ -1233,7 +1234,7 @@ writeG <- function(G = NULL, filename = NULL, clear = TRUE, ldet = NULL) {
 # #' \item{alphas}{posterior samples alphas}
 # #' \item{mus}{number of markers in the set }
 # #' @author Peter Sørensen
-# #' @references Genetic control of environmental variation of two quantitative traits of Drosophila melanogaster revealed by whole-genome sequencing. Genetics (2015) 201(2):487-97. Sørensen P, de los Campos G, Morgante F, Mackay TFC and Sorensen D.
+# #’ @references Sørensen, P., de los Campos, G., Morgante, F., Mackay, T. F., & Sorensen, D. (2015). Genetic control of environmental variation of two quantitative traits of Drosophila melanogaster revealed by whole-genome sequencing. Genetics, 201(2), 487-497.
 # #'
 # #' @export
 # #'
