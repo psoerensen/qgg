@@ -430,19 +430,38 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 #' @examples
 #' 
 #' # Simulate data
-#' W <- matrix(rnorm(2000000), ncol = 10000)
-#'   colnames(W) <- as.character(1:ncol(W))
+#' W <- matrix(rnorm(20000000), ncol = 10000)
+#' 	colnames(W) <- as.character(1:ncol(W))
+#' 	rownames(W) <- as.character(1:nrow(W))
 #' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
-#' 
-#' # REML analyses 
+#'
+#' # Create model
 #' data <- data.frame(y = y, mu = 1)
-#' fm <- y ~ mu
-#' fit <- gfm(fm = fm, W = W, sets = list(colnames(W)), data = data)
-#' 
-#' # cvat set test 
-#' sets <- list(A = as.character(1:100), B = as.character(101:1000), C = as.character(1001:5000), D = as.character(5001:10000))
-#' res <- cvat(s = fit$s, W = W, sets = sets, nperm = 100)
-#' res
+#' fm <- y ~ 0 + mu
+#' X <- model.matrix(fm, data = data)
+#'
+#' # Create framework for lists
+#' setsGB <- list(A = colnames(W)) # gblup model
+#' setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
+#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
+#'
+#' # Compute G
+#' G <- computeG(W = W)
+#'   GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
+#' 	GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
+#' 	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+#'
+#' # REML analyses and multi marker association (set) test
+#' fitGB <- reml(y = y, X = X, G = GB, verbose = TRUE)
+#'
+#' # Use fit object as input
+#' cvat(fit = fitGB, W = W, sets = setsGF, nperm = 1000)
+#' cvat(fit = fitGB, W = W, sets = setsGT, nperm = 1000)
+#'
+#' # Use single coefficients as input 
+#' s <- crossprod(W / ncol(W), fitGB$Py) * fitGB$theta[1]
+#' 	cvat(s = s, W = W, sets = setsGF, nperm = 1000)
+#' 	cvat(s = s, W = W, sets = setsGT, nperm = 1000)
 #' 
 #' @export
 #'
