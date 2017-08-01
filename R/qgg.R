@@ -851,9 +851,9 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #' 	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 #'
 #' # REML analyses
-#' fitGB <- reml(y = y, X = X, G = GB)
-#' fitG12 <- reml(y = y, X = X, G = GF)
-#' fitGT12 <- reml(y = y, X = X, G = GT)
+#' fitGB <- greml(y = y, X = X, G = GB)
+#' fitG12 <- greml(y = y, X = X, G = GF)
+#' fitGT12 <- greml(y = y, X = X, G = GT)
 #'
 #' # REML analyses and cross validation
 #' n <- length(y)
@@ -861,9 +861,9 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #' nsets <- 50
 #' 
 #' validate <- replicate(nsets, sample(1:n, as.integer(n / fold)))
-#' 	fitGB <- reml(y = y, X = X, G = GB, validate = validate)
-#' 	fitG12 <- reml(y = y, X = X, G = GF, validate = validate)
-#' 	fitGT12 <- reml(y = y, X = X, G = GT, validate = validate)
+#' 	fitGB <- greml(y = y, X = X, G = GB, validate = validate)
+#' 	fitG12 <- greml(y = y, X = X, G = GF, validate = validate)
+#' 	fitGT12 <- greml(y = y, X = X, G = GT, validate = validate)
 #'
 #' @export
 #'
