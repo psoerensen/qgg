@@ -323,8 +323,8 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
 #' \item{nset}{number of markers in the set}
 #' \item{p}{p-value for marker set}
 #' @author Peter Sørensen
-#' @references Genomic BLUP Derived Set Tests Identify Genetic Variants Associated with Schizophrenia in Functionally Associated Biological Processes. Under review, Genetics (2015). Rohde PD, Demontis D, The GEMS Group, Børglum AD, Sørensen P.
-#' @references Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. In: Proceedings, 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada, 2014. Dunn Rohde P, Edwards SM, Sarup PM, Sørensen P. 
+#’ @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Børglum, A. D., & Sørensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
+#’ @references Rohde, P. D., Edwards S. M., Sarup P., Sørensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
 #' @examples
 #' 
 #' # Simulate data
@@ -425,7 +425,7 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 #' \item{nset}{number of markers in the set}
 #' \item{p}{p-value}
 #' @author Peter Sørensen
-#' @references Genomic BLUP Derived Set Tests Identify Genetic Variants Associated with Schizophrenia in Functionally Associated Biological Processes. Under review, Genetics (2015). Rohde PD, Demontis D, The GEMS Group, Børglum AD, Sørensen P.
+#’ @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Børglum, A. D., & Sørensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
 #' @examples
 #' 
 #' # Simulate data
@@ -493,7 +493,7 @@ scoreTest <- function(e = NULL, W = NULL, sets = NULL, nperm = 100) {
 #' @param threshold single marker p-value cut-off
 #' @return Returns vector of p values with length equal to the number of sets 
 #' @author Peter Sørensen
-#' @references Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. In: Proceedings, 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada, 2014. Dunn Rohde P, Edwards SM, Sarup PM, Sørensen P. 
+#’ @references Rohde, P. D., Edwards S. M., Sarup P., Sørensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
 #' @examples
 #' 
 #' # Simulate data
