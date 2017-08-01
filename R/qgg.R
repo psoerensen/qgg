@@ -3,6 +3,8 @@
 #    Module 1: LMM, REML, BLUP
 #    Module 2: Set Test
 #    Module 3: LMM, Bayesian
+#    Module 4: GREML
+#    Module 5: LMMA Test
 #
 ####################################################################################################################
 
@@ -452,7 +454,7 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 #' 	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 #'
 #' # REML analyses and multi marker association (set) test
-#' fitGB <- reml(y = y, X = X, G = GB, verbose = TRUE)
+#' fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
 #'
 #' # Use fit object as input
 #' cvat(fit = fitGB, W = W, sets = setsGF, nperm = 1000)
@@ -778,7 +780,7 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 
 
 ####################################################################################################################
-#  Module 4: GREML analysis
+#    Module 4: GREML analysis
 ####################################################################################################################
 #'
 #' Genomic REML analysis
@@ -995,10 +997,10 @@ clean.reml <- function(wkdir = NULL) {
 
 
 ####################################################################################################################
-#  Module 5: LMM marker test
+#    Module 5: LMM marker association test
 ####################################################################################################################
 #'
-#' Linear mixed model marker test
+#' Linear mixed model marker association test
 #'
 #' @description
 #' Marker test using linear mixed model (LMM) to test for an association of single markers with a phenotype.
