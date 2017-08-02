@@ -259,10 +259,11 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           N <- tcrossprod(!W == miss)                      # compute number of observations, all SNPs
           G <- SS / N
           if (pdf) G <- makepdf(G)
+          #return(list(G = G, SS = SS, N = N))
+          return(G)
           
-          return(list(G = G, SS = SS, N = N))
-     
      }  
+     
      
      makepdf <- function(G = NULL, tol = 0.0001) {
           
@@ -418,6 +419,7 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 #' The distribution of this test statistic under the null hypothesis is difficult to describe in terms of exact or approximate 
 #' distributions, and an empirical distribution is required.
 #' 
+#' @param fit is the fit object obtained from a linear mixed model fit using the greml function
 #' @param g vector (or list) of genetic effects obtained from a linear mixed model fit (GBLUP of GFBLUP)
 #' @param s vector (or list) of single marker effects obtained from a linear mixed model fit (GBLUP of GFBLUP)
 #' @param W matrix of centered and scaled genotypes (n x m)
@@ -468,8 +470,8 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 #' @export
 #'
 
-cvat <- function(s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 100) {
-     
+cvat <- function(fit = NULL, s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 100) {
+     if (!is.null(fit)) {s <- crossprod(W/ncol(W),fit$Py)*fit$theta[1]}
      Ws <- t(t(W) * as.vector(s))
      if (is.null(g)) g <- W %*% s   
      cvs <- colSums(as.vector(g) * Ws)
@@ -870,7 +872,25 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #' @export
 #'
 
-greml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, ids = NULL, theta = NULL, maxit = 100, tol = 0.00001, bin = NULL, nthreads = 1, wkdir = getwd()) {
+greml <- function(y = NULL, X = NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,nthreads=1,wkdir=getwd(), verbose=FALSE)
+{
+  if(is.null(bin)) { 
+    if (is.null(validate)) fit <- remlR(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, nthreads=nthreads, verbose=verbose, wkdir=wkdir)
+    if (!is.null(validate)) fit <- cvreml(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, nthreads=nthreads, verbose=verbose, wkdir=wkdir)
+  }
+  if(!is.null(bin)) { 
+    fit <- remlF(y=y, X=X, Glist=Glist, G=G, ids=ids, theta=theta, maxit=maxit, tol=tol, bin=bin, nthreads=nthreads, verbose=verbose, wkdir=wkdir)
+  }
+  return(fit)  
+}  
+
+
+####################################################################################################################
+
+# REML interface functions for fortran
+
+remlF <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, nthreads = 1, wkdir = getwd(), verbose = FALSE )
+#greml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, ids = NULL, theta = NULL, maxit = 100, tol = 0.00001, bin = NULL, nthreads = 1, wkdir = getwd()) {
     
 	write.reml(y = as.numeric(y), X = X, G = G)
 	n <- length(y)
@@ -905,9 +925,6 @@ greml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, ids = NULL, theta 
       
 }
 
-####################################################################################################################
-
-# REML interface functions for fortran
 
 write.reml <- function(y = NULL, X = NULL, G = NULL) {
     
@@ -994,6 +1011,130 @@ clean.reml <- function(wkdir = NULL) {
       
 }
 
+####################################################################################################################
+
+# REML R functions 
+
+remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxit=100, tol=0.00001, bin=NULL,nthreads=1,wkdir=getwd(), verbose=FALSE )
+  
+  #reml <- function( y=NULL, X=NULL, Glist=NULL, G=NULL,theta=NULL, ids=NULL, maxit=100, verbose=FALSE)
+{
+  
+  np <- length(G) + 1
+  if (is.null(theta)) theta <- rep(sd(y)/np**2,np)
+  n <- length(y)
+  ai <- matrix(0, ncol=np, nrow=np)
+  s <- matrix(0, ncol=1, nrow=np)
+  tol <- 0.00001
+  delta <- 100
+  it <- 0
+  G[[np]] <- diag(1,length(y))
+  
+  while ( max(delta)>tol ) {
+    V <- matrix(0,n,n)
+    u <- Pu <- matrix(0,nrow=n,ncol=np)
+    it <- it + 1
+    for ( i in 1:np) { V <- V + G[[i]]*theta[i] }
+    Vi <- chol2inv(chol(V))
+    remove(V)
+    XViXi <- chol2inv(chol(crossprod(X,crossprod(Vi,X) ) ) )
+    ViX <- crossprod(Vi,X) 
+    ViXXViXi <- tcrossprod(ViX,XViXi)
+    remove(XViXi)
+    P <- Vi - tcrossprod(ViXXViXi,ViX)
+    remove(Vi)
+    Py <- crossprod(P,y)
+    for ( i in 1:np) {
+      u[,i] <- crossprod(G[[i]],Py)
+      Pu[,i] <- crossprod(P,u[,i])
+    }
+    for ( i in 1:np) {
+      for ( j in i:np) {
+        ai[i,j] <- 0.5*sum(u[,i]*Pu[,j])
+        ai[j,i] <- ai[i,j]
+      }
+      if (i<np) s[i,1] <- -0.5*(sum(G[[i]]*P)-sum(u[,i]*Py))
+      if (i==np) s[i,1] <- -0.5*(sum(diag(P))-sum(Py*Py))
+    }
+    theta.cov <- solve(ai)
+    theta0 <- theta + solve(ai)%*%s
+    theta0[theta0<0] <- 0.000000001
+    delta <- abs(theta - theta0)
+    theta <- theta0
+    if (verbose) print(paste(c("Iteration:",it,"Theta:",round(theta,5)), sep=""))
+    if (it==maxit) break
+  }
+  V <- matrix(0,n,n)
+  for ( i in 1:np) { V <- V + G[[i]]*theta[i] }
+  chlV <- chol(V)
+  remove(V)
+  ldV <- log(sum(diag(chlV)))
+  Vi <- chol2inv(chlV)
+  remove(chlV)
+  chlXVX <- chol(crossprod(X,crossprod(Vi,X) ))
+  ldXVX <- log(sum(diag(chlXVX)))
+  XViXi <- chol2inv(chlXVX)
+  ViX <- crossprod(Vi,X)
+  ViXXViXi <- tcrossprod(ViX,XViXi)
+  b <- crossprod(ViXXViXi,y)
+  vb <- XViXi
+  P <- Vi - tcrossprod(ViXXViXi,ViX)
+  trPG <- trVG <- rep(0,length(theta))
+  for (i in 1:np) {
+    trVG[i] <- sum(Vi*G[[i]])
+    trPG[i] <- sum(P*G[[i]])
+  } 
+  Vy <- crossprod(Vi,y)
+  remove(Vi)
+  Py <- crossprod(P,y)
+  yPy <- sum(y*Py)
+  yVy <- sum(y*Vy)
+  llik <- -0.5*(ldV+ldXVX+yPy)
+  
+  u <- NULL
+  for (i in 1:(length(theta)-1)) {
+    u <- cbind(u, crossprod(G[[i]]*theta[i],Py) )       
+  }
+  fitted <- X%*%b
+  predicted <- rowSums(u)+fitted
+  
+  return(list( y=y, X=X, b=b, vb=vb, u=u, fitted=fitted, predicted=predicted, Py=Py, Vy=Vy, theta=theta, asd=theta.cov, llik=llik, niter=it,trPG=trPG, trVG=trVG,ids=names(y),yVy=yVy   ))
+}
+
+
+cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,nthreads=1,wkdir=getwd(), verbose=FALSE)
+{
+  theta <- pa <- mspe <- yobs <- ypred <- NULL
+  for (i in 1:ncol(validate)) {
+    v <- validate[,i]
+    t <- (1:n)[-v]
+    fit <- remlR( y=y[t], X=X[t,], G=lapply(G,function(x){x[t,t]}), verbose=verbose)
+    theta <- rbind(theta, as.vector(fit$theta))
+    np <- length(fit$theta)
+    yhat <- X[v, ] %*% fit$b
+    for (j in 1:(np-1)) {
+      yhat <- yhat + G[[j]][v,t]%*%fit$Py*fit$theta[j]
+    }
+    pa <- c(pa, cor(yhat, y[v]))
+    mspe <- c(mspe, sum((ypred - y[v])^2)/length(v))
+    ypred <- c(ypred, yhat)
+    yobs <- c(yobs, y[v])
+    if (i > 1) {
+      colnames(theta) <- c(names(G),"E")
+      layout(matrix(1:4, ncol = 2))
+      boxplot(pa, main = "Predictive Ability", ylab = "Correlation")
+      boxplot(mspe, main = "Prediction Error", ylab = "MSPE")
+      boxplot(theta, main = "Estimates", ylab = "Variance")
+      plot(yobs, ypred, ylab = "Predicted", xlab = "Observed")
+      coef <- lm(ypred ~ yobs)$coef
+      abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
+    }
+  }      
+  return(list(pa=pa,mspe=mspe,theta=theta,ypred=ypred,yobs=yobs))
+}
+
+
+
 
 
 ####################################################################################################################
@@ -1012,10 +1153,13 @@ clean.reml <- function(wkdir = NULL) {
 #'
 #' @param fit list of information about linear model fit
 #' @param W matrix of centered and scaled genotypes (n x m)
-#' @return Returns list including
-#' \item{Tgrammar}{GRAMMAR test statistic}
-#' \item{Tgblup}{GBLUP test statistic}
-#' \item{Tscore}{score test statistic}
+#' @param m is the total number of markers used to compute the genomic relationship matrix 
+#' @param statistic is the test statistic used. Default is the "mastor", alternatives include "gblup", "bolt-lmm" and "grammar-gamma"
+#' @return Returns a dataframe including 
+#' \item{coef}{coefficients} 
+#' \item{se}{standard error of coefficients}
+#' \item{stat}{test statistic}
+#' \item{p}{p-value}
 #' @author Peter Sørensen
 #' @references Chen, W. M., & Abecasis, G. R. (2007). Family-based association tests for genomewide association scans. The American Journal of Human Genetics, 81(5), 913-926.
 #' @references Loh, P. R., Tucker, G., Bulik-Sullivan, B. K., Vilhjalmsson, B. J., Finucane, H. K., Salem, R. M., ... & Patterson, N. (2015). Efficient Bayesian mixed-model analysis increases association power in large cohorts. Nature genetics, 47(3), 284-290.
@@ -1059,60 +1203,67 @@ clean.reml <- function(wkdir = NULL) {
 #' @export
 #'
 
-mtestLMM <- function(fit = NULL, W = NULL) {
-
-	# Get linear model fit results
-	ids <- fit$ids
-	W <- W[ids, ]
-	n <- length(ids)
-	m <- fit$Glist$m
-	Sg <- fit$theta[1]
-	Py <- fit$Py
-	Vy <- fit$Vy
-     
-	yVy <- fit$yVy
-	trPG <- fit$trPG[1]
-	trVG <- fit$trVG[1]
-     
-	# Compute single marker, coefficients, test statistics and p-values
-	nW <- colSums(!W == 0)
-	WPy <- crossprod(W, Py)
-	WVy <- crossprod(W, Vy)
-	ww <- colSums(W**2)
-     
-	coef <- se <- stat <- p <- matrix(NA, nrow = ncol(W), ncol = 3)
-	colnames(coef) <- colnames(se) <- colnames(stat) <- colnames(p) <- c("Tgrammar-g", "Tgblup", "Tscore") 
-	rownames(coef) <- rownames(se) <- rownames(stat) <- rownames(p) <- colnames(W) 
-
-	coef[, 1] <- (WVy / ww) / (trVG / (n - 1))
-	coef[, 2] <- Sg * WPy / m
-	coef[, 3] <- (WVy / (trVG / m)) / m
- 
-	se[, 1] <- ((yVy / ww) / (trVG / (n - 1))) / (n - 1)
-	se[, 2] <- (Sg**2) * trPG / m**2
-	se[, 3] <- (1 / (trVG / m)) / m
- 
-	stat[, 1] <- coef[, 1]**2 / se[, 1]
-	stat[, 2] <- coef[, 2]**2 / se[, 2]
-	stat[, 3] <- coef[, 3]**2 / se[, 3]
-
-	p[, 1] <- pchisq(stat[, 1], df = 1, ncp = 0, lower.tail = FALSE)
-	p[, 2] <- pchisq(stat[, 2], df = 1, ncp = 0, lower.tail = FALSE)
-	p[, 3] <- pchisq(stat[, 3], df = 1, ncp = 0, lower.tail = FALSE)
-
-	Tgrammar <- data.frame(coef = coef[, 1], se = se[, 1], stat = stat[, 1], p = p[, 1]) 
-	Tgblup <- data.frame(coef = coef[, 2], se = se[, 2], stat = stat[, 2], p = p[, 2]) 
-	Tscore <- data.frame(coef = coef[, 3], se = se[, 3], stat = stat[, 3], p = p[, 3])
-      
-	return(list(Tgrammar = Tgrammar, Tgblup = Tgblup, Tscore = Tscore))
-     
+lmma <- function( fit=NULL, W=NULL, m=NULL, statistic="mastor") {
+  
+  if (is.null(m)) m <- ncol(W)
+  n <- nrow(W)
+  # get linear model fit results
+  Sg <- fit$theta[1]
+  Py <- fit$Py
+  Vy <- fit$Vy
+  yVy <- fit$yVy
+  trPG <- fit$trPG[1]
+  trVG <- fit$trVG[1]
+  
+  # compute single marker, coefficients, test statistics and p-values
+  nW <- colSums(!W==0)
+  WPy <- crossprod(W,Py)
+  WVy <- crossprod(W,Vy)
+  ww <- colSums(W**2)
+  
+  if (statistic=="mastor") {
+    coef <- (WPy/(trPG/m))/m
+    se <- (1/(trPG/m))/m
+    stat <- WPy**2/sum(Py**2)
+    p <- pchisq(stat,df=1,ncp=0, lower.tail=FALSE)
+  }
+  
+  mma <- data.frame(coef=coef,se=se,stat=stat,p=p)
+  rownames(mma) <- colnames(W)
+  
+  return(mma)
+  
 }
 
-load(file="...../fitG.Rdata")
+#' @export
 
-load W
+plotma <- function(ma=NULL,chr=NULL,rsids=NULL,thresh=5) {
+  
+  mlogObs <- -log10(ma$p)
+  m <- length(mlogObs)
+  rwsSNP <- rsids
+  if(!is.null(thresh)) { rwsSNP <- mlogObs > thresh }  
+  if(is.null(chr)) { chr <- rep(1,m) }  
+  
+  layout(matrix(1:2,ncol=1))
+  o <- order(mlogObs,decreasing=TRUE)
+  mlogExp <- -log10( (1:m)/m ) 
+  plot(y=mlogObs[o],x=mlogExp, col=2, pch="+",
+       frame.plot=FALSE, main="", xlab="Expected -log10(p)", ylab="Observed -log10(p)")
+  abline(a=0,b=1)
+  
+  colSNP <- "red"
+  
+  is.even <- function(x) x %% 2 == 0
+  colCHR <- rep(gray(0.3),m)
+  colCHR[is.even(chr)] <- gray(0.9)
+  
+  plot(y=mlogObs,x=1:m,ylab="Observed -log10(p)",xlab="Position",col=colCHR,   
+       pch=".",frame.plot=FALSE)
+  points(y=mlogObs[rwsSNP],x=(1:m)[rwsSNP],col=colSNP)  
+  abline(h=thresh,col=2,lty=2)
+}   
 
-mtest <- mtestLMM(fit = fitG, W = W)
 
 
 
