@@ -889,7 +889,7 @@ greml <- function(y = NULL, X = NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, 
 
 # REML interface functions for fortran
 
-remlF <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, nthreads = 1, wkdir = getwd(), verbose = FALSE )
+remlF <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, nthreads = 1, wkdir = getwd(), verbose = FALSE ) {
 #greml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, ids = NULL, theta = NULL, maxit = 100, tol = 0.00001, bin = NULL, nthreads = 1, wkdir = getwd()) {
     
 	write.reml(y = as.numeric(y), X = X, G = G)
