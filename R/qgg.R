@@ -35,7 +35,7 @@
 #' @param weights vector of weights for the residual variance
 #' @param W matrix centered and scaled genotypes or other types of molecular data
 #' @param sets list of marker sets corresponding to column names in W 
-#' @param K list of relationship / correlation matrices
+#' @param G list of relationship / correlation matrices
 #' @param data data frame containing the phenotypic observations and fixed factors specified in the model statements
 #' @param validate matrix or a list with the ids of validation sets corresponding to the rows in data
 #' @param mkplots logical indicating whether or not to make plots
@@ -110,7 +110,7 @@
 #' @export
 #' 
 
-gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data = NULL, validate = NULL, mkplots = TRUE) {
+gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, G = NULL, data = NULL, validate = NULL, mkplots = TRUE) {
      
      mf <- model.frame(fm, data = data, na.action = na.pass)
      mf <- eval(mf, parent.frame())
@@ -141,30 +141,30 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
      if (!is.null(weights)) {if (!length(weights) == nrow(W))
           stop("nrow(W) not equal to length(weights)")}
      
-     # Compute K matrices
-     if (is.null(sets) & is.null(K)) {K[[1]] <- (W %*% t(W)) / ncol(W)}
-     nk <- length(K)
+     # Compute G matrices
+     if (is.null(sets) & is.null(G)) {G[[1]] <- (W %*% t(W)) / ncol(W)}
+     nk <- length(G)
      nsets <- NULL
      if (!is.null(sets)) {
           nsets <- length(sets)
           m <- sapply(sets, length)
-          for (i in 1:nsets) {K[[i + nk]] <- (W[, sets[[i]]] %*% t(W[, sets[[i]]])) / m[i]}
-          names(K)[(nk + 1):(nk + nsets)] <- names(sets)
+          for (i in 1:nsets) {G[[i + nk]] <- (W[, sets[[i]]] %*% t(W[, sets[[i]]])) / m[i]}
+          names(G)[(nk + 1):(nk + nsets)] <- names(sets)
      }
      if (is.null(nsets)) {nsets <- nk}
      if (!is.null(sets)) {nsets <- nsets + nk}
-     if (is.null(names(K))) names(K) <- paste("C", 1:nsets, sep = "")
-     K[[nsets + 1]] <- diag(1, n)
+     if (is.null(names(G))) names(G) <- paste("C", 1:nsets, sep = "")
+     G[[nsets + 1]] <- diag(1, n)
      identity <- TRUE
      if (!is.null(weights)) {
-          K[[nsets + 1]] <- diag(1 / weights)
+          G[[nsets + 1]] <- diag(1 / weights)
           identity <- FALSE
      }
-     names(K)[nsets + 1] <- "e"
+     names(G)[nsets + 1] <- "e"
      
      # Model statements random effects
-     vfm <- paste("~", paste(paste("K[[", 1:nsets, "]][t, t]", sep = ""), collapse = "+"))
-     if (!is.null(weights)) {vfm <- paste("~", paste(paste("K[[", 1:(nsets + 1), "]][t, t]", sep = ""), collapse = "+"))}
+     vfm <- paste("~", paste(paste("G[[", 1:nsets, "]][t, t]", sep = ""), collapse = "+"))
+     if (!is.null(weights)) {vfm <- paste("~", paste(paste("G[[", 1:(nsets + 1), "]][t, t]", sep = ""), collapse = "+"))}
      vfm <- as.formula(vfm)
      
      # Fit mixed model and predict random effect (with or without observation)
@@ -177,15 +177,15 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
           fit <- regress(fm, vfm, identity = identity, verbose = 1, pos = rep(TRUE, nsets + 1),
                          data = droplevels(data[t, ]))
           V <- matrix(0, ncol = n, nrow = n)
-          for (j in 1:(nsets + 1)) {V <- V + K[[j]] * fit$sigma[j]}
+          for (j in 1:(nsets + 1)) {V <- V + G[[j]] * fit$sigma[j]}
           f <- fv <- NULL
-          for (j in 1:nsets) {f <- cbind(f, (K[[j]][t, t] * fit$sigma[j]) %*% fit$W %*% (y[t] - fit$fitted))}
-          for (j in 1:nsets) {fv <- cbind(fv, (K[[j]][v, t] * fit$sigma[j]) %*% fit$W %*% (y[t] - fit$fitted))}
+          for (j in 1:nsets) {f <- cbind(f, (G[[j]][t, t] * fit$sigma[j]) %*% fit$W %*% (y[t] - fit$fitted))}
+          for (j in 1:nsets) {fv <- cbind(fv, (G[[j]][v, t] * fit$sigma[j]) %*% fit$W %*% (y[t] - fit$fitted))}
           if (nsets == 1 & nk == 0) {
                Vf <- NULL
                P <- fit$W %*% fit$Q
                for (j in 1:nsets) { 
-                    Vf[[j]] <- (fit$sigma[j] * K[[j]][t, t]) %*% P %*% V[t, t] %*% P %*% (K[[j]][t, t] * fit$sigma[j])
+                    Vf[[j]] <- (fit$sigma[j] * G[[j]][t, t]) %*% P %*% V[t, t] %*% P %*% (G[[j]][t, t] * fit$sigma[j])
                     bvb <- f2b(W = W[t, sets[[j]]], f = f[, j], Vf = Vf[[j]])
                     if (nsets == 1) {
                          s <- bvb$b
@@ -211,7 +211,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL, data
      
      # Make plots
      if (nvsets > 1 & mkplots) {
-          colnames(sigmas) <- names(K)
+          colnames(sigmas) <- names(G)
           layout(matrix(1:4, ncol = 2))
           boxplot(pa, main = "Predictive Ability", ylab = "Correlation")
           boxplot(mspe, main = "Prediction Error", ylab = "MSPE")
@@ -451,9 +451,9 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 #'
 #' # Compute G
 #' G <- computeG(W = W)
-#' 	GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
-#' 	GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
-#' 	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+#' GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
+#' GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
+#' GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 #'
 #' # REML analyses and multi marker association (set) test
 #' fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
@@ -464,8 +464,8 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 #'
 #' # Use single coefficients as input 
 #' s <- crossprod(W / ncol(W), fitGB$Py) * fitGB$theta[1]
-#' 	cvat(s = s, W = W, sets = setsGF, nperm = 1000)
-#' 	cvat(s = s, W = W, sets = setsGT, nperm = 1000)
+#' cvat(s = s, W = W, sets = setsGF, nperm = 1000)
+#' cvat(s = s, W = W, sets = setsGT, nperm = 1000)
 #' 
 #' @export
 #'
@@ -551,72 +551,6 @@ hgTest <- function(p = NULL, sets = NULL, threshold = 0.05) {
      phyperg <- 1 - phyper(Naf - 1, Nf, N - Nf, Na)
      phyperg
 
-}
-
-####################################################################################################################
-#' 
-#' covSets 
-#' 
-#' @description
-#' Partitioning of covariance using genetic marker sets.
-#' 
-#' @export
-#'
-
-covSets <- function(W = NULL, g = NULL, sets = NULL, level2 = FALSE) {
-     
-     W <- W[, unlist(sets)]
-     nsets <- sapply(sets, length)
-     sets <- sets[nsets > 0]
-     nsets <- nsets[nsets > 0]
-     
-     WWi <- qggginv(W %*% t(W), tol = 0.0001)$G
-     b <- as.vector(crossprod(W, WWi %*% g))
-     names(b) <- colnames(W)
-     Wb <- t(t(W) * as.vector(b))
-     gWb <- colSums(as.vector(g) * Wb)
-     
-     cv <- cvSet <- NULL
-     
-     ##########################################################
-     # level 1 
-     ##########################################################
-     
-     f <- sapply(sets, function(x) {rowSums(as.matrix(Wb[, x]))})
-     cvs <- apply(f, 2, function(x) {x %*% g})
-     Vf <- var(f)
-     vf <- diag(Vf)
-     covf <- rowSums(Vf) - vf
-     hvf <- vf / var(g)
-     hcovf <- (vf + covf) / var(g)
-     cv <- cbind(nsets, vf, hvf, covf, hcovf, cvs, vf / nsets, hvf / nsets, covf / nsets, hcovf / nsets, cvs / nsets)
-     colnames(cv) <- c("nset", "varf", "hf", "covf", "hcovf", "cvat", "varf pr snp", "hf pr snp", "covf pr snp", 
-                       "hcovf pr snp", "cvat pr snp")
-     
-     ##########################################################
-     # level 2 
-     ##########################################################
-     
-     if (level2) {
-          cvSet <- lapply(sets, function(x) {
-               
-               Wf <- as.matrix(Wb[, x])
-               gf <- rowSums(Wf)
-               Vf <- var(Wf)
-               vf <- diag(Vf)
-               covf <- rowSums(Vf) - vf
-               hvf <- vf / var(gf)
-               hcovf <- (vf + covf) / var(gf)
-               cvs <- apply(Wf, 2, function(x) {x %*% gf})
-               cf <- cbind(vf, hvf, covf, hcovf, cvs)
-               colnames(cf) <- c("varf", "hf", "covf", "hcovf", "cvat")
-               cf
-               
-          })
-     }
-     
-     list(cvf = cv, cvfSet = cvSet, f = f)
-     
 }
 
 
@@ -850,24 +784,25 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #'
 #' # Compute G
 #' G <- computeG(W = W)
-#' 	GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
-#' 	GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
-#' 	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+#' GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
+#' GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
+#' GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 #'
 #' # REML analyses
-#' fitGB <- greml(y = y, X = X, G = GB)
-#' fitG12 <- greml(y = y, X = X, G = GF)
-#' fitGT12 <- greml(y = y, X = X, G = GT)
+#' fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
+#' fitG12 <- greml(y = y, X = X, G = GF, verbose = TRUE)
+#' fitGT12 <- greml(y = y, X = X, G = GT, verbose = TRUE)
 #'
 #' # REML analyses and cross validation
 #' n <- length(y)
 #' fold <- 10
-#' nsets <- 50
+#' nsets <- 5
 #' 
 #' validate <- replicate(nsets, sample(1:n, as.integer(n / fold)))
-#' 	fitGB <- greml(y = y, X = X, G = GB, validate = validate)
-#' 	fitG12 <- greml(y = y, X = X, G = GF, validate = validate)
-#' 	fitGT12 <- greml(y = y, X = X, G = GT, validate = validate)
+#' 
+#' fitGB <- greml(y = y, X = X, G = GB, validate = validate)
+#' fitG12 <- greml(y = y, X = X, G = GF, validate = validate)
+#' fitGT12 <- greml(y = y, X = X, G = GT, validate = validate)
 #'
 #' @export
 #'
@@ -1192,12 +1127,12 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
 #'
 #' # Compute G
 #' G <- computeG(W = W)
-#' 	GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
-#' 	GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
-#' 	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+#' GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
+#' GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
+#' GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 #'
 #' # REML analyses and single marker association test
-#' fitGB <- reml(y = y, X = X, G = GB, verbose = TRUE)
+#' fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
 #' maGB <- lmma(fit = fitGB, W = W)
 #'
 #' @export
@@ -1285,7 +1220,7 @@ plotma <- function(ma=NULL,chr=NULL,rsids=NULL,thresh=5) {
 #' 
 #' @param fm a formula with model statement for the linear mixed model 
 #' @param data a data frame containing the phenotypic observations and fixed factors specified in the model statements
-#' @param Klist a list of relationship / correlation matrices corresponding to random effects specified in vfm
+#' @param Glist a list of relationship / correlation matrices corresponding to random effects specified in vfm
 #' @param validate a matrix or a list with the ids of validation sets corresponding to the rows in data
 #' @param bin is the directory for DMU binaries (dmu1 and dmuai1)
 #' @return Returns results in a list structure including 
@@ -1318,30 +1253,30 @@ plotma <- function(ma=NULL,chr=NULL,rsids=NULL,thresh=5) {
 #' data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
 #' 
 #' fm <- y ~ f + (1 | g~G) 
-#' Klist <- list(G = G)
+#' Glist <- list(G = G)
 #' 
 #' 
-#' fit <- aireml(fm = fm, Klist = Klist, data = data)
+#' fit <- aireml(fm = fm, Glist = Glist, data = data)
 #'   str(fit)
 #' 
 #' @export
 #'
 
 # Main function for reml analyses suing DMU
-aireml <- function(fm = NULL, vfm = NULL, Klist = NULL, restrict = NULL, data = NULL, validate = NULL, bin = NULL) {
+aireml <- function(fm = NULL, vfm = NULL, Glist = NULL, restrict = NULL, data = NULL, validate = NULL, bin = NULL) {
      
      tol <- 0.001
      fit <- cvfit <- NULL
      #model <- extractModel(fm = fm, data = data)
      model <- lapply(fm, function(x) {extractModel(fm = x, data = data)})
      model <- modelDMU(model = model, restrict = restrict)
-     flevels <- writeDMU(model = model, data = data, Klist = Klist)
+     flevels <- writeDMU(model = model, data = data, Glist = Glist)
      executeDMU(bin = bin)
      fit <- readDMU(model = model, flevels = flevels)
      if (!is.null(validate)) {
           for (i in 1:ncol(validate)) {
                #set data missing
-               writeDMU(model = model, data = data, Klist = Klist)
+               writeDMU(model = model, data = data, Glist = Glist)
                executeDMU(bin = bin)
                cvfit[[i]] <- readDMU(model = model, flevels = flevels)
           }
@@ -1472,7 +1407,7 @@ recodeDMU <- function(data = NULL) {
 }
 
 # Write DIR file, data file, and cor files for DMU 
-writeDMU <- function(model = NULL, data = NULL, Klist = NULL, tol = 0.001) {
+writeDMU <- function(model = NULL, data = NULL, Glist = NULL, tol = 0.001) {
      
      # Write DMU DIR file
      dir.file <- "gfm.DIR"
@@ -1538,11 +1473,11 @@ writeDMU <- function(model = NULL, data = NULL, Klist = NULL, tol = 0.001) {
                  quote = FALSE, col.names = FALSE, sep = "\t", row.names = FALSE)
      
      # Write DMU cor data files
-     if (!is.null(Klist)) {
+     if (!is.null(Glist)) {
           for (i in 1:length(model$data$covmat)) {
                vvarname <- names(model$data$covmat)[i]
                vvarfile <- paste(vvarname, ".txt", sep = "")
-               iG <- qggginv(Klist[[model$data$covmat[i]]], tol = tol)
+               iG <- qggginv(Glist[[model$data$covmat[i]]], tol = tol)
                colnames(iG$G) <- rownames(iG$G) <- rec$rlevels[[vvarname]][rownames(iG$G)]
                writeG(G = iG$G, filename = vvarfile, ldet = iG$ldet)
           }
@@ -1711,406 +1646,3 @@ writeG <- function(G = NULL, filename = NULL, clear = TRUE, ldet = NULL) {
      
 }
 
-####################################################################################################################
-# #' 
-# #' Genomic feature model analyses using Bayesian Mixture Models
-# #'
-# #' @description
-# #' Genomic Feature Linear Mixed Models for predicting quantitative trait phenotypes from high 
-# #' resolution genomic polymorphism data. Genomic features are regions on the genome that are 
-# #' hypothesized to be enriched for causal variants affecting the trait. Several genomic feature 
-# #' classes can be formed based on previous studies and different sources of information including 
-# #' genes, chromosomes, biological pathways, gene ontologies, sequence annotation, prior QTL regions, 
-# #' or other types of external evidence. This is important because prediction is difficult for 
-# #' populations of unrelated individuals when the number of causal variants is low relative to the 
-# #' total number of polymorphisms, and causal variants individually have small effects on the traits. 
-# #' The models can implemented using Bayesian Methods. Single trait and multiple random effects. 
-# #' 
-# #' hssvs
-# #'
-# #' @param y is a vector of phenotypes 
-# #' @param X is a matrix of centered and scaled genotypes
-# #' @param set is a list of marker sets - names corresponds to rownames in stat
-# #' @param hgprior is a list of prior scale parameters (sce0 and scg0), prior degrees of freedom (dfe0 and dgf0),  prior distribution (not yet implemented)
-# #' @param nsamp is the number of samples after burnin
-# #' @param p1 prior proportion of elements in gamma to be set to one
-# #' @param g0 spike variance
-# #' @return Returns a list including 
-# #' \item{sigmas}{posterior samples variance components} 
-# #' \item{mus}{posterior samples mu}
-# #' \item{logCPO}{log CPOs}
-# #' \item{g}{posterior samples g}
-# #' \item{alphas}{posterior samples alphas}
-# #' \item{mus}{number of markers in the set }
-# #' @author Peter Sørensen
-# #’ @references Sørensen, P., de los Campos, G., Morgante, F., Mackay, T. F., & Sorensen, D. (2015). Genetic control of environmental variation of two quantitative traits of Drosophila melanogaster revealed by whole-genome sequencing. Genetics, 201(2), 487-497.
-# #'
-# #' @export
-# #'
-#
-# hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
-#      
-#      n <- length(y)                           # number of observations
-#      p <- ncol(X)                             # number of regression variables
-#      dxx <- colSums(X**2)                     # diagonal elements of the X'X matrix
-#      p0 <- 1 - p1                             # prior proportion of elements in gamma to be set to one
-#      
-#      b <- rep(0, p)                           # initialize b
-#      g <- rep(0, p)                           # intialize g
-#      
-#      nset <- length(set)                      # number of sets
-#      pset <- sapply(set, length)
-#      for (i in 1:nset) {
-#           n1 <- as.integer(pset[i] * p1) 
-#           cset <- abs(cor(y, X[, set[[i]]]))
-#           o <- order(cset, decreasing = TRUE)[1:n1]
-#           o <- set[[i]][o]
-#           g[o] <- 1
-#      }
-#      
-#      bset <- NULL                             # beta's within sets
-#      gset <- NULL                             # g's within sets
-#      for (i in 1:nset) {
-#           bset[[i]] <- b[set[[i]]]
-#           gset[[i]] <- g[set[[i]]]
-#      }
-#      
-#      mu <- 0                                  # initilaize mu
-#      sigma2 <- var(y) / 2                     # initialize sigma2
-#      g1 <- 1                                  # initialize slab variance
-#      if (is.null(g0)) g0 <- 1e-09             # initialize spike variance
-#      
-#      g0 <- rep(g0, nset)                      # spike variance for each set
-#      g1 <- rep(g1, nset)                      # slab variance for each set
-#      
-#      #Xs <- matrix(0, nrow = n, ncol = nset)        # matrix (n*nset) of genomic values one for each set
-#      
-#      e <- as.vector(y)                        # initialize residuals
-#      
-#      for (i in 1:nsamp) {
-#           
-#           for (j in 1:nset) {
-#                cls <- set[[j]]
-#                samp <- ssvs(e = e, X = X[, cls], b = bset[[j]], dxx = dxx[cls], mu = mu, g = gset[[j]], sigma2 = sigma2, p0 = p0, p1 = p1, g0 = g0[j], g1 = g1[j], hgprior = hgprior)
-#                e <- samp$e
-#                bset[[j]] <- samp$b
-#                mu <- samp$mu
-#                sigma2 <- samp$sigma2
-#                gset[[j]] <- samp$g
-#                g0[j] <- samp$g0
-#                g1[j] <- samp$g1
-#                # Xs[, j] <- X[, cls] %*% bset[[j]]
-#           }
-#           #  h2 <- apply(Xs, 2, var)
-#           #  h2 <- h2 / var(y)
-#           #  barplot(h2)
-#           print("")
-#           print(c("round", i, "gset", sapply(gset, sum)))
-#           #  print(c("round", i, "mu, sigma2, cor(y, Xs)", c(mu, sigma2, cor(y, rowSums(Xs)))))
-#           #  print(c("round", i, "g0", g0))
-#           #  print(c("round", i, "g1", g1))
-#      }  
-#      
-# }
-# 
-# # http://www.r-bloggers.com/fortran-and-r-speed-things-up/
-# #   
-# # y <- rnorm(100000)
-# # x <- rnorm(100000)
-# # yx <- sum(x * y)
-# # system.time(for (i in 1:100000) {crossprod(y, x) * 2})
-# # system.time(for (i in 1:10000000) {yx[1] - yx[1] * 2 - yx[1] * 2})
-# #
-# # cvs <- function(yx = NULL, p = NULL) {
-# #
-# #   for (i in 1:p) {yx[1] - yx[1] * 2 - yx[1] * 2}
-# #
-# # }
-# #
-# # system.time(cvs(yx = yx, p = 10000))
-# 
-# ssvs <- function(e = e, X = X, b = b, dxx = dxx, mu = mu, g = g, sigma2 = sigma2, p0 = p0, p1 = p1, g0 = g0, g1 = g1, hgprior = hgprior) {
-#      
-#      n <- length(e)                           # number of observations
-#      p <- ncol(X)                             # number of regression variables
-#      
-#      sce0 <- hgprior$sce0                     # prior residual sums of squares
-#      scg0 <- hgprior$scg0                     # prior slab residual sums of squares
-#      dfe0 <- hgprior$dfe0                     # prior residual degrees of freedom
-#      dfg0 <- hgprior$dfg0                     # prior slab residual degrees of freedom
-#      
-#      # sample b and update residuals 
-#      bC <- b
-#      shrinkage <- rep(sigma2 / g1, times = p)
-#      shrinkage[g == 0] <- sigma2 / g0 
-#      xxs <- dxx + shrinkage
-#      for (j in 1:p) {
-#           rhs <- sum(X[, j] * e) + dxx[j] * bC[j]
-#           b[j] <- rnorm(1, mean = rhs / xxs[j], sd = sigma2 / xxs[j])
-#           e  <- e - X[, j] * (b[j] - bC[j]) 
-#      }
-#      
-#      # sample g0 
-#      scg00 <- sum((b**2)[g == 0]) + scg0
-#      dfg00 <- sum(1 - g) + dfg0 - 2 
-#      g0 <- scg00 / rchisq(n = 1, df = dfg00, ncp = 0) 
-#      
-#      # sample g1 
-#      scg1 <- sum((b**2)[g == 1]) + scg0
-#      dfg1 <- sum(g) + dfg0 - 2 
-#      for (k in 1:1000) {                      # scaling needs to be revised
-#           g1 <- scg1 / rchisq(n = 1, df = dfg1, ncp = 0) 
-#           if(g1 > g0) break                   # scaling needs to be revised
-#           if(k == 1000) g1 <- g0              # scaling needs to be revised
-#      }                                        # scaling needs to be revised
-#      
-#      # sample g 
-#      ratio1 <- p1 * (exp(-(b**2) / g1) / sqrt(g1))
-#      ratio0 <- p0 * (exp(-(b**2) / g0) / sqrt(g0))
-#      ratio <- ratio1 / ratio0
-#      u <- 1 / (1 - runif(p, 0, 1))
-#      g[1:p] <- 0
-#      g[ratio > u] <- 1
-#      
-#      # sample mu and update residuals 
-#      muC <- mu
-#      mu <- rnorm(1, mean = mean(e + muC), sd = sigma2 / n)
-#      e <- e - mu + muC 
-#      
-#      # sample sigma 
-#      sce <- sum(e**2) + sce0
-#      dfe <- n + dfe0 - 2 
-#      sigma2 <- sce / rchisq(n = 1, df = dfe, ncp = 0) 
-#      
-#      return(list(e = e, mu = mu, b = b, sigma2 = sigma2, g = g, g0 = g0, g1 = g1))
-#      
-# }
-# 
-#
-#
-# ################################################################################
-# # Simulate data and test SSVS function
-# ################################################################################
-# 
-# # # Simulated data set
-# # X <- matrix(rnorm(10000000), nrow = 1000)
-# # set1 <- sample(1:ncol(X), 5)
-# # set2 <- sample(1:ncol(X), 5)
-# # set1a <- unique(c(set1, sample(1:ncol(X), 100)))
-# # set2a <- unique(c(set2, sample(1:ncol(X), 100)))
-# # set3 <- (1:ncol(X))[-unique(c(set1a, set2a))]
-# # 
-# # y <- rowSums(X[, set1]) + rowSums(X[, set2]) + rnorm(nrow(X), mean = 0, sd = 1)       
-# # 
-# # varE <- var(y - rowSums(X[, set1]) - rowSums(X[, set2])) 
-# # varE
-# # 
-# # h2 <- (var(rowSums(X[, set1])) + var(rowSums(X[, set2]))) / var(y)
-# # h2
-# # 
-# # set <- list(set1 = set1a, set2 = set2a, set3 = set3)
-# # 
-# # res <- hssvs(y = y, X = X, set = set, p1 = 0.01, g0 = 0.0000001, nsamp = 100)
-# 
-# 
-# 
-# ################################################################################
-# # Multi Class Bayesian Regression function 
-# ################################################################################
-# 
-# mcbr <- function(y = NULL, X = NULL, nc = NULL, l1 = NULL, l2 = NULL, phi = NULL, nsamp = 100) {
-#      
-#      n <- length(y)             # number of observations
-#      p <- ncol(X)               # number of regression variables
-#      
-#      dxx <- colSums(X**2)       # diagonal elements of the X'X matrix
-#      
-#      b <- as.numeric(rep(0, p)) # initialize b
-#      mu <- 0                    # initilaize mu
-#      
-#      if (is.null(l1))  l1 <- 1 / (10**((1:nc) - 4))                    # prior shape parameter lambda
-#      if (is.null(l2))  l2 <- rep(1 / 10**2, nc)                        # prior rate parameter lambda
-#      if (is.null(phi)) phi0 <- c(0.5, 0.25, 0.15, 0.05, 0.025, 0.01, 0.001)  # prior phi
-#      phi <- phi0
-#      logphi <- log(phi)                                                # prior phi on the log scale
-#      
-#      lambdak <- rep(1000, nc)                             # initialize lambdak one for each class
-#      lambda <- rep(1000, p)                               # initialize lambda one for each regressor
-#      
-#      g <- rep(1, p)                                       # initialize class indicator variable
-#      cors <- abs(cor(y, X))
-#      quants <- quantile(cors, probs = 1 - phi)
-#      for (i in 1:nc) {
-#           #  g[cors > quants[i]] <- i 
-#      }
-#      
-#      e <- as.vector(y - mu - X %*% b)     # initialize residuals
-#      
-#      sigma2 <- var(e) / 2                 # initialize sigma2
-#      
-#      
-#      for (i in 1:nsamp) {
-#           
-#           # sample mu and update residuals 
-#           muC <- mu
-#           mu <- rnorm(1, mean = mean(e + muC), sd = sigma2 / n)
-#           e <- as.vector(e - mu + muC)
-#           
-#           # sample b and update residuals                      
-#           bC <- b
-#           xxs <- as.numeric(dxx + lambda * sigma2)                    
-#           for (j in 1:p) {
-#                rhs <- as.numeric(sum(X[, j] * e) + dxx[j] * bC[j])
-#                b[j] <- rnorm(1, mean = rhs / xxs[j], sd = sigma2 / (xxs[j]))
-#                e  <- as.numeric(e - X[, j] * (b[j] - bC[j])) 
-#           }
-#           e <- as.numeric(y - mu - X %*% b)                     # update residuals
-#           
-#           # sample lambda
-#           b2 <- b**2
-#           l1k <- l1
-#           l2k <- l2
-#           for (k in 1:nc) {
-#                if (sum(g == k) > 0) l1k[k] <- l1k[k] + sum(g == k) / 2
-#                if (sum(g == k) > 0) l2k[k] <- l2k[k] + sum(b2[g == k]) / 2
-#                lambdak[k] <- rgamma(n = 1, shape = l1k[k], rate = l2k[k])      
-#                if (sum(g == k) > 0) lambda[g == k] <- lambdak[k]
-#           }
-#           loglambdak <- log(lambdak)
-#           
-#           # sample gamma
-#           for (j in 1:p) {
-#                probs <- -0.5 * b2[j] * lambdak + logphi + 0.5 * loglambdak
-#                g[j] <- (1:nc)[rmultinom(1, 1, prob = exp(probs)) == 1]
-#           }
-#           
-#           # sample phi
-#           #phi <- rep(0.0001, nc)
-#           rws <- as.numeric(names(table(g)))
-#           #phi[rws] <- table(g) / p
-#           print(c(i, phi))
-#           
-#           # sample sigma                                       
-#           she <- n                                       
-#           sce <- sum(e**2)
-#           sigma2 <- sce / rchisq(n = 1, df = she)                   
-#           
-#           plot(b)
-#           print(table(g))
-#           print(c(mu, sigma2))
-#           
-#      }
-#      
-# }
-# 
-# # Simulate data and test function
-# #X <- matrix(rnorm(10000000), nrow = 1000)
-# #set <- sample(1:ncol(X), 10)
-# #y <- rowSums(X[, set]) + rnorm(nrow(X), mean = 0, sd = 1)       
-# #h2 <- var(rowSums(X[, set])) / var(y)
-# #
-# #mcbr(y = y, X = X, nc = 7)
-# 
-# bgL <- function(y = NULL, X = NULL, g = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
-#
-#      n <- length(y)           # number of observations
-#      nb <- ncol(X)            # number of regression variables
-#      ng <- length(unique(g))  # number of groups
-#      dxx <- colSums(X**2)     # diagonal elements of the X'X matrix
-#      
-#      b <- rep(0, nb)                          # initialize b
-#      mu <- 0                                  # initilaize mu
-#      sigma <- 1                               # initialize sigma
-#      g1 <- rep(1 / nb, ng)                    # initialize slab variance
-#      g1 <- rep(0, ng)                         # initialize slab variance
-#      for (j in 1:ng) {
-#           g1[j] <- 1 / sum(g == j)
-#      }
-#      print(g1)
-#      #g1 <- c(1, 0.000001)                    # initialize slab variance
-#      
-#      sce0 <- hgprior$sce0                     # prior residual sums of squares
-#      scg0 <- hgprior$scg0                     # prior slab residual sums of squares
-#      dfe0 <- hgprior$dfe0                     # prior residual degrees of freedom
-#      dfg0 <- hgprior$dfg0                     # prior slab residual degrees of freedom
-#      
-#      e <- as.vector(y - mu - X %*% b)         # initialize residuals
-#      
-#      for (i in 1:nsamp) {
-#           
-#           # sample mu and update residuals 
-#           mu0 <- mu
-#           mu <- rnorm(1, mean = mean(e + mu0), sd = sigma / n)
-#           e <- e - mu + mu0 
-#           
-#           # sample b and update residuals 
-#           b0 <- b
-#           shrinkage <- rep(0, times = nb)
-#           for (j in 1:ng) {
-#                shrinkage[g == j] <- sigma / g1[j]
-#           }
-#           xxs <- dxx + shrinkage
-#           for (j in 1:nb) {
-#                rhs <- sum(X[, j] * e) + dxx[j] * b0[j]
-#                b[j] <- rnorm(1, mean = rhs / xxs[j], sd = sigma / xxs[j])
-#                e  <- e - X[, j] * (b[j] - b0[j]) 
-#           }
-#           
-#           # sample sigma 
-#           sce <- sum(e**2) + sce0
-#           dfe <- n + dfe0 - 2 
-#           sigma <- sce / rchisq(n = 1, df = dfe, ncp = 0) 
-#           #sigma <- sum(e**2) / rchisq(n = 1, df = n - 2, ncp = 0) 
-#           
-#           # sample g1 
-#           for (j in 1:ng) {
-#                scg1 <- sum((b**2)[g == j]) + scg0
-#                dfg1 <- sum(g == j) + dfg0 - 2 
-#                g1[j] <- scg1 / rchisq(n = 1, df = dfg1, ncp = 0) 
-#           }
-#           
-#           # sample g
-#           print("")
-#           print(c("round", i, (1:nb)[g == 1]))
-#           print(c("round", i, c(mu, sigma, g1)))
-#           print(c("round", i, b[g == 1]))
-#      }
-#
-# }
-# 
-# 
-# 
-# ################################################################################
-# # Simulate data and test SSVS functions
-# ################################################################################
-# 
-# #library(BLR)
-# #data(wheat)
-# #
-# #res1 <- ssvs(y = Y[, 1], X = X, p1 = 0.01, g0 = 0.0000001, nsamp = 100)     
-# #res2 <- ssvs(y = Y[, 2], X = X, p1 = 0.01, g0 = 0.0000001, nsamp = 100)     
-# #res4 <- ssvs(y = Y[, 3], X = X, p1 = 0.01, g0 = 0.0000001, nsamp = 100)     
-# #res5 <- ssvs(y = Y[, 4], X = X, p1 = 0.01, g0 = 0.0000001, nsamp = 100)     
-# #
-# # # simulated data set
-# # X <- matrix(rnorm(10000000), nrow = 1000)
-# # set1 <- sample(1:ncol(X), 50)
-# # set2 <- sample(1:ncol(X), 50)
-# # set3 <- sample(1:ncol(X), 50)
-# # set4 <- sample(1:ncol(X), 50)
-# # set5 <- sample(1:ncol(X), 50)
-# # g <- rep(6, times = ncol(X))
-# # g[set1] <- 1
-# # g[set2] <- 2
-# # g[set3] <- 3
-# # g[set4] <- 4
-# # g[set5] <- 5
-# # 
-# # set <- unique(c(set1, set2, set3, set4, set5))
-# # 
-# # y <- rowSums(X[, set]) + rnorm(nrow(X), mean = 0, sd = 20)       
-# # 
-# # system.time(res <- bgL(y = y, X = X, g = g, nsamp = 10)) 
-# # 
-# #
-# #
