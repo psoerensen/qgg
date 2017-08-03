@@ -3,7 +3,6 @@
 export(aireml)
 export(bgfm)
 export(computeG)
-export(covSets)
 export(cvat)
 export(gfm)
 export(greml)
