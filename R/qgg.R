@@ -790,8 +790,8 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #'
 #' # REML analyses
 #' fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
-#' fitG12 <- greml(y = y, X = X, G = GF, verbose = TRUE)
-#' fitGT12 <- greml(y = y, X = X, G = GT, verbose = TRUE)
+#' fitGF <- greml(y = y, X = X, G = GF, verbose = TRUE)
+#' fitGT <- greml(y = y, X = X, G = GT, verbose = TRUE)
 #'
 #' # REML analyses and cross validation
 #' n <- length(y)
@@ -801,8 +801,12 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #' validate <- replicate(nsets, sample(1:n, as.integer(n / fold)))
 #' 
 #' fitGB <- greml(y = y, X = X, G = GB, validate = validate)
-#' fitG12 <- greml(y = y, X = X, G = GF, validate = validate)
-#' fitGT12 <- greml(y = y, X = X, G = GT, validate = validate)
+#' fitGF <- greml(y = y, X = X, G = GF, validate = validate)
+#' fitGT <- greml(y = y, X = X, G = GT, validate = validate)
+#'
+#' fitGB
+#' fitGF
+#' fitGT
 #'
 #' @export
 #'
@@ -1039,7 +1043,7 @@ remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxi
 
 cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,nthreads=1,wkdir=getwd(), verbose=FALSE)
 {
-  theta <- pa <- mspe <- yobs <- ypred <- NULL
+  theta <- pa <- mspe <- yobs <- ypred <- r2 <- llik <- slope <- intercept <- NULL
   for (i in 1:ncol(validate)) {
     v <- validate[,i]
     t <- (1:n)[-v]
@@ -1051,9 +1055,13 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
       yhat <- yhat + G[[j]][v,t]%*%fit$Py*fit$theta[j]
     }
     pa <- c(pa, cor(yhat, y[v]))
-    mspe <- c(mspe, sum((ypred - y[v])^2)/length(v))
-    ypred <- c(ypred, yhat)
+    mspe <- c(mspe, sum((yhat - y[v])^2)/length(v))
+    intercept <- c(intercept,lm(yhat ~  y[v])$coef[1])
+    slope <- c(slope,lm(yhat ~  y[v])$coef[2])
+    r2 <- c(r2,summary(lm(yhat~ y[v]))$r.squared)
+    llik <- c(llik,fit$llik)
     yobs <- c(yobs, y[v])
+    ypred <- c(ypred, yhat)
     if (i > 1) {
       colnames(theta) <- c(names(G),"E")
       layout(matrix(1:4, ncol = 2))
@@ -1064,8 +1072,10 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
       coef <- lm(ypred ~ yobs)$coef
       abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
     }
-  }      
-  return(list(pa=pa,mspe=mspe,theta=theta,ypred=ypred,yobs=yobs))
+    
+  }    
+  res <- data.frame(pa,r2,intercept,slope,mspe,llik,theta)
+  #return(list(pa=pa,mspe=mspe,theta=theta,ypred=ypred,yobs=yobs))
 }
 
 
