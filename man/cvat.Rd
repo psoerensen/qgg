@@ -56,9 +56,9 @@ setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colname
 
 # Compute G
 G <- computeG(W = W)
-	GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
-	GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
-	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
+GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
+GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 
 # REML analyses and multi marker association (set) test
 fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
@@ -69,8 +69,8 @@ cvat(fit = fitGB, W = W, sets = setsGT, nperm = 1000)
 
 # Use single coefficients as input 
 s <- crossprod(W / ncol(W), fitGB$Py) * fitGB$theta[1]
-	cvat(s = s, W = W, sets = setsGF, nperm = 1000)
-	cvat(s = s, W = W, sets = setsGT, nperm = 1000)
+cvat(s = s, W = W, sets = setsGF, nperm = 1000)
+cvat(s = s, W = W, sets = setsGT, nperm = 1000)
 
 }
 \author{

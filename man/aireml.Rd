@@ -4,13 +4,13 @@
 \alias{aireml}
 \title{Genomic Feature Model analyses implemented using Restriced Likelihood Methods in DMU}
 \usage{
-aireml(fm = NULL, vfm = NULL, Klist = NULL, restrict = NULL,
+aireml(fm = NULL, vfm = NULL, Glist = NULL, restrict = NULL,
   data = NULL, validate = NULL, bin = NULL)
 }
 \arguments{
 \item{fm}{a formula with model statement for the linear mixed model}
 
-\item{Klist}{a list of relationship / correlation matrices corresponding to random effects specified in vfm}
+\item{Glist}{a list of relationship / correlation matrices corresponding to random effects specified in vfm}
 
 \item{data}{a data frame containing the phenotypic observations and fixed factors specified in the model statements}
 
@@ -55,10 +55,10 @@ y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + 10 * rnorm(nrow(W))
 data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
 
 fm <- y ~ f + (1 | g~G) 
-Klist <- list(G = G)
+Glist <- list(G = G)
 
 
-fit <- aireml(fm = fm, Klist = Klist, data = data)
+fit <- aireml(fm = fm, Glist = Glist, data = data)
   str(fit)
 
 }

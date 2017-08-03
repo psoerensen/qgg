@@ -83,24 +83,25 @@ setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colname
 
 # Compute G
 G <- computeG(W = W)
-	GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
-	GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
-	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
+GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
+GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 
 # REML analyses
-fitGB <- greml(y = y, X = X, G = GB)
-fitG12 <- greml(y = y, X = X, G = GF)
-fitGT12 <- greml(y = y, X = X, G = GT)
+fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
+fitG12 <- greml(y = y, X = X, G = GF, verbose = TRUE)
+fitGT12 <- greml(y = y, X = X, G = GT, verbose = TRUE)
 
 # REML analyses and cross validation
 n <- length(y)
 fold <- 10
-nsets <- 50
+nsets <- 5
 
 validate <- replicate(nsets, sample(1:n, as.integer(n / fold)))
-	fitGB <- greml(y = y, X = X, G = GB, validate = validate)
-	fitG12 <- greml(y = y, X = X, G = GF, validate = validate)
-	fitGT12 <- greml(y = y, X = X, G = GT, validate = validate)
+
+fitGB <- greml(y = y, X = X, G = GB, validate = validate)
+fitG12 <- greml(y = y, X = X, G = GF, validate = validate)
+fitGT12 <- greml(y = y, X = X, G = GT, validate = validate)
 
 }
 \author{

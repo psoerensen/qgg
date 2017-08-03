@@ -50,12 +50,12 @@ setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colname
 
 # Compute G
 G <- computeG(W = W)
-	GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
-	GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
-	GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
+GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
+GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 
 # REML analyses and single marker association test
-fitGB <- reml(y = y, X = X, G = GB, verbose = TRUE)
+fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
 maGB <- lmma(fit = fitGB, W = W)
 
 }

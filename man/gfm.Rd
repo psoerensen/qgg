@@ -4,7 +4,7 @@
 \alias{gfm}
 \title{Genomic Feature Model analyses implemented using Likelihood Methods}
 \usage{
-gfm(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL,
+gfm(fm = NULL, weights = NULL, W = NULL, sets = NULL, G = NULL,
   data = NULL, validate = NULL, mkplots = TRUE)
 }
 \arguments{
@@ -16,7 +16,7 @@ gfm(fm = NULL, weights = NULL, W = NULL, sets = NULL, K = NULL,
 
 \item{sets}{list of marker sets corresponding to column names in W}
 
-\item{K}{list of relationship / correlation matrices}
+\item{G}{list of relationship / correlation matrices}
 
 \item{data}{data frame containing the phenotypic observations and fixed factors specified in the model statements}
 
