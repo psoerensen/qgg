@@ -89,8 +89,8 @@ GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 
 # REML analyses
 fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
-fitG12 <- greml(y = y, X = X, G = GF, verbose = TRUE)
-fitGT12 <- greml(y = y, X = X, G = GT, verbose = TRUE)
+fitGF <- greml(y = y, X = X, G = GF, verbose = TRUE)
+fitGT <- greml(y = y, X = X, G = GT, verbose = TRUE)
 
 # REML analyses and cross validation
 n <- length(y)
@@ -100,8 +100,12 @@ nsets <- 5
 validate <- replicate(nsets, sample(1:n, as.integer(n / fold)))
 
 fitGB <- greml(y = y, X = X, G = GB, validate = validate)
-fitG12 <- greml(y = y, X = X, G = GF, validate = validate)
-fitGT12 <- greml(y = y, X = X, G = GT, validate = validate)
+fitGF <- greml(y = y, X = X, G = GF, validate = validate)
+fitGT <- greml(y = y, X = X, G = GT, validate = validate)
+
+fitGB
+fitGF
+fitGT
 
 }
 \author{
