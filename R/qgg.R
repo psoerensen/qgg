@@ -800,14 +800,16 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #' 
 #' validate <- replicate(nsets, sample(1:n, as.integer(n / fold)))
 #' 
-#' fitGB <- greml(y = y, X = X, G = GB, validate = validate)
-#' fitGF <- greml(y = y, X = X, G = GF, validate = validate)
-#' fitGT <- greml(y = y, X = X, G = GT, validate = validate)
+#' cvGB <- greml(y = y, X = X, G = GB, validate = validate)
+#' cvGF <- greml(y = y, X = X, G = GF, validate = validate)
+#' cvGT <- greml(y = y, X = X, G = GT, validate = validate)
 #'
-#' fitGB
-#' fitGF
-#' fitGT
-#'
+#' cvGB
+#' cvGF
+#' cvGT
+#' 
+#' boxplot(cbind(cvGB[,1:4],cvGF[,1:4],cvGT[,1:4])
+#' 
 #' @export
 #'
 
@@ -1096,14 +1098,14 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
 #' Exact methods estimate variance components and effects of single markers jointly.
 #' Approximate methods estimate single marker effects conditionally.
 #'
-#' @param fit list of information about linear model fit
+#' @param fit list of information about linear model fit (output from greml)
 #' @param W matrix of centered and scaled genotypes (n x m)
-#' @param m is the total number of markers used to compute the genomic relationship matrix 
-#' @param statistic is the test statistic used. Default is the "mastor", alternatives include "gblup", "bolt-lmm" and "grammar-gamma"
+#' @param m is the total number of markers in W 
+#' @param statistic is the single marker test statistic used. Default is the "mastor", alternatives include "gblup", "bolt-lmm" and "grammar-gamma"
 #' @return Returns a dataframe including 
-#' \item{coef}{coefficients} 
+#' \item{coef}{single marker coefficients} 
 #' \item{se}{standard error of coefficients}
-#' \item{stat}{test statistic}
+#' \item{stat}{single marker test statistic}
 #' \item{p}{p-value}
 #' @author Peter Sørensen
 #' @references Chen, W. M., & Abecasis, G. R. (2007). Family-based association tests for genomewide association scans. The American Journal of Human Genetics, 81(5), 913-926.
