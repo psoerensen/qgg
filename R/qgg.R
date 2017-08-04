@@ -808,7 +808,7 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 #' cvGF
 #' cvGT
 #' 
-#' boxplot(cbind(cvGB[,1:4],cvGF[,1:4],cvGT[,1:4])
+#' boxplot(cbind(cvGB[,1:4],cvGF[,1:4],cvGT[,1:4]))
 #' 
 #' @export
 #'
