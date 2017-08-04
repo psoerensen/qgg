@@ -7,19 +7,19 @@
 lmma(fit = NULL, W = NULL, m = NULL, statistic = "mastor")
 }
 \arguments{
-\item{fit}{list of information about linear model fit}
+\item{fit}{list of information about linear model fit (output from greml)}
 
 \item{W}{matrix of centered and scaled genotypes (n x m)}
 
-\item{m}{is the total number of markers used to compute the genomic relationship matrix}
+\item{m}{is the total number of markers in W}
 
-\item{statistic}{is the test statistic used. Default is the "mastor", alternatives include "gblup", "bolt-lmm" and "grammar-gamma"}
+\item{statistic}{is the single marker test statistic used. Default is the "mastor", alternatives include "gblup", "bolt-lmm" and "grammar-gamma"}
 }
 \value{
 Returns a dataframe including 
-\item{coef}{coefficients} 
+\item{coef}{single marker coefficients} 
 \item{se}{standard error of coefficients}
-\item{stat}{test statistic}
+\item{stat}{single marker test statistic}
 \item{p}{p-value}
 }
 \description{

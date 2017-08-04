@@ -99,13 +99,15 @@ nsets <- 5
 
 validate <- replicate(nsets, sample(1:n, as.integer(n / fold)))
 
-fitGB <- greml(y = y, X = X, G = GB, validate = validate)
-fitGF <- greml(y = y, X = X, G = GF, validate = validate)
-fitGT <- greml(y = y, X = X, G = GT, validate = validate)
+cvGB <- greml(y = y, X = X, G = GB, validate = validate)
+cvGF <- greml(y = y, X = X, G = GF, validate = validate)
+cvGT <- greml(y = y, X = X, G = GT, validate = validate)
 
-fitGB
-fitGF
-fitGT
+cvGB
+cvGF
+cvGT
+
+boxplot(cbind(cvGB[,1:4],cvGF[,1:4],cvGT[,1:4])
 
 }
 \author{
