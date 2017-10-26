@@ -1305,6 +1305,7 @@ qrSets <- function( W=NULL, sets=NULL, msets=100, return.level="Q") {
      return(QRlist)
 }  
 
+#' @export
 
 plotGS <- function( fit=NULL, s=NULL, sets=NULL ) {
      if(is.null(s)) s <- fit$s

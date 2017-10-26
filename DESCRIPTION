@@ -8,5 +8,10 @@ Maintainer: Peter Sørensen <pso@mbg.au.dk>
 Description: Statistical tools for Quantitative Genetic Analyses
 License: GPL-3
 Encoding: UTF-8
-Depends: regress, MASS
-Imports: regress, MASS
+Depends:
+    regress,
+    MASS
+Imports:
+    regress,
+    MASS
+RoxygenNote: 5.0.1

@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509007225121.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3066605566",
+    "id" : "245C72E8",
+    "lastKnownWriteTime" : 1509007262,
+    "last_content_update" : 1509007262745,
+    "path" : "~/GitHub/qgg/R/qgg.R",
+    "project_path" : "R/qgg.R",
+    "properties" : {
+        "cursorPosition" : "1308,0",
+        "scrollLine" : "1296"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
