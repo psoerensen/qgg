@@ -1260,6 +1260,11 @@ gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE,
      if (!is.null(X)) e <- y-X%*%b                                # initialize e
      s <- (crossprod(W,e)/dww)/m      # initialize s
      sold <- rep(0,m)                      # initialize s
+     if (weights) {
+     p<- apply(W,2,function(x){cor.test(x,e)$p.value})
+     logP <- -log10(p)
+     lambda <- 1/logP
+     }
      if(is.null(sets)) { sets <- as.list(1:m)} 
      nsets <- length(sets)
      nit <- 0
