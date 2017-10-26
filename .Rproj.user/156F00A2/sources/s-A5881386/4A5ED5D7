@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509054153362.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1923245125",
+    "id" : "4A5ED5D7",
+    "lastKnownWriteTime" : 1509053910,
+    "last_content_update" : 1509053910,
+    "path" : "~/GitHub/qgg/R/compute_ld.R",
+    "project_path" : "R/compute_ld.R",
+    "properties" : {
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

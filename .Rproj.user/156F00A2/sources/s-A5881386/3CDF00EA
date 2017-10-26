@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509054111370.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "112747152",
+    "id" : "3CDF00EA",
+    "lastKnownWriteTime" : 1509053288,
+    "last_content_update" : 1509053288,
+    "path" : "~/GitHub/qgg/R/dmu_utility_functions.R",
+    "project_path" : "R/dmu_utility_functions.R",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
