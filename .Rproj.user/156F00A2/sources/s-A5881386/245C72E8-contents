@@ -9,7 +9,7 @@
 ####################################################################################################################
 #
 # Modules needs to be separated into individual files
-# change u -> g
+# change u -> g 
 #
 
 ####################################################################################################################
@@ -1047,6 +1047,7 @@ remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxi
 
 cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,nthreads=1,wkdir=getwd(), verbose=FALSE)
 {
+  n <- length(y)     
   theta <- pa <- mspe <- yobs <- ypred <- r2 <- llik <- slope <- intercept <- NULL
   for (i in 1:ncol(validate)) {
     v <- validate[,i]
@@ -1223,6 +1224,7 @@ plotma <- function(ma=NULL,chr=NULL,rsids=NULL,thresh=5) {
 gsolve <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, validate=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
      if(is.null(validate)) fit <- gsqr(y=y, W=W, X=X, sets=sets,msets=msets,lambda=lambda,weights=weights, maxit=maxit, tol=tol)
      if(!is.null(validate)) { 
+          n <- length(y)     
           pa <- mspe <- intercept <- slope <- r2 <- NULL
           for ( k in 1:ncol(validate)) {
                v <- validate[, k]
