@@ -1058,9 +1058,9 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
     }
     pa <- c(pa, cor(yhat, y[v]))
     mspe <- c(mspe, sum((yhat - y[v])^2)/length(v))
-    intercept <- c(intercept,lm(yhat ~  y[v])$coef[1])
-    slope <- c(slope,lm(yhat ~  y[v])$coef[2])
-    r2 <- c(r2,summary(lm(yhat~ y[v]))$r.squared)
+    intercept <- c(intercept,lm( y[v] ~ yhat )$coef[1])
+    slope <- c(slope,lm( y[v] ~ yhat )$coef[2])
+    r2 <- c(r2,summary(lm( y[v] ~ yhat ))$r.squared)
     llik <- c(llik,fit$llik)
     yobs <- c(yobs, y[v])
     ypred <- c(ypred, yhat)
@@ -1071,7 +1071,7 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
       boxplot(mspe, main = "Prediction Error", ylab = "MSPE")
       boxplot(theta, main = "Estimates", ylab = "Variance")
       plot(yobs, ypred, ylab = "Predicted", xlab = "Observed")
-      coef <- lm(ypred ~ yobs)$coef
+      coef <- lm(yobs ~ ypred)$coef
       abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
     }
     
