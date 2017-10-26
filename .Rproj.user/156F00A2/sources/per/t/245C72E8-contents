@@ -9,6 +9,7 @@
 ####################################################################################################################
 #
 # Modules needs to be separated into individual files
+# change u -> g
 #
 
 ####################################################################################################################
@@ -938,7 +939,7 @@ read.reml <- function (wkdir = NULL) {
 	names(trPG) <- 1:nrow(theta)
 	trVG <- as.vector(unlist(read.table(file = "trVG.qgg", header = FALSE, colClasses = "numeric")[, 1]))    
 	names(trVG) <- 1:nrow(theta)
-	fit <- list(llik = llik, theta = theta, asd = asd, b = b, varb = varb, u = u, e = e, Vy = Vy, Py = Py, trPG = trPG, trVG = trVG)
+	fit <- list(llik = llik, theta = theta, asd = asd, b = b, varb = varb, g = u, e = e, Vy = Vy, Py = Py, trPG = trPG, trVG = trVG)
 	fit <- lapply(fit, as.matrix)
       
 	return(fit)
@@ -1040,7 +1041,7 @@ remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxi
   fitted <- X%*%b
   predicted <- rowSums(u)+fitted
   
-  return(list( y=y, X=X, b=b, vb=vb, u=u, fitted=fitted, predicted=predicted, Py=Py, Vy=Vy, theta=theta, asd=theta.cov, llik=llik, niter=it,trPG=trPG, trVG=trVG,ids=names(y),yVy=yVy   ))
+  return(list( y=y, X=X, b=b, vb=vb, g=u, fitted=fitted, predicted=predicted, Py=Py, Vy=Vy, theta=theta, asd=theta.cov, llik=llik, niter=it,trPG=trPG, trVG=trVG,ids=names(y),yVy=yVy   ))
 }
 
 
