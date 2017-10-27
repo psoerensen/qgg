@@ -2,6 +2,7 @@
 
 export(bgfm)
 export(computeG)
+export(computeGRM)
 export(computeLD)
 export(computeW)
 export(cvat)
