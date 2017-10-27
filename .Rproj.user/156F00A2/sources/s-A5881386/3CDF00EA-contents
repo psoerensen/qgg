@@ -52,14 +52,14 @@
 #' Glist <- list(G = G)
 #' 
 #' 
-#' fit <- aireml(fm = fm, Glist = Glist, data = data)
+#' fit <- remlDMU(fm = fm, Glist = Glist, data = data)
 #'   str(fit)
 #' 
 #' @export
 #'
 
 # Main function for reml analyses suing DMU
-aireml <- function(fm = NULL, vfm = NULL, Glist = NULL, restrict = NULL, data = NULL, validate = NULL, bin = NULL) {
+remlDMU <- function(fm = NULL, vfm = NULL, Glist = NULL, restrict = NULL, data = NULL, validate = NULL, bin = NULL) {
      
      tol <- 0.001
      fit <- cvfit <- NULL
