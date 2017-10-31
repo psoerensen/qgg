@@ -80,7 +80,7 @@
 #' @export
 #'
 
-computeW <- function(Wlist=NULL,chr=NULL, scaleW=TRUE) {
+computeW <- function(Wlist=NULL,chr=NULL, scaleW=TRUE, compressed=TRUE) {
      ids <- Wlist$ids
      bedfile <- Wlist$bedfiles[chr]
      fnW <- Wlist$fnW[Wlist$chr==chr]
@@ -92,7 +92,8 @@ computeW <- function(Wlist=NULL,chr=NULL, scaleW=TRUE) {
           g <- readBed( bedfile=bedfile, rsids=rsids[[i]], alleles=alleles[[i]], ids=ids) 
           if(scaleW) g <- scale(g) 
           g[is.na(g)] <- 0
-          bfW <- gzfile(fnW[i],"wb")
+          if(compressed) bfW <- gzfile(fnW[i],"wb")
+          if(!compressed) bfW <- file(fnW[i],"wb")
           for ( j in 1:ncol(g) ) {
                writeBin( g[,j], bfW, size = 8, endian = "little")
           }
@@ -104,7 +105,7 @@ computeW <- function(Wlist=NULL,chr=NULL, scaleW=TRUE) {
 #' @export
 #'
 
-prepW <- function( study=NULL, path=NULL, bedfiles=NULL, bimfiles=NULL, ids=NULL, rsids=NULL, msize=NULL ){
+prepW <- function( study=NULL, path=NULL, bedfiles=NULL, bimfiles=NULL, ids=NULL, rsids=NULL, msize=NULL, compressed=TRUE ){
      
      Wlist <- NULL
      Wlist$fnW <- NULL
@@ -142,6 +143,8 @@ prepW <- function( study=NULL, path=NULL, bedfiles=NULL, bimfiles=NULL, ids=NULL
      Wlist$study <- study
      Wlist$bedfiles <- bedfiles
      Wlist$bimfiles <- bimfiles
+     Wlist$compressed <- compressed
+     
      
      return(Wlist)
 }

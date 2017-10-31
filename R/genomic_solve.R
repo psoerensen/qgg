@@ -112,7 +112,8 @@ gsqr <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, wei
      nsets <- length(QRlist$sets)
      for ( i in 1:nsets) {
           rws <- QRlist$sets[[i]]
-          fit$s[rws] <- solve(QRlist$R[[i]])%*%fit$s[rws,1]
+          #fit$s[rws] <- solve(QRlist$R[[i]])%*%fit$s[rws,1]
+          fit$s[rws] <- backsolve(QRlist$R[[i]],fit$s[rws,1])
      }
      return(fit)
 }  
