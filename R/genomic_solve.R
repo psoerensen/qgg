@@ -32,6 +32,9 @@ gsolve <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, v
      return(fit)         
 }
 
+
+#' @export
+
 gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
      n <- length(y)                        # number of observations
      m <- ncol(W)                          # number of markers
@@ -84,6 +87,8 @@ gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE,
      e <- y - yhat
      return(list(s=s,b=b,nit=nit,delta=delta, e=e, yhat=yhat, g=ghat))
 }
+
+#' @export
 
 qrSets <- function( W=NULL, sets=NULL, msets=100, return.level="Q") {
      m <- ncol(W)
