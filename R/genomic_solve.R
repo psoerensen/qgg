@@ -4,15 +4,19 @@
 
 #' @export
 
-gsolve <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, validate=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
-     if(is.null(validate)) fit <- gsqr(y=y, W=W, X=X, sets=sets,msets=msets,lambda=lambda,weights=weights, maxit=maxit, tol=tol)
+gsolve <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, validate=NULL, weights=FALSE, method="gsru", maxit=500, tol=0.0000001) { 
+     if(is.null(validate)) {
+        if(method=="gsru")  fit <- gsru(y=y, W=W, X=X, sets=sets, lambda=lambda, weights=weights, maxit=maxit, tol=tol)
+        if(method=="gsqr")  fit <- gsqr(y=y, W=W, X=X, sets=sets,msets=msets,lambda=lambda,weights=weights, maxit=maxit, tol=tol)
+     }
      if(!is.null(validate)) { 
           n <- length(y)     
           pa <- mspe <- intercept <- slope <- r2 <- NULL
           for ( k in 1:ncol(validate)) {
                v <- validate[, k]
                t <- (1:n)[-v]
-               fit <- gsqr(y=y[t], X=as.matrix(X[t,]), W=W[t,], sets=sets,msets=msets,lambda=lambda,weights=weights, maxit=maxit, tol=tol)
+               if(method=="gsru")  fit <- gsru(y=y[t], X=as.matrix(X[t,]), W=W[t,], sets=sets, lambda=lambda, weights=weights, maxit=maxit, tol=tol)
+               if(method=="gsqr")  fit <- gsqr(y=y[t], X=as.matrix(X[t,]), W=W[t,], sets=sets, msets=msets, lambda=lambda, weights=weights, maxit=maxit, tol=tol)
                yv <- y[v]
                yvhat <- W[v,]%*%fit$s
                if(!is.null(X)) yvhat <- yvhat + X[v,]%*%fit$b
