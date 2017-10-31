@@ -10,12 +10,8 @@ License: GPL-3
 Encoding: UTF-8
 Depends:
     regress,
-    MASS,
-    stats,
-    car
+    MASS
 Imports:
     regress,
-    MASS,
-    stats,
-    car
+    MASS
 RoxygenNote: 5.0.1
