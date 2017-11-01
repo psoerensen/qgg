@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509538700573.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "735056522",
+    "id" : "4E1E959D",
+    "lastKnownWriteTime" : 1509539787,
+    "last_content_update" : 1509539787885,
+    "path" : "~/GitHub/qgg/R/genomic_solve.R",
+    "project_path" : "R/genomic_solve.R",
+    "properties" : {
+        "cursorPosition" : "55,23",
+        "scrollLine" : "32"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
