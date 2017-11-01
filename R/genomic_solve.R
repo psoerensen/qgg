@@ -53,7 +53,7 @@ gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE,
      if (weights) {
      p<- apply(W,2,function(x){cor.test(x,e)$p.value})
      logP <- -log10(p)
-     lambda <- lambda/((logp/sum(logp))*ncol(W)) #1/logP
+     lambda <- lambda/((logP/sum(logP))*ncol(W)) #1/logP
      }
      if(is.null(sets)) { sets <- as.list(1:m)} 
      nsets <- length(sets)
