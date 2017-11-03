@@ -90,6 +90,71 @@ gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE,
 
 #' @export
 
+
+bigsru <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
+     n <- Wlist$n                        # number of observations
+     m <- Wlist$m                          # number of markers
+     rwsW <- 1:Wlist$n 
+     if(!is.null(ids)) rwsW <- match(ids,Wlist$ids)
+     b <- bold <- bnew <- NULL
+     if (!is.null(X)) {
+          b <- (solve(t(X)%*%X)%*%t(X))%*%y     # initialize b
+          bold <- rep(0,ncol(X))              # initialize b
+     }
+     if(length(lambda)==1) { lambda <- rep(lambda,m)}
+     e <- y
+     if (!is.null(X)) e <- y-X%*%b         # initialize e
+     dww <- rep(0,m)                       # initialize diagonal elements of the W'W matrix
+     s <- rep(0,m)                         # initialize diagonal elements of the W'W matrix
+     bfW <- file(Wlist$fnW,"rb")
+     for( i in 1:m) {
+          w <- readBin( bfW, "double", n=n, size = 8, endian = "little")
+          dww[i] <- sum(w[rwsW]**2)
+          s[i] <- (sum(w[rwsW]*e)/dww[i])/m      # initialize s
+     } 
+     close(bfW)
+     sold <- rep(0,m)                      # initialize s
+     if(is.null(sets)) { sets <- as.list(1:m)} 
+     nsets <- length(sets)
+     nit <- 0
+     delta <- 1
+     while ( delta>tol ) {
+          nit <- nit + 1
+          bfW <- file(Wlist$fnW,"rb")
+          for( i in 1:nsets) {
+               rws <- sets[[i]] 
+               lhs <- dww[rws] + lambda[rws]          # form lhs
+               w <- readBin( bfW, "double", n=n, size = 8, endian = "little")
+               rhs <- crossprod(w[rwsW],e) + dww[rws]*s[rws]  # form rhs with y corrected by other effects
+               snew <- rhs/lhs
+               e  <- e - w[rwsW]*(snew-s[rws])          # update e with current estimate of b
+               s[rws] <- snew                         # update estimates
+          }
+          close(bfW)
+          gc()
+          delta <- sum((s-sold)**2)
+          delta <- delta/sqrt(m)
+          sold <- s
+          bold <- bnew 
+          if (nit==maxit) break
+          print(paste("Iteration",nit,"delta",delta))
+     }
+     ghat <- rep(0,length(y))
+     bfW <- file(Wlist$fnW,"rb")
+     for( i in 1:m) {
+          w <- readBin( bfW, "double", n=n, size = 8, endian = "little")
+          ghat <- ghat + w[rwsW]*s[i]
+     } 
+     close(bfW)
+     if (!is.null(X)) yhat <- ghat + X%*%b
+     e <- y - yhat
+     return(list(s=s,b=b,nit=nit,delta=delta, e=e, yhat=yhat, g=ghat))
+}
+
+
+
+#' @export
+
 qrSets <- function( W=NULL, sets=NULL, msets=100, return.level="Q") {
      m <- ncol(W)
      if(is.null(sets)) sets <- split(1:m, ceiling(seq_along(1:m)/msets))

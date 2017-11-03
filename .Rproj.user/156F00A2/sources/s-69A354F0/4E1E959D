@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "2150871776",
+    "hash" : "0",
     "id" : "4E1E959D",
-    "lastKnownWriteTime" : 1509540180,
-    "last_content_update" : 1509540180052,
+    "lastKnownWriteTime" : 1509662997,
+    "last_content_update" : 1509662997932,
     "path" : "~/GitHub/qgg/R/genomic_solve.R",
     "project_path" : "R/genomic_solve.R",
     "properties" : {
-        "cursorPosition" : "55,37",
-        "scrollLine" : "43"
+        "cursorPosition" : "145,0",
+        "scrollLine" : "114"
     },
     "relative_order" : 4,
     "source_on_save" : false,
