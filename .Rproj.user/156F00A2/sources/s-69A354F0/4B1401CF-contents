@@ -361,7 +361,8 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
     }
     
   }    
-  res <- data.frame(Corr=pa,R2=r2,intercept,slope,MSPE=mspe,llik,theta)
+  res <- data.frame(Corr=pa,R2=r2,R2NAG=r2, AUC=r2, intercept,slope,MSPE=mspe,theta)
+  colnames(res)[3] <- "Nagel R2"
   #return(list(pa=pa,mspe=mspe,theta=theta,ypred=ypred,yobs=yobs))
 }
 
