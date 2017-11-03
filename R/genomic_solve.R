@@ -91,7 +91,7 @@ gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE,
 #' @export
 
 
-bigsru <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
+bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
      n <- Wlist$n                        # number of observations
      m <- Wlist$m                          # number of markers
      rwsW <- 1:Wlist$n 
