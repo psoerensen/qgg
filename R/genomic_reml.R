@@ -355,7 +355,7 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
       boxplot(pa, main = "Predictive Ability", ylab = "Correlation")
       boxplot(mspe, main = "Prediction Error", ylab = "MSPE")
       boxplot(theta, main = "Estimates", ylab = "Variance")
-      plot(yobs, ypred, ylab = "Predicted", xlab = "Observed")
+      plot(y=yobs, x=ypred, xlab = "Predicted", ylab = "Observed")
       coef <- lm(yobs ~ ypred)$coef
       abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
     }
@@ -363,6 +363,7 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
   }    
   res <- data.frame(Corr=pa,R2=r2,R2NAG=r2, AUC=r2, intercept,slope,MSPE=mspe,theta)
   colnames(res)[3] <- "Nagel R2"
+  return(res)
   #return(list(pa=pa,mspe=mspe,theta=theta,ypred=ypred,yobs=yobs))
 }
 
