@@ -6,7 +6,7 @@
 \usage{
 greml(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL,
   ids = NULL, validate = NULL, maxit = 100, tol = 1e-05, bin = NULL,
-  nthreads = 1, wkdir = getwd(), verbose = FALSE)
+  nthreads = 1, wkdir = getwd(), verbose = FALSE, makeplots = TRUE)
 }
 \arguments{
 \item{y}{vector of phenotypes}
