@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509907517906.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "C6EEC5A7",
+    "lastKnownWriteTime" : 1509102492,
+    "last_content_update" : 1509102492,
+    "path" : "~/GitHub/qgg/R/compute_grm.R",
+    "project_path" : "R/compute_grm.R",
+    "properties" : {
+        "cursorPosition" : "166,11",
+        "scrollLine" : "144"
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
