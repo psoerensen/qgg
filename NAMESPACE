@@ -2,6 +2,7 @@
 
 export(bgfm)
 export(bigsolve)
+export(bigsolve_old)
 export(computeG)
 export(computeGRM)
 export(computeLD)

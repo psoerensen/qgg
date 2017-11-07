@@ -2,18 +2,18 @@
     "collab_server" : "",
     "contents" : "",
     "created" : 1509539944018.000,
-    "dirty" : true,
+    "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
     "hash" : "0",
     "id" : "AAC779C5",
-    "lastKnownWriteTime" : 1509488429,
-    "last_content_update" : 1509705464114,
+    "lastKnownWriteTime" : 1510045501,
+    "last_content_update" : 1510045501397,
     "path" : "C:/Users/AU223366/Dropbox/Projects/qrgs/qrgs.R",
     "project_path" : null,
     "properties" : {
-        "cursorPosition" : "7,0",
-        "scrollLine" : "0"
+        "cursorPosition" : "33,4",
+        "scrollLine" : "19"
     },
     "relative_order" : 5,
     "source_on_save" : false,

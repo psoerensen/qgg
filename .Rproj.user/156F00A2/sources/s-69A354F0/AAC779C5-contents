@@ -26,9 +26,6 @@
 
     fitGS <- gsolve( y=y, X=X, W=W, lambda=lambda, tol=1e-5)
     
-    fit <- qgg:::gsru(y=y, X=X, W=W, sets=as.list(1:m), lambda=lambda, weights=FALSE) 
-    fit <- qgg:::gsru(y=y, X=X, W=W, sets=as.list(1:m), lambda=lambda, weights=TRUE) 
-    
     fitGS <- gsolve( y=y, X=X, W=W, msets=200, lambda=lambda)
     plotGS(fit=fitGS,sets=causal)
 
