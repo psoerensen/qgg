@@ -84,6 +84,7 @@ gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE,
           print(paste("Iteration",nit,"delta",delta))
      }
      ghat <- W%*%s
+     if (!is.null(X)) b <- (solve(t(X)%*%X)%*%t(X))%*%(y-ghat)     # initialize b
      if (!is.null(X)) yhat <- ghat + X%*%b
      e <- y - yhat
      return(list(s=s,b=b,nit=nit,delta=delta, e=e, yhat=yhat, g=ghat))
