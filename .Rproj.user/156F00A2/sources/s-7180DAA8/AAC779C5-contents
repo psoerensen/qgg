@@ -2,9 +2,9 @@
 # Test GSQR
 #########################################################################################
 
-  #install.packages("devtools")
-  library(devtools)
-  install_github("psoerensen/qgg")
+    #install.packages("devtools")
+    library(devtools)
+    install_github("psoerensen/qgg")
 
 
     library(qgg)
@@ -22,31 +22,28 @@
 
     validate <- replicate( 5, sample(1:n, as.integer(n/10)))
     
-    lambda <- 50/(50/m)
+    Sg <- 50
+    Se <- 50
+    h2 <- Sg/(Sg+Se)
+    
+    lambda <- Se/(Sg/m)
+    lambda <- m*(1-h2)/h2
 
-    fitGS <- gsolve( y=y, X=X, W=W, lambda=lambda, tol=1e-5)
-    
-    fitGS <- gsolve( y=y, X=X, W=W, msets=200, lambda=lambda)
-    plotGS(fit=fitGS,sets=causal)
+    # BLUP using Gauss-Seidel procedure
+    fitGS <- gsolve( y=y, X=X, W=W, lambda=lambda)
+      plotGS(fit=fitGS,sets=causal)
 
-    fitGSw <- gsolve( y=y, X=X, W=W, msets=200, weights=TRUE, lambda=lambda)
-    plotGS(fit=fitGSw,sets=causal)
+    cvGS <- gsolve( y=y, X=X, W=W, lambda=lambda, validate=validate )
+   
     
-    
-    cvGSw <- gsolve( y=y, X=X, W=W, msets=200, lambda=lambda, weights=TRUE,validate=validate )
-    cvGS <- gsolve( y=y, X=X, W=W, msets=200, lambda=lambda, validate=validate )
-    
-    
+    # Estimate variance components and BLUP using REML
     G <- computeG(W=W)
     fitGB <- greml(y = y, X = X, G = list(G=G), verbose = TRUE)
     cvGB <- greml(y = y, X = X, G = list(G=G), validate = validate)
     
-    
-    
-    tmp <- qcreml(y,fitGB$g,G=G)
-    tmp <- qcreml(y,fitGB$g,W=W)
-    tmp <- qcreml(y,fitGS$g,W=W)
-    tmp <- qcreml(y,fitGSw$g,W=W)
-    
+
+    # Single marker GWAS + PRS
+    fitMA <- lma(y=y, X=X, W=W)
+    cvMA <- lma(y=y, X=X, W=W, validate=validate)
     
     

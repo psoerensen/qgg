@@ -175,3 +175,63 @@ markerTest <- function( Wlist=NULL,y=NULL, X=NULL, df=NULL, ids=NULL, rsids=NULL
      list(S=S,SE=SE,T=T,P=P)
 }
 
+
+#' @export
+
+lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, validate=NULL, ids=NULL, rsids=NULL, blocks=NULL, return.values=FALSE) {
+     if(!is.null(X)) y <- residuals(lm(y~X))
+     yobs <- y <- as.matrix(y)
+     if(!is.null(validate)) y <- apply(validate,2,function(x) { y[x] <- NA; y })
+     nt <- ncol(y) 
+     ones <- matrix(1,nrow=nrow(y),ncol=nt)
+     ones[is.na(y)] <- 0
+     y[is.na(y)] <- 0
+     #y <- y[rownames(W),]
+     m <- ncol(W)
+     S <- SE <- T <- P <- matrix(0,nrow=m,ncol=nt)
+     rownames(S) <- rownames(SE) <- rownames(T) <- rownames(P) <- colnames(W)
+     colnames(S) <- colnames(SE) <- colnames(T) <- colnames(P) <- colnames(y)
+     rws <- 1:m
+     Wy <- crossprod(W,y)
+     wwadj <- matrix((crossprod(W,ones)**2)/colSums(ones),nrow=m,ncol=nt,byrow=TRUE)
+     W2 <- W**2
+     ww <- crossprod(W2,ones) 
+     yy <- matrix(colSums((y**2)*ones),nrow=m,ncol=nt,byrow=TRUE)
+     sse <- yy-(Wy**2)/ww
+     sse[is.na(sse)] <- 0
+     coef <- Wy*(1/ww)
+     coef[is.na(coef)] <- 0
+     dfe <- colSums(ones)-2
+     dfe <- matrix(dfe,nrow=m,ncol=nt,byrow=TRUE)
+     se <- sqrt(sse/dfe)/sqrt(ww) 
+     tt <- coef/se
+     ptt <- 2*pt(-abs(tt),df=dfe)
+     S[rws,] <- coef
+     SE[rws,] <- se
+     T[rws,] <- tt
+     P[rws,] <- ptt
+     res <- list(S=S,SE=SE,T=T,P=P)
+     if(!is.null(validate)) {
+          y <- yobs
+          n <- length(y)     
+          pa <- mspe <- intercept <- slope <- r2 <- NULL
+          for ( k in 1:ncol(validate)) {
+               v <- validate[, k]
+               t <- (1:n)[-v]
+               yv <- y[v]
+               yvhat <- W[v,]%*%S[,k]
+               #if(!is.null(X)) yvhat <- yvhat + X[v,]%*%fit$b
+               r2 <- c(r2, summary(lm(yv ~ yvhat))$r.squared)
+               pa <- c(pa, cor(yvhat, yv))
+               mspe <- c(mspe, sum((yvhat - yv)^2)/length(yv))
+               intercept <- c(intercept, lm(yv ~ yvhat )$coef[1])
+               slope <- c(slope, lm(yv ~ yvhat)$coef[2])
+          }
+          res <- data.frame(Corr=pa, R2=r2, R2NAG=NA, AUC=NA, intercept, slope, MSPE=mspe)
+          colnames(res)[3] <- "Nagel R2"
+          if(return.values) res <- list(CV=res,S=S,SE=SE,T=T,P=P)
+
+     }
+     return(res)
+   }
+

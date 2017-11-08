@@ -1,0 +1,92 @@
+################################################################################
+# Bayesian lasso function 
+################################################################################
+
+   library(statmod)
+   library(BLR)
+   #library(MCMCpack)
+   #library(mvtnorm)
+   #rinvgauss(n, mu, lambda=1)
+
+   rm(list=ls(all=TRUE))
+  
+     blasso <- function(y=NULL, X=NULL, lambda0=NULL, sigma0=NULL, nsamp=100 ) {
+       n <- length(y)             # number of observations
+       p <- ncol(X)               # number of regression variables
+       dxx <- colSums(X**2)       # diagonal elements of the X'X matrix
+       b <- as.numeric(rep(0,p))  # initialize b
+       mu <- 0                    # initilaize mu
+       invtau2 <- rep(0,p)        # initialize tau2
+  	   lambda2 <- p               # initialize lambda2            
+       lrate0 <- 0.1              # lambda2 hyperparameter rate
+       lshape0 <- 1               # lambda2 hyperparameter shape
+
+       Xs <- as.vector(X)
+
+       e <- as.vector(y - mu - X%*%b)          # initialize residuals
+       sigma2 <- var(e)/2         # initialize sigma2
+
+       for ( i in 1:nsamp ) {
+  
+     # sample mu and update residuals 
+       muC <- mu
+       mu <- rnorm(1,mean=mean(e+muC),sd=sigma2/n)
+       e <- as.vector(e - mu + muC)
+   
+     # sample b and update residuals                      
+       #bC <- b
+       #xxs <- as.numeric(dxx + invtau2)                    # Park & Casella
+       #for ( j in 1:p){
+       #  rhs <- as.numeric(sum(X[,j]*e) + dxx[j]*bc[j])
+       #  b[j] <- rnorm(1,mean=rhs/xxs[j],sd=sigma2/xxs[j])
+       #  e  <- as.numeric(e - X[,j]*(b[j] - bC[j])) 
+       #}
+       #e <- as.numeric(y - mu - X%*%b)                     # update residuals
+
+       bsamp <- .Call("sample_beta", n, p, Xs, dxx, 
+                b, e, (1/invtau2)*sigma2, sigma2, 1e-09)
+       b <- bsamp[[1]] 
+       e <- bsamp[[2]]
+       
+  		# sample invtau2                                    
+       mutau <- sqrt(lambda2*sigma2)/abs(b)               # Park & Casella
+       lambdatau <- rep(lambda2,p)                        # Park & Casella
+       invtau2 <- rinvgauss(p, mu=mutau, lambda=lambdatau)
+       
+  		# update lambda                                     
+       shl2 <- p + lshape0                                 # Park & Casella
+    	 ratel2 = sum(1/(invtau2))/2 + lrate0                # Park & Casella
+    	 lambda2 <- rgamma(n=1, shape=shl2, rate=ratel2)     # Park & Casella 
+       print(lambda2)
+       if(!is.null(lambda0)) lambda2 <- lambda0
+
+     # sample sigma                                       
+  		 she <- (n+p)/2                                     # Park & Casella ((n-1+p)/2) 
+       sce <- sum(e**2)/2 + sum((b*invtau2*b))/2          # Park & Casella
+       sigma2 <- 1/rgamma(1, shape=she, rate=sce)         # Park & Casella
+  		 she <- n + p                                       # Gustavo
+       sce <- sum(e**2) + sum((b*invtau2*b))              # Gustavo
+       sigma2 <- sce/rchisq(n=1,df=she)                   # Gustavo
+       if(!is.null(sigma0)) sigma2 <- sigma0
+       print(c(sum(e**2),sum((b*(1/invtau2)*b)),sum((1/invtau2))))
+       plot(b)
+       print( c(i,mu,lambda2,sigma2, cor(y,X%*%b)))
+      }
+   }
+   
+
+   # Simulate data and test function
+   X <- matrix(rnorm(10000000),nrow=1000)
+   set <- sample(1:ncol(X),10)
+   y <- rowSums(X[,set]) + rnorm(nrow(X),mean=0,sd=1)       
+     n <- length(y)
+     h2 <- var(rowSums(X[,set]))/var(y)
+     
+   lambda0 <- (sum(colSums(X**2))/n)*(1-h2)/h2
+   
+   blasso(y=y, X=X, lambda0=lambda0)
+   
+
+
+
+ 

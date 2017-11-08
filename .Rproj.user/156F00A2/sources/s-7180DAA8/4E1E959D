@@ -7,13 +7,13 @@
     "folds" : "",
     "hash" : "0",
     "id" : "4E1E959D",
-    "lastKnownWriteTime" : 1510045564,
-    "last_content_update" : 1510045564358,
+    "lastKnownWriteTime" : 1510076836,
+    "last_content_update" : 1510076836606,
     "path" : "~/GitHub/qgg/R/genomic_solve.R",
     "project_path" : "R/genomic_solve.R",
     "properties" : {
         "cursorPosition" : "33,0",
-        "scrollLine" : "11"
+        "scrollLine" : "7"
     },
     "relative_order" : 4,
     "source_on_save" : false,

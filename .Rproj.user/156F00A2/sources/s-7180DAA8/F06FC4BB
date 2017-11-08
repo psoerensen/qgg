@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1510081926194.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3730979968",
+    "id" : "F06FC4BB",
+    "lastKnownWriteTime" : 1510127887,
+    "last_content_update" : 1510127887095,
+    "path" : "~/GitHub/qgg/R/single_marker_test.R",
+    "project_path" : "R/single_marker_test.R",
+    "properties" : {
+        "cursorPosition" : "237,0",
+        "scrollLine" : "208"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

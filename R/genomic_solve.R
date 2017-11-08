@@ -27,6 +27,7 @@ gsolve <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, v
                slope <- c(slope, lm(yv ~ yvhat)$coef[2])
           }
           res <- data.frame(Corr=pa, R2=r2, R2NAG=NA, AUC=NA, intercept, slope, MSPE=mspe)
+          colnames(res)[3] <- "Nagel R2"
           fit <- res
      }   
      return(fit)         
