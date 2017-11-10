@@ -322,6 +322,8 @@ remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxi
   fitted <- X%*%b
   predicted <- rowSums(u)+fitted
   e <- y-predicted
+  theta <- as.vector(theta)
+  names(theta) <- names(G)
   
   return(list( y=y, X=X, b=b, vb=vb, g=u, e=e, fitted=fitted, predicted=predicted, Py=Py, Vy=Vy, theta=theta, asd=theta.cov, llik=llik, niter=it,trPG=trPG, trVG=trVG,ids=names(y),yVy=yVy   ))
 }

@@ -5,14 +5,14 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3960510292",
+    "hash" : "652411804",
     "id" : "59013F8C",
-    "lastKnownWriteTime" : 1510315397,
-    "last_content_update" : 1510315397704,
+    "lastKnownWriteTime" : 1510315691,
+    "last_content_update" : 1510315691311,
     "path" : "~/GitHub/qgg/R/genomic_reml.R",
     "project_path" : "R/genomic_reml.R",
     "properties" : {
-        "cursorPosition" : "325,47",
+        "cursorPosition" : "325,25",
         "scrollLine" : "305"
     },
     "relative_order" : 5,

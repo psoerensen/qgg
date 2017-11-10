@@ -2,18 +2,18 @@
     "collab_server" : "",
     "contents" : "",
     "created" : 1509539944018.000,
-    "dirty" : false,
+    "dirty" : true,
     "encoding" : "UTF-8",
     "folds" : "",
     "hash" : "0",
     "id" : "AAC779C5",
     "lastKnownWriteTime" : 1510298974,
-    "last_content_update" : 1510298974062,
+    "last_content_update" : 1510315515705,
     "path" : "C:/Users/AU223366/Dropbox/Projects/qrgs/prs_examples.R",
     "project_path" : null,
     "properties" : {
-        "cursorPosition" : "51,4",
-        "scrollLine" : "35"
+        "cursorPosition" : "40,3",
+        "scrollLine" : "24"
     },
     "relative_order" : 5,
     "source_on_save" : false,
