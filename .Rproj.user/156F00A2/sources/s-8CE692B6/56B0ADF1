@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1510299566340.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "56B0ADF1",
+    "lastKnownWriteTime" : 1510224197,
+    "last_content_update" : 1510224197,
+    "path" : "~/GitHub/qgg/R/qgg_utility_functions.R",
+    "project_path" : "R/qgg_utility_functions.R",
+    "properties" : {
+        "cursorPosition" : "36,0",
+        "scrollLine" : "20"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
