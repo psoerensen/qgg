@@ -1,0 +1,105 @@
+#########################################################################################
+# PRS examples using qgg
+#########################################################################################
+
+    #install.packages("devtools")
+    #library(devtools)
+    #install_github("psoerensen/qgg")
+
+    library(qgg)
+
+    # Simulate data
+    m <- 1000
+    n <- 2000
+    W <- matrix(sample(0:2,n*m, replace=TRUE),ncol=m)
+    W <- scale(W)
+    colnames(W) <- as.character(1:ncol(W))
+    rownames(W) <- as.character(1:nrow(W))
+    causal <- sample(1:ncol(W),50)
+    y <- rowSums(W[,causal]) + rnorm(nrow(W),sd=sqrt(50))
+    X <- model.matrix(y~1)
+
+    validate <- replicate( 5, sample(1:n, as.integer(n/10)))
+    
+    Sg <- 50
+    Se <- 50
+    h2 <- Sg/(Sg+Se)
+    
+    lambda <- Se/(Sg/m)
+    lambda <- m*(1-h2)/h2
+
+    # PRS using BLUP based on Gauss-Seidel procedure
+    fitGS <- gsolve( y=y, X=X, W=W, lambda=lambda)
+      plotGS(fit=fitGS,sets=causal)
+
+    cvGS <- gsolve( y=y, X=X, W=W, lambda=lambda, validate=validate)
+   
+    
+    # PRS using BLUP based on REML procedure (including variance component estimation)
+    G <- computeG(W=W)
+    fitGB <- greml( y=y, X=X, G=list(G=G), verbose=TRUE)
+    cvGB <- greml( y=y, X=X, G=list(G=G), validate=validate)
+    
+
+    # PRS using single marker summary statistic (from single marker regression analyses)
+    fitSM <- lma( y=y, X=X, W=W)
+    cvSM <- lma( y=y, X=X, W=W, validate=validate)
+ 
+    cvGS
+    cvGB
+    cvSM
+    
+    
+    
+
+    yobs <- y[v]
+    ypred <- W[v,]%*%fit$s
+    if(!is.null(X)) ypred <- ypred + X[v,]%*%fit$b
+    
+    rnag <- function(yobs=NULL,ypred=NULL) {
+      fit0 <- glm(yobs~1,family=binomial(link='logit'))
+      fit1 <- glm(yobs~1+ypred,family=binomial(link='logit'))
+      n <- length(yobs)
+      LR <- anova(fit1)$Deviance[2]
+      L0 <-  as.numeric(logLik(fit0))
+      r2nag <- (1-exp(-LR/n))/(1-exp(-(-2*L0)/n))
+      return(r2nag)
+    }
+    
+    qcpred <- function(yobs=NULL,ypred=NULL) {
+      r2 <- summary(lm(yobs ~ ypred))$r.squared
+      pa <- cor(ypred, yobs)
+      mspe <- sum((ypred - yobs)^2)/length(yobs)
+      intercept <- lm(yobs ~ ypred )$coef[1]
+      slope <- lm(yobs ~ ypred)$coef[2]
+      aurc <- NA
+      if(nlevels(factor(yobs))==2) aurc <- auc(yobs=yobs,ypred=ypred)
+      if(nlevels(factor(yobs))==2) r2nag <- rnag(yobs=yobs,ypred=ypred)
+      res <- c(pa,r2,r2nag,aurc,intercept,slope,mspe)
+      names(res) <- c("Corr","R2","Nagel R2", "AUC", "intercept", "slope", "MSPE")
+      return(res)
+    }
+    
+    yobs <- rnorm(100)
+    yobs <- sample(0:1,100,replace=TRUE)
+    ypred <- yobs + rnorm(100)
+    qcpred(yobs=yobs,ypred=ypred)
+    
+       
+    plotpred
+         plot(y=yobs, x=ypred, xlab = "Predicted", ylab = "Observed")
+         coef <- lm(yobs ~ ypred)$coef
+         abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
+         
+         
+    if (i == nv & makeplots) {
+         colnames(theta) <- c(names(G),"E")
+         layout(matrix(1:4, ncol = 2))
+         boxplot(pa, main = "Predictive Ability", ylab = "Correlation")
+         boxplot(mspe, main = "Prediction Error", ylab = "MSPE")
+         boxplot(theta, main = "Estimates", ylab = "Variance")
+         plot(y=yobs, x=ypred, xlab = "Predicted", ylab = "Observed")
+         coef <- lm(yobs ~ ypred)$coef
+         abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
+    }
+    

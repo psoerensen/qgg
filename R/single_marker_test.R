@@ -180,7 +180,7 @@ markerTest <- function( Wlist=NULL,y=NULL, X=NULL, df=NULL, ids=NULL, rsids=NULL
 
 lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, validate=NULL, ids=NULL, rsids=NULL, blocks=NULL, return.values=FALSE) {
      if(!is.null(X)) y <- residuals(lm(y~X))
-     yobs <- y <- as.matrix(y)
+     yin <- y <- as.matrix(y)
      if(!is.null(validate)) y <- apply(validate,2,function(x) { y[x] <- NA; y })
      nt <- ncol(y) 
      ones <- matrix(1,nrow=nrow(y),ncol=nt)
@@ -212,23 +212,16 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, validate=NULL, ids=NULL, rs
      P[rws,] <- ptt
      res <- list(S=S,SE=SE,T=T,P=P)
      if(!is.null(validate)) {
-          y <- yobs
+          y <- yin
           n <- length(y)     
-          pa <- mspe <- intercept <- slope <- r2 <- NULL
+          res <- NULL
           for ( k in 1:ncol(validate)) {
                v <- validate[, k]
                t <- (1:n)[-v]
-               yv <- y[v]
-               yvhat <- W[v,]%*%S[,k]
-               #if(!is.null(X)) yvhat <- yvhat + X[v,]%*%fit$b
-               r2 <- c(r2, summary(lm(yv ~ yvhat))$r.squared)
-               pa <- c(pa, cor(yvhat, yv))
-               mspe <- c(mspe, sum((yvhat - yv)^2)/length(yv))
-               intercept <- c(intercept, lm(yv ~ yvhat )$coef[1])
-               slope <- c(slope, lm(yv ~ yvhat)$coef[2])
+               yobs <- y[v]
+               ypred <- W[v,]%*%S[,k]
+               res <- rbind(res,qcpred(yobs=yobs,ypred=ypred))
           }
-          res <- data.frame(Corr=pa, R2=r2, R2NAG=NA, AUC=NA, intercept, slope, MSPE=mspe)
-          colnames(res)[3] <- "Nagel R2"
           if(return.values) res <- list(CV=res,S=S,SE=SE,T=T,P=P)
 
      }

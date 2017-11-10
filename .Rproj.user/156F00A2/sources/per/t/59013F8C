@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1510224253082.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "197972428",
+    "id" : "59013F8C",
+    "lastKnownWriteTime" : 1510257119,
+    "last_content_update" : 1510257119807,
+    "path" : "~/GitHub/qgg/R/genomic_reml.R",
+    "project_path" : "R/genomic_reml.R",
+    "properties" : {
+        "cursorPosition" : "330,20",
+        "scrollLine" : "325"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
