@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1511016910408.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "F7E1D8AA",
+    "lastKnownWriteTime" : 1511017037,
+    "last_content_update" : 1511017037946,
+    "path" : "~/GitHub/qgg/R/compute_genotype_matrix.R",
+    "project_path" : "R/compute_genotype_matrix.R",
+    "properties" : {
+        "cursorPosition" : "233,2",
+        "scrollLine" : "230"
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,67 @@
+
+writeBED2RAW <- function(Wlist=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, fnRAW=NULL, ids=NULL, rsids=NULL, alleles=NULL, chr=NULL, msize=100) {
+     n <- length(ids)
+     m <- length(rsids)
+     sets <- split(1:m, ceiling(seq_along(1:m)/msize))
+     nsets <- length(sets)
+     rsids <- split(rsids,ceiling(seq_along(1:m)/msize))
+     alleles <- split(alleles,ceiling(seq_along(1:m)/msize))
+     bfW <- file(fnRAW,"wb")
+     for ( i in 1:nsets ) {
+        g <- readBed( bedfile=bedfiles, rsids=rsids[[i]], alleles=alleles[[i]], ids=ids)
+        g <- g+1 
+        g[is.na(g)] <- 0
+        for ( j in 1:ncol(g) ) {
+          writeBin( as.raw(g[,j]), bfW, size = 1, endian = "little")
+        }
+        gc()
+        print(paste("Finished block",i,"proportion",i/nsets))
+     }
+     close(bfW)
+}
+
+
+compressRAW <- function(Wlist=NULL, chr=NULL, type="gzip") {
+     rsids <- Wlist$rsids[[chr]]
+     n <- Wlist$n
+     m <- length(rsids)
+     fnRAW <- Wlist$fnRAW[chr]
+     wgz <- vector(mode = "list", length = m)
+     bfW <- file(fnRAW,"rb")
+     if(type=="gzip") {
+     for (i in 1:m ) {
+          w <- readBin( bfW, "raw", n=n, size = 1, endian = "little")
+          wgz[[i]] <- memCompress( w, type=type)
+          print(paste("Compressed marker",i,"chromosome",chr))
+     }
+     }     
+     if(type=="lz4") {
+          library(lz4)
+          for (i in 1:m ) {
+               w <- readBin( bfW, "raw", n=n, size = 1, endian = "little")
+               wgz[[i]] <- lzCompress( w, level=8)
+               print(paste("Compressed marker",i,"chromosome",chr))
+          }
+     }     
+     close(bfW)
+     names(wgz) <- rsids
+     return(wgz)
+}
+
+getRAW <- function(Wlist=NULL, chr=NULL, type="gzip") {
+     rsids <- Wlist$rsids[[chr]]
+     n <- Wlist$n
+     m <- length(rsids)
+     fnRAW <- Wlist$fnRAW[chr]
+     #wgz <- vector(mode = "list", length = m)
+     bfW <- file(fnRAW,"rb")
+     for (i in 1:m ) {
+          w <- readBin( bfW, "raw", n=n, size = 1, endian = "little")
+         # wgz[[i]] <- memCompress( w, type=type)
+          #print(paste("Compressed marker",i,"chromosome",chr))
+     }
+     close(bfW)
+     #names(wgz) <- rsids
+     #return(wgz)
+}
+

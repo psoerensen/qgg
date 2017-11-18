@@ -34,6 +34,16 @@
 
     cvGS <- gsolve( y=y, X=X, W=W, lambda=lambda, validate=validate)
    
+    fitGS2 <- gsolve( y=y, X=X, W=W, lambda=lambda, method="gsqr")
+    plotGS(fit=fitG2S,sets=causal)
+    
+    cvGS <- gsolve( y=y, X=X, W=W, lambda=lambda, validate=validate)
+   
+    
+    QRlist <- qrSets(W=W,msets=100,return.level="QR")
+    invR <- lapply(QRlist$R,function(x) {qr.solve(x)})
+    invRR <- lapply(QRlist$R,function(x) {solve(x%*%t(x))})
+    
     
     # PRS using BLUP based on REML procedure (including variance component estimation)
     G <- computeG(W=W)
@@ -49,4 +59,4 @@
     cvGB
     cvSM
     
-    
+ 

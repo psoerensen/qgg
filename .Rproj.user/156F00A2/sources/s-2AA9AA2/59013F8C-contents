@@ -286,10 +286,10 @@ remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxi
     delta <- abs(theta - theta0)
     theta <- theta0
     output <- c(1:10,seq(11,maxit,5))     
-    if (verbose & it%in%output) print(paste(c("Iteration:",it,"Theta:",round(theta,5)), sep=""))
+    if (verbose & it%in%output) print(paste(c("Iteration:",it,"Theta:",round(theta,2)), sep=""))
     if (it==maxit) break
   }
-  if (verbose) print(paste(c("Converged at Iteration:",it,"Theta:",round(theta,5)), sep=""))
+  if (verbose) print(paste(c("Converged at Iteration:",it,"Theta:",round(theta,2)), sep=""))
   V <- matrix(0,n,n)
   for ( i in 1:np) { V <- V + G[[i]]*theta[i] }
   chlV <- chol(V)

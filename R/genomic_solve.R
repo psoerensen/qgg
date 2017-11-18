@@ -99,6 +99,93 @@ gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE,
 
 
 bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
+     
+     cls <- match(rsids,unlist(Wlist$rsids))
+
+     if(!is.null(ids)) yt <- y[ids]
+     if(!is.null(ids)) Xt <- as.matrix(X[ids,])
+     
+     n <- Wlist$n                        # number of observations
+     m <- Wlist$m                          # number of markers
+     if(!is.null(rsids)) m <- length(rsids)
+     rwsW <- 1:Wlist$n 
+     if(!is.null(ids)) rwsW <- match(ids,Wlist$ids)
+     b <- bold <- bnew <- NULL
+     if (!is.null(X)) {
+          b <- (solve(t(Xt)%*%Xt)%*%t(Xt))%*%yt     # initialize b
+          bold <- rep(0,ncol(Xt))              # initialize b
+     }
+     e <- yt
+     if (!is.null(Xt)) e <- yt-Xt%*%b         # initialize e
+     
+     if(length(lambda)==1) { lambda <- rep(lambda,m)}
+     dww <- rep(0,m)                       # initialize diagonal elements of the W'W matrix
+     s <- rep(0,m)                         # initialize diagonal elements of the W'W matrix
+     
+     current <- 0
+     bfW <- file(Wlist$fnRAW,"rb")
+     for( i in cls ) {
+      where <- (i-current-1)*Wlist$n
+      current <- i
+      seek(bfW,where=where, rw="read")
+      w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
+      w[w>0] <- as.vector(scale(w[w>0])) 
+      dww[rws] <- sum(w[rwsW]**2)
+      s[rws] <- (sum(w[rwsW]*e)/dww[rws])/m      # initialize s
+     } 
+     close(bfW)
+     
+     s[dww==0] <- 0
+     sold <- rep(0,m)                      # initialize s
+     nit <- 0
+     delta <- 1
+     while ( delta>tol ) {
+       nit <- nit + 1
+       bfW <- file(Wlist$fnRAW,"rb")
+       current <- 0
+       for( i in cls) {
+          where <- (i-current-1)*Wlist$n
+          current <- i
+          seek(bfW,where=where, rw="read")
+          w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
+          w[w>0] <- as.vector(scale(w[w>0])) 
+          lhs <- dww[rws] + lambda[rws]          # form lhs
+          rhs <- crossprod(w[rwsW],e) + dww[rws]*s[rws]  # form rhs with y corrected by other effects
+          snew <- rhs/lhs
+          if(dww[rws]==0) snew <- 0
+          e  <- e - w[rwsW]*(snew-s[rws])          # update e with current estimate of b
+          s[rws] <- snew                         # update estimates
+        } 
+        close(bfW) 
+        gc()
+        delta <- sum((s-sold)**2)/sqrt(m)
+        sold <- s
+        bold <- bnew 
+        if (nit==maxit) break
+        print(paste("Iteration",nit,"delta",delta))
+     }
+     names(s) <- rsids
+     ghat <- rep(0,n)
+     bfW <- file(Wlist$fnRAW,"rb")
+     current <- 0
+     for( i in cls) {
+       where <- (i-current-1)*Wlist$n
+       current <- i
+       seek(bfW,where=where, rw="read")
+       w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
+       w[w>0] <- as.vector(scale(w[w>0])) 
+       ghat <- ghat + w*s[rws]
+     } 
+     close(bfW) 
+     names(ghat) <- Wlist$ids
+     if (!is.null(X)) yhat <- ghat[names(y)] + X[names(y),]%*%b
+     e <- y - yhat
+     return(list(s=s,b=b,nit=nit,delta=delta, e=e, yhat=yhat, g=ghat[names(y)]))
+}
+
+
+
+bigsolve_old <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
 
      indxSets <- lapply(Wlist$rsids,function(x){ (1:length(x))[x%in%rsids] })
      rsidsSets <- lapply(Wlist$rsids,function(x){ x[x%in%rsids] })
@@ -141,7 +228,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
          close(bfW) 
        }
      }
-     
+     s[dww==0] <- 0
      sold <- rep(0,m)                      # initialize s
      nit <- 0
      delta <- 1
@@ -160,6 +247,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
                lhs <- dww[rws] + lambda[rws]          # form lhs
                rhs <- crossprod(w[rwsW],e) + dww[rws]*s[rws]  # form rhs with y corrected by other effects
                snew <- rhs/lhs
+               if(dww[rws]==0) snew <- 0
                e  <- e - w[rwsW]*(snew-s[rws])          # update e with current estimate of b
                s[rws] <- snew                         # update estimates
              } 
@@ -201,7 +289,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
 #' @export
 
 
-bigsolve_old <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
+bigsolve_old_old <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
 
      if(!is.null(ids)) yt <- y[ids]
      if(!is.null(ids)) Xt <- as.matrix(X[ids,])
@@ -297,6 +385,8 @@ plotGS <- function( fit=NULL, s=NULL, sets=NULL ) {
 
 gsqr <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
      QRlist <- qrSets(W=W,msets=msets,return.level="QR")
+     #lambdaR <- sapply(QRlist$R,function(x){(1/diag(x))**2})
+     #lambda <- lambda*lambdaR 
      fit <- gsru(y=y, X=X, W=QRlist$Q, sets=QRlist$sets, lambda=lambda, weights=weights) 
      nsets <- length(QRlist$sets)
      for ( i in 1:nsets) {
