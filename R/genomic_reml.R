@@ -337,9 +337,12 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
   n <- length(y)     
   theta <- yobs <- ypred <- yo <- yp <- NULL
   res <- NULL
-  nv <- ncol(validate)
+  if (is.matrix(validate)) validate <- as.data.frame(validate)
+  nv <- length(validate)
   for (i in 1:nv) {
-    v <- validate[,i]
+    if(is.matrix(validate)) v <- validate[,i]
+    if(is.list(validate)) v <- validate[[i]]
+    #if(is.vector(validate)) v <- validate[i]
     t <- (1:n)[-v]
     fit <- remlR( y=y[t], X=X[t,], G=lapply(G,function(x){x[t,t]}), verbose=verbose)
     theta <- rbind(theta, as.vector(fit$theta))
