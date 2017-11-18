@@ -96,7 +96,7 @@
 #' @export
 #'
 
-greml <- function(y = NULL, X = NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,nthreads=1,wkdir=getwd(), verbose=FALSE, makeplots=TRUE)
+greml <- function(y = NULL, X = NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,nthreads=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE)
 {
   if(is.null(bin)) { 
     if (is.null(validate)) fit <- remlR(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, nthreads=nthreads, verbose=verbose, wkdir=wkdir)
@@ -337,12 +337,13 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
   n <- length(y)     
   theta <- yobs <- ypred <- yo <- yp <- NULL
   res <- NULL
-  if (is.matrix(validate)) validate <- as.data.frame(validate)
-  nv <- length(validate)
+  if(is.matrix(validate)) validate <- as.data.frame(validate)
+  if(is.list(validate)) nv <- length(validate)
+  if(validate=="LOOCV") nv <- length(y)
   for (i in 1:nv) {
     if(is.matrix(validate)) v <- validate[,i]
     if(is.list(validate)) v <- validate[[i]]
-    #if(is.vector(validate)) v <- validate[i]
+    if(validate=="LOOCV") v <- i
     t <- (1:n)[-v]
     fit <- remlR( y=y[t], X=X[t,], G=lapply(G,function(x){x[t,t]}), verbose=verbose)
     theta <- rbind(theta, as.vector(fit$theta))
@@ -352,11 +353,13 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
       ypred <- ypred + G[[j]][v,t]%*%fit$Py*fit$theta[j]
     }
     yobs <- y[v]
-    res <- rbind(res,qcpred(yobs=yobs,ypred=ypred))
+    if(!validate=="LOOCV") res <- rbind(res,qcpred(yobs=yobs,ypred=ypred))
     yo <- c(yo, yobs)
     yp <- c(yp, ypred)
   }
+  if(validate=="LOOCV") res <- matrix(qcpred(yobs=yo,ypred=yp),nrow=1)
   res <- as.data.frame(res)
+  names(res) <- c("Corr","R2","Nagel R2", "AUC", "intercept", "slope", "MSPE")
   if(is.null(names(G))) names(G) <- paste("G",1:(np-1),sep="")
   colnames(theta) <- c(names(G),"E")
   theta <- as.data.frame(round(theta,3))
@@ -369,7 +372,7 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
    coef <- lm(yo ~ yp)$coef
    abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
   }
-  return(list(pred=res,theta=theta))
+  return(list(pred=res,theta=theta,yobs=yo,ypred=yp))
 }
 
 
