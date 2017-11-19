@@ -130,8 +130,8 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
       seek(bfW,where=where, origin="current", rw="read")
       w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
       w[w>0] <- as.vector(scale(w[w>0])) 
-      dww[rws] <- sum(w[rwsW]**2)
-      s[rws] <- (sum(w[rwsW]*e)/dww[rws])/m      # initialize s
+      dww[i] <- sum(w[rwsW]**2)
+      s[i] <- (sum(w[rwsW]*e)/dww[i])/m      # initialize s
      } 
      close(bfW)
      
@@ -149,12 +149,12 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
           seek(bfW, where=where, origin="current", rw="read")
           w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
           w[w>0] <- as.vector(scale(w[w>0])) 
-          lhs <- dww[rws] + lambda[rws]          # form lhs
-          rhs <- crossprod(w[rwsW],e) + dww[rws]*s[rws]  # form rhs with y corrected by other effects
+          lhs <- dww[i] + lambda[i]          # form lhs
+          rhs <- crossprod(w[rwsW],e) + dww[i]*s[i]  # form rhs with y corrected by other effects
           snew <- rhs/lhs
-          if(dww[rws]==0) snew <- 0
-          e  <- e - w[rwsW]*(snew-s[rws])          # update e with current estimate of b
-          s[rws] <- snew                         # update estimates
+          if(dww[i]==0) snew <- 0
+          e  <- e - w[rwsW]*(snew-s[i])          # update e with current estimate of b
+          s[i] <- snew                         # update estimates
         } 
         close(bfW) 
         gc()
@@ -174,7 +174,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
        seek(bfW, where=where, origin="current", rw="read")
        w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
        w[w>0] <- as.vector(scale(w[w>0])) 
-       ghat <- ghat + w*s[rws]
+       ghat <- ghat + w*s[i]
      } 
      close(bfW) 
      names(ghat) <- Wlist$ids
