@@ -101,7 +101,7 @@ gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE,
 bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
      
      cls <- match(rsids,unlist(Wlist$rsids))
-
+     
      if(!is.null(ids)) yt <- y[ids]
      if(!is.null(ids)) Xt <- as.matrix(X[ids,])
      
@@ -124,9 +124,9 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
      
      current <- 0
      bfW <- file(Wlist$fnRAW,"rb")
-     for( i in cls ) {
-      where <- (i-current-1)*Wlist$n
-      current <- i
+     for( i in 1:m ) {
+      where <- (cls[i]-current-1)*Wlist$n
+      current <- cls[i]
       seek(bfW,where=where, origin="current", rw="read")
       w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
       w[w>0] <- as.vector(scale(w[w>0])) 
@@ -134,7 +134,6 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
       s[i] <- (sum(w[rwsW]*e)/dww[i])/m      # initialize s
      } 
      close(bfW)
-     
      s[dww==0] <- 0
      sold <- rep(0,m)                      # initialize s
      nit <- 0
@@ -143,9 +142,9 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
        nit <- nit + 1
        bfW <- file(Wlist$fnRAW,"rb")
        current <- 0
-       for( i in cls) {
-          where <- (i-current-1)*Wlist$n
-          current <- i
+       for( i in 1:m) {
+          where <- (cls[i]-current-1)*Wlist$n
+          current <- cls[i]
           seek(bfW, where=where, origin="current", rw="read")
           w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
           w[w>0] <- as.vector(scale(w[w>0])) 
@@ -168,9 +167,9 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
      ghat <- rep(0,n)
      bfW <- file(Wlist$fnRAW,"rb")
      current <- 0
-     for( i in cls) {
-       where <- (i-current-1)*Wlist$n
-       current <- i
+     for( i in 1:m) {
+       where <- (cls[i]-current-1)*Wlist$n
+       current <- cls[i]
        seek(bfW, where=where, origin="current", rw="read")
        w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
        w[w>0] <- as.vector(scale(w[w>0])) 
