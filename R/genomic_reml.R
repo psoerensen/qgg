@@ -338,12 +338,14 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
   theta <- yobs <- ypred <- yo <- yp <- NULL
   res <- NULL
   if(is.matrix(validate)) validate <- as.data.frame(validate)
-  if(is.list(validate)) nv <- length(validate)
-  if(validate=="LOOCV") nv <- length(y)
+  #if(is.list(validate)) nv <- length(validate)
+  #if(is.character(validate)) validate <- 1:length(y)
+  nv <- length(validate)
   for (i in 1:nv) {
-    if(is.matrix(validate)) v <- validate[,i]
-    if(is.list(validate)) v <- validate[[i]]
-    if(validate=="LOOCV") v <- i
+    #if(is.matrix(validate)) v <- validate[,i]
+    #if(is.list(validate)) v <- validate[[i]]
+    #if(validate=="LOOCV") v <- i
+    v <- validate[[i]]  
     t <- (1:n)[-v]
     fit <- remlR( y=y[t], X=X[t,], G=lapply(G,function(x){x[t,t]}), verbose=verbose)
     theta <- rbind(theta, as.vector(fit$theta))
@@ -353,11 +355,11 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
       ypred <- ypred + G[[j]][v,t]%*%fit$Py*fit$theta[j]
     }
     yobs <- y[v]
-    if(!validate=="LOOCV") res <- rbind(res,qcpred(yobs=yobs,ypred=ypred))
+    if(!is.atomic(validate)) res <- rbind(res,qcpred(yobs=yobs,ypred=ypred))
     yo <- c(yo, yobs)
     yp <- c(yp, ypred)
   }
-  if(validate=="LOOCV") res <- matrix(qcpred(yobs=yo,ypred=yp),nrow=1)
+  if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp),nrow=1)
   res <- as.data.frame(res)
   names(res) <- c("Corr","R2","Nagel R2", "AUC", "intercept", "slope", "MSPE")
   if(is.null(names(G))) names(G) <- paste("G",1:(np-1),sep="")
