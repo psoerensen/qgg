@@ -127,7 +127,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
      for( i in cls ) {
       where <- (i-current-1)*Wlist$n
       current <- i
-      seek(bfW,where=where, rw="read")
+      seek(bfW,where=where, origin="current", rw="read")
       w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
       w[w>0] <- as.vector(scale(w[w>0])) 
       dww[rws] <- sum(w[rwsW]**2)
@@ -146,7 +146,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
        for( i in cls) {
           where <- (i-current-1)*Wlist$n
           current <- i
-          seek(bfW,where=where, rw="read")
+          seek(bfW, where=where, origin="current", rw="read")
           w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
           w[w>0] <- as.vector(scale(w[w>0])) 
           lhs <- dww[rws] + lambda[rws]          # form lhs
@@ -171,7 +171,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
      for( i in cls) {
        where <- (i-current-1)*Wlist$n
        current <- i
-       seek(bfW,where=where, rw="read")
+       seek(bfW, where=where, origin="current", rw="read")
        w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
        w[w>0] <- as.vector(scale(w[w>0])) 
        ghat <- ghat + w*s[rws]
