@@ -106,7 +106,7 @@ computeLD <- function(Wlist=NULL, chr=NULL, fnLD=NULL, path=NULL, msize=100) {
      study <- Wlist$study
      if(is.null(study)) study <- "STUDY_UNKNOWN"
      if (is.null(fnLD)) fnLD <- paste(path,"/LD_CHR",chr,"_",study,sep="")
-     if(any(file.exists(fnLD))) stop("LD files allready exists - please specify other file names")
+     if(any(file.exists(fnLD[chr]))) stop("LD files allready exists - please specify other file names")
      
      n <- Wlist$n
      
