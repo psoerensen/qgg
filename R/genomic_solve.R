@@ -102,6 +102,12 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
      
      cls <- match(rsids,unlist(Wlist$rsids))
      
+     maf <- unlist(Wlist$maf)[cls]
+     meanW <- 2*maf
+     sdW <- sqrt(2*maf*(1-maf))
+     gc()
+     
+     
      if(!is.null(ids)) yt <- y[ids]
      if(!is.null(ids)) Xt <- as.matrix(X[ids,])
      
@@ -129,11 +135,13 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
       current <- cls[i]
       seek(bfW,where=where, origin="current", rw="read")
       w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
-      w[w>0] <- as.vector(scale(w[w>0])) 
+      #w[w>0] <- as.vector(scale(w[w>0]))
+      w[w>0] <- (w[w>0]-meanW[i])/sdW[i]
       dww[i] <- sum(w[rwsW]**2)
       s[i] <- (sum(w[rwsW]*e)/dww[i])/m      # initialize s
      } 
      close(bfW)
+     gc()
      s[dww==0] <- 0
      sold <- rep(0,m)                      # initialize s
      nit <- 0
@@ -147,7 +155,8 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
           current <- cls[i]
           seek(bfW, where=where, origin="current", rw="read")
           w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
-          w[w>0] <- as.vector(scale(w[w>0])) 
+          #w[w>0] <- as.vector(scale(w[w>0]))
+          w[w>0] <- (w[w>0]-meanW[i])/sdW[i]
           lhs <- dww[i] + lambda[i]          # form lhs
           rhs <- crossprod(w[rwsW],e) + dww[i]*s[i]  # form rhs with y corrected by other effects
           snew <- rhs/lhs
@@ -164,7 +173,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
         print(paste("Iteration",nit,"delta",delta))
      }
      names(s) <- rsids
-     ghat <- rep(0,n)
+     ghat <- rep(0,Wlist$n)
      bfW <- file(Wlist$fnRAW,"rb")
      current <- 0
      for( i in 1:m) {
@@ -172,7 +181,8 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
        current <- cls[i]
        seek(bfW, where=where, origin="current", rw="read")
        w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
-       w[w>0] <- as.vector(scale(w[w>0])) 
+       #w[w>0] <- as.vector(scale(w[w>0]))
+       w[w>0] <- (w[w>0]-meanW[i])/sdW[i]
        ghat <- ghat + w*s[i]
      } 
      close(bfW) 
