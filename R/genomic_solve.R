@@ -138,7 +138,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
       #w[w>0] <- as.vector(scale(w[w>0]))
       w[w>0] <- (w[w>0]-meanW[i])/sdW[i]
       dww[i] <- sum(w[rwsW]**2)
-      s[i] <- (sum(w[rwsW]*e)/dww[i])/m      # initialize s
+      if(!dww[i]==0) s[i] <- (sum(w[rwsW]*e)/dww[i])/m      # initialize s
      } 
      close(bfW)
      gc()
