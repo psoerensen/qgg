@@ -232,6 +232,7 @@ lma_old <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, validate=NULL, ids=NULL
 #' @export
 
 smlm <- function( y=NULL, X=NULL, W=NULL) {
+     if(is.vector(y)) y <- matrix(y,ncol=1)
      nt <- ncol(y) 
      ones <- matrix(1,nrow=nrow(y),ncol=nt)
      ones[is.na(y)] <- 0
