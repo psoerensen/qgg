@@ -291,7 +291,8 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize
          p[cls,] <- t(res[[4]])
          print(paste("Finished block",i,"out of",nsets,"blocks"))
        }
-       res <- list(s=na.omit(s),se=na.omit(se),stat=na.omit(stat),p=na.omit(p))
+       cls <- unlist(sets)
+       res <- list(s=s[cls,],se=se[cls,],stat=stat[cls,],p=p[cls,])
      }
      return(res)
 }
