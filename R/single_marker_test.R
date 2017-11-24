@@ -260,7 +260,13 @@ smlm <- function( y=NULL, X=NULL, W=NULL) {
 #' @export
 
 lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize=100) {
-     if(!is.null(W)) res <- smlm(y=y,X=X,W=W)
+     if(!is.null(W)) {
+          if(is.vector(y)) y <- matrix(y,ncol=1)
+          res <- smlm(y=y,X=X,W=W)
+          #if(is.null(colnames(y))) colnames(y) <- paste("t",1:ncol(y),sep="")
+          #lapply(res, function(x){colnames(x) <- colnames(y)})
+          #lapply(res, function(x){rownames(x) <- colnames(W)})
+     }
      if(!is.null(Wlist)) {
        if(!is.null(X)) y <- residuals(lm(y~X))
        if(is.vector(y)) y <- matrix(y,ncol=1)
@@ -270,7 +276,7 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize
        cls <- 1:m
        rws <- 1:n
        if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
-       s <- se <- stat <- p <- matrix(0,nrow=nt,ncol=m)
+       s <- se <- stat <- p <- matrix(NA,nrow=nt,ncol=m)
        sets <- split(cls, ceiling(seq_along(cls)/msize))
        nsets  <-  length(sets)
        for (i in 1:nsets) {
@@ -281,8 +287,10 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize
          se[,cls] <- res[[2]]
          stat[,cls] <- res[[3]]
          p[,cls] <- res[[4]]
-         print(i)
+         print(paste("Finished block",i,"out of",nsets,"blocks"))
        }
+       res <- list(s=s,se=se,stat=stat,p=p)
+       res <- lapply(res,na.omit)
      }
      return(res)
 }
