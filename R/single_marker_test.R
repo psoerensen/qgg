@@ -276,21 +276,22 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize
        cls <- 1:m
        rws <- 1:n
        if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
-       s <- se <- stat <- p <- matrix(NA,nrow=nt,ncol=m)
+       s <- se <- stat <- p <- matrix(NA,nrow=m,ncol=nt)
+       rownames(s) <- rownames(se) <- rownames(stat) <- rownames(p) <- unlist(Wlist$rsids) 
+       colnames(s) <- colnames(se) <- colnames(stat) <- colnames(p) <- colnames(y) 
        sets <- split(cls, ceiling(seq_along(cls)/msize))
        nsets  <-  length(sets)
        for (i in 1:nsets) {
          cls <- sets[[i]]
          W <- getW(Wlist,rws=rws,cls=cls)
          res <- smlm(y=y,X=X,W=W)
-         s[,cls] <- res[[1]]
-         se[,cls] <- res[[2]]
-         stat[,cls] <- res[[3]]
-         p[,cls] <- res[[4]]
+         s[cls,] <- t(res[[1]])
+         se[cls,] <- t(res[[2]])
+         stat[cls,] <- t(res[[3]])
+         p[cls,] <- t(res[[4]])
          print(paste("Finished block",i,"out of",nsets,"blocks"))
        }
-       res <- list(s=s,se=se,stat=stat,p=p)
-       res <- lapply(res,na.omit)
+       res <- list(s=na.omit(s),se=na.omit(se),stat=na.omit(stat),p=na.omit(p))
      }
      return(res)
 }
