@@ -197,21 +197,27 @@ compressRAW <- function(Wlist=NULL, chr=NULL, type="gzip") {
 #' @export
 #'
 
-getRAW <- function(Wlist=NULL, chr=NULL, type="gzip") {
-     rsids <- Wlist$rsids[[chr]]
+getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FALSE) {
+     if(is.null(ids)) ids <- Wlist$ids
+     if(is.null(cls)) cls <- match(rsids,unlist(Wlist$rsids))
+     if(is.null(rws)) rws <- match(ids,Wlist$ids)
+     maf <- unlist(Wlist$maf)[cls]
+     meanW <- 2*maf
+     sdW <- sqrt(2*maf*(1-maf))
      n <- Wlist$n
-     m <- length(rsids)
-     fnRAW <- Wlist$fnRAW[chr]
-     #wgz <- vector(mode = "list", length = m)
-     bfW <- file(fnRAW,"rb")
-     for (i in 1:m ) {
-          w <- readBin( bfW, "raw", n=n, size = 1, endian = "little")
-          # wgz[[i]] <- memCompress( w, type=type)
-          #print(paste("Compressed marker",i,"chromosome",chr))
+     W <- matrix(logical(0),nrow=length(rws),ncol=length(cls))
+     bfW <- file(Wlist$fnRAW,"rb")
+     current <- 0
+     for (i in 1:length(cls) ) {
+          where <- (cls[i]-current-1)*n
+          current <- cls[i]
+          seek(bfW, where=where, origin="current", rw="read")
+          w <- as.double(readBin( bfW, "raw", n=n, size = 1, endian = "little"))
+          if(scaled) w[w>0] <- (w[w>0]-1-meanW[i])/sdW[i]
+          W[,i] <- w[rws]
      }
      close(bfW)
-     #names(wgz) <- rsids
-     #return(wgz)
+     return(W)
 }
 
 
@@ -238,7 +244,7 @@ qcGenotypes <- function(Wlist=NULL, chr=NULL) {
      n <- Wlist$n
      m <- length(rsids)       
      nmiss <- af <- rep(0,m)      
-     bfW <- file(Wlist$fnRAW[chr],"rb")
+     bfW <- file(Wlist$fnRAWCHR[chr],"rb")
      for ( i in 1:m ) { 
           g <- as.integer(readBin( bfW, "raw", n=n, size = 1, endian = "little"))
           miss <- g==0
@@ -297,8 +303,10 @@ readBed <- function( bedfile=NULL, rsids=NULL, alleles=NULL, ids=NULL){
      ids <- genotypes$IID
      genotypes <- genotypes[ , c(7:ncol(genotypes))]
      rsids_alleles <- colnames(genotypes)
-     rsidsG <- t(sapply(rsids_alleles, function(x){ strsplit(x,split="_", fixed=TRUE)[[1]][1]} ))[1,]
-     allelG <- t(sapply(rsids_alleles, function(x){ strsplit(x,split="_", fixed=TRUE)[[1]][2]} ))[1,]
+     #rsidsG <- t(sapply(rsids_alleles, function(x){ strsplit(x,split="_", fixed=TRUE)[[1]][1]} ))[1,]
+     #allelG <- t(sapply(rsids_alleles, function(x){ strsplit(x,split="_", fixed=TRUE)[[1]][2]} ))[1,]
+     rsidsG <- substr(rsids_alleles,1,nchar(rsids))
+     allelG <- substr(rsids_alleles,nchar(rsids)+2,nchar(rsids_alleles))
      rownames(genotypes) <- ids
      colnames(genotypes) <- rsidsG
      system( paste("rm -r", temp_dir ) )	# clean up

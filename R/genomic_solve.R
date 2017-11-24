@@ -136,7 +136,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
       seek(bfW,where=where, origin="current", rw="read")
       w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
       #w[w>0] <- as.vector(scale(w[w>0]))
-      w[w>0] <- (w[w>0]-meanW[i])/sdW[i]
+      w[w>0] <- (w[w>0]-1-meanW[i])/sdW[i]
       dww[i] <- sum(w[rwsW]**2)
       if(!dww[i]==0) s[i] <- (sum(w[rwsW]*e)/dww[i])/m      # initialize s
      } 
@@ -156,7 +156,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
           seek(bfW, where=where, origin="current", rw="read")
           w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
           #w[w>0] <- as.vector(scale(w[w>0]))
-          w[w>0] <- (w[w>0]-meanW[i])/sdW[i]
+          w[w>0] <- (w[w>0]-1-meanW[i])/sdW[i]
           lhs <- dww[i] + lambda[i]          # form lhs
           rhs <- crossprod(w[rwsW],e) + dww[i]*s[i]  # form rhs with y corrected by other effects
           snew <- rhs/lhs

@@ -178,7 +178,7 @@ markerTest <- function( Wlist=NULL,y=NULL, X=NULL, df=NULL, ids=NULL, rsids=NULL
 
 #' @export
 
-lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, validate=NULL, ids=NULL, rsids=NULL, blocks=NULL, return.values=FALSE) {
+lma_old <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, validate=NULL, ids=NULL, rsids=NULL, blocks=NULL, return.values=FALSE) {
      if(!is.null(X)) y <- residuals(lm(y~X))
      yin <- y <- as.matrix(y)
      if(!is.null(validate)) y <- apply(validate,2,function(x) { y[x] <- NA; y })
@@ -227,4 +227,62 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, validate=NULL, ids=NULL, rs
      }
      return(res)
    }
+
+
+#' @export
+
+smlm <- function( y=NULL, X=NULL, W=NULL) {
+     nt <- ncol(y) 
+     ones <- matrix(1,nrow=nrow(y),ncol=nt)
+     ones[is.na(y)] <- 0
+     y[is.na(y)] <- 0
+     m <- ncol(W)
+     n <- nrow(W)
+     Wy <- crossprod(W,y)
+     wwadj <- matrix((crossprod(W,ones)**2)/colSums(ones),nrow=m,ncol=nt,byrow=TRUE)
+     W2 <- W**2
+     ww <- crossprod(W2,ones) 
+     yy <- matrix(colSums((y**2)*ones),nrow=m,ncol=nt,byrow=TRUE)
+     sse <- yy-(Wy**2)/ww
+     sse[is.na(sse)] <- 0
+     coef <- Wy*(1/ww)
+     coef[is.na(coef)] <- 0
+     dfe <- colSums(ones)-2
+     dfe <- matrix(dfe,nrow=m,ncol=nt,byrow=TRUE)
+     se <- sqrt(sse/dfe)/sqrt(ww) 
+     tt <- coef/se
+     ptt <- 2*pt(-abs(tt),df=dfe)
+     res <- list(s=coef,se=se,stat=tt,p=ptt)
+     return(res)
+}
+
+#' @export
+
+lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize=100) {
+     if(!is.null(W)) res <- smlm(y=y,X=X,W=W)
+     if(!is.null(Wlist)) {
+       if(!is.null(X)) y <- residuals(lm(y~X))
+       if(is.vector(y)) y <- matrix(y,ncol=1)
+       nt <- ncol(y) 
+       m <- Wlist$m
+       n <- Wlist$n
+       cls <- 1:m
+       rws <- 1:n
+       if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+       s <- se <- stat <- p <- matrix(0,nrow=nt,ncol=m)
+       sets <- split(cls, ceiling(seq_along(cls)/msize))
+       nsets  <-  length(sets)
+       for (i in 1:nsets) {
+         cls <- sets[[i]]
+         W <- getW(Wlist,rws=rws,cls=cls)
+         res <- smlm(y=y,X=X,W=W)
+         s[,cls] <- res[[1]]
+         se[,cls] <- res[[2]]
+         stat[,cls] <- res[[3]]
+         p[,cls] <- res[[4]]
+         print(i)
+       }
+     }
+     return(res)
+}
 
