@@ -317,5 +317,46 @@ readBed <- function( bedfile=NULL, rsids=NULL, alleles=NULL, ids=NULL){
      
      return(genotypes) }
 
+readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsids=NULL, alleles=NULL, ids=NULL){
+
+     bim <- read.table(file=bimfiles[chr], header=FALSE)
+     fam <- read.table(file=famfiles[chr], header=FALSE)
+     
+     n <- nrow(fam)
+     m <- nrow(bim)
+     bsize <- ceiling(n/4)
+     indx <- seq(1,n*2,2)
+     rws <- 1:n
+     cls <- 1:m
+     if(!is.null(rsids)) cls <- match(rsids,bim[,2])
+     cls <- cls[order(cls)]
+     
+     W <- matrix(0,nrow=n,ncol=length(cls))
+     
+     bfBED <- file(bedfiles[chr],"rb")
+     magic <- readBin(bfBED, "raw", n=3)
+     if (!all(magic[1] == "6c", magic[2] == "1b", magic[3] == "01"))
+          stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
+     
+     current <- 0
+     for ( i in 1:length(cls)) {
+          where <- (cls[i]-current-1)*bsize
+          current <- cls[i]
+          if(!current==(i-1)) seek(bfBED, where=where, origin="current", rw="read")
+          raw <- as.logical(rawToBits(readBin(bfBED, "raw", bsize)))
+          g <- raw[indx] + raw[indx+1]
+          g[raw[indx]==1 & raw[indx+1]==0 ] <- NA # 1/0 is missing
+          W[,i] <- g
+     }
+     close(bfBED)
+     rownames(W) <- fam[rws,2]
+     colnames(W) <- bim[cls,2]
+     return(W)
+     }
+
+
+
+
+
 #######################################################################################
 

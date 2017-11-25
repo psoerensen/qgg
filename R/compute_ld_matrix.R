@@ -74,25 +74,21 @@
 #' @export
 #'
 
-prepLD <- function(Wlist=NULL,path=NULL, msize=NULL) {
+prepLD <- function(Wlist=NULL,fnLD=NULL, msize=NULL) {
      
+     LDlist <- NULL   
      if(is.null(msize)) msize <- 100
      LDlist <- NULL
      LDlist$study <- Wlist$study
      LDlist$fnLD <- fnLD
-     LDlist$rsids <- unlist(Wlist$rsids) 
      LDlist$ids <- Wlist$ids
      LDlist$msize <- msize   
      LDlist$n <- Wlist$n   
      LDlist$m <- Wlist$m 
-     LDlist$chr <- unique(Wlist$chr)
-     LDlist$nchr <- length(LDlist$chr)
-     LDlist$rsids <- NULL
-     for ( chr in LDlist$chr) {
-          LDlist$rsids[[chr]] <- unlist(Wlist$rsids[Wlist$chr==chr])
-     }
+     LDlist$chr <- 1:length(fnLD)
+     LDlist$rsids <- Wlist$rsids
+     LDlist$nchr <- length(LDlist$rsids)
      LDlist$mchr <- sapply(LDlist$rsids,length)
-     LDlist$fnLD <- paste(path,"/LD_CHR",LDlist$chr,"_",LDlist$study,sep="")
      return(LDlist)
      
 }
