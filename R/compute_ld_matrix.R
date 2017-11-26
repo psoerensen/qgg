@@ -108,7 +108,7 @@ computeLD <- function(Wlist=NULL, chr=NULL, fnLD=NULL, path=NULL, msize=100) {
      
      for ( i in chr) {
 
-       fnW <- Wlist$fnRAW[i]
+       fnW <- Wlist$fnRAWCHR[i]
           
        rsids <- Wlist$rsids[[i]]
        W1 <- matrix(logical(0),nrow=n,ncol=msize)
@@ -340,7 +340,7 @@ mapLDSets <- function( ldSets=NULL, rsids=NULL, Wlist=NULL, index=TRUE ) {
           if(!index) rsSets <- rsids[rsSets]
           rsChr <-  rsChr[inW]
           rsSets <- split(rsSets,f=as.factor(rsChr))
-          mpsets[[chr]] <- rsSets
+          mpsets[[chr]] <- rsSets[Wlist$rsids[[chr]]]
      } 
      return(mpsets)
 }
@@ -361,6 +361,76 @@ mapSets <- function( sets=NULL, rsids=NULL, Wlist=NULL, index=TRUE ) {
      rsSets <- split(rsSets,f=as.factor(rs))
      return(rsSets)
 }
+
+
+#' @export
+#'
+
+adjustStat <- function( stat=NULL, ldSets=NULL, threshold=1) {
+     
+     for ( i in 1:nrow(stat$P) ) {
+          rsidsStat <- colnames(stat$P)
+          mStat <- length(rsidsStat)
+          indx1 <- rep(T,mStat)
+          indx2 <- rep(F,mStat)
+          for ( chr in 1:length(ldSets) ) {
+               setsChr <- ldSets[[chr]]
+               setsChr <- setsChr[names(setsChr)%in%rsidsStat]
+               rsidsChr <- names(setsChr)
+               clsChr <- match(rsidsChr,rsidsStat)
+               p <- stat$P[i,clsChr]
+               s <- stat$S[i,clsChr]
+               o <- order(p, decreasing=FALSE)
+               for ( j in o) {
+                    if (p[j]<=threshold) { 
+                         if (indx1[clsChr[j]]) {
+                              rws <- setsChr[[j]]
+                              indx1[rws] <- F
+                              indx2[clsChr[j]] <- T
+                         }
+                    }
+               }
+          }
+          stat$S[i,!indx2] <- 0
+     }
+     return(stat)
+}
+
+
+#' @export
+#'
+
+computePRS <- function(Wlist=NULL,S=NULL,msize=100, scaled=TRUE) {
+     PRS <- matrix(0,nrow=Wlist$n,ncol=nrow(S))
+     rownames(PRS) <- Wlist$ids
+     colnames(PRS) <- rownames(S)
+     rsidsS <- colnames(S)
+     maf <- unlist(Wlist$maf)
+     meanW <- 2*maf
+     sdW <- sqrt(2*maf*(1-maf))
+     n <- Wlist$n
+     m <- Wlist$m
+     W <- matrix(double(0),nrow=n,ncol=msize) 
+     sets <- split(1:m, ceiling(seq_along(1:m)/msize))
+     nsets <- length(sets)
+     msets <- sapply(sets,length)
+     bfRAW <- file(Wlist$fnRAW,"rb")
+     for ( i in 1:nsets ) {
+          cls <- sets[[i]]
+          for (j in 1:msets[i]) {
+               w <- as.double(readBin( bfRAW, "raw", n=n, size = 1, endian = "little"))
+               if(scaled) w[w>0] <- (w[w>0]-1-meanW[cls[j]])/sdW[cls[j]]
+               if(!scaled) w[w>0] <- w[w>0]-1
+               W[,j] <- w
+          }
+          if(nrow(S)>1) PRS <- PRS + tcrossprod(W[,1:msets[i]],S[,cls])
+          if(nrow(S)==1) PRS <- PRS + tcrossprod(W[,1:msets[i]],t(S[,cls]))
+          print(paste("Finished block",i,"out of",nsets))
+     }
+     close(bfRAW)
+     PRS
+}
+
 
 
 #######################################################################################
