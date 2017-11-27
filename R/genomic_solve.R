@@ -409,8 +409,8 @@ gsqr <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, wei
 #' @export
 
 fsolve <- function(n=NULL,m=NULL,cls=NULL,nr=NULL,rws=NULL,fnRAW=NULL,nit=NULL,lambda=NULL,tol=NULL,y=NULL,g=NULL,e=NULL,sol=NULL,meanw=NULL,sdw=NULL) { 
-     #dyn.load("/data/home/peters/prs/src/bigsolve.so")	
-     #is.loaded("readraw")
+     if(is.null(path)) dll <- paste(find.package("qgg"),"/libs/qgg.so")    
+     dyn.load(dll)	
      fit <- .Fortran("fsolve", 
                      n = as.integer(n),
                      m = as.integer(m),
