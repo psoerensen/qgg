@@ -318,7 +318,7 @@ readBed <- function( bedfile=NULL, rsids=NULL, alleles=NULL, ids=NULL){
      return(genotypes) }
 
 readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsids=NULL, alleles=NULL, ids=NULL){
-
+     #adapted from https://github.com/andrewparkermorgan/argyle/blob/master/R/plink.R
      bim <- read.table(file=bimfiles[chr], header=FALSE)
      fam <- read.table(file=famfiles[chr], header=FALSE)
      
@@ -327,11 +327,12 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
      bsize <- ceiling(n/4)
      indx <- seq(1,n*2,2)
      rws <- 1:n
+     if(!is.null(ids)) rws <- match(ids,fam[,2])
      cls <- 1:m
      if(!is.null(rsids)) cls <- match(rsids,bim[,2])
      cls <- cls[order(cls)]
      
-     W <- matrix(0,nrow=n,ncol=length(cls))
+     W <- matrix(0,nrow=length(rws),ncol=length(cls))
      
      bfBED <- file(bedfiles[chr],"rb")
      magic <- readBin(bfBED, "raw", n=3)
@@ -346,7 +347,7 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
           raw <- as.logical(rawToBits(readBin(bfBED, "raw", bsize)))
           g <- raw[indx] + raw[indx+1]
           g[raw[indx]==1 & raw[indx+1]==0 ] <- NA # 1/0 is missing
-          W[,i] <- g
+          W[,i] <- g[rws]
      }
      close(bfBED)
      rownames(W) <- fam[rws,2]

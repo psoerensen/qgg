@@ -406,3 +406,30 @@ gsqr <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, wei
      return(fit)
 }  
 
+#' @export
+
+fsolve <- function(n=NULL,m=NULL,cls=NULL,nr=NULL,rws=NULL,fnRAW=NULL,nit=NULL,lambda=NULL,tol=NULL,y=NULL,g=NULL,e=NULL,sol=NULL,meanw=NULL,sdw=NULL) { 
+     #dyn.load("/data/home/peters/prs/src/bigsolve.so")	
+     #is.loaded("readraw")
+     fit <- .Fortran("fsolve", 
+                     n = as.integer(n),
+                     m = as.integer(m),
+                     cls = as.integer(cls),
+                     nr = as.integer(nr),
+                     rws = as.integer(rws),
+                     fnRAW = as.character(fnRAW),
+                     nit = as.integer(nit),
+                     lambda = as.double(lambda),
+                     tol = as.double(tol),
+                     y = as.double(y),
+                     g = as.double(g),
+                     e = as.double(e),
+                     sol = as.double(sol),
+                     mean = as.double(meanw),
+                     sd = as.double(sdw),
+                     package="qgg"
+                     
+     )
+     return(fit)
+}
+
