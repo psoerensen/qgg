@@ -360,7 +360,8 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
 
 readraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE) { 
      #subroutine readraw(n,m,cls,nc,scaled,W,fnRAW)	
-     dll <- "/data/home/peters/prs/src/readraw.so"    
+     dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
+     #dll <- "/data/home/peters/prs/src/readraw.so"    
      dyn.load(dll)
      n <- Wlist$n
      if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
