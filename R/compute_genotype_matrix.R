@@ -422,8 +422,8 @@ mafraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
                      PACKAGE = 'qgg'
                      
      )
-     #names(fit$af) <- Wlist$rsids[cls]
-     #names(fit$nmiss) <- Wlist$rsids[cls]
+     names(fit$af) <- unlist(Wlist$rsids)[cls]
+     names(fit$nmiss) <- unlist(Wlist$rsids)[cls]
      return(list(af=fit$af,nmiss=fit$nmiss))
 }
 

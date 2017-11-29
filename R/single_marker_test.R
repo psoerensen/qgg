@@ -283,7 +283,9 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize
        nsets  <-  length(sets)
        for (i in 1:nsets) {
          cls <- sets[[i]]
-         W <- getW(Wlist,rws=rws,cls=cls)
+         #W <- getW(Wlist,rws=rws,cls=cls)
+         W <- readraw(Wlist,cls=cls)
+         W <- W[rws,]
          res <- smlm(y=y,X=X,W=W)
          s[cls,] <- t(res[[1]])
          se[cls,] <- t(res[[2]])
