@@ -20,7 +20,7 @@
    n0=count(raww==1)
    n1=count(raww==2)
    n2=count(raww==3)
-   af=(n1+2*n2)/(2*(ntotal-nmiss))
+   af(i)=(n1+2*n2)/(2*(ntotal-nmiss(i)))
   enddo 
 
   end subroutine mafraw
