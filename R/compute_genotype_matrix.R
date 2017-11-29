@@ -408,7 +408,7 @@ mafraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      rws <- 1:n
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
      nr <- length(rws)
-     aaf <- nmiss <- rep(0,nc)
+     af <- nmiss <- rep(0,nc)
      fnRAW <- Wlist$fnRAW
      fit <- .Fortran("mafraw", 
                      n = as.integer(n),
@@ -422,8 +422,8 @@ mafraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
                      PACKAGE = 'qgg'
                      
      )
-     names(fit$af) <- Wlist$rsids[cls]
-     names(fit$niss) <- Wlist$rsids[cls]
+     #names(fit$af) <- Wlist$rsids[cls]
+     #names(fit$nmiss) <- Wlist$rsids[cls]
      return(list(af=fit$af,nmiss=fit$nmiss))
 }
 
