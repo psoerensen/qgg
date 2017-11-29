@@ -365,7 +365,7 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
 #'
 
 readraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE) { 
-     #subroutine readraw(n,m,cls,nc,scaled,W,fnRAW)	
+     #subroutine readraw(n,nc,cls,scaled,W,fnRAW)	
      dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
      #dll <- "/data/home/peters/prs/src/readraw.so"    
      dyn.load(dll)
@@ -378,8 +378,8 @@ readraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
      fnRAW <- Wlist$fnRAW
      fit <- .Fortran("readraw", 
                      n = as.integer(n),
-                     cls = as.integer(cls),
                      nc = as.integer(nc),
+                     cls = as.integer(cls),
                      scaled = as.integer(scaled),
                      W = matrix(as.double(0),nrow=n,ncol=nc),
                      fnRAW = as.character(fnRAW),
@@ -392,6 +392,40 @@ readraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
      return(fit$W)
 }
 
+
+
+#' @export
+#'
+
+mafraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
+     #subroutine mafraw(n,nr,rws,nc,cls,af,nmiss,fnRAW)	
+     dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
+     dyn.load(dll)
+     is.loaded("mafraw")
+     n <- Wlist$n
+     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+     nc <- length(cls)
+     rws <- 1:n
+     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     nr <- length(rws)
+     aaf <- nmiss <- rep(0,nc)
+     fnRAW <- Wlist$fnRAW
+     fit <- .Fortran("mafraw", 
+                     n = as.integer(n),
+                     nr = as.integer(nr),
+                     rws = as.integer(rws),
+                     nc = as.integer(nc),
+                     cls = as.integer(cls),
+                     af = as.double(af),
+                     nmiss = as.double(nmiss),
+                     fnRAW = as.character(fnRAW),
+                     PACKAGE = 'qgg'
+                     
+     )
+     names(fit$af) <- Wlist$rsids[cls]
+     names(fit$niss) <- Wlist$rsids[cls]
+     return(list(af=fit$af,nmiss=fit$nmiss))
+}
 
 
 
