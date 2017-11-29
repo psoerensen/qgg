@@ -205,7 +205,9 @@ getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FAL
      meanW <- 2*maf
      sdW <- sqrt(2*maf*(1-maf))
      n <- Wlist$n
-     W <- matrix(logical(0),nrow=length(rws),ncol=length(cls))
+     #W <- matrix(logical(0),nrow=length(rws),ncol=length(cls))
+     W <- rep(0,length(rws)*length(cls))
+     dim(W) <- c(length(rws),length(cls))
      bfW <- file(Wlist$fnRAW,"rb")
      current <- 0
      for (i in 1:length(cls) ) {
@@ -355,6 +357,31 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
      return(W)
      }
 
+
+readraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE) { 
+     #subroutine readraw(n,m,cls,nc,scaled,W,fnRAW)	
+     dll <- "/data/home/peters/prs/src/readraw.so"    
+     dyn.load(dll)
+     n <- Wlist$n
+     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+     #o <- order(cls)
+     #cls <- cls[o]
+     nc <- length(cls)
+     fnRAW <- Wlist$fnRAW
+     fit <- .Fortran("readraw", 
+                     n = as.integer(n),
+                     cls = as.integer(cls),
+                     nc = as.integer(nc),
+                     scaled = as.integer(scaled),
+                     W = matrix(as.double(0),nrow=n,ncol=nc),
+                     fnRAW = as.character(fnRAW)
+                     
+     )
+     #dimnames(fit$W) <- list(Wlist$ids,Wlist$rsids[cls])
+     #rownames(fit$W) <- Wlist$ids
+     #colnames(fit$W) <- Wlist$rsids[cls]
+     return(fit$W)
+}
 
 
 

@@ -405,6 +405,7 @@ computePRS <- function(Wlist=NULL,S=NULL,msize=100, scaled=TRUE) {
      rownames(PRS) <- Wlist$ids
      colnames(PRS) <- rownames(S)
      rsidsS <- colnames(S)
+     if(any(!unlist(Wlist$rsids)==rsidsS)) stop("rsids not found in Wlist")
      maf <- unlist(Wlist$maf)
      meanW <- 2*maf
      sdW <- sqrt(2*maf*(1-maf))
@@ -414,20 +415,21 @@ computePRS <- function(Wlist=NULL,S=NULL,msize=100, scaled=TRUE) {
      sets <- split(1:m, ceiling(seq_along(1:m)/msize))
      nsets <- length(sets)
      msets <- sapply(sets,length)
-     bfRAW <- file(Wlist$fnRAW,"rb")
+     #bfRAW <- file(Wlist$fnRAW,"rb")
      for ( i in 1:nsets ) {
           cls <- sets[[i]]
-          for (j in 1:msets[i]) {
-               w <- as.double(readBin( bfRAW, "raw", n=n, size = 1, endian = "little"))
-               if(scaled) w[w>0] <- (w[w>0]-1-meanW[cls[j]])/sdW[cls[j]]
-               if(!scaled) w[w>0] <- w[w>0]-1
-               W[,j] <- w
-          }
+          W <- readraw(Wlist=Wlist,cls=cls)
+     #     for (j in 1:msets[i]) {
+     #          w <- as.double(readBin( bfRAW, "raw", n=n, size = 1, endian = "little"))
+     #          if(scaled) w[w>0] <- (w[w>0]-1-meanW[cls[j]])/sdW[cls[j]]
+     #          if(!scaled) w[w>0] <- w[w>0]-1
+     #          W[,j] <- w
+     #     }
           if(nrow(S)>1) PRS <- PRS + tcrossprod(W[,1:msets[i]],S[,cls])
           if(nrow(S)==1) PRS <- PRS + tcrossprod(W[,1:msets[i]],t(S[,cls]))
           print(paste("Finished block",i,"out of",nsets))
      }
-     close(bfRAW)
+     #close(bfRAW)
      PRS
 }
 
