@@ -369,6 +369,7 @@ readraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
      dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
      #dll <- "/data/home/peters/prs/src/readraw.so"    
      dyn.load(dll)
+     is.loaded("readraw")
      n <- Wlist$n
      if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
      #o <- order(cls)
@@ -381,7 +382,8 @@ readraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
                      nc = as.integer(nc),
                      scaled = as.integer(scaled),
                      W = matrix(as.double(0),nrow=n,ncol=nc),
-                     fnRAW = as.character(fnRAW)
+                     fnRAW = as.character(fnRAW),
+                     PACKAGE = 'qgg'
                      
      )
      #dimnames(fit$W) <- list(Wlist$ids,Wlist$rsids[cls])
