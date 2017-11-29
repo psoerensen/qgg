@@ -319,6 +319,9 @@ readBed <- function( bedfile=NULL, rsids=NULL, alleles=NULL, ids=NULL){
      
      return(genotypes) }
 
+#' @export
+#'
+
 readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsids=NULL, alleles=NULL, ids=NULL){
      #adapted from https://github.com/andrewparkermorgan/argyle/blob/master/R/plink.R
      bim <- read.table(file=bimfiles[chr], header=FALSE)
@@ -357,6 +360,9 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
      return(W)
      }
 
+
+#' @export
+#'
 
 readraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE) { 
      #subroutine readraw(n,m,cls,nc,scaled,W,fnRAW)	
