@@ -165,6 +165,7 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
           Wlist <- NULL
           
           Wlist$chr <- bim[!duplicated(bim[,1]),1]
+          nchr <- length(Wlist$chr)
           Wlist$nchr <- length(Wlist$chr)
           Wlist$rsids <- split(as.character(bim[,2]),f=as.factor(bim[,1]))
           Wlist$alleles <- split(as.character(bim[,6]),f=as.factor(bim[,1]))
