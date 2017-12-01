@@ -80,27 +80,30 @@
 #' @export
 #'
 
-computeW <- function(Wlist=NULL,chr=NULL, scaled=TRUE, compressed=TRUE) {
-     ids <- Wlist$ids
-     bedfile <- Wlist$bedfiles[chr]
-     fnW <- Wlist$fnW[Wlist$chr==chr]
-     rsids <- Wlist$rsids[Wlist$chr==chr]
-     alleles <- Wlist$alleles[Wlist$chr==chr]
-     bedfile <- Wlist$bedfiles[chr]
+
+computeW <- function(Wlist=NULL, ids=NULL, chr=NULL, scaled=FALSE, compressed=FALSE, ncores=1) {
      
-     for ( i in 1:length(fnW) ) {
-          g <- readBed( bedfile=bedfile, rsids=rsids[[i]], alleles=alleles[[i]], ids=ids) 
-          if(scaled) g <- scale(g) 
-          g[is.na(g)] <- 0
-          if(compressed) bfW <- gzfile(fnW[i],"wb")
-          if(!compressed) bfW <- file(fnW[i],"wb")
-          for ( j in 1:ncol(g) ) {
-               writeBin( g[,j], bfW, size = 8, endian = "little")
+     if (ncores==1) {
+          if(Wlist$nchr==1) {  
+               writeBED2RAW( rawfiles=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=ids, chr=chr)
           }
-          close(bfW)
-          print(paste("Finished block",i,"proportion",i/length(fnW)))
-     }
+     }     
+     
+     if (ncores>1) {
+          require(foreach)
+          require(doParallel)
+          
+          cl<-makeCluster(ncores,outfile="")
+          registerDoParallel(cl)
+          foreach( chr=Wlist$chr, .export=c("writeBED2RAW")) %dopar% {
+               writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=ids, chr=chr)
+               print(paste("Finished chr",chr))
+          }
+          stopCluster(cl)
+          
+     }     
 }
+
 
 #' @export
 #'
@@ -161,8 +164,8 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
           
           Wlist <- NULL
           
-          chr <- bim[!duplicated(bim[,1]),1]
-          nchr <- length(chr)
+          Wlist$chr <- bim[!duplicated(bim[,1]),1]
+          Wlist$nchr <- length(Wlist$chr)
           Wlist$rsids <- split(as.character(bim[,2]),f=as.factor(bim[,1]))
           Wlist$alleles <- split(as.character(bim[,6]),f=as.factor(bim[,1]))
           Wlist$position <- split(bim[,4],f=as.factor(bim[,1]))
@@ -223,7 +226,7 @@ writeBED2RAW <- function(rawfiles=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=N
           rws <- 1:n
           if(!is.null(ids)) rws <- match(ids,as.character(fam[,2]))
           cls <- 1:m
-          if(!is.null(rsids)) cls <- match(ids,as.character(bim[,2]))
+          if(!is.null(rsids)) cls <- match(rsids,as.character(bim[,2]))
           
           bfBED <- file(fnBED,"rb")
           bfRAW <- file(fnRAW,"wb")
@@ -238,7 +241,6 @@ writeBED2RAW <- function(rawfiles=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=N
                g <- raw1 + raw2 + 1
                g[isNA] <- 0
                writeBin( as.raw(g[rws]), bfRAW, size = 1, endian = "little")
-               print(j)
           }
           close(bfRAW)
           close(bfBED)
