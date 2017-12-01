@@ -118,113 +118,18 @@ computePRS <- function(Wlist=NULL,S=NULL,msize=100, scaled=TRUE) {
      PRS <- matrix(0,nrow=Wlist$n,ncol=ncol(S))
        rownames(PRS) <- Wlist$ids
        colnames(PRS) <- colnames(S)
-     m <- length(cls)
      cls <- match(rsids,unlist(Wlist$rsids))
+     m <- length(cls)
      cls <- split(cls, ceiling(seq_along(cls)/msize))
      rws <- split(1:m, ceiling(seq_along(1:m)/msize))
      nsets <- length(rws)
      msets <- sapply(rws,length)
      for ( i in 1:nsets ) {
-          clsS <- sets[[i]]
           W <- readraw(Wlist=Wlist,cls=cls[[i]], scaled=scaled)
           PRS <- PRS + tcrossprod(W,t(S[rws[[i]],]))
           print(paste("Finished block",i,"out of",nsets))
      }
      PRS
 }
-
-
-
-#######################################################################################
-
-
-
-# computeLD <- function(Wlist=NULL, chr=NULL, fnLD=NULL, path=NULL, msize=100) {
-#      
-#      if(is.null(chr)) chr <- unique(Wlist$chr)
-#      study <- Wlist$study
-#      if(is.null(study)) study <- "STUDY_UNKNOWN"
-#      if (is.null(fnLD)) fnLD <- paste(path,"/LD_CHR",chr,"_",study,sep="")
-#      if(any(file.exists(fnLD))) stop("LD files allready exists - please specify other file names")
-#      
-#      n <- Wlist$n
-#      
-#      for ( chrom in chr) {
-#           rws <- Wlist$chr==chrom 
-#           
-#           rsids <- Wlist$rsids[rws]
-#           fnWChr <- Wlist$fnW[rws]
-#           
-#           nbchr <- length(fnWChr) 
-#           
-#           W1 <- matrix(logical(0),nrow=n,ncol=msize)
-#           W2 <- matrix(logical(0),nrow=n,ncol=msize)
-#           W3 <- matrix(logical(0),nrow=n,ncol=msize)
-#           
-#           bfLD <- file(fnLD[chrom],"wb")
-#           for ( i in 1:nbchr ) {
-#                m <- length(rsids[[i]])
-#                msets <- sapply(split(1:m, ceiling(seq_along(1:m)/msize)),length)
-#                nb <- length(msets)
-#                fnW <- fnWChr[i]
-#                bfW <- gzfile(fnW,"rb")
-#                for ( j in 1:nb) {
-#                     W1 <- W2
-#                     W2 <- W3
-#                     W3 <- matrix(0,nrow=n,ncol=msize)
-#                     for ( k in 1:msets[j] ) {
-#                          W3[,k] <- readBin( bfW, "double", n=n, size = 8, endian = "little")
-#                     }
-#                     #print(paste("Finished loading block",j))
-#                     WW <- t(crossprod(cbind(W1,W2,W3),W2))
-#                     N <- t(crossprod(!cbind(W1,W2,W3)==0,!W2==0))
-#                     WW <- WW/(N-1)  # N-1 accounts for sample mean is estimated
-#                     WW[is.na(WW)] <- 0
-#                     if (i>1 | j>1) {
-#                          for ( k in 1:msize ) { 
-#                               ld <- as.vector(WW[k,k:(k+2*msize)]) 
-#                               writeBin( ld, bfLD, size = 8, endian = "little")
-#                          }
-#                     }
-#                     if (i==nbchr & j==nb) {
-#                          W1 <- W2
-#                          W2 <- W3
-#                          W3 <- matrix(0,nrow=n,ncol=msize)
-#                          WW <- t(crossprod(cbind(W1,W2,W3),W2))
-#                          N <- t(crossprod(!cbind(W1,W2,W3)==0,!W2==0))
-#                          WW <- WW/(N-1)  # N-1 accounts for sample mean is estimated
-#                          WW[is.na(WW)] <- 0
-#                          for ( k in 1:msets[j] ) { 
-#                               ld <- as.vector(WW[k,k:(k+2*msize)]) 
-#                               writeBin( ld, bfLD, size = 8, endian = "little")
-#                          }
-#                     }
-#                }
-#                close(bfW)
-#                print(paste("Finished block",i,"chromosome",chrom))
-#           }
-#           close(bfLD)
-#      }
-#      
-#      LDlist <- NULL
-#      LDlist$study <- Wlist$study
-#      LDlist$fnLD <- fnLD
-#      LDlist$rsids <- unlist(Wlist$rsids) 
-#      LDlist$ids <- Wlist$ids
-#      LDlist$msize <- msize   
-#      LDlist$n <- Wlist$n   
-#      LDlist$m <- Wlist$m 
-#      LDlist$chr <- unique(Wlist$chr)
-#      LDlist$nchr <- length(LDlist$chr)
-#      LDlist$rsids <- NULL
-#      for ( chr in LDlist$chr) {
-#           LDlist$rsids[[chr]] <- unlist(Wlist$rsids[Wlist$chr==chr])
-#      }
-#      LDlist$mchr <- sapply(LDlist$rsids,length)
-#      LDlist$fnLD <- paste(path,"/LD_CHR",LDlist$chr,"_",LDlist$study,sep="")
-#      return(LDlist)
-#      
-# }
-
 
 

@@ -105,64 +105,146 @@ computeW <- function(Wlist=NULL,chr=NULL, scaled=TRUE, compressed=TRUE) {
 #' @export
 #'
 
-prepW <- function( study=NULL, path=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, ids=NULL, rsids=NULL, compressed=FALSE ){
-
+prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, compressed=FALSE ){
+     
      nfiles <- length(bedfiles)
      
-     Wlist <- NULL
-     Wlist$fnRAW <- vector(length=nfiles)
-     if(!is.null(fnRAW)) Wlist$fnRAW <- fnRAW
-     Wlist$rsids <- vector(mode="list",length=nfiles)
-     Wlist$alleles <- vector(mode="list",length=nfiles)
-     Wlist$chr <- vector(length=nfiles)
+     if(nfiles>1) {
+          nchr <- nfiles
+          if(any(file.exists(fnRAWCHR))) stop(paste("fnRAWCHR files allready exist"))
+          if(file.exists(fnRAW)) stop(paste("fnRAW allready exist"))
+          
+          Wlist <- NULL
+          Wlist$fnRAWCHR <- fnRAWCHR
+          if(!is.null(fnRAW)) Wlist$fnRAW <- fnRAW
+          Wlist$rsids <- vector(mode="list",length=nchr)
+          Wlist$alleles <- vector(mode="list",length=nchr)
+          Wlist$af <- vector(mode="list",length=nchr)
+          Wlist$maf <- vector(mode="list",length=nchr)
+          Wlist$nmiss <- vector(mode="list",length=nchr)
+          Wlist$nhet <- vector(mode="list",length=nchr)
+          Wlist$n0 <- vector(mode="list",length=nchr)
+          Wlist$n1 <- vector(mode="list",length=nchr)
+          Wlist$n2 <- vector(mode="list",length=nchr)
+          Wlist$chr <- 1:nchr
+          Wlist$nchr <- nchr
+          
+          Wlist$ids <- ids 
+          fam <- read.table(file=famfiles[1], header=FALSE)
+          if(is.null(ids)) Wlist$ids <- as.character(fam[,2])
+          
+          for ( chr in 1:length(bedfiles) ) {
+               bim <- read.table(file=bimfiles[chr], header=FALSE)
+               fam <- read.table(file=famfiles[1], header=FALSE)
+               if(any(!Wlist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
+               Wlist$alleles[[chr]] <- as.character(bim[,6])   
+               Wlist$rsids[[chr]] <- as.character(bim[,2])   
+               print(paste("Finished processing bim file",bimfiles[chr]))
+          }   
+          
+          
+          Wlist$mchr <- sapply(Wlist$rsids,length)
+          Wlist$m <- sum(Wlist$mchr)
+          Wlist$n <- length(Wlist$ids)
+          Wlist$study <- study
+          Wlist$bedfiles <- bedfiles
+          Wlist$bimfiles <- bimfiles
+          Wlist$famfiles <- famfiles
+          Wlist$compressed <- compressed
+          
+     }
 
-     for ( chr in 1:length(bedfiles) ) {
-          snps <- read.table(file=bimfiles[chr], header=FALSE)
-          Wlist$alleles[[chr]] <- as.character(snps[,5])   
-          Wlist$rsids[[chr]] <- as.character(snps[,2])   
-          if(is.null(fnRAW)) Wlist$fnRAW[[chr]] <- paste0(path,"/RAW",chr,"_",study,sep="")
-          print(paste("Finished processing bim file",bimfiles[chr]))
-     }   
-     
-     rsids <- unlist(Wlist$rsids)
-     Wlist$indx <- lapply( Wlist$rsids, function(x) {match(x,rsids)} )
-     
-     Wlist$ids <- as.character(ids)
-     
-     Wlist$nb <- length(Wlist$fnRAW)
-     Wlist$m <- sum(sapply(Wlist$rsids,length))
-     Wlist$n <- length(Wlist$ids)
-     Wlist$study <- study
-     Wlist$bedfiles <- bedfiles
-     Wlist$bimfiles <- bimfiles
-     Wlist$compressed <- compressed
-     
-     return(Wlist)
+     if(nfiles==1) {
+
+          bim <- read.table(file=bimfiles[1], header=FALSE)
+          fam <- read.table(file=famfiles[1], header=FALSE)
+          
+          Wlist <- NULL
+          
+          chr <- bim[!duplicated(bim[,1]),1]
+          nchr <- length(chr)
+          Wlist$rsids <- split(as.character(bim[,2]),f=as.factor(bim[,1]))
+          Wlist$alleles <- split(as.character(bim[,6]),f=as.factor(bim[,1]))
+          Wlist$position <- split(bim[,4],f=as.factor(bim[,1]))
+          
+          if(file.exists(fnRAW)) stop(paste("rawfiles allready exist"))
+          Wlist$fnRAW <- fnRAW
+          
+          Wlist$af <- vector(mode="list",length=nchr)
+          Wlist$maf <- vector(mode="list",length=nchr)
+          Wlist$nmiss <- vector(mode="list",length=nchr)
+          Wlist$nhet <- vector(mode="list",length=nchr)
+          Wlist$n0 <- vector(mode="list",length=nchr)
+          Wlist$n1 <- vector(mode="list",length=nchr)
+          Wlist$n2 <- vector(mode="list",length=nchr)
+          Wlist$chr <- 1:nchr
+          
+          Wlist$ids <- ids 
+          Wlist$ids <- as.character(fam[,2])
+          if(any(duplicated(Wlist$ids))) stop("Duplicated ids found in famfiles")
+          
+          Wlist$mchr <- sapply(Wlist$rsids,length)
+          Wlist$m <- sum(Wlist$mchr)
+          Wlist$n <- length(Wlist$ids)
+          Wlist$study <- study
+          Wlist$bedfiles <- bedfiles
+          Wlist$bimfiles <- bimfiles
+          Wlist$famfiles <- famfiles
+          Wlist$compressed <- compressed
+
+     }
+          return(Wlist)
 }
+
 
 #' @export
 #'
 
-writeBED2RAW <- function(Wlist=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, fnRAW=NULL, ids=NULL, rsids=NULL, alleles=NULL, chr=NULL, msize=100) {
-     n <- length(ids)
-     m <- length(rsids)
-     sets <- split(1:m, ceiling(seq_along(1:m)/msize))
-     nsets <- length(sets)
-     rsids <- split(rsids,ceiling(seq_along(1:m)/msize))
-     alleles <- split(alleles,ceiling(seq_along(1:m)/msize))
-     bfW <- file(fnRAW,"wb")
-     for ( i in 1:nsets ) {
-          g <- readBed( bedfile=bedfiles, rsids=rsids[[i]], alleles=alleles[[i]], ids=ids)
-          g <- g+1 
-          g[is.na(g)] <- 0
-          for ( j in 1:ncol(g) ) {
-               writeBin( as.raw(g[,j]), bfW, size = 1, endian = "little")
+
+
+writeBED2RAW <- function(rawfiles=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsids=NULL, ids=NULL) {
+     
+     if(is.null(chr)) chr <- 1:length(bedfiles)
+     for ( i in chr) {
+          
+          fnBED <- bedfiles[i]  
+          fnRAW <- rawfiles[i]  
+          
+          if(file.exists(fnRAW)) stop(paste("fnRAW file allready exist"))
+          
+          bim <- read.table(file=bimfiles[i], header=FALSE)
+          fam <- read.table(file=famfiles[i], header=FALSE)
+          
+          n <- nrow(fam)
+          m <- nrow(bim)
+          bsize <- ceiling(n/4)
+          indx <- seq(1,n*2,2)
+          
+          rws <- 1:n
+          if(!is.null(ids)) rws <- match(ids,as.character(fam[,2]))
+          cls <- 1:m
+          if(!is.null(rsids)) cls <- match(ids,as.character(bim[,2]))
+          
+          bfBED <- file(fnBED,"rb")
+          bfRAW <- file(fnRAW,"wb")
+          magic <- readBin(bfBED, "raw", n=3)
+          if (!all(magic[1] == "6c", magic[2] == "1b", magic[3] == "01"))
+               stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
+          for ( j in 1:m) {
+               raw <- as.logical(rawToBits(readBin(bfBED, "raw", bsize)))
+               raw1 <- raw[indx]
+               raw2 <- raw[indx+1]
+               isNA <- raw1==1 & raw2==0
+               g <- raw1 + raw2 + 1
+               g[isNA] <- 0
+               writeBin( as.raw(g[rws]), bfRAW, size = 1, endian = "little")
+               print(j)
           }
-          gc()
-          print(paste("Finished block",i,"proportion",i/nsets))
+          close(bfRAW)
+          close(bfBED)
      }
-     close(bfW)
 }
+
 
 #' @export
 #'
@@ -226,9 +308,9 @@ getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FAL
 #' @export
 #'
 
-qcW <- function(Wlist=NULL) {
+summaryW <- function(Wlist=NULL) {
      qcG <- NULL
-     for ( chr in 1:Wlist$nb ) {
+     for ( chr in 1:Wlist$nchr ) {
           qcG[[chr]] <- qcGenotypes(Wlist=Wlist,chr=chr)  
           print(chr) 
      }
@@ -332,12 +414,14 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
      bsize <- ceiling(n/4)
      indx <- seq(1,n*2,2)
      rws <- 1:n
-     if(!is.null(ids)) rws <- match(ids,fam[,2])
+     if(!is.null(ids)) rws <- match(ids,as.character(fam[,2]))
      cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,bim[,2])
+     if(!is.null(rsids)) cls <- match(rsids,as.character(bim[,2]))
      cls <- cls[order(cls)]
      
-     W <- matrix(0,nrow=length(rws),ncol=length(cls))
+     #W <- matrix(0,nrow=length(rws),ncol=length(cls))
+     W <- rep(0,length(rws)*length(cls))
+     dim(W) <-c(length(rws),length(cls))
      
      bfBED <- file(bedfiles[chr],"rb")
      magic <- readBin(bfBED, "raw", n=3)
@@ -350,13 +434,18 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
           current <- cls[i]
           if(!current==(i-1)) seek(bfBED, where=where, origin="current", rw="read")
           raw <- as.logical(rawToBits(readBin(bfBED, "raw", bsize)))
-          g <- raw[indx] + raw[indx+1]
-          g[raw[indx]==1 & raw[indx+1]==0 ] <- NA # 1/0 is missing
+          raw1 <- raw[indx]
+          raw2 <- raw[indx+1]
+          isNA <- raw1==1 & raw2==0
+          g <- raw1 + raw2
+          #g <- raw[indx] + raw[indx+1]
+          #g[raw[indx]==1 & raw[indx+1]==0 ] <- NA # 1/0 is missing
+          g[isNA] <- NA # 1/0 is missing
           W[,i] <- g[rws]
      }
      close(bfBED)
-     rownames(W) <- fam[rws,2]
-     colnames(W) <- bim[cls,2]
+     #rownames(W) <- as.character(fam[rws,2])
+     #colnames(W) <- as.character(bim[cls,2])
      return(W)
      }
 
@@ -397,20 +486,22 @@ readraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
 #' @export
 #'
 
-mafraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
-     #subroutine mafraw(n,nr,rws,nc,cls,af,nmiss,fnRAW)	
+qcraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
+     #subroutine craw(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,fnRAW)	
      dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
      dyn.load(dll)
-     is.loaded("mafraw")
+     is.loaded("qcraw")
      n <- Wlist$n
+     m <- Wlist$m
+     cls <- 1:m
      if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
      nc <- length(cls)
      rws <- 1:n
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
      nr <- length(rws)
-     af <- nmiss <- rep(0,nc)
+     af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
      fnRAW <- Wlist$fnRAW
-     fit <- .Fortran("mafraw", 
+     fit <- .Fortran("qcraw", 
                      n = as.integer(n),
                      nr = as.integer(nr),
                      rws = as.integer(rws),
@@ -418,6 +509,9 @@ mafraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
                      cls = as.integer(cls),
                      af = as.double(af),
                      nmiss = as.double(nmiss),
+                     n0 = as.double(n0),
+                     n1 = as.double(n1),
+                     n2 = as.double(n2),
                      fnRAW = as.character(fnRAW),
                      PACKAGE = 'qgg'
                      

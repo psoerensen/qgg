@@ -1,11 +1,11 @@
   !==============================================================================================================
-  subroutine mafraw(n,nr,rws,nc,cls,af,nmiss,fnRAW)	
+  subroutine qcraw(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,fnRAW)	
   !==============================================================================================================
   
   implicit none
   
   integer*4 :: i,n,nc,nr,rws(nr),cls(nc),raww(nr)
-  real*8 :: n0,n1,n2,ntotal,af(nc),nmiss(nc)
+  real*8 :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
   character*1 :: raw(n)
   character(len=1000) :: fnRAW
 
@@ -17,10 +17,10 @@
    read (unit=13,rec=cls(i)) raw
    raww=ichar(raw(rws))
    nmiss(i)=count(raww==0)
-   n0=count(raww==1)
-   n1=count(raww==2)
-   n2=count(raww==3)
-   af(i)=(n1+2*n2)/(2*(ntotal-nmiss(i)))
+   n0(i)=count(raww==1)
+   n1(i)=count(raww==2) 
+   n2(i)=count(raww==3)
+   af(i)=(n1(i)+2*n2(i))/(2*(ntotal-nmiss(i)))
   enddo 
 
-  end subroutine mafraw
+  end subroutine qcraw
