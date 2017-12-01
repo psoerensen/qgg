@@ -125,7 +125,7 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
           Wlist$af <- vector(mode="list",length=nchr)
           Wlist$maf <- vector(mode="list",length=nchr)
           Wlist$nmiss <- vector(mode="list",length=nchr)
-          Wlist$nhet <- vector(mode="list",length=nchr)
+          Wlist$het <- vector(mode="list",length=nchr)
           Wlist$n0 <- vector(mode="list",length=nchr)
           Wlist$n1 <- vector(mode="list",length=nchr)
           Wlist$n2 <- vector(mode="list",length=nchr)
@@ -308,43 +308,6 @@ getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FAL
 }
 
 
-#' @export
-#'
-
-summaryW <- function(Wlist=NULL) {
-     qcG <- NULL
-     for ( chr in 1:Wlist$nchr ) {
-          qcG[[chr]] <- qcGenotypes(Wlist=Wlist,chr=chr)  
-          print(chr) 
-     }
-     Wlist$nmiss <- sapply(qcG,function(x){ x$nmiss})
-     Wlist$af <- sapply(qcG,function(x){ x$af})
-     Wlist$maf <- sapply(qcG,function(x){ x$maf})
-     return(Wlist)
-}
-
-#' @export
-#'
-
-qcGenotypes <- function(Wlist=NULL, chr=NULL) {
-     rsids <- Wlist$rsids[[chr]]
-     n <- Wlist$n
-     m <- length(rsids)       
-     nmiss <- af <- rep(0,m)      
-     bfW <- file(Wlist$fnRAWCHR[chr],"rb")
-     for ( i in 1:m ) { 
-          g <- as.integer(readBin( bfW, "raw", n=n, size = 1, endian = "little"))
-          miss <- g==0
-          nmiss[i] <- sum(miss)
-          af[i] <- sum(g[!miss]-1)
-     }
-     close(bfW)
-     
-     maf <- af <- af/((n-nmiss)*2)    
-     maf[maf>0.5] <- 1-maf[maf>0.5]
-     names(af) <- names(maf) <- names(nmiss) <- rsids
-     return(list(maf=maf,af=af,nmiss=nmiss)) 
-} 
 
 
 
@@ -496,7 +459,7 @@ qcraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      is.loaded("qcraw")
      n <- Wlist$n
      m <- Wlist$m
-     cls <- 1:m
+     if(is.null(cls)) cls <- 1:m
      if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
      nc <- length(cls)
      rws <- 1:n
@@ -504,7 +467,7 @@ qcraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      nr <- length(rws)
      af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
      fnRAW <- Wlist$fnRAW
-     fit <- .Fortran("qcraw", 
+     qc <- .Fortran("qcraw", 
                      n = as.integer(n),
                      nr = as.integer(nr),
                      rws = as.integer(rws),
@@ -519,11 +482,33 @@ qcraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
                      PACKAGE = 'qgg'
                      
      )
-     names(fit$af) <- unlist(Wlist$rsids)[cls]
-     names(fit$nmiss) <- unlist(Wlist$rsids)[cls]
-     return(list(af=fit$af,nmiss=fit$nmiss))
+     qc$hom <- (qc$n0+qc$n2)/(qc$n-qc$nmiss)
+     qc$het <- qc$n1/(qc$n-qc$nmiss)
+     qc$maf <- qc$af
+     qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
+     #names(fit$af) <- unlist(Wlist$rsids)[cls]
+     #names(fit$nmiss) <- unlist(Wlist$rsids)[cls]
+     #return(list(af=fit$af,nmiss=fit$nmiss))
+     return(qc)
 }
 
+#' @export
+#'
+
+summaryW <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
+     
+     qc <- qcraw(Wlist=Wlist,ids=ids, rsids=rsids, rws=rws, cls=cls)    
+     Wlist$nmiss <- qc$miss
+     Wlist$af <- qc$af
+     Wlist$maf <- qc$maf
+     Wlist$hom <- qc$hom
+     Wlist$het <- qc$het
+     Wlist$n0 <- qc$n0
+     Wlist$n1 <- qc$n1
+     Wlist$n2 <- qc$n2
+     
+     return(Wlist)
+}
 
 
 #######################################################################################
