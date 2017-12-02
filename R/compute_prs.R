@@ -77,8 +77,8 @@
 
 adjustStat <- function( stat=NULL, ldSets=NULL, threshold=1) {
      
-     for ( i in 1:nrow(stat$P) ) {
-          rsidsStat <- colnames(stat$P)
+     for ( i in 1:ncol(stat$P) ) {
+          rsidsStat <- rownames(stat$P)
           mStat <- length(rsidsStat)
           indx1 <- rep(T,mStat)
           indx2 <- rep(F,mStat)
@@ -86,9 +86,9 @@ adjustStat <- function( stat=NULL, ldSets=NULL, threshold=1) {
                setsChr <- ldSets[[chr]]
                setsChr <- setsChr[names(setsChr)%in%rsidsStat]
                rsidsChr <- names(setsChr)
-               clsChr <- match(rsidsChr,rsidsStat)
-               p <- stat$P[i,clsChr]
-               s <- stat$S[i,clsChr]
+               rwsChr <- match(rsidsChr,rsidsStat)
+               p <- stat$P[rwsChr,i]
+               s <- stat$S[rwsChr,i]
                o <- order(p, decreasing=FALSE)
                for ( j in o) {
                     if (p[j]<=threshold) { 
@@ -100,7 +100,7 @@ adjustStat <- function( stat=NULL, ldSets=NULL, threshold=1) {
                     }
                }
           }
-          stat$S[i,!indx2] <- 0
+          stat$S[!indx2,i] <- 0
      }
      return(stat)
 }

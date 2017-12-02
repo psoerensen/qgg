@@ -85,7 +85,7 @@ computeW <- function(Wlist=NULL, ids=NULL, chr=NULL, scaled=FALSE, compressed=FA
      
      if (ncores==1) {
           if(Wlist$nchr==1) {  
-               writeBED2RAW( rawfiles=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=ids, chr=chr)
+               writeBED2RAW( rawfiles=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=chr)
           }
      }     
      
@@ -96,7 +96,7 @@ computeW <- function(Wlist=NULL, ids=NULL, chr=NULL, scaled=FALSE, compressed=FA
           cl<-makeCluster(ncores,outfile="")
           registerDoParallel(cl)
           foreach( chr=Wlist$chr, .export=c("writeBED2RAW")) %dopar% {
-               writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=ids, chr=chr)
+               writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=chr)
                print(paste("Finished chr",chr))
           }
           stopCluster(cl)
@@ -132,7 +132,7 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
           Wlist$chr <- 1:nchr
           Wlist$nchr <- nchr
           
-          Wlist$ids <- ids 
+          Wlist$ids <- as.character(ids) 
           fam <- read.table(file=famfiles[1], header=FALSE)
           if(is.null(ids)) Wlist$ids <- as.character(fam[,2])
           
@@ -183,7 +183,7 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
           Wlist$n2 <- vector(mode="list",length=nchr)
           Wlist$chr <- 1:nchr
           
-          Wlist$ids <- ids 
+          Wlist$ids <- as.character(ids) 
           Wlist$ids <- as.character(fam[,2])
           if(any(duplicated(Wlist$ids))) stop("Duplicated ids found in famfiles")
           
@@ -225,7 +225,7 @@ writeBED2RAW <- function(rawfiles=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=N
           indx <- seq(1,n*2,2)
           
           rws <- 1:n
-          if(!is.null(ids)) rws <- match(ids,as.character(fam[,2]))
+          if(!is.null(ids)) rws <- match(as.character(ids),as.character(fam[,2]))
           cls <- 1:m
           if(!is.null(rsids)) cls <- match(rsids,as.character(bim[,2]))
           
