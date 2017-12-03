@@ -85,21 +85,22 @@ computeW <- function(Wlist=NULL, ids=NULL, chr=NULL, scaled=FALSE, compressed=FA
      
      if (ncores==1) {
           if(Wlist$nchr==1) {  
-               writeBED2RAW( rawfiles=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=chr)
+               writeBED2RAW( rawfiles=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=1)
+          }
+          if(Wlist$nchr>1) {  
+               writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=chr)
           }
      }     
      
      if (ncores>1) {
-          require(foreach)
-          require(doParallel)
-          
-          cl<-makeCluster(ncores,outfile="")
-          registerDoParallel(cl)
-          foreach( chr=Wlist$chr, .export=c("writeBED2RAW")) %dopar% {
-               writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=chr)
+
+          #cl<-makeCluster(ncores,outfile="")
+          #registerDoParallel(cl)
+          foreach( i=chr, .export=c("writeBED2RAW")) %dopar% {
+               writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=i)
                print(paste("Finished chr",chr))
           }
-          stopCluster(cl)
+          #stopCluster(cl)
           
      }     
 }
@@ -132,7 +133,7 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
           Wlist$chr <- 1:nchr
           Wlist$nchr <- nchr
           
-          Wlist$ids <- as.character(ids) 
+          if(!is.null(ids)) Wlist$ids <- as.character(ids) 
           fam <- read.table(file=famfiles[1], header=FALSE)
           if(is.null(ids)) Wlist$ids <- as.character(fam[,2])
           
@@ -183,7 +184,7 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
           Wlist$n2 <- vector(mode="list",length=nchr)
           Wlist$chr <- 1:nchr
           
-          Wlist$ids <- as.character(ids) 
+          if(!is.null(ids)) Wlist$ids <- as.character(ids) 
           Wlist$ids <- as.character(fam[,2])
           if(any(duplicated(Wlist$ids))) stop("Duplicated ids found in famfiles")
           
@@ -208,16 +209,16 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
 
 writeBED2RAW <- function(rawfiles=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsids=NULL, ids=NULL) {
      
-     if(is.null(chr)) chr <- 1:length(bedfiles)
-     for ( i in chr) {
+     #if(is.null(chr)) chr <- 1:length(bedfiles)
+     #for ( i in chr) {
           
-          fnBED <- bedfiles[i]  
-          fnRAW <- rawfiles[i]  
+          fnBED <- bedfiles[chr]  
+          fnRAW <- rawfiles[chr]  
           
           if(file.exists(fnRAW)) stop(paste("fnRAW file allready exist"))
           
-          bim <- read.table(file=bimfiles[i], header=FALSE)
-          fam <- read.table(file=famfiles[i], header=FALSE)
+          bim <- read.table(file=bimfiles[chr], header=FALSE)
+          fam <- read.table(file=famfiles[chr], header=FALSE)
           
           n <- nrow(fam)
           m <- nrow(bim)
@@ -245,7 +246,7 @@ writeBED2RAW <- function(rawfiles=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=N
           }
           close(bfRAW)
           close(bfBED)
-     }
+     #}
 }
 
 

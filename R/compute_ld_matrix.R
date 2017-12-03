@@ -99,8 +99,9 @@ prepLD <- function(Wlist=NULL,fnLD=NULL, msize=NULL) {
 
 computeLD <- function(LDlist=NULL, chr=NULL, ids=NULL, scaled=TRUE) {
      
+     msize <- LDlist$msize
      if(is.null(chr)) chr <- LDlist$chr
-     if(any(file.exists(fnLD[chr]))) stop("LD files allready exists - please specify other file names")
+     if(any(file.exists(LDlist$fnLD[chr]))) stop("LD files allready exists - please specify other file names")
      
      n <- LDlist$n
      rws <- 1:n
@@ -124,7 +125,7 @@ computeLD <- function(LDlist=NULL, chr=NULL, ids=NULL, scaled=TRUE) {
        for ( j in 1:nsets) {
            W1 <- W2
            W2 <- W3
-           W3 <- readraw(Wlist=LDlist,cls=cls[[j]],scaled=scaled)
+           W3[, 1:msets[j]] <- readraw(Wlist=LDlist,cls=cls[[j]],scaled=scaled)
            #W3 <- W3[rws,]
            WW <- t(crossprod(cbind(W1,W2,W3),W2))
            N <- t(crossprod(!cbind(W1,W2,W3)==0,!W2==0))
