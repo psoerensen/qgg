@@ -139,6 +139,9 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
           
           for ( chr in 1:length(bedfiles) ) {
                bim <- read.table(file=bimfiles[chr], header=FALSE)
+               if(any(!rsids%in%as.character(bim[,2]))) stop(paste("some rsids not found in bimfiles"))
+               rws <- as.character(bim[,2])%in%rsids
+               bim <- bim[rws,]  
                fam <- read.table(file=famfiles[1], header=FALSE)
                if(any(!Wlist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
                Wlist$alleles[[chr]] <- as.character(bim[,6])   
