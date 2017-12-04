@@ -129,14 +129,17 @@ plotma <- function(ma=NULL,chr=NULL,rsids=NULL,thresh=5) {
 #' @export
 
 lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
+     if(is.vector(y)) y <- matrix(y,ncol=1, dimnames= list(names(y),"trait"))
+     ids <- rownames(y)
      if(!is.null(W)) {
-          if(is.vector(y)) y <- matrix(y,ncol=1)
+          if(any(!ids==rownames(W))) stop("Some names of y does not match rownames of W")
           res <- smlm(y=y,X=X,W=W)
           #if(is.null(colnames(y))) colnames(y) <- paste("t",1:ncol(y),sep="")
           #lapply(res, function(x){colnames(x) <- colnames(y)})
           #lapply(res, function(x){rownames(x) <- colnames(W)})
      }
      if(!is.null(Wlist)) {
+          if(any(!ids%in%Wlist$ids)) stop("Some names of y does not match names in Wlist$ids")
           if(!is.null(X)) y <- residuals(lm(y~X))
           if(is.vector(y)) y <- matrix(y,ncol=1)
           nt <- ncol(y) 
