@@ -132,4 +132,46 @@ computePRS <- function(Wlist=NULL,S=NULL,msize=100, scaled=TRUE) {
      PRS
 }
 
+#' @export
+#'
+
+prsraw <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) { 
+     #subroutine prsraw(n,nr,rws,nc,cls,scaled,nprs,s,prs,fnRAW)	
+     dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
+     dyn.load(dll)
+     is.loaded("prsraw")
+     
+     if (is.vector(S)) S <- as.matrix(S)
+     rsids <- rownames(S)
+     if(any( !rsids%in%unlist(Wlist$rsids) )) stop("rsids not found in Wlist")
+     nprs <- ncol(S)
+     
+     n <- Wlist$n
+     m <- Wlist$m
+     rws <- 1:n
+     cls <- match(rsids,unlist(Wlist$rsids))
+     nc <- length(cls)
+     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     nr <- length(rws)
+     
+     fnRAW <- Wlist$fnRAW
+     
+     fnRAW <- Wlist$fnRAW
+     fit <- .Fortran("prsraw", 
+                     n = as.integer(n),
+                     nr = as.integer(nr),
+                     rws = as.integer(rws),
+                     nc = as.integer(nc),
+                     cls = as.integer(cls),
+                     scaled = as.integer(scaled),
+                     nprs = as.integer(nprs),
+                     s = matrix(as.double(S),nrow=nc,ncol=nprs),
+                     prs = matrix(as.double(0),nrow=nr,ncol=nprs),
+                     fnRAW = as.character(fnRAW),
+                     PACKAGE = 'qgg'
+                     
+     )
+     dyn.load(dll)
+     return(fit$s)
+}
 
