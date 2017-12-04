@@ -174,7 +174,7 @@ getLDSets <- function(LDlist=NULL, chr=NULL, r2=0.5) {
           
           fnLD <- LDlist$fnLD[chr]
           bfLD <- file(fnLD,"rb")
-          nld <- as.integer(mchr*msize*2+1)
+          nld <- as.integer(mchr*(msize*2+1))
           ld <- readBin( bfLD, "double", n=nld, size = 8, endian = "little")
           ld <- matrix(ld,nrow=mchr,byrow=TRUE) 
           close(bfLD)
