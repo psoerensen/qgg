@@ -84,7 +84,7 @@
 computeW <- function(Wlist=NULL, chr=NULL,ids=NULL, rsids=NULL, scaled=FALSE, compressed=FALSE, ncores=1) {
 
      if(is.null(ids)) ids <- Wlist$ids 
-     if(is.null(rsids)) rsids <- Wlist$rsids 
+     if(is.null(rsids)) rsids <- unlist(Wlist$rsids) 
      
      if (ncores==1) {
           if(length(Wlist$bedfiles)==1) {
