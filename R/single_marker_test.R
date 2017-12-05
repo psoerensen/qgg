@@ -184,7 +184,7 @@ smlm <- function( y=NULL, X=NULL, W=NULL) {
      m <- ncol(W)
      n <- nrow(W)
      Wy <- crossprod(W,y)
-     wwadj <- matrix((crossprod(W,ones)**2)/colSums(ones),nrow=m,ncol=nt,byrow=TRUE)
+     #wwadj <- matrix((crossprod(W,ones)**2)/colSums(ones),nrow=m,ncol=nt,byrow=TRUE)
      W2 <- W**2
      ww <- crossprod(W2,ones) 
      yy <- matrix(colSums((y**2)*ones),nrow=m,ncol=nt,byrow=TRUE)

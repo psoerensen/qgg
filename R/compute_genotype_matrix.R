@@ -165,6 +165,9 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
 
           bim <- read.table(file=bimfiles[1], header=FALSE)
           fam <- read.table(file=famfiles[1], header=FALSE)
+
+          rws <- as.character(bim[,2])%in%rsids
+          bim <- droplevels(bim[rws,])  
           
           Wlist <- NULL
           

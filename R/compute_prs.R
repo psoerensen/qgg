@@ -148,9 +148,9 @@ prsraw <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) {
      
      n <- Wlist$n
      m <- Wlist$m
-     rws <- 1:n
      cls <- match(rsids,unlist(Wlist$rsids))
      nc <- length(cls)
+     rws <- 1:n
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
      nr <- length(rws)
      
@@ -172,6 +172,8 @@ prsraw <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) {
                      
      )
      dyn.load(dll)
-     return(fit$s)
+     colnames(fit$prs) <- colnames(S)
+     rownames(fit$prs) <- Wlist$ids[rws]
+     return(fit$prs)
 }
 
