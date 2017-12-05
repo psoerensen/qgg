@@ -84,7 +84,7 @@
 computeW <- function(Wlist=NULL, chr=NULL,ids=NULL, rsids=NULL, scaled=FALSE, compressed=FALSE, ncores=1) {
      
      if (ncores==1) {
-          if(Wlist$nchr==1) {
+          if(length(Wlist$bedfiles)==1) {
                if(is.null(ids)) ids <- Wlist$ids 
                if(is.null(rsids)) rsids <- Wlist$rsids 
                writeBED2RAW( rawfiles=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, chr=1, ids=ids, rsids=rsids)
