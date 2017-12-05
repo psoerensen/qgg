@@ -251,12 +251,15 @@ writeBED2RAW <- function(rawfiles=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=N
                stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
           for ( j in 1:m) {
                raw <- as.logical(rawToBits(readBin(bfBED, "raw", bsize)))
+               print(j)
+               print(keep[j])
                if(keep[j]) {
                 raw1 <- raw[indx]
                 raw2 <- raw[indx+1]
                 isNA <- raw1==1 & raw2==0
                 g <- raw1 + raw2 + 1
                 g[isNA] <- 0
+                print(head(g))
                 writeBin( as.raw(g[rws]), bfRAW, size = 1, endian = "little")
                }
           }
