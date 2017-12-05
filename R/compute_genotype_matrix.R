@@ -81,11 +81,13 @@
 #'
 
 
-computeW <- function(Wlist=NULL, ids=NULL, chr=NULL, scaled=FALSE, compressed=FALSE, ncores=1) {
+computeW <- function(Wlist=NULL, chr=NULL,ids=NULL, rsids=NULL, scaled=FALSE, compressed=FALSE, ncores=1) {
      
      if (ncores==1) {
-          if(Wlist$nchr==1) {  
-               writeBED2RAW( rawfiles=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=1)
+          if(Wlist$nchr==1) {
+               if(is.null(ids)) ids <- Wlist$ids 
+               if(is.null(rsids)) rsids <- Wlist$rsids 
+               writeBED2RAW( rawfiles=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, chr=1, ids=ids, rsids=rsids)
           }
           if(Wlist$nchr>1) {  
                writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=chr)
@@ -215,7 +217,7 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
 
 
 
-writeBED2RAW <- function(rawfiles=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsids=NULL, ids=NULL) {
+writeBED2RAW <- function(rawfiles=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, ids=NULL, rsids=NULL) {
      
      #if(is.null(chr)) chr <- 1:length(bedfiles)
      #for ( i in chr) {
