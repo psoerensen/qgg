@@ -82,15 +82,16 @@
 
 
 computeW <- function(Wlist=NULL, chr=NULL,ids=NULL, rsids=NULL, scaled=FALSE, compressed=FALSE, ncores=1) {
+
+     if(is.null(ids)) ids <- Wlist$ids 
+     if(is.null(rsids)) rsids <- Wlist$rsids 
      
      if (ncores==1) {
           if(length(Wlist$bedfiles)==1) {
-               if(is.null(ids)) ids <- Wlist$ids 
-               if(is.null(rsids)) rsids <- Wlist$rsids 
                writeBED2RAW( rawfiles=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, chr=1, ids=ids, rsids=rsids)
           }
           if(Wlist$nchr>1) {  
-               writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=chr)
+               writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, chr=chr, ids=ids, rsids=rsids)
           }
      }     
      
@@ -98,8 +99,9 @@ computeW <- function(Wlist=NULL, chr=NULL,ids=NULL, rsids=NULL, scaled=FALSE, co
 
           #cl<-makeCluster(ncores,outfile="")
           #registerDoParallel(cl)
-          foreach( i=chr, .export=c("writeBED2RAW")) %dopar% {
-               writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=as.character(ids), chr=i)
+          
+          foreach( chrom=chr, .export=c("writeBED2RAW")) %dopar% {
+               writeBED2RAW( rawfiles=Wlist$fnRAWCHR, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, chr=chrom, ids=ids, rsids=rsids)
                print(paste("Finished chr",chr))
           }
           #stopCluster(cl)
