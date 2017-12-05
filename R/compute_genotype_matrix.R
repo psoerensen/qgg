@@ -164,10 +164,12 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
      if(nfiles==1) {
 
           bim <- read.table(file=bimfiles[1], header=FALSE)
-          fam <- read.table(file=famfiles[1], header=FALSE)
-
           rws <- as.character(bim[,2])%in%rsids
           bim <- droplevels(bim[rws,])  
+
+          fam <- read.table(file=famfiles[1], header=FALSE)
+          rws <- as.character(fam[,2])%in%ids
+          fam <- droplevels(fam[rws,])  
           
           Wlist <- NULL
           
