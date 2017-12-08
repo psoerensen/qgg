@@ -139,8 +139,7 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Wlist$bedfiles <- bedfiles
           Wlist$bimfiles <- bimfiles
           Wlist$famfiles <- famfiles
-          Wlist$compressed <- compressed
-          
+
      }
 
      if(nfiles==1) {
