@@ -232,7 +232,7 @@ writeBED2RAW <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
                if(printmarker[j]) print(paste("Finished marker",j))
           }
           close(bfBED)
-          print(paste("Finished processing bedfile:"),bedfiles(chr))
+          print(paste("Finished processing bedfile:"),bedfiles[chr])
      }
      close(bfRAW)
      
