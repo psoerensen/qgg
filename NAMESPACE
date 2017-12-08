@@ -3,7 +3,6 @@
 export(adjustStat)
 export(bgfm)
 export(bigsolve_old_old)
-export(compressRAW)
 export(computeG)
 export(computeGRM)
 export(computeLD)

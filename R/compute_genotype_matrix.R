@@ -240,35 +240,6 @@ writeBED2RAW <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
 }
 
 
-#' @export
-#'
-
-compressRAW <- function(Wlist=NULL, chr=NULL, type="gzip") {
-     rsids <- Wlist$rsids[[chr]]
-     n <- Wlist$n
-     m <- length(rsids)
-     fnRAW <- Wlist$fnRAW[chr]
-     wgz <- vector(mode = "list", length = m)
-     bfW <- file(fnRAW,"rb")
-     if(type=="gzip") {
-          for (i in 1:m ) {
-               w <- readBin( bfW, "raw", n=n, size = 1, endian = "little")
-               wgz[[i]] <- memCompress( w, type=type)
-               print(paste("Compressed marker",i,"chromosome",chr))
-          }
-     }     
-     if(type=="lz4") {
-          library(lz4)
-          for (i in 1:m ) {
-               w <- readBin( bfW, "raw", n=n, size = 1, endian = "little")
-               wgz[[i]] <- lzCompress( w, level=8)
-               print(paste("Compressed marker",i,"chromosome",chr))
-          }
-     }     
-     close(bfW)
-     names(wgz) <- rsids
-     return(wgz)
-}
 
 #' @export
 #'
@@ -507,7 +478,6 @@ summaryW <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
 #'
 
 qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
-     #subroutine craw(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,fnRAW)	
      dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
      dyn.load(dll)
      is.loaded("qcbed")
@@ -544,13 +514,13 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      qc$maf <- qc$af
      qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
      rsids <- unlist(Wlist$rsids)[cls]
-     names(fit$af) <- rsids
-     names(fit$maf) <- rsids
-     names(fit$hom) <- rsids
-     names(fit$het) <- rsids
-     names(fit$n0) <- rsids
-     names(fit$n1) <- rsids
-     names(fit$n2) <- rsids
+     names(qc$af) <- rsids
+     names(qc$maf) <- rsids
+     names(qc$hom) <- rsids
+     names(qc$het) <- rsids
+     names(qc$n0) <- rsids
+     names(qc$n1) <- rsids
+     names(qc$n2) <- rsids
      return(qc)
 }
 
