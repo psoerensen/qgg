@@ -81,10 +81,10 @@
 #'
 
 
-computeW <- function(Wlist=NULL, ids=NULL, rsids=NULL) {
+computeW <- function(Wlist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
 
 
-     writeBED2RAW( fnRAW=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=ids, rsids=rsids)
+     writeBED2RAW( fnRAW=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=ids, rsids=rsids, overwrite=overwrite)
 
 }
 
@@ -198,9 +198,12 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
 
 
 
-writeBED2RAW <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL) {
+writeBED2RAW <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL,overwrite=FALSE) {
 
-     if(file.exists(fnRAW)) stop(paste("fnRAW file allready exist"))
+     if(file.exists(fnRAW)) {
+          warning(paste("fnRAW file allready exist"))
+          if(!overwrite) stop(paste("fnRAW file allready exist"))
+     }
      bfRAW <- file(fnRAW,"wb")
      for ( chr in 1:length(bedfiles)) {
           bim <- read.table(file=bimfiles[chr], header=FALSE)
