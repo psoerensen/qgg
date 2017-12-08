@@ -98,7 +98,7 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
      
      if(nfiles>1) {
           nchr <- nfiles
-          if(file.exists(fnRAW)) stop(paste("fnRAW allready exist"))
+          if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
           
           Wlist <- NULL
           if(!is.null(fnRAW)) Wlist$fnRAW <- fnRAW
@@ -157,6 +157,7 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Wlist$alleles <- split(as.character(bim[,6]),f=as.factor(bim[,1]))
           Wlist$position <- split(bim[,4],f=as.factor(bim[,1]))
           
+          if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
           Wlist$fnRAW <- fnRAW
           
           Wlist$af <- vector(mode="list",length=nchr)
