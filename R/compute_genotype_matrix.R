@@ -140,7 +140,7 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
           if(!is.null(ids)) Wlist$ids <- as.character(ids) 
           fam <- read.table(file=famfiles[1], header=FALSE)
           if(is.null(ids)) Wlist$ids <- as.character(fam[,2])
-          
+
           for ( chr in 1:length(bedfiles) ) {
                bim <- read.table(file=bimfiles[chr], header=FALSE)
                if(any(!rsids%in%as.character(bim[,2]))) stop(paste("some rsids not found in bimfiles"))
@@ -220,51 +220,77 @@ prepW <- function( study=NULL, fnRAW=NULL, fnRAWCHR=NULL, bedfiles=NULL, bimfile
 
 
 writeBED2RAW <- function(rawfiles=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, ids=NULL, rsids=NULL) {
-     
-     #if(is.null(chr)) chr <- 1:length(bedfiles)
-     #for ( i in chr) {
-          
-          fnBED <- bedfiles[chr]  
-          fnRAW <- rawfiles[chr]  
-          
-          if(file.exists(fnRAW)) stop(paste("fnRAW file allready exist"))
-          
+
+     fnRAW <- rawfiles  
+     if(file.exists(fnRAW)) stop(paste("fnRAW file allready exist"))
+     bfRAW <- file(fnRAW,"wb")
+     for ( chr in 1:length(bedfiles)) {
           bim <- read.table(file=bimfiles[chr], header=FALSE)
           fam <- read.table(file=famfiles[chr], header=FALSE)
-          
           n <- nrow(fam)
           m <- nrow(bim)
-          bsize <- ceiling(n/4)
-          indx <- seq(1,n*2,2)
-          
-          rws <- 1:n
-          if(!is.null(ids)) rws <- match(as.character(ids),as.character(fam[,2]))
-          cls <- 1:m
-          if(!is.null(rsids)) cls <- match(rsids,as.character(bim[,2]))
-          keep <- rep(F,m)
-          keep[cls] <- T
-          
+          nbytes <- ceiling(n/4)
+          printmarker <- rep(F,m)
+          printmarker[seq(1,m,100)] <- T
+          fnBED <- bedfiles[chr]  
           bfBED <- file(fnBED,"rb")
-          bfRAW <- file(fnRAW,"wb")
           magic <- readBin(bfBED, "raw", n=3)
           if (!all(magic[1] == "6c", magic[2] == "1b", magic[3] == "01"))
                stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
-          printmarker <- rep(F,m)
-          printmarker[seq(1,m,100)] <- T
           for ( j in 1:m) {
-               raw <- as.logical(rawToBits(readBin(bfBED, "raw", bsize)))
-               if(keep[j]) {
-                raw1 <- raw[indx]
-                raw2 <- raw[indx+1]
-                isNA <- raw1==1 & raw2==0
-                g <- raw1 + raw2 + 1
-                g[isNA] <- 0
-                writeBin( as.raw(g[rws]), bfRAW, size = 1, endian = "little")
-               }
+               raw <- readBin(bfBED, "raw", n=nbytes)
+               writeBin( raw, bfRAW, size = 1, endian = "little")
                if(printmarker[j]) print(paste("Finished marker",j))
           }
-          close(bfRAW)
           close(bfBED)
+          #print(chr)
+     }
+     close(bfRAW)
+     
+     # #if(is.null(chr)) chr <- 1:length(bedfiles)
+     # #for ( i in chr) {
+     #      
+     #      fnBED <- bedfiles[chr]  
+     #      fnRAW <- rawfiles[chr]  
+     #      
+     #      if(file.exists(fnRAW)) stop(paste("fnRAW file allready exist"))
+     #      
+     #      bim <- read.table(file=bimfiles[chr], header=FALSE)
+     #      fam <- read.table(file=famfiles[chr], header=FALSE)
+     #      
+     #      n <- nrow(fam)
+     #      m <- nrow(bim)
+     #      bsize <- ceiling(n/4)
+     #      indx <- seq(1,n*2,2)
+     #      
+     #      rws <- 1:n
+     #      if(!is.null(ids)) rws <- match(as.character(ids),as.character(fam[,2]))
+     #      cls <- 1:m
+     #      if(!is.null(rsids)) cls <- match(rsids,as.character(bim[,2]))
+     #      keep <- rep(F,m)
+     #      keep[cls] <- T
+     #      
+     #      bfBED <- file(fnBED,"rb")
+     #      bfRAW <- file(fnRAW,"wb")
+     #      magic <- readBin(bfBED, "raw", n=3)
+     #      if (!all(magic[1] == "6c", magic[2] == "1b", magic[3] == "01"))
+     #           stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
+     #      printmarker <- rep(F,m)
+     #      printmarker[seq(1,m,100)] <- T
+     #      for ( j in 1:m) {
+     #           raw <- as.logical(rawToBits(readBin(bfBED, "raw", bsize)))
+     #           if(keep[j]) {
+     #            raw1 <- raw[indx]
+     #            raw2 <- raw[indx+1]
+     #            isNA <- raw1==1 & raw2==0
+     #            g <- raw1 + raw2 + 1
+     #            g[isNA] <- 0
+     #            writeBin( as.raw(g[rws]), bfRAW, size = 1, endian = "little")
+     #           }
+     #           if(printmarker[j]) print(paste("Finished marker",j))
+     #      }
+     #      close(bfRAW)
+     #      close(bfBED)
      #}
 }
 

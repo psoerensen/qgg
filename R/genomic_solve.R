@@ -471,9 +471,11 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
      meanw <- 2*maf
      sdw <- sqrt(2*maf*(1-maf))
      
+     if (is.vector(y)) y <- as.matrix(y)
+     ids <- rownames(y)
      
-     if(!is.null(ids)) yt <- y[ids]
-     if(!is.null(ids)) Xt <- as.matrix(X[ids,])
+     if(!is.null(ids)) yt <- y[ids,1]
+     #if(!is.null(ids)) Xt <- as.matrix(X[ids,])
      
      n <- Wlist$n                        # number of observations
      m <- Wlist$m                          # number of markers
@@ -484,12 +486,12 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
      nr <- length(rws)
      
      b <- bold <- bnew <- NULL
-     if (!is.null(X)) {
-          b <- (solve(t(Xt)%*%Xt)%*%t(Xt))%*%yt     # initialize b
-          bold <- rep(0,ncol(Xt))              # initialize b
-     }
+     #if (!is.null(X)) {
+     #     b <- (solve(t(Xt)%*%Xt)%*%t(Xt))%*%yt     # initialize b
+     #     bold <- rep(0,ncol(Xt))              # initialize b
+     #}
      
-     if (!is.null(Xt)) yt <- yt-Xt%*%b         # initialize e
+     #if (!is.null(Xt)) yt <- yt-Xt%*%b         # initialize e
      
      if(length(lambda)==1) { lambda <- rep(lambda,m)}
      s <- rep(0,m)                         # initialize diagonal elements of the W'W matrix
