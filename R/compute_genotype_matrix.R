@@ -519,6 +519,7 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      nc <- length(cls)
      rws <- 1:n
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
      nr <- length(rws)
      af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
      fnRAW <- Wlist$fnRAW
@@ -542,9 +543,14 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      qc$het <- qc$n1/(qc$n-qc$nmiss)
      qc$maf <- qc$af
      qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
-     #names(fit$af) <- unlist(Wlist$rsids)[cls]
-     #names(fit$nmiss) <- unlist(Wlist$rsids)[cls]
-     #return(list(af=fit$af,nmiss=fit$nmiss))
+     rsids <- unlist(Wlist$rsids)[cls]
+     names(fit$af) <- rsids
+     names(fit$maf) <- rsids
+     names(fit$hom) <- rsids
+     names(fit$het) <- rsids
+     names(fit$n0) <- rsids
+     names(fit$n1) <- rsids
+     names(fit$n2) <- rsids
      return(qc)
 }
 
