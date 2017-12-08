@@ -128,7 +128,7 @@
     n0(i)=real(count(grws==0))
     n1(i)=real(count(grws==1)) 
     n2(i)=real(count(grws==2))
-    af(i)=(n1(i)+2*n2(i))/(2*(ntotal-nmiss(i)))
+    af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
   enddo 
 
   close(13)
