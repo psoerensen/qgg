@@ -176,7 +176,7 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           
           if(any(duplicated(Wlist$ids))) stop("Duplicated ids found in famfiles")
 
-          Wlist$rsids_study <- NULL
+          Wlist$study_rsids <- NULL
           if(!is.null(rsids)) Wlist$study_rsids <- as.character(rsids) 
           if(!is.null(rsids)) if( any(!rsids%in%unlist(Wlist$rsids)) ) stop(paste("some rsids not found in bimfiles"))
           
@@ -206,6 +206,7 @@ writeBED2RAW <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      }
      bfRAW <- file(fnRAW,"wb")
      for ( chr in 1:length(bedfiles)) {
+          print(paste("Processing bedfile:",bedfiles[chr]))
           bim <- read.table(file=bimfiles[chr], header=FALSE)
           fam <- read.table(file=famfiles[chr], header=FALSE)
           n <- nrow(fam)
@@ -232,7 +233,7 @@ writeBED2RAW <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
                if(printmarker[j]) print(paste("Finished marker",j))
           }
           close(bfBED)
-          print(paste("Finished processing bedfile:"),bedfiles[chr])
+          print(paste("Finished processing bedfile:",bedfiles[chr]))
      }
      close(bfRAW)
      
