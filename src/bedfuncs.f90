@@ -114,8 +114,8 @@
   integer :: i, stat, rawbits
 
   af=0.0D0
-  nmiss=0
-  ntotal=real(n)  
+  nmiss=0.0D0
+  ntotal=real(nr)  
   
   open(13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
 
