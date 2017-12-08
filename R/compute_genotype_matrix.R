@@ -461,7 +461,7 @@ summaryW <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      
      #qc <- qcraw(Wlist=Wlist,ids=ids, rsids=rsids, rws=rws, cls=cls)    
      qc <- qcbed(Wlist=Wlist,ids=ids, rsids=rsids, rws=rws, cls=cls)    
-     Wlist$nmiss <- qc$miss
+     Wlist$nmiss <- qc$nmiss
      Wlist$af <- qc$af
      Wlist$maf <- qc$maf
      Wlist$hom <- qc$hom
@@ -521,6 +521,7 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      names(qc$n0) <- rsids
      names(qc$n1) <- rsids
      names(qc$n2) <- rsids
+     names(qc$nmiss) <- rsids
      return(qc)
 }
 
