@@ -557,5 +557,51 @@ summaryW <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
 }
 
 
+#' @export
+#'
+
+qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
+     #subroutine craw(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,fnRAW)	
+     dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
+     dyn.load(dll)
+     is.loaded("qcbed")
+     n <- Wlist$n
+     m <- Wlist$m
+     nbytes <- ceiling(n/4)
+     if(is.null(cls)) cls <- 1:m
+     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+     nc <- length(cls)
+     rws <- 1:n
+     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     nr <- length(rws)
+     af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
+     fnRAW <- Wlist$fnRAW
+     qc <- .Fortran("qcbed", 
+                    n = as.integer(n),
+                    nr = as.integer(nr),
+                    rws = as.integer(rws),
+                    nc = as.integer(nc),
+                    cls = as.integer(cls),
+                    af = as.double(af),  
+                    nmiss = as.double(nmiss),  
+                    n0 = as.double(n0),  
+                    n1 = as.double(n1),  
+                    n2 = as.double(n2),  
+                    nbytes = as.integer(nbytes),  
+                    fnRAW = as.character(fnRAW),                     
+                    PACKAGE = 'qgg'
+                    
+     )
+     qc$hom <- (qc$n0+qc$n2)/(qc$n-qc$nmiss)
+     qc$het <- qc$n1/(qc$n-qc$nmiss)
+     qc$maf <- qc$af
+     qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
+     #names(fit$af) <- unlist(Wlist$rsids)[cls]
+     #names(fit$nmiss) <- unlist(Wlist$rsids)[cls]
+     #return(list(af=fit$af,nmiss=fit$nmiss))
+     return(qc)
+}
+
+
 #######################################################################################
 
