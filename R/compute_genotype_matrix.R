@@ -128,7 +128,7 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
                Wlist$rsids[[chr]] <- as.character(bim[,2])   
                print(paste("Finished processing bim file",bimfiles[chr]))
           }   
-          Wlist$rsids_study <- NULL
+          Wlist$study_rsids <- NULL
           if(!is.null(rsids)) Wlist$study_rsids <- as.character(rsids) 
           if(!is.null(rsids)) if( any(!rsids%in%unlist(Wlist$rsids)) ) stop(paste("some rsids not found in bimfiles"))
           
