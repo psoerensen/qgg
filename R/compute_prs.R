@@ -146,7 +146,7 @@ computePRS <- function(Wlist=NULL,S=NULL,ids=NULL, rsids=NULL, msize=100, scaled
 #' @export
 #'
 
-prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) { 
+prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, scaled=TRUE) { 
      dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
      dyn.load(dll)
      is.loaded("prsbed")
@@ -159,13 +159,15 @@ prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) {
      n <- Wlist$n
      m <- Wlist$m
 
+     n <- Wlist$n
+     m <- Wlist$m
      nbytes <- ceiling(n/4)
-     cls <- match(rsids,unlist(Wlist$rsids))
+     if(is.null(cls)) cls <- 1:m
+     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
      nc <- length(cls)
-
      rws <- 1:n
-     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
      nr <- length(rws)
      
      
