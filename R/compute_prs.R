@@ -117,6 +117,7 @@ computePRS <- function(Wlist=NULL,S=NULL,ids=NULL, rsids=NULL, msize=100, scaled
      if(any( !rsids%in%unlist(Wlist$rsids) )) stop("rsids not found in Wlist")
      nprs <- ncol(S)
      
+     n <- Wlist$n     
 
      rws <- 1:n
      if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
