@@ -157,12 +157,16 @@
     g = real(raw2int(n,nbytes,raw))
     if (scaled==0) then
       where(g==3) g=0
-      prs(1:nr,j)=prs(1:nr,j)+g(rws)*s(i,j)
+      do j=1,nprs
+        prs(1:nr,j)=prs(1:nr,j)+g(rws)*s(i,j)
+      enddo
     endif
     if (scaled==1) then
       gsc=real(g(rws))
       gsc=scale(nr,gsc)    
-      prs(1:nr,j)=prs(1:nr,j)+gsc*s(i,j)
+      do j=1,nprs
+        prs(1:nr,j)=prs(1:nr,j)+gsc*s(i,j)
+      enddo
     endif
   enddo
   close (unit=13)

@@ -116,7 +116,7 @@ computePRS <- function(Wlist=NULL,S=NULL,msize=100, scaled=TRUE) {
      rsids <- rownames(S)
      if(any( !rsids%in%unlist(Wlist$rsids) )) stop("rsids not found in Wlist")
      PRS <- matrix(0,nrow=Wlist$n,ncol=ncol(S))
-       rownames(PRS) <- Wlist$ids
+       rownames(PRS) <- Wlist$study_ids
        colnames(PRS) <- colnames(S)
      cls <- match(rsids,unlist(Wlist$rsids))
      m <- length(cls)
@@ -155,8 +155,6 @@ prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) {
      nr <- length(rws)
 
      fnRAW <- Wlist$fnRAW
-     
-     prsbed(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)
      
      prs <- .Fortran("prsbed", 
                      n = as.integer(n),
