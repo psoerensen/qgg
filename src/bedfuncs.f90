@@ -153,10 +153,11 @@
   prs=0.0D0  
   open (unit=13,file=fnRAW, status='old', form='unformatted', access='direct', recl=n)
   do i=1,nc
-    read (unit=13,rec=cls(i)) raw
+    read(13, iostat=stat, rec=cls(i)) raw
+    if (stat /= 0) exit
     g = real(raw2int(n,nbytes,raw))
     if (scaled==0) then
-      where(g==3) g=0
+      where(g==3.0D0) g=0.0D0
       do j=1,nprs
         prs(1:nr,j)=prs(1:nr,j)+g(rws)*s(i,j)
       enddo

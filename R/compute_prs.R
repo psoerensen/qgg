@@ -118,7 +118,8 @@ computePRS <- function(Wlist=NULL,S=NULL,ids=NULL, rsids=NULL, msize=100, scaled
      nprs <- ncol(S)
      
      n <- Wlist$n     
-
+     m <- Wlist$m
+     
      rws <- 1:n
      if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
@@ -157,13 +158,17 @@ prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) {
      
      n <- Wlist$n
      m <- Wlist$m
+
      nbytes <- ceiling(n/4)
      cls <- match(rsids,unlist(Wlist$rsids))
      nc <- length(cls)
+
      rws <- 1:n
+     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
      nr <- length(rws)
-
+     
+     
      fnRAW <- Wlist$fnRAW
      
      prs <- .Fortran("prsbed", 
