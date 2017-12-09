@@ -277,7 +277,7 @@ getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FAL
 #' @export
 #'
 
-readBed <- function( bedfile=NULL, rsids=NULL, alleles=NULL, ids=NULL){
+readbed.plink <- function( bedfile=NULL, rsids=NULL, alleles=NULL, ids=NULL,plink="plink2"){
      
      # make temp dir and write snplist to file
      
@@ -296,7 +296,7 @@ readBed <- function( bedfile=NULL, rsids=NULL, alleles=NULL, ids=NULL){
      
      # call plink to write out additively coded SNPs
      if (is.null(ids)) {
-          system( paste("plink2 --bfile", bedfile,
+          system( paste(plink," --bfile", bedfile,
                         "--extract", fnSNPs,
                         "--keep-allele-order --recode A --recode-allele ",fnAlleles,
                         "--silent",
@@ -381,32 +381,38 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
 #' @export
 #'
 
-readraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE) { 
-     #subroutine readraw(n,nc,cls,scaled,W,fnRAW)	
+readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE) { 
+     #readbed(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
      dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
-     #dll <- "/data/home/peters/prs/src/readraw.so"    
      dyn.load(dll)
-     is.loaded("readraw")
+     is.loaded("readbed")
      n <- Wlist$n
+     m <- Wlist$m
+     nbytes <- ceiling(n/4)
+     if(is.null(cls)) cls <- 1:m
      if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
-     #o <- order(cls)
-     #cls <- cls[o]
      nc <- length(cls)
+     rws <- 1:n
+     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
+     nr <- length(rws)
      fnRAW <- Wlist$fnRAW
-     fit <- .Fortran("readraw", 
+     res <- .Fortran("readbed", 
                      n = as.integer(n),
+                     nr = as.integer(nr),
+                     rws = as.integer(rws),
                      nc = as.integer(nc),
                      cls = as.integer(cls),
                      scaled = as.integer(scaled),
-                     W = matrix(as.double(0),nrow=n,ncol=nc),
+                     W = matrix(as.double(0),nrow=nr,ncol=nc),
+                     nbytes = as.integer(nbytes),
                      fnRAW = as.character(fnRAW),
                      PACKAGE = 'qgg'
                      
      )
-     #dimnames(fit$W) <- list(Wlist$ids,Wlist$rsids[cls])
-     #rownames(fit$W) <- Wlist$ids
-     #colnames(fit$W) <- Wlist$rsids[cls]
-     return(fit$W)
+     #rownames(res$W) <- Wlist$ids[rws]
+     #colnames(res$W) <- unlist(Wlist$ids)[cls]
+     return(res$W)
 }
 
 

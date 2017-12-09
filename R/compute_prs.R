@@ -125,7 +125,7 @@ computePRS <- function(Wlist=NULL,S=NULL,msize=100, scaled=TRUE) {
      nsets <- length(rws)
      msets <- sapply(rws,length)
      for ( i in 1:nsets ) {
-          W <- readraw(Wlist=Wlist,cls=cls[[i]], scaled=scaled)
+          W <- readbed(Wlist=Wlist,cls=cls[[i]], scaled=scaled)
           PRS <- PRS + tcrossprod(W,t(S[rws[[i]],]))
           print(paste("Finished block",i,"out of",nsets))
      }
@@ -135,11 +135,10 @@ computePRS <- function(Wlist=NULL,S=NULL,msize=100, scaled=TRUE) {
 #' @export
 #'
 
-prsraw <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) { 
-     #subroutine prsraw(n,nr,rws,nc,cls,scaled,nprs,s,prs,fnRAW)	
+prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) { 
      dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
      dyn.load(dll)
-     is.loaded("prsraw")
+     is.loaded("prsbed")
      
      if (is.vector(S)) S <- as.matrix(S)
      rsids <- rownames(S)
@@ -148,16 +147,18 @@ prsraw <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) {
      
      n <- Wlist$n
      m <- Wlist$m
+     nbytes <- ceiling(n/4)
      cls <- match(rsids,unlist(Wlist$rsids))
      nc <- length(cls)
      rws <- 1:n
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
      nr <- length(rws)
-     
+
      fnRAW <- Wlist$fnRAW
      
-     fnRAW <- Wlist$fnRAW
-     fit <- .Fortran("prsraw", 
+     prsbed(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)
+     
+     prs <- .Fortran("prsbed", 
                      n = as.integer(n),
                      nr = as.integer(nr),
                      rws = as.integer(rws),
@@ -167,13 +168,14 @@ prsraw <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,scaled=TRUE) {
                      nprs = as.integer(nprs),
                      s = matrix(as.double(S),nrow=nc,ncol=nprs),
                      prs = matrix(as.double(0),nrow=nr,ncol=nprs),
+                     nbytes = as.integer(nbytes),
                      fnRAW = as.character(fnRAW),
                      PACKAGE = 'qgg'
                      
      )
-     dyn.load(dll)
-     colnames(fit$prs) <- colnames(S)
-     rownames(fit$prs) <- Wlist$ids[rws]
-     return(fit$prs)
+     dyn.unload(dll)
+     colnames(prs$prs) <- colnames(S)
+     rownames(prs$prs) <- Wlist$ids[rws]
+     return(prs$prs)
 }
 
