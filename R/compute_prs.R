@@ -111,22 +111,31 @@ adjustStat <- function( stat=NULL, ldSets=NULL, threshold=1) {
 #' @export
 #'
 
-computePRS <- function(Wlist=NULL,S=NULL,msize=100, scaled=TRUE) {
+computePRS <- function(Wlist=NULL,S=NULL,ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
      if (is.vector(S)) S <- as.matrix(S)
      rsids <- rownames(S)
      if(any( !rsids%in%unlist(Wlist$rsids) )) stop("rsids not found in Wlist")
-     PRS <- matrix(0,nrow=Wlist$n,ncol=ncol(S))
-       rownames(PRS) <- Wlist$study_ids
-       colnames(PRS) <- colnames(S)
+     nprs <- ncol(S)
+     
+
+     rws <- 1:n
+     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
+     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     nr <- length(rws)
+       
+       
      cls <- match(rsids,unlist(Wlist$rsids))
      m <- length(cls)
      cls <- split(cls, ceiling(seq_along(cls)/msize))
-     rws <- split(1:m, ceiling(seq_along(1:m)/msize))
-     nsets <- length(rws)
-     msets <- sapply(rws,length)
+     nsets <- length(cls)
+
+     PRS <- matrix(0,nrow=nr,ncol=nprs)
+     rownames(PRS) <- Wlist$ids[rws]
+     colnames(PRS) <- colnames(S)
+     
      for ( i in 1:nsets ) {
-          W <- readbed(Wlist=Wlist,cls=cls[[i]], scaled=scaled)
-          PRS <- PRS + tcrossprod(W,t(S[rws[[i]],]))
+          W <- readbed(Wlist=Wlist,rws=rws, cls=cls[[i]], scaled=scaled)
+          PRS <- PRS + tcrossprod(W,t(S[cls[[i]],]))
           print(paste("Finished block",i,"out of",nsets))
      }
      PRS
