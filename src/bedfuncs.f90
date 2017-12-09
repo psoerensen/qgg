@@ -143,8 +143,8 @@
 
   implicit none
   
-  integer*4 :: i,j,n,nr,nc,rws(nr),cls(nc),scaled,nprs,nbytes
-  real*8 :: prs(nr,nprs),g(n),gsc(n),s(nc,nprs)
+  integer*4 :: i,j,n,nr,nc,rws(nr),cls(nc),scaled,nprs,nbytes,g(n)
+  real*8 :: prs(nr,nprs),grws(n),gsc(n),s(nc,nprs)
   character(len=1000) :: fnRAW
   integer, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
@@ -155,16 +155,17 @@
   do i=1,nc
     read(13, iostat=stat, rec=cls(i)) raw
     if (stat /= 0) exit
-    g = real(raw2int(n,nbytes,raw))
+    g = raw2int(n,nbytes,raw)
     if (scaled==0) then
-      where(g==3.0D0) g=0.0D0
+      where(g==3) g=0
+      grws=real(g(rws))
       do j=1,nprs
-        prs(1:nr,j)=prs(1:nr,j)+g(rws)*s(i,j)
+        prs(1:nr,j)=prs(1:nr,j)+grws*s(i,j)
       enddo
     endif
     if (scaled==1) then
-      gsc=real(g(rws))
-      gsc=scale(nr,gsc)    
+      grws=real(g(rws))
+      gsc=scale(nr,grws)    
       do j=1,nprs
         prs(1:nr,j)=prs(1:nr,j)+gsc*s(i,j)
       enddo

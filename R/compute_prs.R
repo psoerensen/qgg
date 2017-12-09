@@ -158,13 +158,10 @@ prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
      
      n <- Wlist$n
      m <- Wlist$m
-
-     n <- Wlist$n
-     m <- Wlist$m
      nbytes <- ceiling(n/4)
-     if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+     cls <- match(rsids,unlist(Wlist$rsids))
      nc <- length(cls)
+     
      rws <- 1:n
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
      if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
