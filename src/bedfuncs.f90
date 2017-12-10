@@ -143,7 +143,7 @@
 
   implicit none
   
-  integer*4 :: i,j,n,nr,nc,rws(nr),cls(nc),scaled,nprs,nbytes,g(n)
+  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nprs,nbytes,g(n)
   real*8 :: prs(nr,nprs),grws(nr),gsc(nr),s(nc,nprs)
   character(len=1000) :: fnRAW
   integer, parameter :: byte = selected_int_kind(1) 
@@ -161,7 +161,9 @@
       where(g==3) g=0
       grws=dble(g(rws))
       do j=1,nprs
-        prs(1:nr,j)=prs(1:nr,j)+grws*s(i,j)
+        do k=1,nr
+          prs(k,j)=prs(k,j)+grws(k)*s(i,j)
+        enddo
       enddo
     endif
 
@@ -169,7 +171,9 @@
       grws=dble(g(rws))
       gsc=scale(nr,grws)
       do j=1,nprs
-        prs(1:nr,j)=prs(1:nr,j)+gsc*s(i,j)
+        do k=1,nr
+          prs(k,j)=prs(k,j)+gsc(k)*s(i,j)
+        enddo
       enddo
     endif
 
