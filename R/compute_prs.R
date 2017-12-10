@@ -171,7 +171,7 @@ prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
      
      
      fnRAW <- Wlist$fnRAW
-     
+     #   subroutine prsbed(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)	
      prs <- .Fortran("prsbed", 
                      n = as.integer(n),
                      nr = as.integer(nr),

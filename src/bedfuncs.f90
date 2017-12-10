@@ -82,10 +82,10 @@
     g = raw2int(n,nbytes,raw)
     if (scaled==0) then
       where(g==3) g=0
-      W(1:nr,i) = real(g(rws))
+      W(1:nr,i) = dble(g(rws))
     endif
     if (scaled==1) then
-      gsc=real(g(rws))
+      gsc=dble(g(rws))
       W(1:nr,i)=scale(nr,gsc)
     endif
   enddo 
@@ -124,10 +124,10 @@
     if (stat /= 0) exit
     g = raw2int(n,nbytes,raw)
     grws = g(rws)
-    nmiss(i)=real(count(grws==3))
-    n0(i)=real(count(grws==0))
-    n1(i)=real(count(grws==1)) 
-    n2(i)=real(count(grws==2))
+    nmiss(i)=dble(count(grws==3))
+    n0(i)=dble(count(grws==0))
+    n1(i)=dble(count(grws==1)) 
+    n2(i)=dble(count(grws==2))
     af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
   enddo 
 
@@ -153,21 +153,20 @@
   prs=0.0D0  
   open (unit=13,file=fnRAW, status='old', form='unformatted', access='direct', recl=n)
   do i=1,nc
-
     read(13, iostat=stat, rec=cls(i)) raw
     if (stat /= 0) exit
     g = raw2int(n,nbytes,raw)
 
     if (scaled==0) then
       where(g==3) g=0
-      grws=real(g(rws))
+      grws=dble(g(rws))
       do j=1,nprs
         prs(1:nr,j)=prs(1:nr,j)+grws*s(i,j)
       enddo
     endif
 
     if (scaled==1) then
-      grws=real(g(rws))
+      grws=dble(g(rws))
       gsc=scale(nr,grws)
       do j=1,nprs
         prs(1:nr,j)=prs(1:nr,j)+gsc*s(i,j)
