@@ -136,6 +136,42 @@
   end subroutine qcbed
 
   !==============================================================================================================
+  subroutine mafbed(n,nr,rws,nc,cls,af,nbytes,fnRAW)	
+  !==============================================================================================================
+
+  use bedfuncs 
+  
+  implicit none
+  
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr) 
+  real*8 :: ntotal,af(nc),nmiss(nc)
+  character(len=1000) :: fnRAW
+
+  integer, parameter :: byte = selected_int_kind(1) 
+  integer(byte) :: raw(nbytes)
+  integer :: i, stat
+
+  af=0.0D0
+  nmiss=0.0D0
+  ntotal=real(nr)  
+  
+  open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
+
+  do i=1,nc 
+    read(13, iostat=stat, rec=cls(i)) raw
+    if (stat /= 0) exit
+    g = raw2int(n,nbytes,raw)
+    grws = g(rws)
+    nmiss(i)=dble(count(grws==3))
+    af(i)=sum(grws, mask=grws<3)/(2.0D0*(ntotal-nmiss(i)))
+  enddo 
+
+  close(unit=13)
+
+  end subroutine mafbed
+
+
+  !==============================================================================================================
   subroutine prsbed(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)	
   !==============================================================================================================
   

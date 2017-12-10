@@ -451,6 +451,7 @@ qcraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
                      PACKAGE = 'qgg'
                      
      )
+     dyn.unload(dll)
      qc$hom <- (qc$n0+qc$n2)/(qc$n-qc$nmiss)
      qc$het <- qc$n1/(qc$n-qc$nmiss)
      qc$maf <- qc$af
@@ -516,6 +517,7 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
                     PACKAGE = 'qgg'
                     
      )
+     dyn.unload(dll)
      qc$hom <- (qc$n0+qc$n2)/(qc$n-qc$nmiss)
      qc$het <- qc$n1/(qc$n-qc$nmiss)
      qc$maf <- qc$af
@@ -530,6 +532,45 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      names(qc$n2) <- rsids
      names(qc$nmiss) <- rsids
      return(qc)
+}
+
+#' @export
+#'
+
+mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
+     dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
+     dyn.load(dll)
+     is.loaded("mafbed")
+     n <- Wlist$n
+     m <- Wlist$m
+     nbytes <- ceiling(n/4)
+     if(is.null(cls)) cls <- 1:m
+     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+     nc <- length(cls)
+     rws <- 1:n
+     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
+     nr <- length(rws)
+     af <-rep(0,nc)
+     fnRAW <- Wlist$fnRAW
+     qc <- .Fortran("mafbed", 
+                    n = as.integer(n),
+                    nr = as.integer(nr),
+                    rws = as.integer(rws),
+                    nc = as.integer(nc),
+                    cls = as.integer(cls),
+                    af = as.double(af),  
+                    nbytes = as.integer(nbytes),  
+                    fnRAW = as.character(fnRAW),                     
+                    PACKAGE = 'qgg'
+                    
+     )
+     dyn.unload(dll)
+     qc$maf <- qc$af
+     qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
+     rsids <- unlist(Wlist$rsids)[cls]
+     names(qc$maf) <- rsids
+     return(qc$maf)
 }
 
 
