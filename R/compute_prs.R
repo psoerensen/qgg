@@ -130,7 +130,7 @@ computePRS <- function(Wlist=NULL,S=NULL,ids=NULL, rsids=NULL, msize=100, scaled
      cls <- split(cls, ceiling(seq_along(cls)/msize))
      nsets <- length(cls)
      
-     rwsS <- 1:length(cls)
+     rwsS <- 1:m
      rwsS <- split(rwsS, ceiling(seq_along(rwsS)/msize))
      
      PRS <- matrix(0,nrow=nr,ncol=nprs)
