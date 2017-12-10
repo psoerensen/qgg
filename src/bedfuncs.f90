@@ -163,6 +163,7 @@
       do j=1,nprs
         do k=1,nr
           prs(k,j)=prs(k,j)+grws(k)*s(i,j)
+          if(i==1) print*,i,j,k,prs(k,j),grws(k),s(i,j)
         enddo
       enddo
     endif
