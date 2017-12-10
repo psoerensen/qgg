@@ -125,19 +125,21 @@ computePRS <- function(Wlist=NULL,S=NULL,ids=NULL, rsids=NULL, msize=100, scaled
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
      nr <- length(rws)
        
-       
      cls <- match(rsids,unlist(Wlist$rsids))
      m <- length(cls)
      cls <- split(cls, ceiling(seq_along(cls)/msize))
      nsets <- length(cls)
-
+     
+     rwsS <- 1:length(cls)
+     rwsS <- split(rwsS, ceiling(seq_along(rwsS)/msize))
+     
      PRS <- matrix(0,nrow=nr,ncol=nprs)
      rownames(PRS) <- Wlist$ids[rws]
      colnames(PRS) <- colnames(S)
      
      for ( i in 1:nsets ) {
           W <- readbed(Wlist=Wlist,rws=rws, cls=cls[[i]], scaled=scaled)
-          PRS <- PRS + tcrossprod(W,t(S[cls[[i]],]))
+          PRS <- PRS + tcrossprod(W,t(S[rwsS[[i]],]))
           print(paste("Finished block",i,"out of",nsets))
      }
      PRS

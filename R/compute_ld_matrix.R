@@ -82,11 +82,13 @@ prepLD <- function(Wlist=NULL,fnLD=NULL, msize=NULL) {
      LDlist$study <- Wlist$study
      LDlist$fnLD <- fnLD
      LDlist$ids <- Wlist$ids
+     LDlist$study_ids <- Wlist$study_ids
      LDlist$msize <- msize   
      LDlist$n <- Wlist$n   
      LDlist$m <- Wlist$m 
      LDlist$chr <- 1:length(fnLD)
      LDlist$rsids <- Wlist$rsids
+     LDlist$study_rsids <- Wlist$study_rsids
      LDlist$nchr <- length(LDlist$chr)
      LDlist$mchr <- sapply(LDlist$rsids,length)
      LDlist$fnRAW <- Wlist$fnRAW
@@ -105,7 +107,9 @@ computeLD <- function(LDlist=NULL, chr=NULL, ids=NULL, scaled=TRUE) {
      
      n <- LDlist$n
      rws <- 1:n
-     if(!is.null(ids)) rws <- match(ids,LDlist$ids)
+     if(!is.null(LDlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
+     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     nr <- length(rws)
      
      for ( i in chr) {
 
@@ -116,17 +120,16 @@ computeLD <- function(LDlist=NULL, chr=NULL, ids=NULL, scaled=TRUE) {
        nsets <- length(msets)
        m <- length(rsids)
        
-       W1 <- matrix(logical(0),nrow=n,ncol=msize)
-       W2 <- matrix(logical(0),nrow=n,ncol=msize)
-       W3 <- matrix(logical(0),nrow=n,ncol=msize)
+       W1 <- matrix(logical(0),nrow=nr,ncol=msize)
+       W2 <- matrix(logical(0),nrow=nr,ncol=msize)
+       W3 <- matrix(logical(0),nrow=nr,ncol=msize)
           
        bfLD <- file(LDlist$fnLD[i],"wb")
 
        for ( j in 1:nsets) {
            W1 <- W2
            W2 <- W3
-           W3[, 1:msets[j]] <- readraw(Wlist=LDlist,cls=cls[[j]],scaled=scaled)
-           #W3 <- W3[rws,]
+           W3[, 1:msets[j]] <- readbed(Wlist=LDlist,rws=rws,cls=cls[[j]],scaled=scaled)
            WW <- t(crossprod(cbind(W1,W2,W3),W2))
            N <- t(crossprod(!cbind(W1,W2,W3)==0,!W2==0))
            WW <- WW/(N-1)  # N-1 accounts for sample mean is estimated
@@ -140,7 +143,7 @@ computeLD <- function(LDlist=NULL, chr=NULL, ids=NULL, scaled=TRUE) {
            if (j==nsets) {
             W1 <- W2
             W2 <- W3
-            W3 <- matrix(0,nrow=n,ncol=msize)
+            W3 <- matrix(0,nrow=nr,ncol=msize)
             WW <- t(crossprod(cbind(W1,W2,W3),W2))
             N <- t(crossprod(!cbind(W1,W2,W3)==0,!W2==0))
             WW <- WW/(N-1)  # N-1 accounts for sample mean is estimated
