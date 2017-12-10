@@ -410,6 +410,7 @@ readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
                      PACKAGE = 'qgg'
                      
      )
+     dyn.unload(dll)
      #rownames(res$W) <- Wlist$ids[rws]
      #colnames(res$W) <- unlist(Wlist$ids)[cls]
      return(res$W)
