@@ -262,7 +262,7 @@
   read(13, iostat=stat, rec=cls(i)) raw
   if (stat /= 0) exit
   raww = raw2real(n,nbytes,raw)
-  where (raww.ne.0.0D0)
+  where (raww<3.0D0)
   w = (raww-mean(i))/sd(i)
   elsewhere
   w = 0.0D0
@@ -280,12 +280,12 @@
 
   do it=1,nit
   g=0.0D0
-  open (unit=13,file=fnRAW, status='old', form='unformatted', access='direct', recl=n)
+  open (unit=13,file=fnRAW, status='old', form='unformatted', access='direct', recl=nbytes)
   do i=1,nc
   read(13, iostat=stat, rec=cls(i)) raw
   if (stat /= 0) exit
   raww = raw2real(n,nbytes,raw)
-  where (raww.ne.0.0D0)
+  where (raww<3.0D0)
   w = (raww-mean(i))/sd(i)
   elsewhere
   w = 0.0D0

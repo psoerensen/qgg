@@ -435,15 +435,17 @@ fsolve <- function(n=NULL,m=NULL,cls=NULL,nr=NULL,rws=NULL,fnRAW=NULL,nit=NULL,l
 
 
 
-fsolve <- function(n=NULL,m=NULL,cls=NULL,nr=NULL,rws=NULL,fnRAW=NULL,nit=NULL,lambda=NULL,tol=NULL,y=NULL,g=NULL,e=NULL,s=NULL,meanw=NULL,sdw=NULL) { 
+fsolve <- function(n=NULL,nr=NULL,rws=NULL,nc=NULL,cls=NULL,scaled=TRUE,nbytes=NULL,fnRAW=NULL,nit=NULL,lambda=NULL,tol=NULL,y=NULL,g=NULL,e=NULL,s=NULL,meanw=NULL,sdw=NULL) { 
      dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
      dyn.load(dll)
-     fit <- .Fortran("fsolve", 
+     fit <- .Fortran("bedsolve", 
                      n = as.integer(n),
-                     m = as.integer(m),
-                     cls = as.integer(cls),
                      nr = as.integer(nr),
                      rws = as.integer(rws),
+                     nc = as.integer(nc),
+                     cls = as.integer(cls),
+                     scaled = as.integer(scaled),
+                     nbytes = as.integer(nbytes),
                      fnRAW = as.character(fnRAW),
                      nit = as.integer(nit),
                      lambda = as.double(lambda),
@@ -453,8 +455,8 @@ fsolve <- function(n=NULL,m=NULL,cls=NULL,nr=NULL,rws=NULL,fnRAW=NULL,nit=NULL,l
                      e = as.double(e),
                      s = as.double(s),
                      mean = as.double(meanw),
-                     sd = as.double(sdw)
-                     
+                     sd = as.double(sdw),
+                     PACKAGE = 'qgg'
      )
      return(fit)
 }
@@ -462,28 +464,25 @@ fsolve <- function(n=NULL,m=NULL,cls=NULL,nr=NULL,rws=NULL,fnRAW=NULL,nit=NULL,l
 
 
 
-bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001) { 
+bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001) { 
      
+
+     ids <- names(y)
+     
+
      fnRAW <- Wlist$fnRAW
-     cls <- match(rsids,unlist(Wlist$rsids))
      
+     n <- Wlist$n
+     nbytes <- ceiling(n/4)
+     cls <- match(rsids,unlist(Wlist$rsids))
+     nc <- length(cls)
+     rws <- match(ids,Wlist$ids)
+     nr <- length(rws)
+
      maf <- unlist(Wlist$maf)[cls]
      meanw <- 2*maf
      sdw <- sqrt(2*maf*(1-maf))
-     
-     if (is.vector(y)) y <- as.matrix(y)
-     ids <- rownames(y)
-     
-     if(!is.null(ids)) yt <- y[ids,1]
-     #if(!is.null(ids)) Xt <- as.matrix(X[ids,])
-     
-     n <- Wlist$n                        # number of observations
-     m <- Wlist$m                          # number of markers
-     if(!is.null(rsids)) m <- length(rsids)
-     rws <- 1:Wlist$n 
-     if(is.null(ids)) ids <- Wlist$ids 
-     rws <- match(ids,Wlist$ids)
-     nr <- length(rws)
+
      
      b <- bold <- bnew <- NULL
      #if (!is.null(X)) {
@@ -493,15 +492,14 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
      
      #if (!is.null(Xt)) yt <- yt-Xt%*%b         # initialize e
      
-     if(length(lambda)==1) { lambda <- rep(lambda,m)}
-     s <- rep(0,m)                         # initialize diagonal elements of the W'W matrix
+     if(length(lambda)==1) { lambda <- rep(lambda,nc)}
+     s <- rep(0,nc)                         # initialize diagonal elements of the W'W matrix
      
-     y <- g <- e <- rep(0,n)
-     names(y) <- names(g) <- names(e) <- Wlist$ids
-     y[ids] <- as.vector(yt)
+     yn <- gn <- en <- rep(0,n)
+     yn[rws] <- as.vector(y)
      
-     fit <- fsolve(n=n,m=m,cls=cls,nr=nr,rws=rws,fnRAW=fnRAW,nit=maxit,lambda=lambda,tol=tol,y=y,g=g,e=e,s=s,meanw=meanw,sdw=sdw)
-     #subroutine fsolve(n,m,cls,nr,rws,fnRAW,nit,lambda,tol,y,g,e,s,mean,sd)
+     fit <- fsolve(n=n,nr=nr,rws=rws,nc=nc,cls=cls,scaled=scaled,nbytes=nbytes,fnRAW=fnRAW,nit=nit,lambda=lambda,tol=tol,y=yn,g=gn,e=en,s=s,meanw=meanw,sdw=sdw) 
+     #fit <- fsolve(n=n,nc=nc,cls=cls,nr=nr,rws=rws,fnRAW=fnRAW,nit=maxit,lambda=lambda,tol=tol,y=y,g=g,e=e,s=s,meanw=meanw,sdw=sdw)
      
      #if (!is.null(X)) yhat <- ghat[names(y)] + X[names(y),]%*%b
      yhat <- NULL
