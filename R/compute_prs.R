@@ -95,7 +95,7 @@ adjustStat <- function( stat=NULL, ldSets=NULL, threshold=1) {
                          if (indx1[clsChr[j]]) {
                               rws <- setsChr[[j]]
                               indx1[rws] <- F
-                              indx2[clsChr[j]] <- T
+                              indx2[rwsChr[j]] <- T
                          }
                     }
                }
