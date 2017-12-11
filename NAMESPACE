@@ -2,6 +2,7 @@
 
 export(adjustStat)
 export(bgfm)
+export(bigsolve)
 export(bigsolve_old_old)
 export(computeG)
 export(computeGRM)

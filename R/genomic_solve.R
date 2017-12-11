@@ -408,33 +408,6 @@ gsqr <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, wei
 
 #' @export
 
-fsolve <- function(n=NULL,m=NULL,cls=NULL,nr=NULL,rws=NULL,fnRAW=NULL,nit=NULL,lambda=NULL,tol=NULL,y=NULL,g=NULL,e=NULL,sol=NULL,meanw=NULL,sdw=NULL) { 
-     if(is.null(path)) dll <- paste(find.package("qgg"),"/libs/qgg.so")    
-     dyn.load(dll)	
-     fit <- .Fortran("fsolve", 
-                     n = as.integer(n),
-                     m = as.integer(m),
-                     cls = as.integer(cls),
-                     nr = as.integer(nr),
-                     rws = as.integer(rws),
-                     fnRAW = as.character(fnRAW),
-                     nit = as.integer(nit),
-                     lambda = as.double(lambda),
-                     tol = as.double(tol),
-                     y = as.double(y),
-                     g = as.double(g),
-                     e = as.double(e),
-                     sol = as.double(sol),
-                     mean = as.double(meanw),
-                     sd = as.double(sdw),
-                     package="qgg"
-                     
-     )
-     return(fit)
-}
-
-
-
 fsolve <- function(n=NULL,nr=NULL,rws=NULL,nc=NULL,cls=NULL,scaled=TRUE,nbytes=NULL,fnRAW=NULL,nit=NULL,lambda=NULL,tol=NULL,y=NULL,g=NULL,e=NULL,s=NULL,meanw=NULL,sdw=NULL) { 
      dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
      dyn.load(dll)
@@ -462,6 +435,7 @@ fsolve <- function(n=NULL,nr=NULL,rws=NULL,nc=NULL,cls=NULL,scaled=TRUE,nbytes=N
 }
 
 
+#' @export
 
 
 bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001) { 
@@ -498,7 +472,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
      yn <- gn <- en <- rep(0,n)
      yn[rws] <- as.vector(y)
      
-     fit <- fsolve(n=n,nr=nr,rws=rws,nc=nc,cls=cls,scaled=scaled,nbytes=nbytes,fnRAW=fnRAW,nit=nit,lambda=lambda,tol=tol,y=yn,g=gn,e=en,s=s,meanw=meanw,sdw=sdw) 
+     fit <- fsolve(n=n,nr=nr,rws=rws,nc=nc,cls=cls,scaled=scaled,nbytes=nbytes,fnRAW=fnRAW,nit=maxit,lambda=lambda,tol=tol,y=yn,g=gn,e=en,s=s,meanw=meanw,sdw=sdw) 
      #fit <- fsolve(n=n,nc=nc,cls=cls,nr=nr,rws=rws,fnRAW=fnRAW,nit=maxit,lambda=lambda,tol=tol,y=y,g=g,e=e,s=s,meanw=meanw,sdw=sdw)
      
      #if (!is.null(X)) yhat <- ghat[names(y)] + X[names(y),]%*%b
