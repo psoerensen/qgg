@@ -92,7 +92,7 @@ adjustStat <- function( stat=NULL, ldSets=NULL, threshold=1) {
                o <- order(p, decreasing=FALSE)
                for ( j in o) {
                     if (p[j]<=threshold) { 
-                         if (indx1[clsChr[j]]) {
+                         if (indx1[rwsChr[j]]) {
                               rws <- setsChr[[j]]
                               indx1[rws] <- F
                               indx2[rwsChr[j]] <- T
