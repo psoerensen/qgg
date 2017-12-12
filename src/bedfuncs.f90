@@ -296,7 +296,7 @@
   
   e(rws)=e(rws) - w(rws)*(snew-s(i))
   s(i)=snew
-  g=g+w*s(i)
+  !g=g+w*s(i)
   enddo
   close (unit=13)
   print*,(sum((s-os)**2)/sqrt(dble(nc)))
