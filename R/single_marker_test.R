@@ -157,8 +157,9 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize
           for (i in 1:nsets) {
                cls <- sets[[i]]
                #W <- getW(Wlist,rws=rws,cls=cls,scaled=scaled)
-               W <- readraw(Wlist,cls=cls,scaled=scaled)
-               W <- W[rws,]
+               W <- readbed(Wlist=Wlist,rws=rws, cls=cls, scaled=scaled)
+               #W <- readraw(Wlist,cls=cls,scaled=scaled)
+               #W <- W[rws,]
                res <- smlm(y=y,X=X,W=W)
                s[cls,] <- t(res[[1]])
                se[cls,] <- t(res[[2]])
