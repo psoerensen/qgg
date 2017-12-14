@@ -149,9 +149,9 @@ computePRS <- function(Wlist=NULL,S=NULL,ids=NULL, rsids=NULL, msize=100, scaled
 #'
 
 prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, scaled=TRUE) { 
-     dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
-     dyn.load(dll)
-     is.loaded("prsbed")
+     #dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
+     #dyn.load(dll)
+     #is.loaded("prsbed")
      
      if (is.vector(S)) S <- as.matrix(S)
      rsids <- rownames(S)
@@ -187,7 +187,7 @@ prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
                      PACKAGE = 'qgg'
                      
      )
-     dyn.unload(dll)
+     #dyn.unload(dll)
      colnames(prs$prs) <- colnames(S)
      rownames(prs$prs) <- Wlist$ids[rws]
      return(prs$prs)

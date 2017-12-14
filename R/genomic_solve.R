@@ -409,8 +409,8 @@ gsqr <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, wei
 #' @export
 
 fsolve <- function(n=NULL,nr=NULL,rws=NULL,nc=NULL,cls=NULL,scaled=TRUE,nbytes=NULL,fnRAW=NULL,nit=NULL,lambda=NULL,tol=NULL,y=NULL,g=NULL,e=NULL,s=NULL,meanw=NULL,sdw=NULL) { 
-     dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
-     dyn.load(dll)
+     #dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
+     #dyn.load(dll)
      fit <- .Fortran("bedsolve", 
                      n = as.integer(n),
                      nr = as.integer(nr),
