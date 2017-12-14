@@ -382,10 +382,6 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
 #'
 
 readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE) { 
-     #readbed(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
-     #dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
-     #dyn.load(dll)
-     #is.loaded("readbed")
      n <- Wlist$n
      m <- Wlist$m
      nbytes <- ceiling(n/4)
@@ -412,7 +408,6 @@ readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
                      PACKAGE = 'qgg'
                      
      )
-     #dyn.unload(dll)
      #rownames(res$W) <- Wlist$ids[rws]
      #colnames(res$W) <- unlist(Wlist$ids)[cls]
      return(res$W)
@@ -484,9 +479,6 @@ summaryW <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
 #'
 
 qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
-     #dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
-     #dyn.load(dll)
-     #is.loaded("qcbed")
      n <- Wlist$n
      m <- Wlist$m
      nbytes <- ceiling(n/4)
@@ -515,7 +507,6 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
                     PACKAGE = 'qgg'
                     
      )
-     #dyn.unload(dll)
      qc$hom <- (qc$n0+qc$n2)/(qc$n-qc$nmiss)
      qc$het <- qc$n1/(qc$n-qc$nmiss)
      qc$maf <- qc$af
@@ -536,9 +527,6 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
 #'
 
 mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
-     #dll <- paste(find.package("qgg"),"/libs/qgg.so",sep="")    
-     #dyn.load(dll)
-     #is.loaded("mafbed")
      n <- Wlist$n
      m <- Wlist$m
      nbytes <- ceiling(n/4)
@@ -563,7 +551,6 @@ mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
                     PACKAGE = 'qgg'
                     
      )
-     #dyn.unload(dll)
      qc$maf <- qc$af
      qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
      rsids <- unlist(Wlist$rsids)[cls]

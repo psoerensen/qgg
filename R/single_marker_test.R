@@ -161,10 +161,10 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize
                #W <- readraw(Wlist,cls=cls,scaled=scaled)
                #W <- W[rws,]
                res <- smlm(y=y,X=X,W=W)
-               s[cls,] <- t(res[[1]])
-               se[cls,] <- t(res[[2]])
-               stat[cls,] <- t(res[[3]])
-               p[cls,] <- t(res[[4]])
+               s[cls,] <- res[[1]]
+               se[cls,] <- res[[2]]
+               stat[cls,] <- res[[3]]
+               p[cls,] <- res[[4]]
                print(paste("Finished block",i,"out of",nsets,"blocks"))
           }
           cls <- unlist(sets)
