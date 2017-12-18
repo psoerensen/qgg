@@ -80,7 +80,7 @@ adjustStat <- function( stat=NULL, ldSets=NULL, threshold=1) {
      stat$s[is.na(stat$s)] <- 0
      stat$p[is.na(stat$p)] <- 1
      
-     for ( i in 1:ncol(stat$P) ) {
+     for ( i in 1:ncol(stat$p) ) {
           rsidsStat <- rownames(stat$p)
           mStat <- length(rsidsStat)
           indx1 <- rep(T,mStat)
