@@ -95,7 +95,7 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
      }
      nr <- length(rws)
      fnRAW <- Wlist$fnRAW
-     res <- .Fortran("readbed", 
+     res <- .Fortran("grmbed", 
                      n = as.integer(n),
                      nr = as.integer(nr),
                      rws = as.integer(rws),
