@@ -260,7 +260,7 @@
 
   !implicit none
   
-  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores
+  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,incx,incy
   real*8 :: y(n),e(n),raww(n),w(n),g(n)
   real*8 :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
   real*8 :: lhs,rhs,snew,tol,sigma
@@ -273,6 +273,9 @@
   call omp_set_num_threads(ncores)
 
   open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
+
+  inx = 1
+  incy = 1
 
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
   do i=1,nc
@@ -287,7 +290,7 @@
   dww(i)=dot_product(w(rws),w(rws)) 
   if(s(i).eq.0.0D0) then 
     !s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
-    s(i)=(ddot(nr,w(rws),1,y(rws),1)/dww(i))/nc
+    s(i)=(ddot(nr,w(rws),incx,y(rws),incy)/dww(i))/nc
   endif     
   enddo
   close (unit=13)
@@ -309,7 +312,7 @@
   w = 0.0D0
   end where
   lhs=dww(i)+lambda(i)
-  rhs=ddot(nr,w(rws),1,e(rws),1) + dww(i)*s(i)
+  rhs=ddot(nr,w(rws),incx,e(rws),incy) + dww(i)*s(i)
   !rhs=dot_product(w(rws),e(rws)) + dww(i)*s(i)
   snew=rhs/lhs
   
