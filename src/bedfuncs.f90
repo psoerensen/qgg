@@ -270,10 +270,6 @@
   integer(byte) :: raw(nbytes)
   integer :: stat
 
-  external ddot      
-
-
-
   call omp_set_num_threads(ncores)
 
   open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
@@ -291,7 +287,7 @@
   dww(i)=dot_product(w(rws),w(rws)) 
   if(s(i).eq.0.0D0) then 
     !s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
-    s(i)=(ddot(w(rws),y(rws))/dww(i))/nc
+    s(i)=(ddot(nr,w(rws),1,y(rws),1)/dww(i))/nc
   endif     
   enddo
   close (unit=13)
@@ -313,7 +309,7 @@
   w = 0.0D0
   end where
   lhs=dww(i)+lambda(i)
-  rhs=ddot(w(rws),e(rws)) + dww(i)*s(i)
+  rhs=ddot(nr,w(rws),1,e(rws),1) + dww(i)*s(i)
   !rhs=dot_product(w(rws),e(rws)) + dww(i)*s(i)
   snew=rhs/lhs
   
