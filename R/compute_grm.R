@@ -106,7 +106,7 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
                      fnRAW = as.character(fnRAW),
                      msize = as.integer(msize),
                      ncores = as.integer(ncores),
-                     G = matrix(as.double(0),nrow=nr,ncol=nr)
+                     G = matrix(as.double(0),nrow=nr,ncol=nr),
                      PACKAGE = 'qgg'
                      
      )
