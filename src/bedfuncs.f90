@@ -262,7 +262,7 @@
   
   implicit none
   
-  integer*4 :: i,j,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores,msize,nprs 
+  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores,msize,nprs 
   real*8 :: W(nr,msize)
   character(len=1000) :: fnRAW
   real*8 :: prs(nr,nprs),s(nc,nprs)
