@@ -80,97 +80,35 @@
 #' @export
 #'
 
-# functions needed
 
-computeGRM <- function( Wlist=NULL, rsids=NULL, ids=NULL, fnG=NULL, updateG=FALSE, blocksG=NULL, nrows=1000, ncores=NULL) {
-     
-     if(!is.null(ncores)) setMKLthreads(ncores)
-     
-     # Initiate Glist
-     idsG <- Wlist$ids
-     if (!is.null(ids)) idsG <- ids
-     n <- length(idsG)
-     if (is.null(rsids)) rsids <- unlist(Wlist$rsids)
-     m <- length(rsids)
-     Glist <- list(fnG=fnG,idsG=idsG,rsids=rsids,n=n,m=m)
-     
-     # Initiate G file
-     if(!is.null(fnG)) {
-          if (!updateG)  {
-               if(file.exists(fnG)) stop("G file name allready exist")
-               bfG <- file(fnG,"wb")
-               seek(bfG,8*(n**2))
-               writeBin(raw(8),bfG)
-               close(bfG)
-          }
+computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE, msize=100, ncores=1) { 
+     n <- Wlist$n
+     m <- Wlist$m
+     nbytes <- ceiling(n/4)
+     if(is.null(cls)) cls <- 1:m
+     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+     nc <- length(cls)
+     if (is.null(rws)) {
+          rws <- 1:n
+          if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+          if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
      }
-     
-     sets <- split(1:n, ceiling(seq_along(1:n)/nrows))
-     nsets <- length(sets)
-     rwsW <- match(idsG,Wlist$ids)     
-     
-     blocks <- 1:Wlist$nb
-     mSets <- vector(length=Wlist$nb,mode="list") 
-     if (!is.null(rsids)) {
-          for ( i in 1:length(mSets)){
-               mSets[[i]] <- Wlist$rsids[[i]]%in%rsids
-          }
-          blocks <- blocks[sapply(mSets,sum)>0]
-     }
-     gc()
-     
-     if (is.null(blocksG)) blocksG <- 1:nsets
-     print(paste("Computing G in block",blocksG))
-     
-     for ( i in blocksG ) {
-          rws <- sets[[i]] 
-          G <- matrix(0,nrow=length(rws),ncol=n)
-          dimnames(G) <- list(idsG[rws],idsG)
-          print(paste("Allocated G matrix"))
-          for ( j in blocks ) {
-               mW <- length(mSets[[j]])
-               nW <- Wlist$n
-               bfW <- gzfile(Wlist$fnW[j],"rb")
-               W <- readBin( bfW, "double", n=nW*mW, size = 8, endian = "little") 
-               close(bfW)
-               dim(W) <- c(nW,mW)
-               if (!is.null(rsids)) W <- W[rwsW,mSets[[j]]]
-               gc()
-               if (nsets==1) G <- G + tcrossprod(W)
-               if (nsets>1) { 
-                    for ( k in 1:nsets ) { 
-                         cls <- sets[[k]]
-                         G[,cls] <- G[,cls] + tcrossprod(W[rws,],W[cls,])
-                         gc()
-                    }
-               }
-               remove(W)
-               gc() 
-               print(paste("Finished block",j))
-          }
-          if(!is.null(fnG)) {
-               paste("Writing G to file")
-               idsG1 <- rownames(G)
-               idsG2 <- colnames(G)
-               n1 <- length(idsG1)     
-               n2 <- length(idsG2)
-               indx1 <- match(idsG1,Glist$idsG)		# no reorder needed
-               indx2 <- match(idsG2,Glist$idsG)		# no reorder needed
-               bfG <- file(Glist$fnG,"r+b")
-               for (j in 1:n1) {
-                    k <- indx1[j]
-                    where <- (k-1)*Glist$n + indx2[1]-1
-                    seek(bfG,where=where*8, rw="write")
-                    writeBin( G[j,1:n2]/m, bfG, size = 8, endian = "little")
-                    gc()
-               }
-               close(bfG)
-          }
-          remove(G)
-          gc()
-     }
-     if(is.null(fnG)) { return(G/m) }
-     if(!is.null(Glist)) return(Glist) 
-     
+     nr <- length(rws)
+     fnRAW <- Wlist$fnRAW
+     res <- .Fortran("readbed", 
+                     n = as.integer(n),
+                     nr = as.integer(nr),
+                     rws = as.integer(rws),
+                     nc = as.integer(nc),
+                     cls = as.integer(cls),
+                     scaled = as.integer(scaled),
+                     nbytes = as.integer(nbytes),
+                     fnRAW = as.character(fnRAW),
+                     msize = as.integer(msize),
+                     ncores = as.integer(ncores),
+                     G = matrix(as.double(0),nrow=nr,ncol=nr)
+                     PACKAGE = 'qgg'
+                     
+     )
+     return(res$G)
 }
-
