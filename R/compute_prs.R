@@ -151,7 +151,7 @@ computePRS <- function(Wlist=NULL,S=NULL,ids=NULL, rsids=NULL, msize=100, scaled
 #' @export
 #'
 
-prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, scaled=TRUE) { 
+prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, scaled=TRUE, msize=100, ncores=1) { 
 
      if (is.vector(S)) S <- as.matrix(S)
      rsids <- rownames(S)
@@ -171,7 +171,8 @@ prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
      
      
      fnRAW <- Wlist$fnRAW
-     #   subroutine prsbed(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)	
+     # prsbed(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)
+     # prsbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
      prs <- .Fortran("prsbed", 
                      n = as.integer(n),
                      nr = as.integer(nr),
@@ -179,11 +180,13 @@ prsbed <- function(Wlist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
                      nc = as.integer(nc),
                      cls = as.integer(cls),
                      scaled = as.integer(scaled),
+                     nbytes = as.integer(nbytes),
+                     fnRAW = as.character(fnRAW),
+                     msize = as.integer(msize),
+                     ncores = as.integer(ncores),
                      nprs = as.integer(nprs),
                      s = matrix(as.double(S),nrow=nc,ncol=nprs),
                      prs = matrix(as.double(0),nrow=nr,ncol=nprs),
-                     nbytes = as.integer(nbytes),
-                     fnRAW = as.character(fnRAW),
                      PACKAGE = 'qgg'
                      
      )
