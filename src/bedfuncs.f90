@@ -270,6 +270,10 @@
   integer(byte) :: raw(nbytes)
   integer :: stat
 
+  external ddot      
+
+
+
   call omp_set_num_threads(ncores)
 
   open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
