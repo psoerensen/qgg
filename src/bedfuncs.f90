@@ -211,46 +211,6 @@
 
 
   !==============================================================================================================
-  subroutine prsbedold(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)	
-  !==============================================================================================================
-  
-  use bedfuncs 
-
-  implicit none
-  
-  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nprs,nbytes,g(n)
-  real*8 :: prs(nr,nprs),gsc(nr),s(nc,nprs)
-  character(len=1000) :: fnRAW
-  integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
-  integer :: stat
-
-  prs=0.0D0  
-  open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
-
-  do i=1,nc
-    read(13, iostat=stat, rec=cls(i)) raw
-    if (stat /= 0) exit
-    g = raw2int(n,nbytes,raw)
-    if (scaled==0) then
-      where(g==3) g=0
-      do j=1,nprs
-        prs(1:nr,j)=prs(1:nr,j) + dble(g(rws))*s(i,j)
-      enddo
-    endif
-    if (scaled==1) then
-      gsc=scale(nr,dble(g(rws)))
-      do j=1,nprs
-        prs(1:nr,j)=prs(1:nr,j)+gsc*s(i,j)
-      enddo
-    endif
-  enddo
-  close (unit=13)
-
-  end subroutine prsbedold
-
-
-  !==============================================================================================================
   subroutine prsbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
   !==============================================================================================================
   ! C = A*B (dimenions: mxn = mxk kxn) 
@@ -403,7 +363,7 @@
   implicit none
   
   integer*4 :: i,j,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores,msize 
-  real*8 :: G(nr,nr), W(nr,msize)
+  real*8 :: G(nr,nr), W(nr,msize), traceG
   character(len=1000) :: fnRAW
 
   call omp_set_num_threads(ncores)
@@ -425,9 +385,16 @@
   print*,'Finished block',i
 
   enddo
-
+ 
+  traceG = 0.0D0
+  do i=1,size(G,1)
+      traceG = traceG + G(i,i)
+  enddo
+  traceG = traceG/real(nc) 
+ 
   do i=1,size(G,1)
     do j=i,size(G,1)
+      G(i,j) = G(i,j)/traceG
       G(j,i) = G(i,j)
     enddo
   enddo
