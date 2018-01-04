@@ -258,7 +258,7 @@
 
   use bedfuncs 
 
-  implicit none
+  !implicit none
   
   integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores
   real*8 :: y(n),e(n),raww(n),w(n),g(n)
