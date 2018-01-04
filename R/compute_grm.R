@@ -144,7 +144,7 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
                     k <- indx1[j]
                     where <- (k-1)*Glist$n + indx2[1]-1
                     seek(bfG,where=where*8, rw="write")
-                    writeBin( G[j,1:n2]/m, bfG, size = 8, endian = "little")
+                    writeBin( G[j,1:n2], bfG, size = 8, endian = "little")
                     gc()
                }
                close(bfG)
