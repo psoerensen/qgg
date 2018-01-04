@@ -91,7 +91,6 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
      if (is.null(rws)) {
           rws <- 1:n
           if(!is.null(ids)) rws <- match(ids,Wlist$ids)
-          if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
      }
      nr <- length(rws)
      fnRAW <- Wlist$fnRAW
