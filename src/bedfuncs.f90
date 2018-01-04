@@ -253,14 +253,14 @@
 
 
 !==============================================================================================================
-  subroutine solvebed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,nit,lambda,tol,y,g,e,s,mean,sd)
+  subroutine solvebed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
 !==============================================================================================================
 
   use bedfuncs 
 
   implicit none
   
-  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nit,it
+  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores
   real*8 :: y(n),e(n),raww(n),w(n),g(n)
   real*8 :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
   real*8 :: lhs,rhs,snew,tol,sigma
@@ -269,6 +269,8 @@
   integer, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
   integer :: stat
+
+  call omp_set_num_threads(ncores)
 
   open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
 
