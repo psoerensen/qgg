@@ -390,7 +390,7 @@
   do i=1,size(G,1)
       traceG = traceG + G(i,i)
   enddo
-  traceG = traceG/real(nc) 
+  traceG = traceG/real(nr) 
  
   do i=1,size(G,1)
     do j=i,size(G,1)
