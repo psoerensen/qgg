@@ -277,12 +277,12 @@
   if((i+msize-1)<nc) then 
     call readbed(n,nr,rws,msize,cls(i:(i+msize-1)),scaled,W,nbytes,fnRAW)
     k = msize
-    call dgemm("n","n",nr,nprs,k,1.0d0,W,nr,s,k,1.0d0,prs,nr)
+    call dgemm("n","n",nr,nprs,k,1.0d0,W,nr,s(i:(i+msize-1),:),k,1.0d0,prs,nr)
   endif
   if((i+msize-1)>=nc) then
     call readbed(n,nr,rws,size(cls(i:nc)),cls(i:nc),scaled,W,nbytes,fnRAW)
     k = size(cls(i:nc))
-    call dgemm("n","n",nr,nprs,k,1.0d0,W(:,1:size(cls(i:nc))),nr,s,k,1.0d0,prs,nr)
+    call dgemm("n","n",nr,nprs,k,1.0d0,W(:,1:size(cls(i:nc))),nr,s(i:nc,:),k,1.0d0,prs,nr)
   endif  
   
   print*,'Finished block',i
