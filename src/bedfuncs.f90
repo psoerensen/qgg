@@ -211,7 +211,7 @@
 
 
   !==============================================================================================================
-  subroutine prsbed(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)	
+  subroutine prsbedold(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)	
   !==============================================================================================================
   
   use bedfuncs 
@@ -251,45 +251,44 @@
 
 
   !==============================================================================================================
-  !subroutine prsbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
+  subroutine prsbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
   !==============================================================================================================
   ! C = A*B (dimenions: mxn = mxk kxn) 
   ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,0.0d0,c,m)
   ! C = A*B + C
   ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,1.0d0,c,m)
 
-  !use bedfuncs 
+  use bedfuncs 
   
-  !implicit none
+  implicit none
   
-  !integer*4 :: i,j,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores,msize,nprs 
-  !real*8 :: W(nr,msize)
-  !character(len=1000) :: fnRAW
-  !real*8 :: prs(nr,nprs),s(nc,nprs)
+  integer*4 :: i,j,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores,msize,nprs 
+  real*8 :: W(nr,msize)
+  character(len=1000) :: fnRAW
+  real*8 :: prs(nr,nprs),s(nc,nprs)
 
-  !call omp_set_num_threads(ncores)
+  call omp_set_num_threads(ncores)
 
-  !prs = 0.0D0
-  !W = 0.0D0 
+  prs = 0.0D0
+  W = 0.0D0 
 
-  !do i=1,nc,msize
+  do i=1,nc,msize
   
-  !if((i+msize-1)<nc) then 
-  !  call readbed(n,nr,rws,msize,cls(i:(i+msize-1)),scaled,W,nbytes,fnRAW)
-  !  call dsyrk('u', 'n', nr, msize, 1.0D0, W, nr, 1.0D0, G, nr)
-  !  k = msize
-  !  call dgemm("n","n",nr,nprs,k,1.0d0,W,nr,s,k,1.0d0,prs,nr)
-  !endif
-  !if((i+msize-1)>=nc) then
-  !  call readbed(n,nr,rws,size(cls(i:nc)),cls(i:nc),scaled,W,nbytes,fnRAW)
-  !  k = size(cls(i:nc))
-  !  call dgemm("n","n",nr,nprs,k,1.0d0,W(:,1:size(cls(i:nc))),nr,s,k,1.0d0,prs,nr)
-  !endif  
+  if((i+msize-1)<nc) then 
+    call readbed(n,nr,rws,msize,cls(i:(i+msize-1)),scaled,W,nbytes,fnRAW)
+    k = msize
+    call dgemm("n","n",nr,nprs,k,1.0d0,W,nr,s,k,1.0d0,prs,nr)
+  endif
+  if((i+msize-1)>=nc) then
+    call readbed(n,nr,rws,size(cls(i:nc)),cls(i:nc),scaled,W,nbytes,fnRAW)
+    k = size(cls(i:nc))
+    call dgemm("n","n",nr,nprs,k,1.0d0,W(:,1:size(cls(i:nc))),nr,s,k,1.0d0,prs,nr)
+  endif  
   
-  !print*,'Finished block',i
+  print*,'Finished block',i
 
-  !enddo
-  !end subroutine prsbed
+  enddo
+  end subroutine prsbed
 
 
 
