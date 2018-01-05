@@ -150,6 +150,8 @@
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos
 
+  call omp_set_num_threads(ncores)
+
   af=0.0D0
   nmiss=0.0D0
   ntotal=real(nr)  
@@ -157,6 +159,7 @@
   open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
   !open(unit=13, file=fnRAW, status='old', access='stream', form='unformatted', action='read')
 
+  !$omp parallel do
   do i=1,nc 
     read(13, iostat=stat, rec=cls(i)) raw
     if (stat /= 0) exit
