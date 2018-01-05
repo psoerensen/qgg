@@ -458,10 +458,10 @@ qcraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
 #' @export
 #'
 
-summaryW <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
+summaryW <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, ncores=1) {
      
      #qc <- qcraw(Wlist=Wlist,ids=ids, rsids=rsids, rws=rws, cls=cls)    
-     qc <- qcbed(Wlist=Wlist,ids=ids, rsids=rsids, rws=rws, cls=cls)    
+     qc <- qcbed(Wlist=Wlist,ids=ids, rsids=rsids, rws=rws, cls=cls, ncores=ncores)    
      Wlist$nmiss <- qc$nmiss
      Wlist$af <- qc$af
      Wlist$maf <- qc$maf
@@ -478,7 +478,7 @@ summaryW <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
 #' @export
 #'
 
-qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
+qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) { 
      n <- Wlist$n
      m <- Wlist$m
      nbytes <- ceiling(n/4)
@@ -504,6 +504,7 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
                     n2 = as.double(n2),  
                     nbytes = as.integer(nbytes),  
                     fnRAW = as.character(fnRAW),                     
+                    ncores = as.integer(ncores),  
                     PACKAGE = 'qgg'
                     
      )
