@@ -102,7 +102,7 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
      rsidsG <- Wlist$rsids[cls] 
      nG <- length(idsG)
      mG <- length(rsidsG) 
-     Glist <- list(fnG=fnG,ids=idsG,rsids=rsidsG,n=nG,m=mG)
+     Glist <- list(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG)
      
      # Initiate G file
      if(!is.null(fnG)) {
