@@ -162,7 +162,7 @@
   !$omp parallel do
   do i=1,nc 
     read(13, iostat=stat, rec=cls(i)) raw
-    if (stat /= 0) exit
+    !if (stat /= 0) exit
     !pos = 1 + (cls(i)-1)*nbytes
     !read(13, pos=pos) raw
     g = raw2int(n,nbytes,raw)
