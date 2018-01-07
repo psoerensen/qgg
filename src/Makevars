@@ -1,2 +1,2 @@
-PKG_FFLAGS=-fopenmp
-PKG_LIBS=-lgomp
+PKG_FCFLAGS=-fopenmp
+PKG_LIBS=-fopenmp
