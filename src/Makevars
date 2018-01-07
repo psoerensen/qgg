@@ -1,1 +1,2 @@
-FFLAGS= -fopenmp
+PKG_FFLAGS=-fopenmp
+PKG_LIBS=-lgomp
