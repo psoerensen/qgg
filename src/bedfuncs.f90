@@ -283,7 +283,7 @@
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
   do i=1,nc
   read(13, iostat=stat, rec=cls(i)) raw
-  if (stat /= 0) exit
+  !if (stat /= 0) exit
   raww = raw2real(n,nbytes,raw)
   where (raww<3.0D0)
   w = (raww-mean(i))/sd(i)
