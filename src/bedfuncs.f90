@@ -304,7 +304,7 @@
       s(i)=s(i)+w(rws(j))*y(rws(j))
     enddo  
     !$omp end parallel do
-    s(i)=s(i)/dww(i))/nc
+    s(i)=(s(i)/dww(i))/nc
     !s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
     !s(i)=(ddot(nr,w(rws),incx,y(rws),incy)/dww(i))/nc
   endif     
