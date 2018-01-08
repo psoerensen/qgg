@@ -277,7 +277,7 @@
 
   open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
 
-  inx = 1
+  incx = 1
   incy = 1
 
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
@@ -294,8 +294,8 @@
   dww(i)=dot_product(w(rws),w(rws))
   if(s(i).eq.0.0D0) then
     s(i)=0.0D0  
-    s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
-    !s(i)=(ddot(nr,w(rws),incx,y(rws),incy)/dww(i))/nc
+    !s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
+    s(i)=(ddot(nr,w(rws),incx,y(rws),incy)/dww(i))/nc
   endif     
   enddo
   close (unit=13)
@@ -317,8 +317,8 @@
   w = 0.0D0
   end where
   lhs=dww(i)+lambda(i)
-  !rhs=ddot(nr,w(rws),incx,e(rws),incy) + dww(i)*s(i)
-  rhs=dot_product(w(rws),e(rws)) + dww(i)*s(i)
+  rhs=ddot(nr,w(rws),incx,e(rws),incy) + dww(i)*s(i)
+  !rhs=dot_product(w(rws),e(rws)) + dww(i)*s(i)
   snew=rhs/lhs
   
   e(rws)=e(rws) - w(rws)*(snew-s(i))
