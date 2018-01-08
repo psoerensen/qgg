@@ -150,7 +150,7 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
                bfG <- file(Glist$fnG,"wb")
                for (j in 1:nG) {
                     writeBin( res$G[1:nG,j], bfG, size = 8, endian = "little")
-                    gc()
+                    #gc()
                }
                close(bfG)
           }
