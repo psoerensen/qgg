@@ -99,7 +99,7 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
 
      # Initiate Glist
      idsG <- Wlist$ids[rws]
-     rsidsG <- Wlist$rsids[cls] 
+     rsidsG <- unlist(Wlist$rsids)[cls] 
      nG <- length(idsG)
      mG <- length(rsidsG) 
      Glist <- list(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG)
