@@ -133,23 +133,27 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
      rownames(res$G) <- colnames(res$G) <- idsG
           if(!is.null(fnG)) {
                paste("Writing G to file")
-               idsG1 <- rownames(G)
-               idsG2 <- colnames(G)
-               n1 <- length(idsG1)     
-               n2 <- length(idsG2)
-               indx1 <- match(idsG1,Glist$idsG)		# no reorder needed
-               indx2 <- match(idsG2,Glist$idsG)		# no reorder needed
-               bfG <- file(Glist$fnG,"r+b")
-               for (j in 1:n1) {
-                    k <- indx1[j]
-                    where <- (k-1)*Glist$n + indx2[1]-1
-                    seek(bfG,where=where*8, rw="write")
-                    writeBin( G[j,1:n2], bfG, size = 8, endian = "little")
+               #idsG1 <- rownames(G)
+               #idsG2 <- colnames(G)
+               #n1 <- length(idsG1)     
+               #n2 <- length(idsG2)
+               #indx1 <- match(idsG1,Glist$idsG)		# no reorder needed
+               #indx2 <- match(idsG2,Glist$idsG)		# no reorder needed
+               #bfG <- file(Glist$fnG,"r+b")
+               #for (j in 1:n1) {
+               #     k <- indx1[j]
+               #     where <- (k-1)*Glist$n + indx2[1]-1
+               #     seek(bfG,where=where*8, rw="write")
+               #     writeBin( res$G[j,1:n2], bfG, size = 8, endian = "little")
+               #     gc()
+               #}
+               bfG <- file(Glist$fnG,"wb")
+               for (j in 1:nG) {
+                    writeBin( res$G[1:nG,j], bfG, size = 8, endian = "little")
                     gc()
                }
                close(bfG)
           }
-
      if(is.null(fnG)) return(res$G)
      if(!is.null(fnG)) return(Glist)
 }
