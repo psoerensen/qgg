@@ -291,47 +291,10 @@
   w = 0.0D0
   end where
   dww(i)=0.0D0
-
-  dots = 0.0D0
-  !$omp parallel &
-  !$omp   shared ( w ) &
-  !$omp   private ( j )
-  !$omp do reduction ( + : dots )
-   do j=1,nr
-    dots = dots + w(rws(j))*w(rws(j))
-   end do
-  !$omp end do
-  !$omp end parallel
-  dww(i)=dots
-
-  !!$omp parallel do
-  !do j=1,nr
-  !  dww(i)=dww(i)+w(rws(j))*w(rws(j))
-  !enddo  
-  !!$omp end parallel do
-  !dww(i)=dot_product(w(rws),w(rws))
+  dww(i)=dot_product(w(rws),w(rws))
   if(s(i).eq.0.0D0) then
     s(i)=0.0D0  
-    !!$omp parallel do
-    !do j=1,nr
-    !  s(i)=s(i)+w(rws(j))*y(rws(j))
-    !enddo  
-    !!$omp end parallel do
-
-    dots = 0.0D0
-    !$omp parallel &
-    !$omp   shared ( w,y ) &
-    !$omp   private ( j )
-    !$omp do reduction ( + : dots )
-    do j=1,nr
-      dots = dots + w(rws(j))*y(rws(j))
-    end do
-    !$omp end do
-    !$omp end parallel
-    s(i)=dots
-
-    s(i)=(s(i)/dww(i))/nc
-    !s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
+    s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
     !s(i)=(ddot(nr,w(rws),incx,y(rws),incy)/dww(i))/nc
   endif     
   enddo
@@ -355,37 +318,10 @@
   end where
   lhs=dww(i)+lambda(i)
   !rhs=ddot(nr,w(rws),incx,e(rws),incy) + dww(i)*s(i)
-  rhs=dww(i)*s(i)
-
-  !!$omp parallel do
-  !do j=1,nr
-  !  rhs=rhs+w(rws(j))*e(rws(j))
-  !enddo  
-  !!$omp end parallel do
-
-    dots = 0.0D0
-    !$omp parallel &
-    !$omp   shared ( w,e ) &
-    !$omp   private ( j )
-    !$omp do reduction ( + : dots )
-    do j=1,nr
-      dots = dots + w(rws(j))*e(rws(j))
-    end do
-    !$omp end do
-    !$omp end parallel
-    rhs=dww(i)*s(i)+dots
-
-  !rhs=dot_product(w(rws),e(rws)) + dww(i)*s(i)
+  rhs=dot_product(w(rws),e(rws)) + dww(i)*s(i)
   snew=rhs/lhs
   
-  !$omp parallel do
-  do j=1,nr
-    e(rws(j))=e(rws(j))-w(rws(j))*(snew-s(i))
-  enddo  
-  !$omp end parallel do
-
-
-  !e(rws)=e(rws) - w(rws)*(snew-s(i))
+  e(rws)=e(rws) - w(rws)*(snew-s(i))
   s(i)=snew
   !g=g+w*s(i)
   enddo
