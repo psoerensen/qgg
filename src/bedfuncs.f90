@@ -320,8 +320,8 @@
   rhs=dot_product(w(rws),e(rws)) + dww(i)*s(i)
   snew=rhs/lhs
   
-  !e(rws)=e(rws) - w(rws)*(snew-s(i))
-  call daxpy(nr, (snew-s(i)), -1.0D0*w(rws), 1, e(rws), 1)
+  e(rws)=e(rws) - w(rws)*(snew-s(i))
+  !call daxpy(nr, (snew-s(i)), w(rws), 1, e(rws), 1)
 
   s(i)=snew
   !g=g+w*s(i)
