@@ -268,7 +268,7 @@
   real*8 :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
   real*8 :: lhs,rhs,snew,tol,sigma,dots
   character(len=1000) :: fnRAW
-  real*8, external  :: ddot, daxpy
+  real*8, external  :: ddot
 
 
   integer, parameter :: byte = selected_int_kind(1) 
