@@ -231,9 +231,8 @@
     ! input and output variables
     integer :: n,nf,nr,maxit
     real*8 :: tol
-    !real*8, allocatable  :: y(:),X(:,:)
     real*8  :: y(n),X(n,nf),indxg(n),theta(nr)
-    real*8,allocatable  :: b(:),u(:,:),theta(:),asd(:,:)
+    real*8,allocatable  :: b(:),u(:,:),asd(:,:)
     character(len=1000) :: rfnames(nr)
     !character(len=1000), allocatable :: rfnames(:)
     
