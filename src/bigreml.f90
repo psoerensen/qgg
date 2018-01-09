@@ -217,7 +217,7 @@
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine reml
+    subroutine reml(n,nf,nr,maxit,ncores,theta,tol,rfnames,y,X,ng,indxg)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  
   
@@ -229,11 +229,13 @@
     implicit none
 
     ! input and output variables
-    integer :: n, nf,nr,maxit
+    integer :: n,nf,nr,maxit
     real*8 :: tol
-    real*8, allocatable  :: y(:),X(:,:)
+    !real*8, allocatable  :: y(:),X(:,:)
+    real*8  :: y(n),X(n,nf),indxg(n),theta(nr)
     real*8,allocatable  :: b(:),u(:,:),theta(:),asd(:,:)
-    character(len=1000), allocatable :: rfnames(:)
+    character(len=1000) :: rfnames(nr)
+    !character(len=1000), allocatable :: rfnames(:)
     
     ! local variables
     integer :: i,j,k,it,row
@@ -247,37 +249,21 @@
     
     ! timing variables
     real*8 :: time0,time1,time2
-    real*8 :: dsecnd
     
     ! threads
-    integer :: mkl_get_max_threads, nthreads
-    
-    open (unit=10, file='param.txt', status='old')
-    ! read dimensions
-    read(unit=10,fmt=*) n,nf,nr,maxit,nthreads
+    integer :: ncores 
+
     
     ! allocate variables
-    allocate(y(n),X(n,nf),indxg(n))
+    !allocate(y(n),X(n,nf),indxg(n))
     allocate(b(nf),u(n,nr),theta(nr),asd(nr,nr))
     allocate(theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr))
     allocate(VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1)) 
-    allocate(rfnames(nr))
+    !allocate(rfnames(nr))
     
-    ! read theta
-    read(unit=10,fmt=*) theta
-    theta0=0.0D0
-
-    ! read tolerance
-    read(unit=10,fmt=*) tol
-
-    !read(unit=10,fmt=*) rfnames(1)
-   
-    !rfnames = "/data/scratch/project/lmm/work/study12/Gstudy12" 
-    !print*, trim(adjustl(rfnames(1)))
 
     !read G filenames and check they exist
     do i=1,nr-1
-    read(unit=10,fmt=*) rfnames(i)
     inquire(file=trim(adjustl(rfnames(i))), exist=exst)
     if(.not.(exst)) then
        print *, 'Trying to open file:'
@@ -286,42 +272,8 @@
        stop
     endif
     enddo
-    close(unit=10)
 
-    
-    time0 = dsecnd()
-
-    if (nthreads.eq.0) then 
-      nthreads = mkl_get_max_threads()  
-    endif
-    
-    print *, "Setting max number of threads Intel(R) MKL can use for"
-    print *, "parallel runs"
-    print *, ""
-    print *, nthreads 
-    print *, ""
-    
-    call mkl_set_num_threads(nthreads)
-    
-    
-    ! read y and X data  (use this if running program)
-    open (unit=10,file='y' , status='old', form='unformatted', access='direct', recl=8*n)
-    read (unit=10,rec=1) y
-    close (unit=10)
-
-    open (unit=11,file='X' , status='old', form='unformatted', access='direct', recl=8*nf)
-    do i=1,n
-      read (unit=11,rec=i) X(i,1:nf)
-      enddo
-    close (unit=11)
-    ! end read in y and X data
-
-    ! read ids to be used in analyses
-    open (unit=12,file='indxg.txt', status='old', access='sequential', form='formatted', action='read' )
-    read (unit=12,fmt=*) ng,indxg
-    close (unit=12)
-    
-    time0 = dsecnd()
+    call omp_set_num_threads(ncores)
 
     do it = 1, maxit
     
@@ -473,9 +425,6 @@
     write (unit=11,fmt='(E16.8)') u(1:n,nr)*theta(nr)
     close(unit=11)
 
-  
-
-    print *, (dsecnd() - time0)
 
     end subroutine reml
     
