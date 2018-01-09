@@ -1,2 +1,2 @@
-PKG_FCFLAGS=-fopenmp
-PKG_LIBS=-fopenmp
+PKG_FCFLAGS=-fopenmp -lopenblas
+PKG_LIBS=-fopenmp -lopenblas
