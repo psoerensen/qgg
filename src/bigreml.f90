@@ -217,7 +217,7 @@
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine reml(n,nf,nr,maxit,ncores,theta,tol,rfnames,y,X,ng,indxg)
+    subroutine reml(n,nf,nr,maxit,ncores,theta,tol,rfnames,y,X,ng,indx)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  
   
@@ -231,7 +231,7 @@
     ! input and output variables
     integer :: n,nf,nr,maxit
     real*8 :: tol
-    real*8  :: y(n),X(n,nf),indxg(n),theta(nr)
+    real*8  :: y(n),X(n,nf),indx(n),theta(nr)
     real*8,allocatable  :: b(:),u(:,:),asd(:,:)
     character(len=1000) :: rfnames(nr)
     !character(len=1000), allocatable :: rfnames(:)
@@ -254,11 +254,12 @@
 
     
     ! allocate variables
-    !allocate(y(n),X(n,nf),indxg(n))
-    allocate(b(nf),u(n,nr),theta(nr),asd(nr,nr))
+    allocate(indxg(n))
+    allocate(b(nf),u(n,nr),asd(nr,nr))
     allocate(theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr))
     allocate(VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1)) 
-    !allocate(rfnames(nr))
+    
+    indxg=indx
     
 
     !read G filenames and check they exist
