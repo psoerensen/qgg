@@ -1,2 +1,2 @@
-PKG_FCFLAGS=-fopenmp
-PKG_LIBS=-fopenmp
+PKG_FCFLAGS=-fopenmp -lpthread
+PKG_LIBS=-fopenmp -lpthread
