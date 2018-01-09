@@ -316,16 +316,35 @@
   w = 0.0D0
   end where
   lhs=dww(i)+lambda(i)
-  rhs=ddot(nr,w(rws),1,e(rws),1) 
-  rhs=rhs + dww(i)*s(i)
+  !rhs=ddot(nr,w(rws),1,e(rws),1) 
+  !rhs=rhs + dww(i)*s(i)
   !rhs=dot_product(w(rws),e(rws)) 
   !rhs=rhs + dww(i)*s(i)
+  dots = 0.0D0
+  !$omp parallel &
+  !$omp   shared ( w,e ) &
+  !$omp   private ( j )
+  !$omp do reduction ( + : dots )
+   do j=1,nr
+    dots = dots + w(rws(j))*e(rws(j))
+   end do
+   !$omp end do
+   !$omp end parallel
+   rhs=dww(i)*s(i)+dots
+
+
   snew=rhs/lhs
   
-  e(rws)=e(rws) - w(rws)*(snew-s(i))
+  !e(rws)=e(rws) - w(rws)*(snew-s(i))
   !do j=1,nr
   !call daxpy(nr, (snew-s(i)), w(rws(j)), 1, e(rws(j)), 1)
   !enddo
+  !$omp parallel do
+   do j=1,nr
+    e(rws(j))=e(rws(j))-w(rws(j))*(snew-s(i))
+   enddo  
+  !$omp end parallel do
+
 
   s(i)=snew
   !g=g+w*s(i)
