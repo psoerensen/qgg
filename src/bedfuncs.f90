@@ -316,9 +316,10 @@
   w = 0.0D0
   end where
   lhs=dww(i)+lambda(i)
-  rhs=ddot(nr,w(rws),1,e(rws),1) 
+  !rhs=ddot(nr,w(rws),1,e(rws),1) 
+  !rhs=rhs + dww(i)*s(i)
+  rhs=dot_product(w(rws),e(rws)) 
   rhs=rhs + dww(i)*s(i)
-  !rhs=dot_product(w(rws),e(rws)) + dww(i)*s(i)
   snew=rhs/lhs
   
   e(rws)=e(rws) - w(rws)*(snew-s(i))
