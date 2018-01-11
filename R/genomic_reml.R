@@ -235,6 +235,9 @@ clean.reml <- function(wkdir = NULL) {
       
 }
 
+#' @export
+#'
+
 
 writeG <- function(G = NULL) {
     
@@ -412,7 +415,7 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
 	nr <- length(rfnames) + 1
  	if (is.null(ids)) indx <- 1:n 
 	if (!is.null(ids)) indx <- match(ids, Glist$idsG)
-        if (!is.null(G)) ng <- nrow(G)
+        if (!is.null(G)) ngr <- nrow(G[[1]])
 	if (!is.null(Glist$fnG)) ngr <- Glist$nG
 	 
 
