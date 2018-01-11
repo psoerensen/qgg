@@ -248,7 +248,7 @@
     allocate(indxg(n))
  
     indxg=indx   
-    ng <- ngr
+    ng=ngr
  
     !read G filenames and check they exist
     do i=1,nr-1
