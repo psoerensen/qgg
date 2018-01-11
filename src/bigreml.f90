@@ -8,8 +8,8 @@
     implicit none
     public
     real*8, allocatable :: V(:,:),P(:,:),G(:,:)
-    integer, allocatable :: indxg(:)
-    integer :: ng
+    integer*4, allocatable :: indxg(:)
+    integer*4 :: ng
     
     end module global
 
@@ -228,13 +228,13 @@
     implicit none
 
     ! input and output variables
-    integer :: n,nf,nr,maxit,ngr,indx(n)
+    integer*4 :: n,nf,nr,maxit,ngr,indx(n)
     real*8 :: tol
     real*8  :: y(n),X(n,nf),theta(nr)
     character(len=1000) :: rfnames(nr-1)
     
     ! local variables
-    integer :: i,j,k,it,row
+    integer*4 :: i,j,k,it,row
     real*8 :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr),asd(nr,nr)
     real*8 :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1),varb(nf,nf) 
     real*8 :: llik, ldV, ldXVX, yPy, ymean
@@ -242,7 +242,7 @@
     logical :: exst
     
     ! number of cores
-    integer :: ncores 
+    integer*4 :: ncores 
     
     ! allocate variables
     allocate(indxg(n))
