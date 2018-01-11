@@ -408,7 +408,10 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
 	if (!is.null(Glist$fnG)) rfnames <- Glist$fnG
 	nr <- length(rfnames) + 1
  	if (is.null(ids)) indx <- 1:n 
-	if (!is.null(ids)) indx <- match(ids, Glist$idsG) 
+	if (!is.null(ids)) indx <- match(ids, Glist$idsG)
+        if (!is.null(G)) ng <- nrow(G)
+	if (!is.null(Glist$fnG)) ng <- Glist$nG
+	 
 
   
         fit <- .Fortran("reml", 
@@ -433,8 +436,6 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
                      llik = as.double(0),
                      trPG = as.double(rep(0,nr)),
                      trVG = as.double(rep(0,nr)),
-                     mean = as.double(meanw),
-                     sd = as.double(sdw),
                      PACKAGE = 'qgg'
         )
         fit$ids <- names(y)
