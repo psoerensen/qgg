@@ -236,7 +236,7 @@
     ! local variables
     integer :: i,j,k,it,row
     real*8 :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr),asd(nr,nr)
-    real*8 :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1) 
+    real*8 :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1),varb(nf,nf) 
     real*8 :: llik, ldV, ldXVX, yPy, ymean
     
     logical :: exst
@@ -364,6 +364,7 @@
 
     ! scale residuals
     u(1:n,nr) = u(1:n,nr)*theta(nr)
+    varb = XVX
  
     end subroutine reml
     
