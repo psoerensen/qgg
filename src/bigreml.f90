@@ -217,10 +217,9 @@
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine reml(n,nf,nr,maxit,ncores,theta,tol,rfnames,y,X,ngrm,indx)
+    subroutine reml(n,nf,nr,tol,maxit,ncores,rfnames,ng,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- 
-  
+
     use global
     !use mymkl
     use bigsubs
@@ -229,39 +228,27 @@
     implicit none
 
     ! input and output variables
-    integer :: n,nf,nr,maxit,ngrm
+    integer :: n,nf,nr,maxit
     real*8 :: tol
-    real*8  :: y(n),X(n,nf),indx(n),theta(nr)
-    real*8,allocatable  :: b(:),u(:,:),asd(:,:)
-    character(len=1000) :: rfnames(nr)
-    !character(len=1000), allocatable :: rfnames(:)
+    real*8  :: y(n),X(n,nf),theta(nr),indx(n)
+    character(len=1000) :: rfnames(nr-1)
     
     ! local variables
     integer :: i,j,k,it,row
-    real*8, allocatable :: theta0(:),ai(:,:),s(:),trPG(:),trVG(:),delta(:)
-    !real*8 :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),delta(nr)
-    real*8, allocatable :: VX(:,:),XVX(:,:),VXXVX(:,:),Vy(:),Py(:),Pu(:,:),gr(:,:)  
-    !real*8 :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr) 
+    real*8 :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr),asd(nr,nr)
+    real*8 :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1) 
     real*8 :: llik, ldV, ldXVX, yPy, ymean
     
     logical :: exst
     
-    ! timing variables
-    real*8 :: time0,time1,time2
-    
-    ! threads
+    ! number of cores
     integer :: ncores 
-
     
     ! allocate variables
     allocate(indxg(n))
-    allocate(b(nf),u(n,nr),asd(nr,nr))
-    allocate(theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr))
-    allocate(VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1)) 
-    
-    indxg=indx
-    ng=ngrm
-
+ 
+    indxg=indx   
+ 
     !read G filenames and check they exist
     do i=1,nr-1
     inquire(file=trim(adjustl(rfnames(i))), exist=exst)
@@ -374,58 +361,9 @@
     
     enddo
 
-    ! write results to files
-    open (unit=11,file='llik.qgg' )
-    write (unit=11,fmt='(E16.8)') llik
-    close(unit=11)
-    
-    open (unit=11,file='theta.qgg' )
-    write (unit=11,fmt='(E16.8)') theta
-    close(unit=11)
-    
-    open (unit=11,file='thetaASD.qgg' )
-    do i=1,nr
-      write (unit=11,fmt='(999E16.8)') ai(i,1:nr)
-    enddo
-    close(unit=11)
-
-    open (unit=11,file='beta.qgg' )
-    write (unit=11,fmt='(E16.8)') b
-    close(unit=11)
-    
-    open (unit=11,file='betaASD.qgg' )
-    do i=1,nf
-      write (unit=11,fmt='(999E16.8)') XVX(i,1:nf)
-    enddo
-    close(unit=11)
-        
-    open (unit=11,file='uhat.qgg' )
-    do i=1,n
-      write (unit=11,fmt='(999E16.8)') u(i,1:(nr-1))
-    enddo
-    close(unit=11)
-
-    open (unit=11,file='Vy.qgg' )
-    write (unit=11,fmt='(E16.8)') Vy
-    close(unit=11)
-
-    open (unit=11,file='Py.qgg' )
-    write (unit=11,fmt='(E16.8)') Py
-    close(unit=11)
-
-    open (unit=11,file='trPG.qgg' )
-    write (unit=11,fmt='(E16.8)') trPG
-    close(unit=11)
-
-    open (unit=11,file='trVG.qgg' )
-    write (unit=11,fmt='(E16.8)') trVG
-    close(unit=11)
-
-    open (unit=11,file='residuals.qgg' )
-    write (unit=11,fmt='(E16.8)') u(1:n,nr)*theta(nr)
-    close(unit=11)
-
-
+    ! scale residuals
+    u(1:n,nr) = u(1:n,nr)*theta(nr)
+ 
     end subroutine reml
     
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

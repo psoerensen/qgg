@@ -235,6 +235,24 @@ clean.reml <- function(wkdir = NULL) {
       
 }
 
+
+writeG <- function(G = NULL) {
+    
+	if (!is.null(G)) {
+		for (i in 1:length(G)) {
+			fileout <- file(paste("G", i, sep = ""), "wb")
+			#writeBin(G[[i]][upper.tri(G[[i]], diag = TRUE)], fileout)
+			nr <- nrow(G[[i]])
+			for (j in 1:nr) {
+				writeBin(G[[i]][j, j:nr], fileout)
+			}
+			close(fileout)
+		}
+	}
+          
+}
+
+
 ####################################################################################################################
 
 # REML R functions 
@@ -378,4 +396,56 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
 }
 
 
+
+freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, ncores = 1, verbose = FALSE ) {
+    #reml(n,nf,nr,tol,maxit,ncores,rfnames,ng,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
+    
+	if(!is.null(G)) writeG(G = G)
+
+	n <- length(y)
+	nf <- ncol(X)
+	if (!is.null(G)) rfnames <- paste("G", 1:length(G), sep = "")
+	if (!is.null(Glist$fnG)) rfnames <- Glist$fnG
+	nr <- length(rfnames) + 1
+ 	if (is.null(ids)) indx <- 1:n 
+	if (!is.null(ids)) indx <- match(ids, Glist$idsG) 
+
+  
+        fit <- .Fortran("reml", 
+                     n = as.integer(n),
+                     nf = as.integer(nf),
+                     nr = as.integer(nr),
+                     tol = as.double(tol),
+                     maxit = as.integer(maxit),
+                     ncores = as.integer(ncores),
+                     rfnames = as.character(rfnames),
+                     ng = as.integer(ng),
+                     indx = as.integer(indx),
+                     y = as.double(y),
+                     X = matrix(as.double(X),nrow=nrow(X)),
+                     theta = as.double(theta),
+                     ai = matrix(as.double(0),nrow=nr,ncol=nr),
+                     b = as.double(rep(0,nf)),
+                     varb = matrix(as.double(0),nrow=nf,ncol=nf),
+                     u = matrix(as.double(0),nrow=n,ncol=nr),
+                     Vy = as.double(rep(0,n)),
+                     Py = as.double(rep(0,n)),
+                     llik = as.double(0),
+                     trPG = as.double(rep(0,nr)),
+                     trVG = as.double(rep(0,nr)),
+                     mean = as.double(meanw),
+                     sd = as.double(sdw),
+                     PACKAGE = 'qgg'
+        )
+        fit$ids <- names(y)
+	fit$yVy <- sum(y * fit$Vy)
+	fit$wd <- getwd()
+	fit$Glist <- Glist
+        fit$g <- fit$u[,1:(nr-1)]
+        fit$e <- fit$u[,nr]
+        fit$u <- NULL 
+
+
+     return(fit)
+}
 
