@@ -217,7 +217,7 @@
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine reml(n,nf,nr,tol,maxit,ncores,rfnames,ng,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
+    subroutine reml(n,nf,nr,tol,maxit,ncores,rfnames,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     use global
@@ -228,7 +228,7 @@
     implicit none
 
     ! input and output variables
-    integer :: n,nf,nr,maxit
+    integer :: n,nf,nr,maxit,ngr
     real*8 :: tol
     real*8  :: y(n),X(n,nf),theta(nr),indx(n)
     character(len=1000) :: rfnames(nr-1)
@@ -248,6 +248,7 @@
     allocate(indxg(n))
  
     indxg=indx   
+    ng <- ngr
  
     !read G filenames and check they exist
     do i=1,nr-1

@@ -396,6 +396,9 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
 }
 
 
+#' @export
+#'
+
 
 freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, ncores = 1, verbose = FALSE ) {
     #reml(n,nf,nr,tol,maxit,ncores,rfnames,ng,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
@@ -410,7 +413,7 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
  	if (is.null(ids)) indx <- 1:n 
 	if (!is.null(ids)) indx <- match(ids, Glist$idsG)
         if (!is.null(G)) ng <- nrow(G)
-	if (!is.null(Glist$fnG)) ng <- Glist$nG
+	if (!is.null(Glist$fnG)) ngr <- Glist$nG
 	 
 
   
@@ -422,7 +425,7 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
                      maxit = as.integer(maxit),
                      ncores = as.integer(ncores),
                      rfnames = as.character(rfnames),
-                     ng = as.integer(ng),
+                     ngr = as.integer(ngr),
                      indx = as.integer(indx),
                      y = as.double(y),
                      X = matrix(as.double(X),nrow=nrow(X)),
