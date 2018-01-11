@@ -197,7 +197,7 @@
     !open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=ng)
     open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(V,1)
-      print*,i 
+      print*,i indxg(i)
       read (unit=12,rec=indxg(i)) grw
       do j=1,size(V,1)
         V(i,j)=V(i,j)+grw(indxg(j))*weights(r)
@@ -251,6 +251,9 @@
  
     indxg=indx   
     ng=ngr
+
+    print*,ng,ngr
+    print*,indxg
  
     !read G filenames and check they exist
     do i=1,nr-1
