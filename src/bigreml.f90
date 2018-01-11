@@ -88,8 +88,8 @@
     integer, intent(in) :: row
     integer :: i
     real*8 :: gr(size(V,1)),grw(ng)
-    open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=ng)
-    !open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=8*ng)
+    !open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=ng)
+    open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=8*ng)
     !open (unit=12,file=fname , status='old', form='unformatted', access='direct', recl=8*size(V,1))
     !read (unit=12, rec=row) gr
     read (unit=12, rec=indxg(row)) grw
@@ -164,8 +164,8 @@
        stop
     endif
     
-    open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=ng)
-    !open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=8*ng)
+    !open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=ng)
+    open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(G,1)
       read (unit=12, rec=indxg(i)) grw
       do j=1,size(G,1)
@@ -194,8 +194,8 @@
        stop
     endif
 
-    open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=ng)
-    !open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
+    !open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=ng)
+    open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(V,1)
       read (unit=12,rec=indxg(i)) grw
       do j=1,size(V,1)
