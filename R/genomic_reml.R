@@ -247,7 +247,7 @@ writeG <- function(G = NULL) {
 			#writeBin(G[[i]][upper.tri(G[[i]], diag = TRUE)], fileout)
 			nr <- nrow(G[[i]])
 			for (j in 1:nr) {
-				writeBin(G[[i]][j, j:nr], fileout)
+				writeBin(as.double(G[[i]][j, j:nr]), fileout,size=8)
 			}
 			close(fileout)
 		}

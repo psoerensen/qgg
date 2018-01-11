@@ -256,7 +256,6 @@
  
     !read G filenames and check they exist
     do i=1,nr-1
-    print *, 'Trying to open file:'
     inquire(file=trim(adjustl(rfnames(i))), exist=exst)
     if(.not.(exst)) then
        print *, 'Trying to open file:'
