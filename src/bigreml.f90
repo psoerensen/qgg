@@ -14,12 +14,6 @@
     end module global
 
     
-    !module mymkl 
-    !include 'mkl.fi' 
-    !end module mymkl 
-
-    
-    
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! module funcs
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -27,11 +21,8 @@
     module bigfuncs
 
     use global
-    !use mymkl
     
     implicit none
-    
-    !include 'mkl.fi'
     
     contains
 
@@ -39,11 +30,8 @@
     implicit none
     external dgemm
     real*8, dimension(:,:), intent(in)  :: a,b
-    !real*8, allocatable :: c(:,:)
     real*8 :: c(size(a,1),size(b,2))
-    !allocate(c(size(a,1),size(b,2)))
     call dgemm('n', 'n', size(a,1), size(b,2), size(a,2), 1.0D0, a, size(a,1), b, size(a,2), 0.0D0, c, size(a,1))
-    !deallocate(c)
     end function crossprod
 
     function matvec(a,b) result(c)
@@ -59,7 +47,7 @@
     implicit none
     real*8, dimension(:,:), intent(in)  :: a
     real*8 :: b(size(a,1))
-    integer :: i
+    integer*4 :: i
     do i=1,size(a,1)
       b(i) = a(i,i)
     enddo
@@ -70,7 +58,7 @@
     external dpotrf, dpotri
     real*8, dimension(:,:), intent(in)  :: a
     real*8 :: b(size(a,1),size(a,2))
-    integer :: info,i,j
+    integer*4 :: info,i,j
     info=0
     call dpotrf('U',size(a,1),a,size(a,1),info)             ! cholesky decompostion of a
     call dpotri('U',size(a,1),a,size(a,1),info)             ! inverse of a
@@ -86,13 +74,10 @@
     function readG(row,fname) result(gr)
     implicit none
     character(len=*), intent(in) :: fname
-    integer, intent(in) :: row
-    integer :: i
+    integer*4, intent(in) :: row
+    integer*4 :: i
     real*8 :: gr(size(V,1)),grw(ng)
-    !open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=ng)
     open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=8*ng)
-    !open (unit=12,file=fname , status='old', form='unformatted', access='direct', recl=8*size(V,1))
-    !read (unit=12, rec=row) gr
     read (unit=12, rec=indxg(row)) grw
     close (unit=12)
     do i=1,size(V,1)
@@ -124,7 +109,7 @@
     implicit none
     external dpotrf
     real*8, dimension(:,:), intent(inout)  :: a
-    integer :: info,i,j
+    integer*4 :: info,i,j
     info=0
     call dpotrf('U',size(a,1),a,size(a,1),info)             ! cholesky decompostion of a
     ! copy to lower
@@ -139,7 +124,7 @@
     implicit none
     external dpotri
     real*8, dimension(:,:), intent(inout)  :: a
-    integer :: info,i,j
+    integer*4 :: info,i,j
     info=0
     call dpotri('U',size(a,1),a,size(a,1),info)             ! inverse of a
     ! copy to lower
@@ -152,7 +137,7 @@
 
     subroutine loadG(fname)
     implicit none
-    integer :: i,j,k
+    integer*4 :: i,j,k
     real*8 :: grw(ng)
     character(len=*), intent(in) :: fname
     logical :: exst
@@ -165,7 +150,6 @@
        stop
     endif
     
-    !open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=ng)
     open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(G,1)
       read (unit=12, rec=indxg(i)) grw
@@ -179,7 +163,7 @@
  
     subroutine computeV(weights,fnames)
     implicit none
-    integer :: i,j,k,r
+    integer*4 :: i,j,k,r
     real*8, dimension(:),intent(in) :: weights
     real*8 :: grw(ng)
     character(len=*), dimension(:),intent(in) :: fnames
@@ -195,7 +179,6 @@
        stop
     endif
 
-    !open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=ng)
     open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(V,1)
       read (unit=12,rec=indxg(i)) grw
@@ -245,7 +228,6 @@
     
     logical :: exst
     
- 
     ! allocate variables
     allocate(indxg(n))
  

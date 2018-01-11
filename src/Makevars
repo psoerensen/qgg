@@ -1,2 +1,2 @@
-PKG_FCFLAGS=-fopenmp -lpthread -lm -m64 -fcheck=all
-PKG_LIBS=-fopenmp -lpthread -lm -llapack -m64 -fcheck=all
+PKG_FCFLAGS=-fopenmp -lpthread -lm
+PKG_LIBS=-fopenmp -lpthread -lm -llapack

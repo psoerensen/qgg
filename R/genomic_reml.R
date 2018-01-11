@@ -244,10 +244,9 @@ writeG <- function(G = NULL) {
 	if (!is.null(G)) {
 		for (i in 1:length(G)) {
 			fileout <- file(paste("G", i, sep = ""), "wb")
-			#writeBin(G[[i]][upper.tri(G[[i]], diag = TRUE)], fileout)
 			nr <- nrow(G[[i]])
 			for (j in 1:nr) {
-				writeBin(as.double(G[[i]][j, j:nr]), fileout,size=8)
+				writeBin(as.double(G[[i]][1:nr, j]), fileout,size=8,endian = "little")
 			}
 			close(fileout)
 		}
