@@ -43,6 +43,7 @@
     !real*8 :: c(size(a,1),size(b,2))
     allocate(c(size(a,1),size(b,2)))
     call dgemm('n', 'n', size(a,1), size(b,2), size(a,2), 1.0D0, a, size(a,1), b, size(a,2), 0.0D0, c, size(a,1))
+    deallocate(c)
     end function crossprod
 
     function matvec(a,b) result(c)
@@ -367,6 +368,8 @@
     ! scale residuals
     u(1:n,nr) = u(1:n,nr)*theta(nr)
     varb = XVX
+ 
+    deallocate(indxg) 
  
     end subroutine reml
     
