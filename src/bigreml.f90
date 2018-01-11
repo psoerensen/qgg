@@ -228,9 +228,9 @@
     implicit none
 
     ! input and output variables
-    integer :: n,nf,nr,maxit,ngr
+    integer :: n,nf,nr,maxit,ngr,indx(n)
     real*8 :: tol
-    real*8  :: y(n),X(n,nf),theta(nr),indx(n)
+    real*8  :: y(n),X(n,nf),theta(nr)
     character(len=1000) :: rfnames(nr-1)
     
     ! local variables
