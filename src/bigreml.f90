@@ -39,11 +39,11 @@
     implicit none
     external dgemm
     real*8, dimension(:,:), intent(in)  :: a,b
-    real*8, allocatable :: c(:,:)
-    !real*8 :: c(size(a,1),size(b,2))
-    allocate(c(size(a,1),size(b,2)))
+    !real*8, allocatable :: c(:,:)
+    real*8 :: c(size(a,1),size(b,2))
+    !allocate(c(size(a,1),size(b,2)))
     call dgemm('n', 'n', size(a,1), size(b,2), size(a,2), 1.0D0, a, size(a,1), b, size(a,2), 0.0D0, c, size(a,1))
-    deallocate(c)
+    !deallocate(c)
     end function crossprod
 
     function matvec(a,b) result(c)
