@@ -88,7 +88,8 @@
     integer, intent(in) :: row
     integer :: i
     real*8 :: gr(size(V,1)),grw(ng)
-    open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=8*ng)
+    open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=ng)
+    !open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=8*ng)
     !open (unit=12,file=fname , status='old', form='unformatted', access='direct', recl=8*size(V,1))
     !read (unit=12, rec=row) gr
     read (unit=12, rec=indxg(row)) grw
@@ -163,7 +164,8 @@
        stop
     endif
     
-    open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=8*ng)
+    open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=ng)
+    !open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(G,1)
       read (unit=12, rec=indxg(i)) grw
       do j=1,size(G,1)
@@ -192,7 +194,8 @@
        stop
     endif
 
-    open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
+    open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=ng)
+    !open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(V,1)
       read (unit=12,rec=indxg(i)) grw
       do j=1,size(V,1)
@@ -228,7 +231,7 @@
     implicit none
 
     ! input and output variables
-    integer*4 :: n,nf,nr,maxit,ngr,indx(n)
+    integer*4 :: n,nf,nr,maxit,ngr,indx(n),ncores
     real*8 :: tol
     real*8  :: y(n),X(n,nf),theta(nr)
     character(len=1000) :: rfnames(nr-1)
@@ -241,8 +244,6 @@
     
     logical :: exst
     
-    ! number of cores
-    integer*4 :: ncores 
     
     ! allocate variables
     allocate(indxg(n))
@@ -252,6 +253,7 @@
  
     !read G filenames and check they exist
     do i=1,nr-1
+    print *, 'Trying to open file:'
     inquire(file=trim(adjustl(rfnames(i))), exist=exst)
     if(.not.(exst)) then
        print *, 'Trying to open file:'
