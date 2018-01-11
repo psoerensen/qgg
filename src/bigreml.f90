@@ -244,7 +244,7 @@
     
     logical :: exst
     
-    
+ 
     ! allocate variables
     allocate(indxg(n))
  
