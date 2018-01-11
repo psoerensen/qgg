@@ -251,8 +251,6 @@
     indxg=indx   
     ng=ngr
 
-    print*,ng,ngr
-    print*,indxg
  
     !read G filenames and check they exist
     do i=1,nr-1
