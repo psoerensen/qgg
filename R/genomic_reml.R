@@ -420,7 +420,8 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
           Py = as.double(rep(0,n)),
           llik = as.double(0),
           trPG = as.double(rep(0,nr)),
-          trVG = as.double(rep(0,nr))
+          trVG = as.double(rep(0,nr)),
+          PACKAGE = 'qgg'
    )
    
    fit$ids <- names(y)
