@@ -1,4 +1,4 @@
-auc <- function(yobs=NULL, ypred=NULL){
+auc <- function(yobs=NULL, ypred=NULL) {
      n0 <- length(yobs[yobs==0])
      n1 <- length(yobs[yobs==1])
      y <- cbind(yobs, ypred)

@@ -24,7 +24,7 @@
 #' @param maxit maximum number of iterations of reml analysis
 #' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
 #' @param bin executable file in fortran
-#' @param nthreads number of threads
+#' @param ncores number of cores
 #' @param wkdir working directory
 #' @return Returns a list structure, fit, including
 #' \item{llik}{log-likelihood at convergence}
@@ -96,25 +96,27 @@
 #' @export
 #'
 
-greml <- function(y = NULL, X = NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,nthreads=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE)
+greml <- function(y = NULL, X = NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE,interface="R")
 {
-  if(is.null(bin)) { 
-    if (is.null(validate)) fit <- remlR(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, nthreads=nthreads, verbose=verbose, wkdir=wkdir)
-    if (!is.null(validate)) fit <- cvreml(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, nthreads=nthreads, verbose=verbose, wkdir=wkdir, makeplots=makeplots)
+  if(interface=="R") { 
+    if (is.null(validate)) fit <- remlR(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
+    if (!is.null(validate)) fit <- cvreml(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir, makeplots=makeplots)
   }
   if(!is.null(bin)) { 
-    fit <- remlF(y=y, X=X, Glist=Glist, G=G, ids=ids, theta=theta, maxit=maxit, tol=tol, bin=bin, nthreads=nthreads, verbose=verbose, wkdir=wkdir)
+    fit <- remlF(y=y, X=X, Glist=Glist, G=G, ids=ids, theta=theta, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
   }
+  if(interface=="fortran") { 
+    fit <- freml(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, ncores=ncores, verbose=verbose) 
+  }        
   return(fit)  
 }  
 
 
 ####################################################################################################################
+# REML interface functions for fortran executable
 
-# REML interface functions for fortran
-
-remlF <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, nthreads = 1, wkdir = getwd(), verbose = FALSE ) {
-#greml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, ids = NULL, theta = NULL, maxit = 100, tol = 0.00001, bin = NULL, nthreads = 1, wkdir = getwd()) {
+remlF <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE ) {
+#greml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, ids = NULL, theta = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd()) {
     
 	write.reml(y = as.numeric(y), X = X, G = G)
 	n <- length(y)
@@ -126,14 +128,14 @@ remlF <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
 	if (!is.null(ids)) {indxG <- c(Glist$n, match(ids, Glist$idsG))} 
 	write.table(indxG, file = "indxg.txt", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
 
-	write.table(paste(n, nf, nr, maxit, nthreads), file = "param.txt", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
+	write.table(paste(n, nf, nr, maxit, ncores), file = "param.txt", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
 	if (is.null(theta)) theta <- rep(sd(y) / nr, nr)
 	#if (is.null(theta)) theta <- rep(var(y) / nr, nr)
 	write.table(t(theta), file = "param.txt", quote = FALSE, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE)
 	write.table(tol, file = "param.txt", quote = FALSE, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE)
 	write.table(fnamesG, file = "param.txt", quote = TRUE, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE)
 
-	execute.reml(bin = bin,  nthreads = nthreads)
+	execute.reml(bin = bin,  ncores = ncores)
 	fit <- read.reml(wkdir = wkdir)
 	fit$y <- y
 	fit$X <- X
@@ -162,32 +164,31 @@ write.reml <- function(y = NULL, X = NULL, G = NULL) {
 	close(fileout)
   
 	if (!is.null(G)) {
-		for (i in 1:length(G)) {
-			fileout <- file(paste("G", i, sep = ""), "wb")
-			#writeBin(G[[i]][upper.tri(G[[i]], diag = TRUE)], fileout)
-			nr <- nrow(G[[i]])
-			for (j in 1:nr) {
-				writeBin(G[[i]][j, j:nr], fileout)
-			}
-			close(fileout)
-		}
+	 for (i in 1:length(G)) {
+	   fileout <- file(paste("G", i, sep = ""), "wb")
+	   nr <- nrow(G[[i]])
+	   for (j in 1:nr) {
+		writeBin(as.double(G[[i]][1:nr, j]), fileout,size=8,endian = "little")
+	   }
+	   close(fileout)
+	  }
 	}
           
 }
 
-execute.reml  <- function (bin = NULL, nthreads = nthreads) {
+execute.reml  <- function (bin = NULL, ncores = ncores) {
 
 	HW <- Sys.info()["machine"]
 	OS <- .Platform$OS.type
 	if (OS == "windows") {
 		"my.system" <- function(cmd) {return(system(paste(Sys.getenv("COMSPEC"), "/c", cmd)))}
         
-		#my.system(paste("set MKL_NUM_THREADS = ", nthreads))
+		#my.system(paste("set MKL_NUM_THREADS = ", ncores))
 		test <- my.system(paste(shQuote(bin), " < param.txt > reml.lst", sep = ""))
 	}
 	if (!OS == "windows") {
 		system(paste("cp ", bin, " reml.exe", sep = ""))
-		#system(paste("export MKL_NUM_THREADS=", nthreads))
+		#system(paste("export MKL_NUM_THREADS=", ncores))
 		system("time ./reml.exe < param.txt > reml.lst")
 	}
       
@@ -235,33 +236,13 @@ clean.reml <- function(wkdir = NULL) {
       
 }
 
-#' @export
-#'
-
-
-writeG <- function(G = NULL) {
-    
-	if (!is.null(G)) {
-		for (i in 1:length(G)) {
-			fileout <- file(paste("G", i, sep = ""), "wb")
-			nr <- nrow(G[[i]])
-			for (j in 1:nr) {
-				writeBin(as.double(G[[i]][1:nr, j]), fileout,size=8,endian = "little")
-			}
-			close(fileout)
-		}
-	}
-          
-}
 
 
 ####################################################################################################################
-
 # REML R functions 
 
-remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxit=100, tol=0.00001, bin=NULL,nthreads=1,wkdir=getwd(), verbose=FALSE )
+remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxit=100, tol=0.00001, bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE )
   
-  #reml <- function( y=NULL, X=NULL, Glist=NULL, G=NULL,theta=NULL, ids=NULL, maxit=100, verbose=FALSE)
 {
   
   np <- length(G) + 1
@@ -352,19 +333,14 @@ remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxi
 }
 
 
-cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,nthreads=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE)
+cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE)
 {
   n <- length(y)     
   theta <- yobs <- ypred <- yo <- yp <- NULL
   res <- NULL
   if(is.matrix(validate)) validate <- as.data.frame(validate)
-  #if(is.list(validate)) nv <- length(validate)
-  #if(is.character(validate)) validate <- 1:length(y)
   nv <- length(validate)
   for (i in 1:nv) {
-    #if(is.matrix(validate)) v <- validate[,i]
-    #if(is.list(validate)) v <- validate[[i]]
-    #if(validate=="LOOCV") v <- i
     v <- validate[[i]]  
     t <- (1:n)[-v]
     fit <- remlR( y=y[t], X=X[t,], G=lapply(G,function(x){x[t,t]}), verbose=verbose)
@@ -398,60 +374,79 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
 }
 
 
+####################################################################################################################
+# REML interface functions for fortran linked library
+
+#' @export
+#'
+
+freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, ncores = 1, verbose = FALSE ) 
+
+{
+
+   if(!is.null(G)) writeG(G = G)
+
+   n <- length(y)
+   nf <- ncol(X)
+   if (!is.null(G)) rfnames <- paste("G", 1:length(G), sep = "")
+   if (!is.null(G)) rfnames <- paste(getwd(),rfnames,sep="/")	 
+   if (!is.null(Glist$fnG)) rfnames <- Glist$fnG
+   nr <- length(rfnames) + 1
+   if (is.null(ids)) indx <- 1:n 
+   if (!is.null(ids)) indx <- match(ids, Glist$idsG)
+   if (!is.null(G)) ngr <- nrow(G[[1]])
+   if (!is.null(Glist$fnG)) ngr <- Glist$nG
+   
+
+
+   fit <- .Fortran("reml", 
+          n = as.integer(n),
+          nf = as.integer(nf),
+          nr = as.integer(nr),
+          tol = as.double(tol),
+          maxit = as.integer(maxit),
+          ncores = as.integer(ncores),
+          rfnames = as.character(rfnames),
+          ngr = as.integer(ngr),
+          indx = as.integer(indx),
+          y = as.double(y),
+          X = matrix(as.double(X),nrow=nrow(X)),
+          theta = as.double(theta),
+          ai = matrix(as.double(0),nrow=nr,ncol=nr),
+          b = as.double(rep(0,nf)),
+          varb = matrix(as.double(0),nrow=nf,ncol=nf),
+          u = matrix(as.double(0),nrow=n,ncol=nr),
+          Vy = as.double(rep(0,n)),
+          Py = as.double(rep(0,n)),
+          llik = as.double(0),
+          trPG = as.double(rep(0,nr)),
+          trVG = as.double(rep(0,nr))
+   )
+   
+   fit$ids <- names(y)
+   fit$yVy <- sum(y * fit$Vy)
+   fit$wd <- getwd()
+   fit$Glist <- Glist
+   fit$g <- fit$u[,1:(nr-1)]
+   fit$e <- fit$u[,nr]
+   fit$u <- NULL 
+
+   return(fit)
+}
+
 #' @export
 #'
 
 
-freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, ncores = 1, verbose = FALSE ) {
-    #reml(n,nf,nr,tol,maxit,ncores,rfnames,ng,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
-    
-	if(!is.null(G)) writeG(G = G)
-
-	n <- length(y)
-	nf <- ncol(X)
-	if (!is.null(G)) rfnames <- paste("G", 1:length(G), sep = "")
-	if (!is.null(Glist$fnG)) rfnames <- Glist$fnG
-	nr <- length(rfnames) + 1
- 	if (is.null(ids)) indx <- 1:n 
-	if (!is.null(ids)) indx <- match(ids, Glist$idsG)
-        if (!is.null(G)) ngr <- nrow(G[[1]])
-	if (!is.null(Glist$fnG)) ngr <- Glist$nG
-	 
-
-  
-        fit <- .Fortran("reml", 
-                     n = as.integer(n),
-                     nf = as.integer(nf),
-                     nr = as.integer(nr),
-                     tol = as.double(tol),
-                     maxit = as.integer(maxit),
-                     ncores = as.integer(ncores),
-                     rfnames = as.character(rfnames),
-                     ngr = as.integer(ngr),
-                     indx = as.integer(indx),
-                     y = as.double(y),
-                     X = matrix(as.double(X),nrow=nrow(X)),
-                     theta = as.double(theta),
-                     ai = matrix(as.double(0),nrow=nr,ncol=nr),
-                     b = as.double(rep(0,nf)),
-                     varb = matrix(as.double(0),nrow=nf,ncol=nf),
-                     u = matrix(as.double(0),nrow=n,ncol=nr),
-                     Vy = as.double(rep(0,n)),
-                     Py = as.double(rep(0,n)),
-                     llik = as.double(0),
-                     trPG = as.double(rep(0,nr)),
-                     trVG = as.double(rep(0,nr)),
-                     PACKAGE = 'qgg'
-        )
-        fit$ids <- names(y)
-	fit$yVy <- sum(y * fit$Vy)
-	fit$wd <- getwd()
-	fit$Glist <- Glist
-        fit$g <- fit$u[,1:(nr-1)]
-        fit$e <- fit$u[,nr]
-        fit$u <- NULL 
-
-
-     return(fit)
+writeG <- function(G = NULL) {
+   if (!is.null(G)) {
+     for (i in 1:length(G)) {
+      fileout <- file(paste("G", i, sep = ""), "wb")
+      nr <- nrow(G[[i]])
+      for (j in 1:nr) {
+        writeBin(as.double(G[[i]][1:nr, j]), fileout,size=8,endian = "little")
+      }
+      close(fileout)
+     }
+   }
 }
-

@@ -80,12 +80,8 @@
 #' @export
 #'
 
-
 computeW <- function(Wlist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
-
-
-     writeBED2RAW( fnRAW=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=ids, rsids=rsids, overwrite=overwrite)
-
+  bed2raw( fnRAW=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=ids, rsids=rsids, overwrite=overwrite)
 }
 
 
@@ -189,16 +185,14 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Wlist$famfiles <- famfiles
 
      }
-          return(Wlist)
+     return(Wlist)
 }
 
 
 #' @export
 #'
 
-
-
-writeBED2RAW <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL,overwrite=FALSE) {
+bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL,overwrite=FALSE) {
 
      if(file.exists(fnRAW)) {
           warning(paste("fnRAW file allready exist"))
@@ -239,40 +233,40 @@ writeBED2RAW <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      
 }
 
-
-
 #' @export
 #'
 
-getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FALSE) {
-     if(is.null(ids)) ids <- Wlist$ids
-     if(is.null(cls)) cls <- match(rsids,unlist(Wlist$rsids))
-     if(is.null(rws)) rws <- match(ids,Wlist$ids)
-     maf <- unlist(Wlist$maf)[cls]
-     meanW <- 2*maf
-     sdW <- sqrt(2*maf*(1-maf))
+readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE) { 
      n <- Wlist$n
-     #W <- matrix(logical(0),nrow=length(rws),ncol=length(cls))
-     W <- rep(0,length(rws)*length(cls))
-     dim(W) <- c(length(rws),length(cls))
-     bfW <- file(Wlist$fnRAW,"rb")
-     current <- 0
-     for (i in 1:length(cls) ) {
-          where <- (cls[i]-current-1)*n
-          current <- cls[i]
-          seek(bfW, where=where, origin="current", rw="read")
-          w <- as.double(readBin( bfW, "raw", n=n, size = 1, endian = "little"))
-          if(scaled) w[w>0] <- (w[w>0]-1-meanW[i])/sdW[i]
-          W[,i] <- w[rws]
+     m <- Wlist$m
+     nbytes <- ceiling(n/4)
+     if(is.null(cls)) cls <- 1:m
+     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+     nc <- length(cls)
+     if (is.null(rws)) {
+          rws <- 1:n
+          if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+          if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
      }
-     close(bfW)
-     return(W)
+     nr <- length(rws)
+     fnRAW <- Wlist$fnRAW
+     res <- .Fortran("readbed", 
+                     n = as.integer(n),
+                     nr = as.integer(nr),
+                     rws = as.integer(rws),
+                     nc = as.integer(nc),
+                     cls = as.integer(cls),
+                     scaled = as.integer(scaled),
+                     W = matrix(as.double(0),nrow=nr,ncol=nc),
+                     nbytes = as.integer(nbytes),
+                     fnRAW = as.character(fnRAW),
+                     PACKAGE = 'qgg'
+                     
+     )
+     #rownames(res$W) <- Wlist$ids[rws]
+     #colnames(res$W) <- unlist(Wlist$ids)[cls]
+     return(res$W)
 }
-
-
-
-
-
 
 #' @export
 #'
@@ -332,7 +326,7 @@ readbed.plink <- function( bedfile=NULL, rsids=NULL, alleles=NULL, ids=NULL,plin
 #' @export
 #'
 
-readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsids=NULL, alleles=NULL, ids=NULL){
+readbed.R <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsids=NULL, alleles=NULL, ids=NULL){
      #adapted from https://github.com/andrewparkermorgan/argyle/blob/master/R/plink.R
      bim <- read.table(file=bimfiles[chr], header=FALSE)
      fam <- read.table(file=famfiles[chr], header=FALSE)
@@ -375,85 +369,38 @@ readBED <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rsid
      #rownames(W) <- as.character(fam[rws,2])
      #colnames(W) <- as.character(bim[cls,2])
      return(W)
-     }
+}
 
 
 #' @export
 #'
 
-readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE) { 
+getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FALSE) {
+     if(is.null(ids)) ids <- Wlist$ids
+     if(is.null(cls)) cls <- match(rsids,unlist(Wlist$rsids))
+     if(is.null(rws)) rws <- match(ids,Wlist$ids)
+     maf <- unlist(Wlist$maf)[cls]
+     meanW <- 2*maf
+     sdW <- sqrt(2*maf*(1-maf))
      n <- Wlist$n
-     m <- Wlist$m
-     nbytes <- ceiling(n/4)
-     if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
-     nc <- length(cls)
-     if (is.null(rws)) {
-       rws <- 1:n
-       if(!is.null(ids)) rws <- match(ids,Wlist$ids)
-       if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
+     #W <- matrix(logical(0),nrow=length(rws),ncol=length(cls))
+     W <- rep(0,length(rws)*length(cls))
+     dim(W) <- c(length(rws),length(cls))
+     bfW <- file(Wlist$fnRAW,"rb")
+     current <- 0
+     for (i in 1:length(cls) ) {
+          where <- (cls[i]-current-1)*n
+          current <- cls[i]
+          seek(bfW, where=where, origin="current", rw="read")
+          w <- as.double(readBin( bfW, "raw", n=n, size = 1, endian = "little"))
+          if(scaled) w[w>0] <- (w[w>0]-1-meanW[i])/sdW[i]
+          W[,i] <- w[rws]
      }
-     nr <- length(rws)
-     fnRAW <- Wlist$fnRAW
-     res <- .Fortran("readbed", 
-                     n = as.integer(n),
-                     nr = as.integer(nr),
-                     rws = as.integer(rws),
-                     nc = as.integer(nc),
-                     cls = as.integer(cls),
-                     scaled = as.integer(scaled),
-                     W = matrix(as.double(0),nrow=nr,ncol=nc),
-                     nbytes = as.integer(nbytes),
-                     fnRAW = as.character(fnRAW),
-                     PACKAGE = 'qgg'
-                     
-     )
-     #rownames(res$W) <- Wlist$ids[rws]
-     #colnames(res$W) <- unlist(Wlist$ids)[cls]
-     return(res$W)
+     close(bfW)
+     return(W)
 }
 
 
-
-#' @export
-#'
-
-qcraw <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
-     #subroutine craw(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,fnRAW)	
-     n <- Wlist$n
-     m <- Wlist$m
-     if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
-     nc <- length(cls)
-     rws <- 1:n
-     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
-     nr <- length(rws)
-     af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
-     fnRAW <- Wlist$fnRAW
-     qc <- .Fortran("qcraw", 
-                     n = as.integer(n),
-                     nr = as.integer(nr),
-                     rws = as.integer(rws),
-                     nc = as.integer(nc),
-                     cls = as.integer(cls),
-                     af = as.double(af),
-                     nmiss = as.double(nmiss),
-                     n0 = as.double(n0),
-                     n1 = as.double(n1),
-                     n2 = as.double(n2),
-                     fnRAW = as.character(fnRAW),
-                     PACKAGE = 'qgg'
-                     
-     )
-     qc$hom <- (qc$n0+qc$n2)/(qc$n-qc$nmiss)
-     qc$het <- qc$n1/(qc$n-qc$nmiss)
-     qc$maf <- qc$af
-     qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
-     #names(fit$af) <- unlist(Wlist$rsids)[cls]
-     #names(fit$nmiss) <- unlist(Wlist$rsids)[cls]
-     #return(list(af=fit$af,nmiss=fit$nmiss))
-     return(qc)
-}
 
 #' @export
 #'
@@ -561,4 +508,3 @@ mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
 
 
 #######################################################################################
-

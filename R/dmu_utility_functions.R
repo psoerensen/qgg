@@ -275,7 +275,7 @@ writeDMU <- function(model = NULL, data = NULL, Glist = NULL, tol = 0.001) {
                vvarfile <- paste(vvarname, ".txt", sep = "")
                iG <- qggginv(Glist[[model$data$covmat[i]]], tol = tol)
                colnames(iG$G) <- rownames(iG$G) <- rec$rlevels[[vvarname]][rownames(iG$G)]
-               writeG(G = iG$G, filename = vvarfile, ldet = iG$ldet)
+               writeGDMU(G = iG$G, filename = vvarfile, ldet = iG$ldet)
           }
      }
      
@@ -429,7 +429,7 @@ vec2mat <- function(vec = NULL, n = NULL, rcnames = NULL) {
      
 }
 
-writeG <- function(G = NULL, filename = NULL, clear = TRUE, ldet = NULL) {
+writeGDMU <- function(G = NULL, filename = NULL, clear = TRUE, ldet = NULL) {
      
      if (clear) {file.remove(filename)}
      nr <- nrow(G) 

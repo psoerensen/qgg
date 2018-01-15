@@ -156,9 +156,7 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize
           nsets  <-  length(sets)
           for (i in 1:nsets) {
                cls <- sets[[i]]
-               #W <- getW(Wlist,rws=rws,cls=cls,scaled=scaled)
                W <- readbed(Wlist=Wlist,rws=rws, cls=cls, scaled=scaled)
-               #W <- readraw(Wlist,cls=cls,scaled=scaled)
                #W <- W[rws,]
                res <- smlm(y=y,X=X,W=W)
                s[cls,] <- res[[1]]
@@ -203,106 +201,4 @@ smlm <- function( y=NULL, X=NULL, W=NULL) {
 }
 
 
-
-#' @export
-
-markerTest <- function( Wlist=NULL,y=NULL, X=NULL, df=NULL, ids=NULL, rsids=NULL, blocks=NULL) {
-     
-     if(is.vector(y)) y <- matrix(y,ncol=1)
-     if(!is.null(X)) y <- residuals(lm(y~X))
-     if(is.vector(y)) y <- matrix(y,ncol=1)
-     nt <- ncol(y) 
-     ones <- matrix(1,nrow=nrow(y),ncol=nt)
-     ones[is.na(y)] <- 0
-     y[is.na(y)] <- 0
-     y <- y[Wlist$ids,]
-     S <- SE <- T <- P <- matrix(0,nrow=Wlist$m,ncol=nt)
-     rownames(S) <- rownames(SE) <- rownames(T) <- rownames(P) <- unlist(Wlist$rsids)
-     colnames(S) <- colnames(SE) <- colnames(T) <- colnames(P) <- colnames(y)
-     if (is.null(blocks)) blocks <- 1:Wlist$nb 
-     for ( i in blocks ) {
-          rsids <- Wlist$rsids[[i]]
-          rws <- Wlist$indx[[i]]
-          n <- Wlist$n
-          m <- length(Wlist$rsids[[i]])
-          bfW <- gzfile(Wlist$fnW[[i]],"rb")
-          W <- readBin( bfW, "double", n=n*m, size = 8, endian = "little")
-          close(bfW)
-          dim(W) <- c(n,m)
-          Wy <- crossprod(W,y)
-          wwadj <- matrix((crossprod(W,ones)**2)/colSums(ones),nrow=m,ncol=nt,byrow=TRUE)
-          W2 <- W**2
-          ww <- crossprod(W2,ones) 
-          yy <- matrix(colSums((y**2)*ones),nrow=m,ncol=nt,byrow=TRUE)
-          sse <- yy-(Wy**2)/ww
-          sse[is.na(sse)] <- 0
-          coef <- Wy*(1/ww)
-          coef[is.na(coef)] <- 0
-          dfe <- colSums(ones)-2
-          dfe <- matrix(dfe,nrow=m,ncol=nt,byrow=TRUE)
-          se <- sqrt(sse/dfe)/sqrt(ww) 
-          tt <- coef/se
-          ptt <- 2*pt(-abs(tt),df=dfe)
-          S[rws,] <- coef
-          SE[rws,] <- se
-          T[rws,] <- tt
-          P[rws,] <- ptt
-          print(paste("Finished block",i))
-          gc()
-     }
-     list(S=S,SE=SE,T=T,P=P)
-}
-
-
-#' @export
-
-lma_old <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, validate=NULL, ids=NULL, rsids=NULL, blocks=NULL, return.values=FALSE) {
-     if(!is.null(X)) y <- residuals(lm(y~X))
-     yin <- y <- as.matrix(y)
-     if(!is.null(validate)) y <- apply(validate,2,function(x) { y[x] <- NA; y })
-     nt <- ncol(y) 
-     ones <- matrix(1,nrow=nrow(y),ncol=nt)
-     ones[is.na(y)] <- 0
-     y[is.na(y)] <- 0
-     #y <- y[rownames(W),]
-     m <- ncol(W)
-     S <- SE <- T <- P <- matrix(0,nrow=m,ncol=nt)
-     rownames(S) <- rownames(SE) <- rownames(T) <- rownames(P) <- colnames(W)
-     colnames(S) <- colnames(SE) <- colnames(T) <- colnames(P) <- colnames(y)
-     rws <- 1:m
-     Wy <- crossprod(W,y)
-     wwadj <- matrix((crossprod(W,ones)**2)/colSums(ones),nrow=m,ncol=nt,byrow=TRUE)
-     W2 <- W**2
-     ww <- crossprod(W2,ones) 
-     yy <- matrix(colSums((y**2)*ones),nrow=m,ncol=nt,byrow=TRUE)
-     sse <- yy-(Wy**2)/ww
-     sse[is.na(sse)] <- 0
-     coef <- Wy*(1/ww)
-     coef[is.na(coef)] <- 0
-     dfe <- colSums(ones)-2
-     dfe <- matrix(dfe,nrow=m,ncol=nt,byrow=TRUE)
-     se <- sqrt(sse/dfe)/sqrt(ww) 
-     tt <- coef/se
-     ptt <- 2*pt(-abs(tt),df=dfe)
-     S[rws,] <- coef
-     SE[rws,] <- se
-     T[rws,] <- tt
-     P[rws,] <- ptt
-     res <- list(S=S,SE=SE,T=T,P=P)
-     if(!is.null(validate)) {
-          y <- yin
-          n <- length(y)     
-          res <- NULL
-          for ( k in 1:ncol(validate)) {
-               v <- validate[, k]
-               t <- (1:n)[-v]
-               yobs <- y[v]
-               ypred <- W[v,]%*%S[,k]
-               res <- rbind(res,qcpred(yobs=yobs,ypred=ypred))
-          }
-          if(return.values) res <- list(CV=res,S=S,SE=SE,T=T,P=P)
-          
-     }
-     return(res)
-}
 
