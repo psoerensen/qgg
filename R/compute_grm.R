@@ -6,7 +6,7 @@
 #'
 
 
-computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE, msize=100, ncores=1, fnG=NULL, updateG=FALSE) {
+computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE) {
 
      n <- Wlist$n
      m <- Wlist$m
@@ -30,8 +30,18 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
      
      # Initiate G file
      if(!is.null(fnG)) {
-       if (!updateG)  {
-         if(file.exists(fnG)) stop("G file name allready exist")
+       if(file.exists(fnG)) {
+         if(!overwrite) stop("G file name allready exist")
+       }
+       if(file.exists(fnG)) {
+       if (overwrite)  {
+         bfG <- file(fnG,"wb")
+         seek(bfG,8*(nG**2))
+         writeBin(raw(8),bfG)
+         close(bfG)
+       }
+       }
+       if(!file.exists(fnG)) {
          bfG <- file(fnG,"wb")
          seek(bfG,8*(nG**2))
          writeBin(raw(8),bfG)
@@ -72,7 +82,7 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
      #}
      bfG <- file(Glist$fnG,"wb")
      for (j in 1:nG) {
-       writeBin( res$G[1:nG,j], bfG, size = 8, endian = "little")
+       writeBin( as.double(res$G[1:nG,j]), bfG, size = 8, endian = "little")
      }
      close(bfG)
      }

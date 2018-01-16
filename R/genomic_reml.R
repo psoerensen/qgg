@@ -386,19 +386,19 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
 
    if(!is.null(G)) writeG(G = G)
 
+   ids <- names(y)
+
    n <- length(y)
    nf <- ncol(X)
    if (!is.null(G)) rfnames <- paste("G", 1:length(G), sep = "")
    if (!is.null(G)) rfnames <- paste(getwd(),rfnames,sep="/")	 
-   if (!is.null(Glist$fnG)) rfnames <- Glist$fnG
+   if (!is.null(Glist)) rfnames <- Glist$fnG
    nr <- length(rfnames) + 1
-   if (is.null(ids)) indx <- 1:n 
-   if (!is.null(ids)) indx <- match(ids, Glist$idsG)
    if (!is.null(G)) ngr <- nrow(G[[1]])
-   if (!is.null(Glist$fnG)) ngr <- Glist$nG
+   if (!is.null(G)) indx <- match(ids, rownames(G[[1]]))
+   if (!is.null(Glist)) ngr <- Glist$n
+   if (!is.null(Glist)) indx <- match(ids, Glist$idsG)
    
-
-
    fit <- .Fortran("reml", 
           n = as.integer(n),
           nf = as.integer(nf),
