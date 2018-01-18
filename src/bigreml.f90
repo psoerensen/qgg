@@ -71,15 +71,17 @@
     enddo
     end function inverse
 
-    function readG(row,fname) result(gr)
+    function readG(row,funit) result(gr)
+    !function readG(row,fname) result(gr)
     implicit none
-    character(len=*), intent(in) :: fname
-    integer*4, intent(in) :: row
+    !character(len=*), intent(in) :: fname
+    integer*4, intent(in) :: row,funit
     integer*4 :: i
     real*8 :: gr(size(V,1)),grw(ng)
-    open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=8*ng)
-    read (unit=12, rec=indxg(row)) grw
-    close (unit=12)
+    !open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=8*ng)
+    !read (unit=12, rec=indxg(row)) grw
+    read (unit=funit, rec=indxg(row)) grw
+    !close (unit=12)
     do i=1,size(V,1)
       gr(i) = grw(indxg(i))
     enddo
@@ -221,7 +223,7 @@
     character(len=1000) :: rfnames(nr-1)
     
     ! local variables
-    integer*4 :: i,j,k,it,row
+    integer*4 :: i,j,k,it,row,fileunit(nr)
     real*8 :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr),asd(nr,nr)
     real*8 :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1),varb(nf,nf) 
     real*8 :: llik, ldV, ldXVX, yPy, ymean
@@ -276,10 +278,17 @@
     ! compute P (stored in V), trVG and trPG
     trVG = 0.0D0
     trPG = 0.0D0
-    trVG(nr) = sum(diag(V))  ! residual effects 
+    trVG(nr) = sum(diag(V))  ! residual effects
+
+    do i=1,nr-1
+    fileunit(i)=10+i
+    open (unit=fileunit(i),file=trim(adjustl(rfnames(i))) , status='old', form='unformatted', access='direct', recl=8*ng)
+    enddo
+
     do j=1,n
       do i=1,nr-1            ! random effects excluding residual
-        gr(1:n,i) = readG(j,rfnames(i))
+        gr(1:n,i) = readG(j,fileunit(i))
+        !gr(1:n,i) = readG(j,rfnames(i))
         trVG(i) = trVG(i) + sum(gr(1:n,i)*V(1:n,j)) 
       enddo 
       V(1:n,j) = V(1:n,j) - matvec(VXXVX(:,1:nf),VX(j,1:nf))  ! update the j'th column of V to be the j'th column of P 
@@ -296,7 +305,8 @@
     ! compute u (unscaled)
     do i=1,n
       do j=1,nr-1           ! random effects excluding residual
-        gr(1:n,j) = readG(i,rfnames(j))
+        gr(1:n,j) = readG(i,fileunit(j))
+        !gr(1:n,j) = readG(i,rfnames(j))
         u(i,j) = sum(gr(1:n,j)*Py)
       enddo 
       !u(i,1:(nr-1)) = matvec(transpose(gr),Py)
@@ -306,6 +316,10 @@
     ! compute Pu  (P stored in V)
     do i=1,nr                     ! random effects including residual
       Pu(:,i) = matvec(V,u(:,i))
+    enddo
+
+    do i=1,nr-1
+    close(fileunit(i))
     enddo
 
     deallocate(V) 
