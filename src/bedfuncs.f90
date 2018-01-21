@@ -214,7 +214,7 @@
 
 
   !==============================================================================================================
-  subroutine prsbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
+  subroutine mmbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
   !==============================================================================================================
   ! C = A*B (dimenions: mxn = mxk kxn) 
   ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,0.0d0,c,m)
@@ -251,7 +251,7 @@
   print*,'Finished block',i
 
   enddo
-  end subroutine prsbed
+  end subroutine mmbed
 
 
 
