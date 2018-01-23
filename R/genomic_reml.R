@@ -351,11 +351,14 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
       ypred <- ypred + G[[j]][v,t]%*%fit$Py*fit$theta[j]
     }
     yobs <- y[v]
-    if(!is.atomic(validate)) res <- rbind(res,qcpred(yobs=yobs,ypred=ypred))
+    if(!is.atomic(validate)) res <- rbind(res,qcpred(yobs=yobs,ypred=ypred,typeoftrait=typeoftrait))
     yo <- c(yo, yobs)
     yp <- c(yp, ypred)
   }
-  if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp),nrow=1)
+  typeoftrait <- "quantitative"
+  if(nlevels(factor(y))==2) typeoftrait <- "binary" 
+ 
+  if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp,typeoftrait=typeoftrait),nrow=1)
   res <- as.data.frame(res)
   names(res) <- c("Corr","R2","Nagel R2", "AUC", "intercept", "slope", "MSPE")
   if(is.null(names(G))) names(G) <- paste("G",1:(np-1),sep="")

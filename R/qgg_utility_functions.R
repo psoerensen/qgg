@@ -20,15 +20,15 @@ rnag <- function(yobs=NULL,ypred=NULL) {
      return(r2nag)
 }
 
-qcpred <- function(yobs=NULL,ypred=NULL) {
+qcpred <- function(yobs=NULL,ypred=NULL,typeoftrait="quantitative") {
      r2 <- summary(lm(yobs ~ ypred))$r.squared
      pa <- cor(ypred, yobs)
      mspe <- sum((ypred - yobs)^2)/length(yobs)
      intercept <- lm(yobs ~ ypred )$coef[1]
      slope <- lm(yobs ~ ypred)$coef[2]
      aurc <- r2nag <- NA
-     if(nlevels(factor(yobs))==2) aurc <- auc(yobs=yobs,ypred=ypred)
-     if(nlevels(factor(yobs))==2) r2nag <- rnag(yobs=yobs,ypred=ypred)
+     if(typeoftrait=="binary") aurc <- auc(yobs=yobs,ypred=ypred)
+     if(typeoftrait=="binary") r2nag <- rnag(yobs=yobs,ypred=ypred)
      res <- round(c(pa,r2,r2nag,aurc,intercept,slope,mspe),3)
      names(res) <- c("Corr","R2","Nagel R2", "AUC", "intercept", "slope", "MSPE")
      return(res)
