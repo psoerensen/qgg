@@ -100,6 +100,7 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           if(!is.null(fnRAW)) Wlist$fnRAW <- fnRAW
           Wlist$rsids <- vector(mode="list",length=nchr)
           Wlist$alleles <- vector(mode="list",length=nchr)
+          Wlist$position <- vector(mode="list",length=nchr)
           Wlist$af <- vector(mode="list",length=nchr)
           Wlist$maf <- vector(mode="list",length=nchr)
           Wlist$nmiss <- vector(mode="list",length=nchr)
@@ -121,6 +122,7 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
                fam <- read.table(file=famfiles[chr], header=FALSE)
                if(any(!Wlist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
                Wlist$alleles[[chr]] <- as.character(bim[,6])   
+               Wlist$position[[chr]] <- as.numeric(bim[,4])   
                Wlist$rsids[[chr]] <- as.character(bim[,2])   
                print(paste("Finished processing bim file",bimfiles[chr]))
           }   
