@@ -340,6 +340,8 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
   res <- NULL
   if(is.matrix(validate)) validate <- as.data.frame(validate)
   nv <- length(validate)
+  typeoftrait <- "quantitative"
+  if(nlevels(factor(y))==2) typeoftrait <- "binary" 
   for (i in 1:nv) {
     v <- validate[[i]]  
     t <- (1:n)[-v]
@@ -355,9 +357,7 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
     yo <- c(yo, yobs)
     yp <- c(yp, ypred)
   }
-  typeoftrait <- "quantitative"
-  if(nlevels(factor(y))==2) typeoftrait <- "binary" 
- 
+
   if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp,typeoftrait=typeoftrait),nrow=1)
   res <- as.data.frame(res)
   names(res) <- c("Corr","R2","Nagel R2", "AUC", "intercept", "slope", "MSPE")
