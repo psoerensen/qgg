@@ -89,3 +89,49 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRU
      if(is.null(fnG)) return(res$G)
      if(!is.null(fnG)) return(Glist)
 }
+
+
+
+#' @export
+#'
+
+getG <- function( Glist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=NULL) {
+     
+     #Glist(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG)
+     
+     if (!is.null(ids)) {
+       idsRWS <- idsCLS <- ids     
+     }
+     if (!is.null(rws)) idsRWS <- Glist$idsG[rws]
+     if (!is.null(cls)) idsCLS <- Glist$idsG[cls]
+     if (is.null(idsRWS)) stop("Please specify ids or idsRWS and idsCLS or rws and cls")
+     if (is.null(idsCLS)) stop("Please specify ids or idsRWS and idsCLS or rws and cls")
+     
+     if (sum(!idsCLS%in%Glist$idsG)>0) stop("Error some ids not found in idsG")
+     if (sum(!idsRWS%in%Glist$idsG)>0) stop("Error some ids not found in idsG")
+     
+     rws <- match(idsRWS,Glist$idsG)		# no reorder needed
+     cls <- match(idsCLS,Glist$idsG)
+     
+     nG <- Glist$nG
+     nr <- length(rws)
+     nc <- length(cls)
+     
+     # Sub matrix
+     G <- matrix(0,nrow=nr,ncol=nc)
+     rownames(G) <- Glist$idsG[rws]
+     colnames(G) <- Glist$idsG[cls]
+     
+     # If full stored project study matrix
+     fileG <- file(Glist$fnG,"rb")
+     for (i in 1:nr) {
+          k <- rws[i]
+          where <- (k-1)*nG 
+          seek(fileG,where=where*8)
+          grws <- readBin( fileG, "double", n=nG, size = 8, endian = "little")
+          G[i,] <- grws[cls]
+     }
+     close(fileG)
+     return(G)
+}
+
