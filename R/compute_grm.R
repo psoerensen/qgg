@@ -113,7 +113,7 @@ getG <- function( Glist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=NU
      rws <- match(idsRWS,Glist$idsG)		# no reorder needed
      cls <- match(idsCLS,Glist$idsG)
      
-     nG <- Glist$nG
+     nG <- Glist$n  # nG <- Glist$nG
      nr <- length(rws)
      nc <- length(cls)
      

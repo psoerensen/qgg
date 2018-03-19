@@ -1,3 +1,6 @@
+#' @export
+#'
+
 auc <- function(yobs=NULL, ypred=NULL) {
      n0 <- length(yobs[yobs==0])
      n1 <- length(yobs[yobs==1])
@@ -9,6 +12,8 @@ auc <- function(yobs=NULL, ypred=NULL) {
      auc 
 }
 
+#' @export
+#'
 
 rnag <- function(yobs=NULL,ypred=NULL) {
      fit0 <- glm(yobs~1,family=binomial(link='logit'))
@@ -19,6 +24,9 @@ rnag <- function(yobs=NULL,ypred=NULL) {
      r2nag <- (1-exp(-LR/n))/(1-exp(-(-2*L0)/n))
      return(r2nag)
 }
+
+#' @export
+#'
 
 qcpred <- function(yobs=NULL,ypred=NULL,typeoftrait="quantitative") {
      r2 <- summary(lm(yobs ~ ypred))$r.squared
