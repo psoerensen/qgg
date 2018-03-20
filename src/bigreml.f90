@@ -288,6 +288,10 @@
     trPG = 0.0D0
     trVG(nr) = sum(diag(V))  ! residual effects
 
+
+    rfnames(1)='Ga'
+    rfnames(2)='Gb'
+
     do i=1,nr-1
     fileunit(i)=10+i
     open (unit=fileunit(i),file=trim(adjustl(rfnames(i))) , status='old', form='unformatted', access='direct', recl=8*ng)
