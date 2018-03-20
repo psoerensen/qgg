@@ -165,7 +165,7 @@
  
     subroutine computeV(weights,fnames)
     implicit none
-    integer*4 :: i,j,k,r
+    integer*4 :: i,j,k,r,funit
     real*8, dimension(:),intent(in) :: weights
     real*8 :: grw(ng)
     character(len=*), dimension(:),intent(in) :: fnames
@@ -181,14 +181,16 @@
        stop
     endif
 
-    open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
+    funit=10+r
+    print*,r,trim(adjustl(fnames(r)))
+    open (unit=funit,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(V,1)
       read (unit=12,rec=indxg(i)) grw
       do j=1,size(V,1)
         V(i,j)=V(i,j)+grw(indxg(j))*weights(r)
       enddo
     enddo
-    close (unit=12)
+    close (unit=funit)
 
     else
     
