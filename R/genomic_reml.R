@@ -404,7 +404,7 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
    
    fnr <- paste(paste(sample(letters,10,replace=TRUE),collapse=""),".qgg",sep="")
 
-   write.table(rfnames, file=fnr, quote = FALSE, sep = " ", col.names=FALSE, row.names=FALSE)
+   write.table( as.character(rfnames), file=fnr, quote = FALSE, sep = " ", col.names=FALSE, row.names=FALSE)
    
    
    fit <- .Fortran("reml", 
