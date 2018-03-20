@@ -184,8 +184,10 @@
     funit=10+r
     !print*,r,trim(adjustl(fnames(r)))
     open (unit=funit,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
+    !open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(V,1)
-      read (unit=12,rec=indxg(i)) grw
+      read (unit=funit,rec=indxg(i)) grw
+      !read (unit=12,rec=indxg(i)) grw
       do j=1,size(V,1)
         V(i,j)=V(i,j)+grw(indxg(j))*weights(r)
       enddo
