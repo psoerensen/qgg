@@ -182,7 +182,7 @@
     endif
 
     funit=10+r
-    !print*,r,trim(adjustl(fnames(r)))
+    print*,r,trim(adjustl(fnames(r)))
     open (unit=funit,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     !open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(V,1)
