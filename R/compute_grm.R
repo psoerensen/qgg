@@ -135,3 +135,15 @@ getG <- function( Glist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=NU
      return(G)
 }
 
+
+
+#' @export
+#'
+
+   mergeG <- function(Glist=NULL) {
+     Glist <- do.call(function(...) mapply(c,...,SIMPLIFY = FALSE),args = Glist)
+     Glist$idsG <- unique(Glist$idsG)
+     Glist$n <- length(Glist$idsG)
+     Glist$m <- length(Glist$rsids)
+     Glist
+   }
