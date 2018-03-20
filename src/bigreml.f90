@@ -206,8 +206,8 @@
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    !subroutine reml(n,nf,nr,tol,maxit,ncores,rfnames,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
-    subroutine reml(n,nf,nr,tol,maxit,ncores,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
+    subroutine reml(n,nf,nr,tol,maxit,ncores,fnr,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
+    !subroutine reml(n,nf,nr,tol,maxit,ncores,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     use global
@@ -222,6 +222,7 @@
     real*8 :: tol
     real*8  :: y(n),X(n,nf),theta(nr)
     character(len=1000) :: rfnames(nr-1)
+    character(len=14) :: fnr
     
     ! local variables
     integer*4 :: i,j,k,it,row,fileunit(nr)
@@ -237,7 +238,7 @@
     indxg=indx   
     ng=ngr
 
-    open (unit=10, file='rfnames.qgg', status='old')
+    open (unit=10, file=trim(adjustl(fnr)), status='old')
 
     !read G filenames and check they exist
     do i=1,nr-1
