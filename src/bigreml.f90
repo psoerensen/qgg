@@ -168,7 +168,7 @@
     integer*4 :: i,j,k,r
     real*8, dimension(:),intent(in) :: weights
     real*8 :: grw(ng)
-    character(len=1000), dimension(:),intent(in) :: fnames
+    character(len=*), dimension(:),intent(in) :: fnames
     logical :: exst
 
     do r=1,size(weights)
