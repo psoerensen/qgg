@@ -168,15 +168,16 @@
     integer*4 :: i,j,k,r,funit
     real*8, dimension(:),intent(in) :: weights
     real*8 :: grw(ng)
-    character(len=1000), dimension(2),intent(in) :: fnames
+    character(len=1000), dimension(:),intent(in) :: fnames
+    character(len=1000), dimension(2) :: myfnames
     logical :: exst
 
-    fnames(1)='Ga'
-    fnames(2)='Gb'
+    myfnames(1)='Ga'
+    myfnames(2)='Gb'
 
     do r=1,size(weights)
     if (r<size(weights)) then
-    inquire(file=trim(adjustl(fnames(r))), exist=exst)
+    inquire(file=trim(adjustl(myfnames(r))), exist=exst)
     if(.not.(exst)) then
        print *, 'Trying to open file:'
        print*, fnames(r)
@@ -186,7 +187,7 @@
 
     funit=10+r
     print*,r,trim(adjustl(fnames(r)))
-    open (unit=funit,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
+    open (unit=funit,file=trim(adjustl(myfnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     !open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(V,1)
       read (unit=funit,rec=indxg(i)) grw
