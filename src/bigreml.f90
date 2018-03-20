@@ -165,19 +165,15 @@
  
     subroutine computeV(weights,fnames)
     implicit none
-    integer*4 :: i,j,k,r,funit
+    integer*4 :: i,j,k,r
     real*8, dimension(:),intent(in) :: weights
     real*8 :: grw(ng)
     character(len=1000), dimension(:),intent(in) :: fnames
-    character(len=1000), dimension(2) :: myfnames
     logical :: exst
-
-    myfnames(1)='Ga'
-    myfnames(2)='Gb'
 
     do r=1,size(weights)
     if (r<size(weights)) then
-    inquire(file=trim(adjustl(myfnames(r))), exist=exst)
+    inquire(file=trim(adjustl(fnames(r))), exist=exst)
     if(.not.(exst)) then
        print *, 'Trying to open file:'
        print*, fnames(r)
@@ -185,18 +181,14 @@
        stop
     endif
 
-    funit=10+r
-    print*,r,trim(adjustl(fnames(r)))
-    open (unit=funit,file=trim(adjustl(myfnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
-    !open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
+    open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
     do i=1,size(V,1)
-      read (unit=funit,rec=indxg(i)) grw
-      !read (unit=12,rec=indxg(i)) grw
+      read (unit=12,rec=indxg(i)) grw
       do j=1,size(V,1)
         V(i,j)=V(i,j)+grw(indxg(j))*weights(r)
       enddo
     enddo
-    close (unit=funit)
+    close (unit=12)
 
     else
     
@@ -214,7 +206,8 @@
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine reml(n,nf,nr,tol,maxit,ncores,rfnames,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
+    !subroutine reml(n,nf,nr,tol,maxit,ncores,rfnames,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
+    subroutine reml(n,nf,nr,tol,maxit,ncores,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     use global
@@ -244,9 +237,11 @@
     indxg=indx   
     ng=ngr
 
- 
+    open (unit=10, file='rfnames.qgg', status='old')
+
     !read G filenames and check they exist
     do i=1,nr-1
+    read(unit=10,fmt=*) rfnames(i)
     inquire(file=trim(adjustl(rfnames(i))), exist=exst)
     if(.not.(exst)) then
        print *, 'Trying to open file:'
@@ -255,6 +250,8 @@
        stop
     endif
     enddo
+
+    close(unit=10, status='delete')
 
     call omp_set_num_threads(ncores)
 
@@ -288,9 +285,6 @@
     trPG = 0.0D0
     trVG(nr) = sum(diag(V))  ! residual effects
 
-
-    rfnames(1)='Ga'
-    rfnames(2)='Gb'
 
     do i=1,nr-1
     fileunit(i)=10+i

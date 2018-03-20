@@ -402,6 +402,9 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
    if (!is.null(Glist)) ngr <- Glist$n
    if (!is.null(Glist)) indx <- match(ids, Glist$idsG)
    
+   write.table(rfnames, file="rfnames.qgg", quote = FALSE, sep = " ", col.names=FALSE, row.names=FALSE)
+   
+   
    fit <- .Fortran("reml", 
           n = as.integer(n),
           nf = as.integer(nf),
@@ -409,7 +412,7 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
           tol = as.double(tol),
           maxit = as.integer(maxit),
           ncores = as.integer(ncores),
-          rfnames = as.character(rfnames),
+          #rfnames = as.character(rfnames),
           ngr = as.integer(ngr),
           indx = as.integer(indx),
           y = as.double(y),
