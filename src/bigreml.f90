@@ -168,9 +168,11 @@
     integer*4 :: i,j,k,r,funit
     real*8, dimension(:),intent(in) :: weights
     real*8 :: grw(ng)
-    character(len=*), dimension(2),intent(in) :: fnames
-    !character(len=*), dimension(:),intent(in) :: fnames
+    character(len=1000), dimension(2),intent(in) :: fnames
     logical :: exst
+
+    fnames(1)='Ga'
+    fnames(2)='Gb'
 
     do r=1,size(weights)
     if (r<size(weights)) then
