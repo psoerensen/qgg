@@ -472,8 +472,8 @@ gblup <- function(Glist=NULL,G=NULL,fit=NULL,g=NULL, ids=NULL, idsCLS=NULL, idsR
      names(Py) <- fit$ids
      g <- NULL
      nr <- length(fnG)
-     if(is.null(idsCLS)) idsCLS <- fitG$ids
-     if(is.null(idsRWS)) idsRWS <- fitG$ids
+     if(is.null(idsCLS)) idsCLS <- fit$ids
+     if(is.null(idsRWS)) idsRWS <- fit$ids
      if(!is.null(ids)) idsRWS <- ids
      if (sum(!idsRWS%in%Glist$idsG)>0) stop("Error some ids not found in idsG")
      for (i in 1:nr) {
