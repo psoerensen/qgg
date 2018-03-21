@@ -460,3 +460,28 @@ writeG <- function(G = NULL) {
      }
    }
 }
+
+
+#' @export
+#'
+
+gblup <- function(Glist=NULL,G=NULL,fit=NULL,g=NULL, ids=NULL, idsCLS=NULL, idsRWS=NULL) {
+     Glist <- fit$Glist
+     fnG <- Glist$fnG
+     Py <- fit$Py
+     names(Py) <- fit$ids
+     g <- NULL
+     nr <- length(fnG)
+     if(is.null(idsCLS)) idsCLS <- fitG$ids
+     if(is.null(idsRWS)) idsRWS <- fitG$ids
+     if(!is.null(ids)) idsRWS <- ids
+     if (sum(!idsRWS%in%Glist$idsG)>0) stop("Error some ids not found in idsG")
+     for (i in 1:nr) {
+          Glist$fnG <- fnG[i]  
+          G <- getG(Glist=Glist, idsCLS=idsCLS,idsRWS=idsRWS) 
+          g <- cbind(g, G%*%Py[idsCLS]*fit$theta[i])
+     }
+     colnames(g) <- paste("G",1:nr,sep="")
+     return(g)
+} 
+
