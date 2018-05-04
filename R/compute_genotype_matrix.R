@@ -238,7 +238,7 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
 #' @export
 #'
 
-readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE) { 
+readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE, method="direct") { 
      n <- Wlist$n
      m <- Wlist$m
      nbytes <- ceiling(n/4)
@@ -252,6 +252,9 @@ readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
      }
      nr <- length(rws)
      fnRAW <- Wlist$fnRAW
+     OS <- .Platform$OS.type
+     if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T )) 
+     if (method=="direct") {
      res <- .Fortran("readbed", 
                      n = as.integer(n),
                      nr = as.integer(nr),
@@ -265,6 +268,23 @@ readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
                      PACKAGE = 'qgg'
                      
      )
+     }
+     if (method=="stream") {
+          res <- .Fortran("readbedstream", 
+                          n = as.integer(n),
+                          nr = as.integer(nr),
+                          rws = as.integer(rws),
+                          nc = as.integer(nc),
+                          cls = as.integer(cls),
+                          scaled = as.integer(scaled),
+                          W = matrix(as.double(0),nrow=nr,ncol=nc),
+                          nbytes = as.integer(nbytes),
+                          fnRAW = as.character(fnRAW),
+                          PACKAGE = 'qgg'
+                          
+          )
+     }
+     
      #rownames(res$W) <- Wlist$ids[rws]
      #colnames(res$W) <- unlist(Wlist$ids)[cls]
      return(res$W)
@@ -440,6 +460,8 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
      nr <- length(rws)
      af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
      fnRAW <- Wlist$fnRAW
+     OS <- .Platform$OS.type
+     if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
      qc <- .Fortran("qcbed", 
                     n = as.integer(n),
                     nr = as.integer(nr),
@@ -489,6 +511,8 @@ mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      nr <- length(rws)
      af <-rep(0,nc)
      fnRAW <- Wlist$fnRAW
+     OS <- .Platform$OS.type
+     if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
      qc <- .Fortran("mafbed", 
                     n = as.integer(n),
                     nr = as.integer(nr),

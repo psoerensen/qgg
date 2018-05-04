@@ -1,9 +1,20 @@
+!==============================================================================================================
+! functions and subroutines used for bedfiles 
+!==============================================================================================================
+!
+!	https://www.cog-genomics.org/plink2/formats
+!	00 Homozygous for first allele in .bim file
+!	01 Missing genotype
+!	10 Heterozygous
+!	11 Homozygous for second allele in .bim file
+    
 
     module bedfuncs
 
     implicit none
     
     contains
+
 
     function raw2int(n,nbytes,raw) result(g)
     implicit none
@@ -15,7 +26,8 @@
     integer, dimension(4) :: rawcodes
  
     rawcodes = (/ 0, 3, 1, 2 /)
-    
+    ! 00 01 10 11
+
     g=0
     k=0
     do i=1,nbytes 
@@ -30,6 +42,8 @@
 
     end function raw2int
 
+
+
     function raw2real(n,nbytes,raw) result(w)
     implicit none
 
@@ -41,6 +55,7 @@
     real*8, dimension(4) :: rawcodes
  
     rawcodes = (/ 0.0D0, 3.0D0, 1.0D0, 2.0D0 /)
+    ! 00 01 10 11
     
     w=0.0D0
     k=0
@@ -57,6 +72,7 @@
     end function raw2real
 
 
+
     function scale(nr,g) result(w)
     implicit none
 
@@ -64,7 +80,7 @@
     real*8, intent(in) :: g(nr)
     real*8 :: mean,sd,tol,nsize,w(nr)
 
-    tol=0.0001D0
+    tol=0.00001D0
     w=g
     nsize=real(count(w<3.0D0))
     mean=sum(w, mask=w<3.0D0)/nsize
@@ -84,52 +100,68 @@
     end module bedfuncs
 
 
+
+
   !==============================================================================================================
   subroutine readbed(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
   !==============================================================================================================
-  ! use call fseek in combination with stream access
-  ! this should allow reading bedfiles using recl and direct access 
+
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes 
-  real*8 :: W(nr,nc),gsc(nr)
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nchar,offset  
+  real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=1000) :: fnRAW
 
   integer*4, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
-  integer*4 :: i,stat,g(n)
+  integer*4 :: i,stat
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos
 
-  open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
-  !open(unit=13, file=fnRAW, status='old', access='stream', form='unformatted', action='read')
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+  ntotal=real(nr)  
 
   W=0.0D0  
   do i=1,nc 
-    read(13, iostat=stat, rec=cls(i)) raw
-    !pos = 1 + (cls(i)-1)*nbytes
-    !read(13, pos=pos) raw
-    if (stat /= 0) exit
-    g = raw2int(n,nbytes,raw)
+    !read(13, iostat=stat, rec=cls(i)) raw
+    !if (stat /= 0) exit
+    pos = 1 + offset + (cls(i)-1)*nbytes
+    read(13, pos=pos) raw
+    gr = raw2real(n,nbytes,raw)
     if (scaled==0) then
-      where(g==3) g=0
-      W(1:nr,i) = dble(g(rws))
+      where(gr==3.0D0) gr=0.0D0
+      W(1:nr,i) = gr(rws)
     endif
     if (scaled==1) then
-      gsc=dble(g(rws))
+      gsc=gr(rws)
       W(1:nr,i)=scale(nr,gsc)
+    endif
+    if (scaled==2) then
+      nmiss=dble(count(gr==3.0D0))
+      n0=dble(count(gr==0.0D0))
+      n1=dble(count(gr==1.0D0)) 
+      n2=dble(count(gr==2.0D0))
+      af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+      W(1:nr,i) = gr(rws)
+      where(W(1:nr,i)==0.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
+      where(W(1:nr,i)==1.0D0) W(1:nr,i)=1.0D0 - 2.0D0*(af)*(1.0D0-af)
+      where(W(1:nr,i)==2.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
+      where(W(1:nr,i)==3.0D0) W(1:nr,i)=0
     endif
   enddo 
 
   close(unit=13)
 
   end subroutine readbed
-
-
-
 
   !==============================================================================================================
   subroutine qcbed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,ncores)	
@@ -139,7 +171,7 @@
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores 
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,nchar,offset 
   real*8 :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
   character(len=1000) :: fnRAW
 
@@ -156,15 +188,19 @@
   nmiss=0.0D0
   ntotal=real(nr)  
   
-  open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
-  !open(unit=13, file=fnRAW, status='old', access='stream', form='unformatted', action='read')
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
   !$omp parallel do
   do i=1,nc 
-    read(13, iostat=stat, rec=cls(i)) raw
+    !read(13, iostat=stat, rec=cls(i)) raw
     !if (stat /= 0) exit
-    !pos = 1 + (cls(i)-1)*nbytes
-    !read(13, pos=pos) raw
+    pos = 1 + offset + (cls(i)-1)*nbytes
+    read(13, pos=pos) raw
     g = raw2int(n,nbytes,raw)
     grws = g(rws)
     nmiss(i)=dble(count(grws==3))
@@ -173,44 +209,10 @@
     n2(i)=dble(count(grws==2))
     af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
   enddo 
+
   close(unit=13)
 
   end subroutine qcbed
-
-  !==============================================================================================================
-  subroutine mafbed(n,nr,rws,nc,cls,af,nbytes,fnRAW)	
-  !==============================================================================================================
-
-  use bedfuncs 
-  
-  implicit none
-  
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr) 
-  real*8 :: ntotal,af(nc),nmiss(nc)
-  character(len=1000) :: fnRAW
-
-  integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
-  integer :: i, stat
-
-  af=0.0D0
-  nmiss=0.0D0
-  ntotal=real(nr)  
-  
-  open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
-
-  do i=1,nc 
-    read(13, iostat=stat, rec=cls(i)) raw
-    if (stat /= 0) exit
-    g = raw2int(n,nbytes,raw)
-    grws = g(rws)
-    nmiss(i)=dble(count(grws==3))
-    af(i)=sum(grws, mask=grws<3)/(2.0D0*(ntotal-nmiss(i)))
-  enddo 
-
-  close(unit=13)
-
-  end subroutine mafbed
 
 
   !==============================================================================================================
@@ -225,7 +227,7 @@
   
   implicit none
   
-  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores,msize,nprs 
+  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores,msize,nprs,ncw 
   real*8 :: W(nr,msize)
   character(len=1000) :: fnRAW
   real*8 :: prs(nr,nprs),s(nc,nprs)
@@ -236,19 +238,25 @@
   W = 0.0D0 
 
   do i=1,nc,msize
+
+    if((i+msize-1)<nc) ncw = size(cls(i:(i+msize-1)))
+    if((i+msize-1)>=nc) ncw = size(cls(i:nc))          
+
+    call readbed(n,nr,rws,ncw,cls(i:(i+ncw-1)),scaled,W(:,1:ncw),nbytes,fnRAW)
+    call dgemm("n","n",nr,nprs,ncw,1.0d0,W(:,1:ncw),nr,s(i:(i+ncw-1),:),ncw,1.0d0,prs,nr)
   
-  if((i+msize-1)<nc) then 
-    call readbed(n,nr,rws,msize,cls(i:(i+msize-1)),scaled,W,nbytes,fnRAW)
-    k = msize
-    call dgemm("n","n",nr,nprs,k,1.0d0,W,nr,s(i:(i+msize-1),:),k,1.0d0,prs,nr)
-  endif
-  if((i+msize-1)>=nc) then
-    call readbed(n,nr,rws,size(cls(i:nc)),cls(i:nc),scaled,W,nbytes,fnRAW)
-    k = size(cls(i:nc))
-    call dgemm("n","n",nr,nprs,k,1.0d0,W(:,1:size(cls(i:nc))),nr,s(i:nc,:),k,1.0d0,prs,nr)
-  endif  
+    !if((i+msize-1)<nc) then 
+    !  call readbed(n,nr,rws,msize,cls(i:(i+msize-1)),scaled,W,nbytes,fnRAW)
+    !  k = msize
+    !  call dgemm("n","n",nr,nprs,k,1.0d0,W,nr,s(i:(i+msize-1),:),k,1.0d0,prs,nr)
+    !endif
+    !if((i+msize-1)>=nc) then
+    !  call readbed(n,nr,rws,size(cls(i:nc)),cls(i:nc),scaled,W,nbytes,fnRAW)
+    !  k = size(cls(i:nc))
+    !  call dgemm("n","n",nr,nprs,k,1.0d0,W(:,1:size(cls(i:nc))),nr,s(i:nc,:),k,1.0d0,prs,nr)
+    !endif  
   
-  print*,'Finished block',i
+    print*,'Finished block',i
 
   enddo
   end subroutine mmbed
@@ -263,13 +271,15 @@
 
   !implicit none
   
-  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores
+  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,nchar,offset
   real*8 :: y(n),e(n),raww(n),w(n),g(n)
   real*8 :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
   real*8 :: lhs,rhs,snew,tol,sigma,dots
   character(len=1000) :: fnRAW
   real*8, external  :: ddot
 
+  integer, parameter :: k14 = selected_int_kind(14) 
+  integer (kind=k14) :: pos
 
   integer, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
@@ -277,25 +287,33 @@
 
   call omp_set_num_threads(ncores)
 
-  open(unit=13, file=fnRAW, status='old', access='direct', form='unformatted', recl=nbytes)
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
   do i=1,nc
-  read(13, iostat=stat, rec=cls(i)) raw
-  !if (stat /= 0) exit
-  raww = raw2real(n,nbytes,raw)
-  where (raww<3.0D0)
-  w = (raww-mean(i))/sd(i)
-  elsewhere
-  w = 0.0D0
-  end where
-  dww(i)=0.0D0
-  dww(i)=dot_product(w(rws),w(rws))
-  if(s(i).eq.0.0D0) then
-    s(i)=0.0D0  
-    !s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
-    s(i)=(ddot(nr,w(rws),1,y(rws),1)/dww(i))/nc
-  endif     
+    !read(13, iostat=stat, rec=cls(i)) raw
+    !if (stat /= 0) exit
+    pos = 1 + offset + (cls(i)-1)*nbytes
+    read(13, pos=pos) raw
+
+    raww = raw2real(n,nbytes,raw)
+    where (raww<3.0D0)
+      w = (raww-mean(i))/sd(i)
+    elsewhere
+      w = 0.0D0
+    end where
+    dww(i)=0.0D0
+    dww(i)=dot_product(w(rws),w(rws))
+    if(s(i).eq.0.0D0) then
+      s(i)=0.0D0  
+      !s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
+      s(i)=(ddot(nr,w(rws),1,y(rws),1)/dww(i))/nc
+    endif     
   enddo
   close (unit=13)
   os=s
@@ -304,55 +322,56 @@
   e(rws)=y(rws)
 
   do it=1,nit
-  g=0.0D0
-  open (unit=13,file=fnRAW, status='old', form='unformatted', access='direct', recl=nbytes)
-  do i=1,nc
-  read(13, iostat=stat, rec=cls(i)) raw
-  !if (stat /= 0) exit
-  raww = raw2real(n,nbytes,raw)
-  where (raww<3.0D0)
-  w = (raww-mean(i))/sd(i)
-  elsewhere
-  w = 0.0D0
-  end where
-  lhs=dww(i)+lambda(i)
-  !rhs=ddot(nr,w(rws),1,e(rws),1) 
-  !rhs=rhs + dww(i)*s(i)
-  !rhs=dot_product(w(rws),e(rws)) 
-  !rhs=rhs + dww(i)*s(i)
-  dots = 0.0D0
-  !$omp parallel &
-  !$omp   shared ( w,e ) &
-  !$omp   private ( j )
-  !$omp do reduction ( + : dots )
-   do j=1,nr
-    dots = dots + w(rws(j))*e(rws(j))
-   end do
-   !$omp end do
-   !$omp end parallel
-   rhs=dww(i)*s(i)+dots
+    g=0.0D0
+    !open(unit=13,file=fnRAW(1:(nchar+3)), status='old', form='unformatted', access='direct', recl=nbytes)
+    open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+    do i=1,nc
+      !read(13, iostat=stat, rec=cls(i)) raw
+      !if (stat /= 0) exit
+      pos = 1 + offset + (cls(i)-1)*nbytes
+      read(13, pos=pos) raw
+      raww = raw2real(n,nbytes,raw)
+        where (raww<3.0D0)
+        w = (raww-mean(i))/sd(i)
+      elsewhere
+        w = 0.0D0
+      end where
+      lhs=dww(i)+lambda(i)
+      !rhs=ddot(nr,w(rws),1,e(rws),1) 
+      !rhs=rhs + dww(i)*s(i)
+      !rhs=dot_product(w(rws),e(rws)) 
+      !rhs=rhs + dww(i)*s(i)
+      dots = 0.0D0
+      !$omp parallel &
+      !$omp   shared ( w,e ) &
+      !$omp   private ( j )
+      !$omp do reduction ( + : dots )
+      do j=1,nr
+        dots = dots + w(rws(j))*e(rws(j))
+      end do
+      !$omp end do
+      !$omp end parallel
+      rhs=dww(i)*s(i)+dots
 
-
-  snew=rhs/lhs
+      snew=rhs/lhs
   
-  !e(rws)=e(rws) - w(rws)*(snew-s(i))
-  !do j=1,nr
-  !call daxpy(nr, (snew-s(i)), w(rws(j)), 1, e(rws(j)), 1)
-  !enddo
-  !$omp parallel do
-   do j=1,nr
-    e(rws(j))=e(rws(j))-w(rws(j))*(snew-s(i))
-   enddo  
-  !$omp end parallel do
+      !e(rws)=e(rws) - w(rws)*(snew-s(i))
+      !do j=1,nr
+      !call daxpy(nr, (snew-s(i)), w(rws(j)), 1, e(rws(j)), 1)
+      !enddo
+      !$omp parallel do
+      do j=1,nr
+         e(rws(j))=e(rws(j))-w(rws(j))*(snew-s(i))
+      enddo  
+      !$omp end parallel do
 
-
-  s(i)=snew
-  !g=g+w*s(i)
-  enddo
-  close (unit=13)
-  print*,(sum((s-os)**2)/sqrt(dble(nc)))
-  if( (sum((s-os)**2)/sqrt(dble(nc)))<tol) exit  
-  os=s  
+      s(i)=snew
+      !g=g+w*s(i)
+    enddo
+    close (unit=13)
+    print*,(sum((s-os)**2)/sqrt(dble(nc)))
+    if( (sum((s-os)**2)/sqrt(dble(nc)))<tol) exit  
+    os=s  
   enddo
   
   nit=it
@@ -392,33 +411,53 @@
 
 
   !==============================================================================================================
-  subroutine grmbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,G)	
+  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scaled,nbytes,fnRAW,msize,ncores,fnG,gmodel)	
   !==============================================================================================================
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: i,j,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores,msize 
-  real*8 :: G(nr,nr), W(nr,msize), traceG
-  character(len=1000) :: fnRAW
+  integer*4 :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),scaled,nbytes,ncores,msize,nchar,ncw,gmodel 
+  real*8 :: G(nr,nr), W1(nr,msize), traceG
+  character(len=1000) :: fnRAW,fnG
+  real*8, allocatable :: W2(:,:)
 
   call omp_set_num_threads(ncores)
 
   G = 0.0D0
-  W = 0.0D0 
+  W1 = 0.0D0
+  if(gmodel==3) then 
+    allocate(W2(nr,msize))
+    W2 = 0.0D0
+  endif
 
   do i=1,nc,msize
+
+    if((i+msize-1)<nc) ncw = size(cls1(i:(i+msize-1)))
+    if((i+msize-1)>=nc) ncw = size(cls1(i:nc))          
   
-  if((i+msize-1)<nc) then 
-    call readbed(n,nr,rws,msize,cls(i:(i+msize-1)),scaled,W,nbytes,fnRAW)
-    call dsyrk('u', 'n', nr, msize, 1.0D0, W, nr, 1.0D0, G, nr)
-  endif
-  if((i+msize-1)>=nc) then
-    call readbed(n,nr,rws,size(cls(i:nc)),cls(i:nc),scaled,W,nbytes,fnRAW)
-    call dsyrk('u', 'n', nr, size(cls(i:nc)), 1.0D0, W(:,1:size(cls(i:nc))), nr, 1.0D0, G, nr)
-  endif  
+    select case (gmodel)
+
+      case (1) ! additive 
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
+      case (2) ! dominance
+      scaled=2
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
+      case (3) ! epistasis
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls2(i:(i+ncw-1)),scaled,W2(:,1:ncw),nbytes,fnRAW)
+      do j=1,ncw
+        W1(:,j) = W1(:,j)*W2(:,j)
+      enddo
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
+    end select
   
-  print*,'Finished block',i
+    print*,'Finished block',i
 
   enddo
  
@@ -435,5 +474,15 @@
     enddo
   enddo
 
+  nchar=index(fnG, '.grm')
+  open(unit=10, file=fnG(1:(nchar+3)), status='new', access='stream', form='unformatted', action='write')
+  do j=1,size(G,1)
+    write(unit=10) G(1:size(G,1),j)
+  enddo
+  close(10)
+
   end subroutine grmbed
+
+
+  
 
