@@ -16,10 +16,3 @@
 }
 
 
-srun --pty -c 1 --mem=6g --partition=short --job-name=Rint bash
-source /com/extra/R/3.4/load.sh
-
-install.packages("devtools")
-library(devtools)
-install_github("psoerensen/qgg")
-
