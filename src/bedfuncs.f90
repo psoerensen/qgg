@@ -193,7 +193,7 @@
   
   if(nchar>0) offset=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
-  print*,'nchar',fnRAW(1:(nchar+3)),nchar,offset
+  !print*,'nchar',fnRAW(1:(nchar+3)),nchar,offset
 
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
   !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
