@@ -203,6 +203,7 @@
     !read(13, iostat=stat, rec=cls(i)) raw
     !if (stat /= 0) exit
     pos = 1 + offset + (cls(i)-1)*nbytes
+    print*,i,cls(i),pos
     read(13, pos=pos) raw
     g = raw2int(n,nbytes,raw)
     grws = g(rws)
