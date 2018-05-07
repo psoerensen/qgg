@@ -478,7 +478,7 @@
   enddo
 
   nchar=index(fnG, '.grm')
-  open(unit=10, file=fnG(1:(nchar+3)), status='new', access='stream', form='unformatted', action='write')
+  open(unit=10, file=fnG(1:(nchar+3)), status='unknown', access='stream', form='unformatted', action='write')
   do j=1,size(G,1)
     write(unit=10) G(1:size(G,1),j)
   enddo
