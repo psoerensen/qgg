@@ -125,17 +125,17 @@
   nchar=index(fnRAW, '.bed')
   if(nchar>0) offset=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
-  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
   ntotal=real(nr)  
 
   W=0.0D0  
   do i=1,nc 
-    !read(13, iostat=stat, rec=cls(i)) raw
+    read(13, iostat=stat, rec=cls(i)) raw
     !if (stat /= 0) exit
-    pos = 1 + offset + (cls(i)-1)*nbytes
-    read(13, pos=pos) raw
+    !pos = 1 + offset + (cls(i)-1)*nbytes
+    !read(13, pos=pos) raw
     gr = raw2real(n,nbytes,raw)
     if (scaled==0) then
       where(gr==3.0D0) gr=0.0D0
@@ -195,16 +195,15 @@
   if(nchar==0) nchar=index(fnRAW, '.raw')
   print*,'nchar',fnRAW(1:(nchar+3)),nchar,offset
 
-  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
   !$omp parallel do
   do i=1,nc 
-    !read(13, iostat=stat, rec=cls(i)) raw
+    read(13, iostat=stat, rec=cls(i)) raw
     !if (stat /= 0) exit
-    pos = 1 + offset + (cls(i)-1)*nbytes
-    print*,i,cls(i),pos
-    read(13, pos=pos) raw
+    !pos = 1 + offset + (cls(i)-1)*nbytes
+    !read(13, pos=pos) raw
     g = raw2int(n,nbytes,raw)
     grws = g(rws)
     nmiss(i)=dble(count(grws==3))
@@ -295,15 +294,15 @@
   nchar=index(fnRAW, '.bed')
   if(nchar>0) offset=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
-  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
   do i=1,nc
-    !read(13, iostat=stat, rec=cls(i)) raw
+    read(13, iostat=stat, rec=cls(i)) raw
     !if (stat /= 0) exit
-    pos = 1 + offset + (cls(i)-1)*nbytes
-    read(13, pos=pos) raw
+    !pos = 1 + offset + (cls(i)-1)*nbytes
+    !read(13, pos=pos) raw
 
     raww = raw2real(n,nbytes,raw)
     where (raww<3.0D0)
@@ -327,13 +326,13 @@
 
   do it=1,nit
     g=0.0D0
-    !open(unit=13,file=fnRAW(1:(nchar+3)), status='old', form='unformatted', access='direct', recl=nbytes)
-    open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+    open(unit=13,file=fnRAW(1:(nchar+3)), status='old', form='unformatted', access='direct', recl=nbytes)
+    !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
     do i=1,nc
-      !read(13, iostat=stat, rec=cls(i)) raw
+      read(13, iostat=stat, rec=cls(i)) raw
       !if (stat /= 0) exit
-      pos = 1 + offset + (cls(i)-1)*nbytes
-      read(13, pos=pos) raw
+      !pos = 1 + offset + (cls(i)-1)*nbytes
+      !read(13, pos=pos) raw
       raww = raw2real(n,nbytes,raw)
         where (raww<3.0D0)
         w = (raww-mean(i))/sd(i)
