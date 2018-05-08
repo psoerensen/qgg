@@ -88,7 +88,7 @@ computeW <- function(Wlist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
 #' @export
 #'
 
-prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL){
+prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=TRUE){
      
      nfiles <- length(bedfiles)
      
@@ -137,6 +137,13 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Wlist$bedfiles <- bedfiles
           Wlist$bimfiles <- bimfiles
           Wlist$famfiles <- famfiles
+
+          print("Preparing raw file")
+          computeW( Wlist=Wlist, overwrite=overwrite)  # write genotypes to .raw file 
+
+          print("Computing allele frequencies, missingness")
+          Wlist <- summaryW(Wlist=Wlist) # compute allele frequencies, missingness, ....    
+    
 
      }
 
