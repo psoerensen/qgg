@@ -69,7 +69,7 @@ fastlm <- function (y=NULL, X=NULL, sets=NULL) {
           for ( i in 1:nsets) {
                rws <- sets[[i]]
                dfq <- length(rws)
-               q <- crossprod(s[rws,],crossprod(solve(WWi[rws,rws]*sigma_e),s[rws,]))
+               q <- crossprod(s[rws,],crossprod(solve(XXi[rws,rws]*sigma_e),s[rws,]))
                pq <- pchisq(q, df=dfq, lower.tail = FALSE)
                pfstat <- pf(q/dfq, dfq, dfe, lower.tail=FALSE)
                ftest <- rbind(ftest,c(q/dfq,dfq,dfe,pfstat))
