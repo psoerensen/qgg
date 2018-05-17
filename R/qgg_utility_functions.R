@@ -59,7 +59,7 @@ fastlm <- function (y=NULL, X=NULL, sets=NULL) {
      
      se <- sqrt(sse/dfe)*sqrt(diag(XXi))
      stat <- coef/se
-     p <- 2 * pt(-abs(tt), df = dfe)
+     p <- 2 * pt(-abs(stat), df = dfe)
      names(se) <- colnames(X)
      
      sigma_e <- sse/dfe
