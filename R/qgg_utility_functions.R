@@ -28,7 +28,7 @@ rnag <- function(yobs=NULL,ypred=NULL) {
 #' @export
 #'
 
-qcpred <- function(yobs=NULL,ypred=NULL,typeoftrait="quantitative") {
+accuracy <- function(yobs=NULL,ypred=NULL,typeoftrait="quantitative") {
      r2 <- summary(lm(yobs ~ ypred))$r.squared
      pa <- cor(ypred, yobs)
      mspe <- sum((ypred - yobs)^2)/length(yobs)
@@ -42,3 +42,70 @@ qcpred <- function(yobs=NULL,ypred=NULL,typeoftrait="quantitative") {
      return(res)
 }
 
+#' @export
+#'
+
+fastlm <- function (y=NULL, X=NULL, sets=NULL) {
+     
+     XX <-crossprod(X)
+     XXi <- chol2inv(chol(XX))
+     Xy <- crossprod(X,y)
+     coef <- crossprod(XXi,Xy)
+     rownames(coef) <- colnames(X)
+     yhat <- crossprod(t(X),coef)
+     
+     sse <- sum((y-yhat)**2)
+     dfe <- length(y)-ncol(X)
+     
+     se <- sqrt(sse/dfe)*sqrt(diag(XXi))
+     stat <- s/se
+     p <- 2 * pt(-abs(tt), df = dfe)
+     names(se) <- colnames(X)
+     
+     sigma_e <- sse/dfe
+     
+     if (!is.null(sets)) {
+          ftest <- NULL
+          for ( i in 1:nsets) {
+               rws <- sets[[i]]
+               dfq <- length(rws)
+               q <- crossprod(s[rws,],crossprod(solve(WWi[rws,rws]*sigma_e),s[rws,]))
+               pq <- pchisq(q, df=dfq, lower.tail = FALSE)
+               pfstat <- pf(q/dfq, dfq, dfe, lower.tail=FALSE)
+               ftest <- rbind(ftest,c(q/dfq,dfq,dfe,pfstat))
+          }
+          colnames(ftest) <- c("F-stat","dfq","dfe","p")
+          rownames(ftest) <- names(sets)
+     }
+     
+     fit <- list(coef=coef,se=se,stat=stat,p=p,ftest=ftest) 
+     
+     return(fit)
+     
+} 
+
+
+# y <- c(5,8,6,2,3,1,2,4,5)     #dependent/observation
+# x <- c(-1,-1,-1,0,0,0,1,1,1)  #independent
+# d1 <- as.data.frame(cbind(y=y,x=x))
+# 
+# model <- glm(y~x, data=d1, family = poisson(link="log"))
+# summary(model)
+# 
+# X <- cbind(1,x)
+# 
+# #write an interatively reweighted least squares function with log link
+# glmfunc.log <- function(d,betas,iterations=1)
+# {
+#      X <- cbind(1,d[,"x"])
+#      for(i in 1:iterations) {
+#           z <- as.matrix(betas[1]+betas[2]*d[,"x"]+((d[,"y"]-exp(betas[1]+betas[2]*d[,"x"]))/exp(betas[1]+betas[2]*d[,"x"])))
+#           W <- diag(exp(betas[1]+betas[2]*d[,"x"]))
+#           betas <- solve(t(X)%*%W%*%X)%*%t(X)%*%W%*%z
+#           print(betas) 
+#      }
+#      return(list(betas=betas,Information=t(X)%*%W%*%X))
+# }
+# 
+# #run the function
+# model <- glmfunc.log(d=d1,betas=c(1,0),iterations=10)
