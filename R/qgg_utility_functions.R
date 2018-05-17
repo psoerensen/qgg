@@ -28,7 +28,7 @@ rnag <- function(yobs=NULL,ypred=NULL) {
 #' @export
 #'
 
-accuracy <- function(yobs=NULL,ypred=NULL,typeoftrait="quantitative") {
+acc <- function(yobs=NULL,ypred=NULL,typeoftrait="quantitative") {
      r2 <- summary(lm(yobs ~ ypred))$r.squared
      pa <- cor(ypred, yobs)
      mspe <- sum((ypred - yobs)^2)/length(yobs)
