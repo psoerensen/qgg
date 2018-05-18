@@ -78,7 +78,7 @@ fastlm <- function (y=NULL, X=NULL, sets=NULL) {
           rownames(ftest) <- names(sets)
      }
      
-     fit <- list(coef=coef,se=se,stat=stat,p=p,ftest=ftest) 
+     fit <- list(coef=coef,se=se,stat=stat,p=p,ftest=ftest, yhat=yhat) 
      
      return(fit)
      
