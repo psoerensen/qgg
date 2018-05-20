@@ -63,9 +63,8 @@ fastlm <- function (y=NULL, X=NULL, sets=NULL) {
      names(se) <- colnames(X)
      
      sigma_e <- sse/dfe
-     
+     ftest <- NULL
      if (!is.null(sets)) {
-          ftest <- NULL
           for ( i in 1:nsets) {
                rws <- sets[[i]]
                dfq <- length(rws)
