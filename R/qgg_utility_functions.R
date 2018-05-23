@@ -84,6 +84,78 @@ fastlm <- function (y=NULL, X=NULL, sets=NULL) {
 } 
 
 
+
+panel.cor <- function(x, y, ...) {
+     par(usr = c(0, 1, 0, 1))
+     txt <- paste("R2=",as.character(format(cor(x, y)**2, digits=2)))
+     text(0.5, 0.5, txt, cex = 1, col=1)
+}
+
+get_lower_tri<-function(cormat){
+     cormat[upper.tri(cormat)] <- NA
+     return(cormat)
+}
+get_upper_tri <- function(cormat){
+     cormat[lower.tri(cormat)]<- NA
+     return(cormat)
+}
+
+reorder_cormat <- function(cormat){
+     dd <- as.dist((1-cormat)/2)
+     hc <- hclust(dd)
+     cormat <-cormat[hc$order, hc$order]
+     cormat
+}
+
+#' @export
+#'
+
+hmmat <- function(df=NULL,xlab="Cols",ylab="Rows",title=NULL,fname=NULL) {
+     
+     rowOrder <- order(rowSums(df))
+     colOrder <- order(colSums(abs(df)))
+     melted_df <- melt(df[rowOrder,colOrder], na.rm = TRUE)
+     colnames(melted_df)[1:2] <- c(ylab,xlab)
+     
+     tiff(file=fname,res = 300, width = 2800, height = 2200,compression = "lzw")
+     
+     hmplot <- ggplot(melted_df, aes_string(y=ylab,x=xlab)) +
+          ggtitle(title) +
+          geom_tile(aes(fill = value)) + 
+          scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, space = "Lab", name="Statistics")  +
+          theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 8, hjust = 1)) + 
+          coord_fixed()
+     
+     print(hmplot)
+     
+     dev.off()
+     
+}
+
+#' @export
+#'
+
+hmcor <- function(df=NULL,fname=NULL) {
+     cormat <- round(cor(df),2)
+     cormat <- reorder_cormat(cormat)
+     melted_cormat <- melt(get_upper_tri(cormat), na.rm = TRUE)
+     colnames(melted_cormat)[1:2] <- c("Study1","Study2")
+     
+     tiff(file = fname,res = 300, width = 2800, height = 2200,compression = "lzw") 
+     
+     hmplot <- ggplot(melted_cormat, aes(Study2, Study1, fill = value)) +
+          geom_tile(color = "white") +
+          scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab", name="Pearson\nCorrelation") +
+          theme_minimal() + 
+          theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 12, hjust = 1)) +
+          geom_text(aes(Study2, Study1, label = value), color = "black", size = 4) +
+          coord_fixed()
+     
+     print(hmplot)
+     dev.off()
+}
+
+
 # y <- c(5,8,6,2,3,1,2,4,5)     #dependent/observation
 # x <- c(-1,-1,-1,0,0,0,1,1,1)  #independent
 # d1 <- as.data.frame(cbind(y=y,x=x))
