@@ -492,8 +492,8 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
                     PACKAGE = 'qgg'
                     
      )
-     qc$hom <- (qc$n0+qc$n2)/(qc$n-qc$nmiss)
-     qc$het <- qc$n1/(qc$n-qc$nmiss)
+     qc$hom <- (qc$n0+qc$n2)/(qc$nr-qc$nmiss)
+     qc$het <- qc$n1/(qc$nr-qc$nmiss)
      qc$maf <- qc$af
      qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
      rsids <- unlist(Wlist$rsids)[cls]
