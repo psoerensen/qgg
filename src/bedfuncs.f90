@@ -210,7 +210,8 @@
     n0(i)=dble(count(grws==0))
     n1(i)=dble(count(grws==1)) 
     n2(i)=dble(count(grws==2))
-    af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
+    if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
+    !af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
   enddo 
 
   close(unit=13)
