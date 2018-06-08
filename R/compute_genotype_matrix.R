@@ -412,11 +412,12 @@ readbed.R <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rs
 
 
 getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FALSE) {
+     if(is.null(ids)) ids <- Wlist$ids
+     if(is.null(cls)) cls <- match(rsids,unlist(Wlist$rsids))
      W <- readbed(Wlist=Wlist,ids=ids,rsids=rsids,rws=rws,cls=cls,scaled=scaled, method="direct") 
      rownames(W) <- ids
-     colnames(W) <- rsids
-     #if(is.null(ids)) ids <- Wlist$ids
-     #if(is.null(cls)) cls <- match(rsids,unlist(Wlist$rsids))
+     colnames(W) <- unlist(Wlist$rsids)[cls]
+     
      #if(is.null(rws)) rws <- match(ids,Wlist$ids)
      #maf <- unlist(Wlist$maf)[cls]
      #meanW <- 2*maf
