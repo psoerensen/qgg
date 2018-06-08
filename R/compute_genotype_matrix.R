@@ -410,28 +410,32 @@ readbed.R <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rs
 #' @export
 #'
 
+
 getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FALSE) {
-     if(is.null(ids)) ids <- Wlist$ids
-     if(is.null(cls)) cls <- match(rsids,unlist(Wlist$rsids))
-     if(is.null(rws)) rws <- match(ids,Wlist$ids)
-     maf <- unlist(Wlist$maf)[cls]
-     meanW <- 2*maf
-     sdW <- sqrt(2*maf*(1-maf))
-     n <- Wlist$n
+     W <- readbed(Wlist=Wlist,ids=ids,rsids=rsids,rws=rws,cls=cls,scaled=scaled, method="direct") 
+     rownames(W) <- ids
+     colnames(W) <- rsids
+     #if(is.null(ids)) ids <- Wlist$ids
+     #if(is.null(cls)) cls <- match(rsids,unlist(Wlist$rsids))
+     #if(is.null(rws)) rws <- match(ids,Wlist$ids)
+     #maf <- unlist(Wlist$maf)[cls]
+     #meanW <- 2*maf
+     #sdW <- sqrt(2*maf*(1-maf))
+     #n <- Wlist$n
      #W <- matrix(logical(0),nrow=length(rws),ncol=length(cls))
-     W <- rep(0,length(rws)*length(cls))
-     dim(W) <- c(length(rws),length(cls))
-     bfW <- file(Wlist$fnRAW,"rb")
-     current <- 0
-     for (i in 1:length(cls) ) {
-          where <- (cls[i]-current-1)*n
-          current <- cls[i]
-          seek(bfW, where=where, origin="current", rw="read")
-          w <- as.double(readBin( bfW, "raw", n=n, size = 1, endian = "little"))
-          if(scaled) w[w>0] <- (w[w>0]-1-meanW[i])/sdW[i]
-          W[,i] <- w[rws]
-     }
-     close(bfW)
+     #W <- rep(0,length(rws)*length(cls))
+     #dim(W) <- c(length(rws),length(cls))
+     #bfW <- file(Wlist$fnRAW,"rb")
+     #current <- 0
+     #for (i in 1:length(cls) ) {
+     #     where <- (cls[i]-current-1)*n
+     #     current <- cls[i]
+     #     seek(bfW, where=where, origin="current", rw="read")
+     #     w <- as.double(readBin( bfW, "raw", n=n, size = 1, endian = "little"))
+     #     if(scaled) w[w>0] <- (w[w>0]-1-meanW[i])/sdW[i]
+     #     W[,i] <- w[rws]
+     #}
+     #close(bfW)
      return(W)
 }
 
