@@ -258,11 +258,13 @@ readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
      if(is.null(cls)) cls <- 1:m
      if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
      nc <- length(cls)
-     if (is.null(rws)) {
-          rws <- 1:n
-          if(!is.null(ids)) rws <- match(ids,Wlist$ids)
-          if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
-     }
+     if (is.null(rws)) 1:n
+     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     #if (is.null(rws)) {
+     #     rws <- 1:n
+     #     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     #     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
+     #}
      nr <- length(rws)
      fnRAW <- Wlist$fnRAW
      OS <- .Platform$OS.type
