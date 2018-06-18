@@ -103,6 +103,33 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 
 } 
 
+gsett <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
+     
+     m <- length(stat)
+     rws <- 1:m
+     names(rws) <- names(stat)
+     sets <- lapply(sets, function(x) {rws[x]}) 
+     
+     setT <- sapply(sets, function(x) {sum(stat[x])})
+     
+     if (!is.null(nperm)) {
+          p <- rep(0, length(sets)) 
+          n <- length(stat)
+          nset <- sapply(sets, length)
+          sets <- lapply(sets, function(x) {rws[x]}) 
+          for (i in 1:nperm) {
+               rws <- sample(1:n, 1)
+               o <- c(rws:n, 1:(rws - 1))
+               ostat <- stat[o]
+               setTP <- sapply(sets, function(x) {sum(ostat[x])})
+               p <- p + as.numeric(setT > setTP) 
+          }  
+          p <- 1 - p / nperm
+          setT <- data.frame(setT, nset, p)
+     }
+     return(setT)
+}
+
 ####################################################################################################################
 #' 
 #' Genetic marker set tests based on the covariance test

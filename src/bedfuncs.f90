@@ -82,7 +82,8 @@
 
     tol=0.00001D0
     w=g
-    nsize=real(count(w<3.0D0))
+    !nsize=real(count(w<3.0D0))
+    nsize=dble(count(w<3.0D0))
     mean=sum(w, mask=w<3.0D0)/nsize
     where(w<3.0D0) 
     w=w-mean
@@ -128,7 +129,8 @@
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
   !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
-  ntotal=real(nr)  
+  !ntotal=real(nr)  
+  ntotal=dble(nr)  
 
   W=0.0D0  
   do i=1,nc 
@@ -186,7 +188,8 @@
 
   af=0.0D0
   nmiss=0.0D0
-  ntotal=real(nr)  
+  !ntotal=real(nr)  
+  ntotal=dble(nr)  
   
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -469,7 +472,8 @@
   do i=1,size(G,1)
       traceG = traceG + G(i,i)
   enddo
-  traceG = traceG/real(nr) 
+  !traceG = traceG/real(nr) 
+  traceG = traceG/dble(nr) 
  
   do i=1,size(G,1)
     do j=i,size(G,1)
