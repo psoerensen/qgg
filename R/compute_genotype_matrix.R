@@ -145,10 +145,10 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Wlist$famfiles <- famfiles
 
           print("Preparing raw file")
-          computeW( Wlist=Wlist, ids=ids, rsids=rsids, overwrite=overwrite)  # write genotypes to .raw file 
+          computeW( Wlist=Wlist, ids=ids, rsids=Wlist$study_rsids, overwrite=overwrite)  # write genotypes to .raw file 
 
           print("Computing allele frequencies, missingness")
-          Wlist <- summaryW(Wlist=Wlist, ids=ids, rsids=rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
+          Wlist <- summaryW(Wlist=Wlist, ids=ids, rsids=Wlist$study_rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
     
 
      }
