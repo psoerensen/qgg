@@ -119,6 +119,10 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           
           for ( chr in 1:length(bedfiles) ) {
                bim <- read.table(file=bimfiles[chr], header=FALSE)
+               
+               rsidsBIM <- as.character(bim[,2])
+               if(!is.null(rsids)) bim <- droplevels(bim[rsidsBIM%in%rsids,])
+               
                fam <- read.table(file=famfiles[chr], header=FALSE)
                if(any(!Wlist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
                Wlist$alleles[[chr]] <- as.character(bim[,6])   
@@ -220,6 +224,9 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
           fam <- read.table(file=famfiles[chr], header=FALSE)
           n <- nrow(fam)
           m <- nrow(bim)
+          rsidsBIM <- as.character(bim[,2])
+          keep <- rep(TRUE,m)
+          if(!is.null(rsids)) keep <- rsidsBIM%in%rsids
           #indx <- seq(1,n*2,2)
           nbytes <- ceiling(n/4)
           printmarker <- rep(F,m)
@@ -231,7 +238,7 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
                stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
           for ( j in 1:m) {
                raw <- readBin(bfBED, "raw", n=nbytes)
-               writeBin( raw, bfRAW, size = 1, endian = "little")
+               if(keep[j]) writeBin( raw, bfRAW, size = 1, endian = "little")
                #raw <- as.logical(rawToBits(readBin(bfBED, "raw", bsize)))
                #raw1 <- raw[indx]
                #raw2 <- raw[indx+1]
