@@ -132,8 +132,10 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           }   
           Wlist$study_rsids <- NULL
           if(!is.null(rsids)) Wlist$study_rsids <- as.character(rsids) 
-          if(!is.null(rsids)) if( any(!rsids%in%unlist(Wlist$rsids)) ) stop(paste("some rsids not found in bimfiles"))
+          if(!is.null(rsids)) if( any(!rsids%in%unlist(Wlist$rsids)) ) warning(paste("some rsids not found in bimfiles"))
+          Wlist$study_rsids <- unlist(Wlist$rsids)[unlist(Wlist$rsids)%in%rsids]
           
+
           Wlist$mchr <- sapply(Wlist$rsids,length)
           Wlist$m <- sum(Wlist$mchr)
           Wlist$n <- length(Wlist$ids)
