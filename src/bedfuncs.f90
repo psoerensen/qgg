@@ -102,6 +102,44 @@
 
 
 
+  !==============================================================================================================
+  subroutine bed2raw(n,m,cls,nbytes,fnBED,fnRAW)	
+  !==============================================================================================================
+
+  use bedfuncs 
+  
+  implicit none
+  
+  integer*4 :: n,m,cls(m),nbytes,nchar,offset  
+  character(len=1000) :: fnRAW
+  character(len=1000) :: fnBED
+
+  integer*4, parameter :: byte = selected_int_kind(1) 
+  integer(byte) :: raw(nbytes), magic(3)
+  integer*4 :: i,stat
+
+  integer, parameter :: k14 = selected_int_kind(14) 
+  integer (kind=k14) :: pos
+
+  offset=3
+  nchar=index(fnBED, '.bed')
+  open(unit=13, file=fnBED(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+   
+  nchar=index(fnRAW, '.raw')
+  open(unit=14, file=fnRAW(1:(nchar+3)), status='new', access='stream', form='unformatted', action='write')
+ 
+  read(13) magic
+  do i=1,m 
+    read(13) raw
+    if(cls(i)==1) write(14) raw
+  enddo 
+
+  close(unit=13)
+  close(unit=14)
+
+  end subroutine bed2raw
+
+
 
   !==============================================================================================================
   subroutine readbed(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
