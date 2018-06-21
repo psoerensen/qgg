@@ -118,7 +118,7 @@
   integer(byte) :: raw(nbytes), magic(3)
   integer*4 :: i,stat
 
-  integer, parameter :: k14 = selected_int_kind(14) 
+  integer, parameter :: k14 = selected_int_kind(16) 
   integer (kind=k14) :: pos
 
   offset=3
