@@ -123,16 +123,18 @@
 
   offset=3
   nchar=index(fnBED, '.bed')
-  !open(unit=13, file=fnBED(1:(nchar+3)), status='old', access='stream', form='unformatted')
-  open(unit=13, file=fnBED(1:(nchar+3)), status='OLD', ACCESS='STREAM', FORM='UNFORMATTED')
- 
+  open(unit=13, file=fnBED(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
   nchar=index(fnRAW, '.raw')
   open(unit=14, file=fnRAW(1:(nchar+3)), status='new', access='stream', form='unformatted', action='write')
- 
+   
   read(13) magic
   do i=1,m 
     read(13) raw
-    if(cls(i)==1) write(14) raw
+    if(cls(i)==1) then
+      write(14) raw
+      print*, 'writing record', i, 'to file' 
+    endif
   enddo 
 
   close(unit=13)
