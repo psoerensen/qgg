@@ -127,7 +127,7 @@
 
   nchar=index(fnRAW, '.raw')
   open(unit=14, file=fnRAW(1:(nchar+3)), status='new', access='stream', action='write')
-   
+    
   read(13) magic
   do i=1,m 
     !read(13) raw
