@@ -130,11 +130,17 @@
    
   read(13) magic
   do i=1,m 
-    read(13) raw
+    !read(13) raw
     if(cls(i)==1) then
+    pos = 1 + offset + (i-1)*nbytes
+    read(13, pos=pos) raw
       write(14) raw
       print*, 'writing record', i, 'to file' 
     endif
+    !if(cls(i)==1) then
+    !  write(14) raw
+    !  print*, 'writing record', i, 'to file' 
+    !endif
   enddo 
 
   close(unit=13)
