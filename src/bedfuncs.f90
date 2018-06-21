@@ -123,8 +123,9 @@
 
   offset=3
   nchar=index(fnBED, '.bed')
-  open(unit=13, file=fnBED(1:(nchar+3)), status='old', access='stream', form='unformatted')
-   
+  !open(unit=13, file=fnBED(1:(nchar+3)), status='old', access='stream', form='unformatted')
+  open(unit=13, file=fnBED(1:(nchar+3)), status='OLD', ACCESS='STREAM', FORM='UNFORMATTED')
+ 
   nchar=index(fnRAW, '.raw')
   open(unit=14, file=fnRAW(1:(nchar+3)), status='new', access='stream', form='unformatted', action='write')
  
