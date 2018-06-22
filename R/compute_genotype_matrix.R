@@ -118,12 +118,15 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           if(!is.null(ids)) if(any(!ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
           
           for ( chr in 1:length(bedfiles) ) {
-               bim <- read.table(file=bimfiles[chr], header=FALSE)
-               
+               #bim <- read.table(file=bimfiles[chr], header=FALSE)
+               bim <- fread(input=bimfiles[chr], header=FALSE)
+
                rsidsBIM <- as.character(bim[,2])
                if(!is.null(rsids)) bim <- droplevels(bim[rsidsBIM%in%rsids,])
                
-               fam <- read.table(file=famfiles[chr], header=FALSE)
+               #fam <- read.table(file=famfiles[chr], header=FALSE)
+               fam <- fread(input=famfiles[chr], header=FALSE)
+               
                if(any(!Wlist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
                Wlist$alleles[[chr]] <- as.character(bim[,6])   
                Wlist$position[[chr]] <- as.numeric(bim[,4])   
