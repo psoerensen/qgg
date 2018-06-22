@@ -103,14 +103,14 @@
 
 
   !==============================================================================================================
-  subroutine bed2raw(n,m,cls,nbytes,fnBED,fnRAW)	
+  subroutine bed2raw(n,m,cls,nbytes,append,fnBED,fnRAW)	
   !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,m,cls(m),nbytes,nchar  
+  integer*4 :: n,m,cls(m),nbytes,nchar,append  
   character(len=1000) :: fnRAW
   character(len=1000) :: fnBED
 
@@ -126,7 +126,8 @@
   open(unit=13, file=fnBED(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
   nchar=index(fnRAW, '.raw')
-  open(unit=14, file=fnRAW(1:(nchar+3)), status='new', access='stream', action='write')
+  if (append==0) open(unit=14, file=fnRAW(1:(nchar+3)), status='new', access='stream', action='write')
+  if (append==1) open(unit=14, file=fnRAW(1:(nchar+3)), status='old', access='stream', action='write',position='append')
   
   nbytes14 = nbytes
   offset14 = offset
