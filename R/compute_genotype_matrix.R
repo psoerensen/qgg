@@ -219,11 +219,13 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
           warning(paste("fnRAW file allready exist"))
           if(!overwrite) stop(paste("fnRAW file allready exist"))
      }
-     bfRAW <- file(fnRAW,"wb")
+     #bfRAW <- file(fnRAW,"wb")
      for ( chr in 1:length(bedfiles)) {
           print(paste("Processing bedfile:",bedfiles[chr]))
-          bim <- read.table(file=bimfiles[chr], header=FALSE)
-          fam <- read.table(file=famfiles[chr], header=FALSE)
+          #bim <- read.table(file=bimfiles[chr], header=FALSE)
+          #fam <- read.table(file=famfiles[chr], header=FALSE)
+          bim <- fread(input=bimfiles[i], header=FALSE)
+          fam <- fread(input=famfiles[i], header=FALSE)
           n <- nrow(fam)
           m <- nrow(bim)
           rsidsBIM <- as.character(bim[,2])
@@ -238,22 +240,35 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
           magic <- readBin(bfBED, "raw", n=3)
           if (!all(magic[1] == "6c", magic[2] == "1b", magic[3] == "01"))
                stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
-          for ( j in 1:m) {
-               raw <- readBin(bfBED, "raw", n=nbytes)
-               if(keep[j]) writeBin( raw, bfRAW, size = 1, endian = "little")
-               #raw <- as.logical(rawToBits(readBin(bfBED, "raw", bsize)))
-               #raw1 <- raw[indx]
-               #raw2 <- raw[indx+1]
-               #isNA <- raw1==1 & raw2==0
-               #g <- raw1 + raw2 + 1
-               #g[isNA] <- 0
-               #writeBin( as.raw(g[rws]), bfRAW, size = 1, endian = "little")
-               if(printmarker[j]) print(paste("Finished marker",j))
-          }
+          #for ( j in 1:m) {
+          #     raw <- readBin(bfBED, "raw", n=nbytes)
+          #     if(keep[j]) writeBin( raw, bfRAW, size = 1, endian = "little")
+          #     #raw <- as.logical(rawToBits(readBin(bfBED, "raw", bsize)))
+          #     #raw1 <- raw[indx]
+          #     #raw2 <- raw[indx+1]
+          #     #isNA <- raw1==1 & raw2==0
+          #     #g <- raw1 + raw2 + 1
+          #     #g[isNA] <- 0
+          #     #writeBin( as.raw(g[rws]), bfRAW, size = 1, endian = "little")
+          #     if(printmarker[j]) print(paste("Finished marker",j))
+          #}
           close(bfBED)
+          append <- 1 
+          if(chr==1) append <- 0
+          res <- .Fortran("bed2raw", 
+                          n = as.integer(n),
+                          m = as.integer(m),
+                          cls = as.integer(keep),
+                          nbytes = as.integer(nbytes),
+                          append = as.integer(append),
+                          fnBED = as.character(fnBED),
+                          fnRAW = as.character(fnRAW),
+                          PACKAGE = 'qgg'
+                          
+          )
           print(paste("Finished processing bedfile:",bedfiles[chr]))
      }
-     close(bfRAW)
+     #close(bfRAW)
      
 }
 
