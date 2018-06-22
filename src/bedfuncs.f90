@@ -110,16 +110,16 @@
   
   implicit none
   
-  integer*4 :: n,m,cls(m),nbytes,nchar,offset  
+  integer*4 :: n,m,cls(m),nbytes,nchar  
   character(len=1000) :: fnRAW
   character(len=1000) :: fnBED
 
   integer*4, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes), magic(3)
-  integer*4 :: i,stat
+  integer*4 :: stat,i
 
-  integer, parameter :: k14 = selected_int_kind(16) 
-  integer (kind=k14) :: pos
+  integer, parameter :: k14 = selected_int_kind(14) 
+  integer (kind=k14) :: pos, nbytes14, offset14,i14
 
   offset=3
   nchar=index(fnBED, '.bed')
@@ -127,12 +127,16 @@
 
   nchar=index(fnRAW, '.raw')
   open(unit=14, file=fnRAW(1:(nchar+3)), status='new', access='stream', action='write')
-    
+  
+  nbytes14 = nbytes
+  offset14 = offset
+  
   read(13) magic
   do i=1,m 
     !read(13) raw
     if(cls(i)==1) then
-    pos = 1 + offset + (i-1)*nbytes
+    i14=i
+    pos = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos) raw
       write(14) raw
       print*, 'writing record', i, 'to file' 
