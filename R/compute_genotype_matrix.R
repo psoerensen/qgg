@@ -112,7 +112,8 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Wlist$nchr <- nchr
           
           Wlist$study_ids <- NULL
-          fam <- read.table(file=famfiles[1], header=FALSE)
+          #fam <- read.table(file=famfiles[1], header=FALSE)
+          fam <- fread(input=famfiles[1], header=FALSE)
           Wlist$ids <- as.character(fam[,2])
           if(!is.null(ids)) Wlist$study_ids <- as.character(ids) 
           if(!is.null(ids)) if(any(!ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
