@@ -10,10 +10,10 @@ License: GPL-3
 Encoding: UTF-8
 Depends:
     regress,
-    MASS,
-    data.table
+    data.table,
+    MASS
 Imports:
     regress,
-    data.table
+    data.table,
     MASS
 RoxygenNote: 5.0.1
