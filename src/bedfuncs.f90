@@ -580,7 +580,7 @@
   enddo
 
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
-  !$omp parallel do private(t,i,raww,w)
+  !!$omp parallel do private(t,i,raww,w)
   do i=1,nc
     read(13, pos=pos(i)) raw
     raww = raw2real(n,nbytes,raw)
@@ -597,7 +597,7 @@
       endif
     enddo     
   enddo
-  !$omp end parallel do
+  !!$omp end parallel do
 
   close (unit=13)
   os=s
