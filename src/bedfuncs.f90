@@ -134,7 +134,6 @@
   
   read(13) magic
   do i=1,m 
-    !read(13) raw
     if(cls(i)==1) then
     i14=i
     pos = 1 + offset14 + (i14-1)*nbytes14
@@ -142,10 +141,6 @@
       write(14) raw
       print*, 'writing record', i, 'to file' 
     endif
-    !if(cls(i)==1) then
-    !  write(14) raw
-    !  print*, 'writing record', i, 'to file' 
-    !endif
   enddo 
 
   close(unit=13)
@@ -545,4 +540,115 @@
 
 
   
+!==============================================================================================================
+  subroutine mtsolvebed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,ncores,nit,lambda,tol,nt,y,g,e,s,mean,sd)
+!==============================================================================================================
+
+  use bedfuncs 
+
+  !implicit none
+  
+  integer*4 :: i,j,k,n,nr,nc,nt,t,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,nchar,offset
+  real*8 :: y(n,nt),e(n,nt),raww(n),w(n),g(n,nt),crit(nt)
+  real*8 :: dww(nc),s(nc,nt),os(nc,nt),lambda(nc,nt),mean(nc),sd(nc)
+  real*8 :: lhs,rhs,snew,tol,sigma,dots
+  character(len=1000) :: fnRAW
+  real*8, external  :: ddot
+
+  integer, parameter :: k14 = selected_int_kind(14) 
+  integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
+
+  integer, parameter :: byte = selected_int_kind(1) 
+  integer(byte) :: raw(nbytes)
+  integer :: stat
+
+  call omp_set_num_threads(ncores)
+
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+  nbytes14 = nbytes
+  offset14 = offset
+
+  do i=1,nc
+    i14=cls(i)
+    pos(i) = 1 + offset14 + (i14-1)*nbytes14
+  enddo
+
+  ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
+  !$omp parallel do private(t,i,raww,w)
+  do i=1,nc
+    read(13, pos=pos(i)) raw
+    raww = raw2real(n,nbytes,raw)
+    where (raww<3.0D0)
+      w = (raww-mean(i))/sd(i)
+    elsewhere
+      w = 0.0D0
+    end where
+    dww(i)=0.0D0
+    dww(i)=dot_product(w(rws),w(rws))
+    do t=1,nt
+      if(s(i,t).eq.0.0D0) then
+        s(i,t)=(ddot(nr,w(rws),1,y(rws,t),1)/dww(i))/nc
+      endif
+    enddo     
+  enddo
+  !$omp end parallel do
+
+  close (unit=13)
+  os=s
+
+  e=0.0D0
+  e(rws,1:nt)=y(rws,1:nt)
+
+  do it=1,nit
+    g=0.0D0
+    open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+    do i=1,nc
+
+     read(13, pos=pos(i)) raw
+      raww = raw2real(n,nbytes,raw)
+        where (raww<3.0D0)
+        w = (raww-mean(i))/sd(i)
+      elsewhere
+        w = 0.0D0
+      end where
+
+      !$omp parallel do private(t,i,j,lhs,rhs,dots,snew)
+      !$omp& reduction(+:dots)
+      do t=1,nt
+        lhs=dww(i)+lambda(i,t)
+        dots = 0.0D0
+        do j=1,nr
+          dots = dots + w(rws(j))*e(rws(j),t)
+        end do
+        rhs=dww(i)*s(i,t)+dots
+        snew=rhs/lhs
+        e(rws,t)=e(rws,t)-w(rws)*(snew-s(i,t))
+        s(i,t)=snew
+        g(1:n,t)=g(1:n,t)+w*s(i,t)
+      enddo
+      !$omp end parallel do
+
+    enddo
+    close (unit=13)
+    do t=1,nt
+      crit(t) = sum((s(1:nc,t)-os(1:nc,t))**2)/sqrt(dble(nc))
+      print*,crit(t)
+    enddo
+    os=s  
+    if( maxval(crit)<tol ) exit
+
+  enddo
+  
+  nit=it
+  tol=sum((s-os)**2)
+  
+  end subroutine mtsolvebed
+
 
