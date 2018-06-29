@@ -620,7 +620,7 @@
       end where
 
       !$omp parallel do private(t,i,j,lhs,rhs,snew, dots) &
-      !!$omp& reduction(+:dots)
+      !$omp& reduction(+:dots)
       do t=1,nt
         lhs=dww(i)+lambda(t)
         dots = 0.0D0
