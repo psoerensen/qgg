@@ -646,7 +646,7 @@
   enddo
   
   nit=it
-  tol=sum((s-os)**2)
+  !tol=sum((s-os)**2)
   
   end subroutine mtsolvebed
 
