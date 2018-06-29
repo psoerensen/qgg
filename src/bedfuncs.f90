@@ -619,8 +619,8 @@
         w = 0.0D0
       end where
 
-      !$omp parallel do private(t,i,j,lhs,rhs,snew) &
-      !$omp& reduction(+:dots)
+      !!$omp parallel do private(t,i,j,lhs,rhs,snew) &
+      !!$omp& reduction(+:dots)
       do t=1,nt
         lhs(t)=dww(i)+lambda(t)
         dots(t) = 0.0D0
@@ -633,7 +633,7 @@
         s(i,t)=snew(t)
         g(1:n,t)=g(1:n,t)+w*s(i,t)
       enddo
-      !$omp end parallel do
+      !!$omp end parallel do
 
     enddo
     close (unit=13)
