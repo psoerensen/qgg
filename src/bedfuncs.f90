@@ -622,16 +622,12 @@
       !$omp parallel do private(t,i,j,lhs,rhs,dots,snew)
       do t=1,nt
         lhs(t)=dww(i)+lambda(t)
-        !dots(t) = 0.0D0
         dots(t) = dot_product(w(rws),e(rws,t))
-        !do j=1,nr
-        !  dots(t) = dots(t) + w(rws(j))*e(rws(j),t)
-        !end do
         rhs(t)=dww(i)*s(i,t)+dots(t)
         snew(t)=rhs(t)/lhs(t)
         e(rws,t)=e(rws,t)-w(rws)*(snew(t)-s(i,t))
         s(i,t)=snew(t)
-        g(1:n,t)=g(1:n,t)+w*s(i,t)
+        !g(1:n,t)=g(1:n,t)+w*s(i,t)
       enddo
       !$omp end parallel do
 
