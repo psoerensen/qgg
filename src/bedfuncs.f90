@@ -551,7 +551,7 @@
   integer*4 :: i,j,k,n,nr,nc,nt,t,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,nchar,offset
   real*8 :: y(n,nt),e(n,nt),raww(n),w(n),g(n,nt),crit(nt)
   real*8 :: dww(nc),s(nc,nt),os(nc,nt),lambda(nt),mean(nc),sd(nc)
-  real*8 :: lhs(t),rhs(t),snew(t),dots(t),tol,sigma
+  real*8 :: lhs(nt),rhs(nt),snew(nt),dots(nt),tol,sigma
   character(len=1000) :: fnRAW
   real*8, external  :: ddot
 
