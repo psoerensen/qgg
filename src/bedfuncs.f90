@@ -621,7 +621,7 @@
       do t=1,nt
       g(1:n,t)=W
       enddo
-      !$omp parallel do private(t,i,j,lhs,rhs,dots,snew)
+      !$omp parallel do private(t,j)
       do t=1,nt
         lhs(t)=dww(i)+lambda(t)
         !dots(t) = dot_product(w(rws),e(rws,t))
