@@ -551,7 +551,7 @@
   integer*4 :: i,j,k,n,nr,nc,nt,t,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,nchar,offset
   real*8 :: y(n,nt),e(n,nt),raww(n),w(n),g(n,nt),crit(nt)
   real*8 :: dww(nc),s(nc,nt),os(nc,nt),lambda(nc,nt),mean(nc),sd(nc)
-  real*8 :: lhs,rhs,snew,tol,sigma,dots
+  real*8 :: lhs,rhs,snew,tol,sigma,dots(nt)
   character(len=1000) :: fnRAW
   real*8, external  :: ddot
 
@@ -619,15 +619,15 @@
         w = 0.0D0
       end where
 
-      !$omp parallel do private(t,i,j,lhs,rhs,dots,snew) &
+      !$omp parallel do private(t,i,j,lhs,rhs,snew) &
       !$omp& reduction(+:dots)
       do t=1,nt
         lhs=dww(i)+lambda(i,t)
-        dots = 0.0D0
+        dots(t) = 0.0D0
         do j=1,nr
-          dots = dots + w(rws(j))*e(rws(j),t)
+          dots(t) = dots(t) + w(rws(j))*e(rws(j),t)
         end do
-        rhs=dww(i)*s(i,t)+dots
+        rhs=dww(i)*s(i,t)+dots(t)
         snew=rhs/lhs
         e(rws,t)=e(rws,t)-w(rws)*(snew-s(i,t))
         s(i,t)=snew
