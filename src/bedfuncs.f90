@@ -619,7 +619,7 @@
         w = 0.0D0
       end where
 
-      !$omp parallel do private(t,i,j)
+      !$omp parallel do private(t,i,j,w)
       do t=1,nt
         lhs(t)=dww(i)+lambda(t)
         dots(t) = 0.0D0
