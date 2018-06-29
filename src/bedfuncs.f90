@@ -624,8 +624,8 @@
       do t=1,nt
         lhs=dww(i)+lambda(t)
         dots = 0.0D0
-        !$omp atomic update
         do j=1,nr
+          !$omp atomic update
           dots = dots + w(rws(j))*e(rws(j),t)
         end do
         rhs=dww(i)*s(i,t)+dots
