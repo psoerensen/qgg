@@ -619,20 +619,20 @@
         w = 0.0D0
       end where
 
-      !$omp parallel do private(t,i,j,lhs,rhs,snew)
-      do t=1,nt
-        lhs=dww(i)+lambda(t)
-        dots(t) = 0.0D0
-        do j=1,nr
-          dots(t) = dots(t) + w(rws(j))*e(rws(j),t)
-        end do
-        rhs=dww(i)*s(i,t)+dots(t)
-        snew=rhs/lhs
-        e(rws,t)=e(rws,t)-w(rws)*(snew-s(i,t))
-        s(i,t)=snew
-        g(1:n,t)=g(1:n,t)+w*s(i,t)
-      enddo
-      !$omp end parallel do
+     ! !$omp parallel do private(t,i,j,lhs,rhs,snew)
+     ! do t=1,nt
+     !   lhs=dww(i)+lambda(t)
+     !   dots(t) = 0.0D0
+     !   do j=1,nr
+     !     dots(t) = dots(t) + w(rws(j))*e(rws(j),t)
+     !   end do
+     !   rhs=dww(i)*s(i,t)+dots(t)
+     !   snew=rhs/lhs
+     !   e(rws,t)=e(rws,t)-w(rws)*(snew-s(i,t))
+     !   s(i,t)=snew
+     !   g(1:n,t)=g(1:n,t)+w*s(i,t)
+     ! enddo
+     ! !$omp end parallel do
 
     enddo
     close (unit=13)
