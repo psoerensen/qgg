@@ -624,16 +624,26 @@
       !$omp parallel do private(t,j)
       do t=1,nt
         lhs(t)=dww(i)+lambda(t)
-        dots(t) = dot_product(w(rws),e(rws,t))
-        !dots(t) = dot_product(g(rws,t),e(rws,t))
+        !dots(t) = dot_product(w(rws),e(rws,t))
+        do j=1,nr
+          dots(t) = dots(t) + w(rws(j))*e(rws(j),t)
+        end do
         rhs(t)=dww(i)*s(i,t)+dots(t)
         snew(t)=rhs(t)/lhs(t)
         e(rws,t)=e(rws,t)-w(rws)*(snew(t)-s(i,t))
-        !e(rws,t)=e(rws,t)-g(rws,t)*(snew(t)-s(i,t))
         s(i,t)=snew(t)
         !g(1:n,t)=g(1:n,t)+w*s(i,t)
       enddo
       !$omp end parallel do
+
+
+  !subroutine mmbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
+  !==============================================================================================================
+  ! C = A*B (dimenions: mxn = mxk kxn) 
+  ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,0.0d0,c,m)
+  ! C = A*B + C
+  ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,1.0d0,c,m)
+
 
     enddo
     close (unit=13)
@@ -650,5 +660,4 @@
   !tol=sum((s-os)**2)
   
   end subroutine mtsolvebed
-
 
