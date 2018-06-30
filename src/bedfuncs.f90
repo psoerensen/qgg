@@ -591,11 +591,13 @@
     end where
     dww(i)=0.0D0
     dww(i)=dot_product(w(rws),w(rws))
+    !$omp parallel do private(t)
     do t=1,nt
       if(s(i,t).eq.0.0D0) then
         s(i,t)=(ddot(nr,w(rws),1,y(rws,t),1)/dww(i))/nc
       endif
     enddo     
+    !$omp end parallel do
   enddo
   !!$omp end parallel do
 
@@ -618,9 +620,7 @@
       elsewhere
         w = 0.0D0
       end where
-      do t=1,nt
-      g(1:n,t)=W
-      enddo
+
       !$omp parallel do private(t,j)
       do t=1,nt
         lhs(t)=dww(i)+lambda(t)
@@ -636,15 +636,6 @@
         !g(1:n,t)=g(1:n,t)+w*s(i,t)
       enddo
       !$omp end parallel do
-
-
-  !subroutine mmbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
-  !==============================================================================================================
-  ! C = A*B (dimenions: mxn = mxk kxn) 
-  ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,0.0d0,c,m)
-  ! C = A*B + C
-  ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,1.0d0,c,m)
-
 
     enddo
     close (unit=13)
