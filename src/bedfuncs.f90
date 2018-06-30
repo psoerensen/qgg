@@ -625,6 +625,7 @@
       do t=1,nt
         lhs(t)=dww(i)+lambda(t)
         !dots(t) = dot_product(w(rws),e(rws,t))
+        dots(t)=0.0D0
         do j=1,nr
           dots(t) = dots(t) + w(rws(j))*e(rws(j),t)
         end do
