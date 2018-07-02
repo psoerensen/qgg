@@ -549,7 +549,8 @@
   !implicit none
   
   integer*4 :: i,j,k,n,nr,nc,nt,t,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,nchar,offset
-  real*8 :: y(n,nt),e(n,nt),raww(n),w(n),g(n,nt),crit(nt)
+  real*8 :: y(n,nt),e(n,nt),g(n,nt),crit(nt)
+  real*8, save :: raww(n),w(n)
   real*8 :: dww(nc),s(nc,nt),os(nc,nt),lambda(nt),mean(nc),sd(nc)
   real*8 :: lhs(nt),rhs(nt),snew(nt),dots(nt),tol,sigma
   character(len=1000) :: fnRAW
@@ -559,7 +560,7 @@
   integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
 
   integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
+  integer(byte), save :: raw(nbytes)
   integer :: stat
 
   call omp_set_num_threads(ncores)
