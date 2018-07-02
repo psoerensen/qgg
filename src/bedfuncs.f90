@@ -580,7 +580,7 @@
   enddo
 
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
-  !!$omp parallel do private(t,i,raw,raww,w)
+  !$omp parallel do private(t,i,raw,raww,w)
   do i=1,nc
     read(13, pos=pos(i)) raw
     raww = raw2real(n,nbytes,raw)
@@ -591,15 +591,15 @@
     end where
     dww(i)=0.0D0
     dww(i)=dot_product(w(rws),w(rws))
-    !$omp parallel do private(t)
+    !!$omp parallel do private(t)
     do t=1,nt
       if(s(i,t).eq.0.0D0) then
         s(i,t)=(ddot(nr,w(rws),1,y(rws,t),1)/dww(i))/nc
       endif
     enddo     
-    !$omp end parallel do
+    !!$omp end parallel do
   enddo
-  !!$omp end parallel do
+  !$omp end parallel do
 
   close (unit=13)
   os=s
