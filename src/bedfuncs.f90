@@ -550,7 +550,7 @@
   
   integer*4 :: i,j,k,n,nr,nc,nt,t,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,nchar,offset
   real*8 :: y(n,nt),e(n,nt),g(n,nt),crit(nt)
-  real*8 :: raww(n),w(n)
+  real*8 :: raww(n),w(n),rawwc(n,ncores),wc(n,ncores)
   real*8 :: dww(nc),s(nc,nt),os(nc,nt),lambda(nt),mean(nc),sd(nc)
   real*8 :: lhs(nt),rhs(nt),snew(nt),dots(nt),tol,sigma
   character(len=1000) :: fnRAW
@@ -560,7 +560,7 @@
   integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
 
   integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
+  integer(byte) :: raw(nbytes),rawc(nbytes,ncores)
   integer :: stat
 
   call omp_set_num_threads(ncores)
@@ -581,26 +581,27 @@
   enddo
 
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
-  !!$omp parallel do private(t,i,raw,raww,w)
+  !$omp parallel do private(t,i,j)
   do i=1,nc
-    read(13, pos=pos(i)) raw
-    raww = raw2real(n,nbytes,raw)
-    where (raww<3.0D0)
-      w = (raww-mean(i))/sd(i)
+    j <- omp_get_thread_num()+1
+    read(13, pos=pos(i)) rawc(1:n,j)
+    raww(1:n,j) = raw2real(n,nbytes,rawc(1:n,j))
+    where (raww(1:n,j)<3.0D0)
+      w(1:n,j) = (raww(1:n,j)-mean(i))/sd(i)
     elsewhere
-      w = 0.0D0
+      w(1:n,j) = 0.0D0
     end where
     dww(i)=0.0D0
-    dww(i)=dot_product(w(rws),w(rws))
-    !$omp parallel do private(t)
+    dww(i)=dot_product(w(rws,j),w(rws,j))
+    !!$omp parallel do private(t)
     do t=1,nt
       if(s(i,t).eq.0.0D0) then
-        s(i,t)=(ddot(nr,w(rws),1,y(rws,t),1)/dww(i))/nc
+        s(i,t)=(ddot(nr,w(rws,j),1,y(rws,t),1)/dww(i))/nc
       endif
     enddo     
-    !$omp end parallel do
+    !!$omp end parallel do
   enddo
-  !!$omp end parallel do
+  !$omp end parallel do
 
   close (unit=13)
   os=s
