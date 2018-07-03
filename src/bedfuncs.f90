@@ -592,7 +592,7 @@
       w = 0.0D0
     end where
     dww(i)=0.0D0
-    dww(i)=dot_product(w(rws),wc(rws))
+    dww(i)=dot_product(w(rws),w(rws))
     !$omp parallel do private(t)
     do t=1,nt
       if(s(i,t).eq.0.0D0) then
