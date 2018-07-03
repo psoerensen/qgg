@@ -586,7 +586,7 @@
   !$omp parallel do private(t,i,j)
   do i=1,nc
     j = omp_get_thread_num()+1
-    #read(13, pos=pos(i)) rawc(1:n,j)
+    !read(13, pos=pos(i)) rawc(1:n,j)
     rawwc(1:n,j) = raw2real(n,nbytes,rawc(1:n,i))
     where (rawwc(1:n,j)<3.0D0)
       wc(1:n,j) = (rawwc(1:n,j)-mean(i))/sd(i)
