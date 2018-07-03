@@ -585,18 +585,18 @@
   do i=1,nc
     j <- omp_get_thread_num()+1
     read(13, pos=pos(i)) rawc(1:n,j)
-    raww(1:n,j) = raw2real(n,nbytes,rawc(1:n,j))
-    where (raww(1:n,j)<3.0D0)
-      w(1:n,j) = (raww(1:n,j)-mean(i))/sd(i)
+    rawwc(1:n,j) = raw2real(n,nbytes,rawc(1:n,j))
+    where (rawwc(1:n,j)<3.0D0)
+      wc(1:n,j) = (rawwc(1:n,j)-mean(i))/sd(i)
     elsewhere
-      w(1:n,j) = 0.0D0
+      wc(1:n,j) = 0.0D0
     end where
     dww(i)=0.0D0
-    dww(i)=dot_product(w(rws,j),w(rws,j))
+    dww(i)=dot_product(wc(rws,j),wc(rws,j))
     !!$omp parallel do private(t)
     do t=1,nt
       if(s(i,t).eq.0.0D0) then
-        s(i,t)=(ddot(nr,w(rws,j),1,y(rws,t),1)/dww(i))/nc
+        s(i,t)=(ddot(nr,wc(rws,j),1,y(rws,t),1)/dww(i))/nc
       endif
     enddo     
     !!$omp end parallel do
