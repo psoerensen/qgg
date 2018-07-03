@@ -583,7 +583,7 @@
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
   !$omp parallel do private(t,i,j)
   do i=1,nc
-    j <- omp_get_thread_num()+1
+    j = omp_get_thread_num()+1
     read(13, pos=pos(i)) rawc(1:n,j)
     rawwc(1:n,j) = raw2real(n,nbytes,rawc(1:n,j))
     where (rawwc(1:n,j)<3.0D0)
