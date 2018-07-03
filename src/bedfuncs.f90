@@ -561,7 +561,7 @@
   integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
 
   integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes),rawc(nbytes,ncores)
+  integer(byte) :: raw(nbytes),rawc(nbytes,nc)
   integer :: stat
 
   call omp_set_num_threads(ncores)
@@ -579,14 +579,15 @@
   do i=1,nc
     i14=cls(i)
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos(i)) rawc(1:n,i)
   enddo
 
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
   !$omp parallel do private(t,i,j)
   do i=1,nc
     j = omp_get_thread_num()+1
-    read(13, pos=pos(i)) rawc(1:n,j)
-    rawwc(1:n,j) = raw2real(n,nbytes,rawc(1:n,j))
+    #read(13, pos=pos(i)) rawc(1:n,j)
+    rawwc(1:n,j) = raw2real(n,nbytes,rawc(1:n,i))
     where (rawwc(1:n,j)<3.0D0)
       wc(1:n,j) = (rawwc(1:n,j)-mean(i))/sd(i)
     elsewhere
