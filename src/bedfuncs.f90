@@ -555,6 +555,7 @@
   real*8 :: lhs(nt),rhs(nt),snew(nt),dots(nt),tol,sigma
   character(len=1000) :: fnRAW
   real*8, external  :: ddot
+  integer*4, external :: omp_get_thread_num
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
