@@ -29,11 +29,11 @@ rnag <- function(yobs=NULL,ypred=NULL) {
 #'
 
 acc <- function(yobs=NULL,ypred=NULL,typeoftrait="quantitative") {
-     r2 <- summary(lm(yobs ~ ypred))$r.squared
+     r2 <- summary(lm(ypred ~ yobs))$r.squared
      pa <- cor(ypred, yobs)
      mspe <- sum((ypred - yobs)^2)/length(yobs)
-     intercept <- lm(yobs ~ ypred )$coef[1]
-     slope <- lm(yobs ~ ypred)$coef[2]
+     intercept <- lm(ypred ~ yobs )$coef[1]
+     slope <- lm(ypred ~ yobs)$coef[2]
      aurc <- r2nag <- NA
      if(typeoftrait=="binary") aurc <- auc(yobs=yobs,ypred=ypred)
      if(typeoftrait=="binary") r2nag <- rnag(yobs=yobs,ypred=ypred)
