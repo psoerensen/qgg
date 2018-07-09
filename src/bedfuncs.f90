@@ -356,6 +356,7 @@
   !$omp parallel do private(i,j)
   do i=1,nc
     j=omp_get_thread_num()+1 
+    print*,i,j
     read(13, pos=pos(i)) raw(1:n,j)
     g(1:n,j) = raw2int(n,nbytes,raw(1:n,j))
     grws(1:nr,j) = g(rws,j)
