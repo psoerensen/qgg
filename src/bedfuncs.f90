@@ -212,6 +212,51 @@
 
   end subroutine readbed
 
+
+  !==============================================================================================================
+  subroutine readbedstream(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
+  !==============================================================================================================
+
+  use bedfuncs 
+  
+  implicit none
+  
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nchar,offset  
+  real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  character(len=1000) :: fnRAW
+
+  integer*4, parameter :: byte = selected_int_kind(1) 
+  integer(byte) :: raw(nbytes)
+  integer*4 :: i,stat
+
+  integer, parameter :: k14 = selected_int_kind(14) 
+  integer (kind=k14) :: pos,nbytes14,offset14,i14
+
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.bed')
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+  ntotal=dble(nr)  
+
+  nbytes14 = nbytes
+  offset14 = offset
+
+  W=0.0D0  
+  do i=1,nc 
+    i14=cls(i)
+    pos = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos) raw
+    gr = raw2real(n,nbytes,raw)
+    gsc=gr(rws)
+    W(1:nr,i)=scale(nr,gsc)
+  enddo 
+
+  close(unit=13)
+
+  end subroutine readbedstream
+
   !==============================================================================================================
   subroutine qcbed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,ncores)	
   !==============================================================================================================
@@ -267,6 +312,62 @@
   close(unit=13)
 
   end subroutine qcbed
+
+  !==============================================================================================================
+  subroutine mafbed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,ncores)	
+  !==============================================================================================================
+
+  use bedfuncs 
+  
+  implicit none
+  
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n,ncores),grws(nr,ncores),ncores,nchar,offset 
+  real*8 :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
+  character(len=1000) :: fnRAW
+
+  integer, parameter :: byte = selected_int_kind(1) 
+  integer(byte) :: raw(nbytes,ncores)
+  integer :: i,j
+
+  integer, parameter :: k14 = selected_int_kind(14) 
+  integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
+
+  call omp_set_num_threads(ncores)
+
+  af=0.0D0
+  nmiss=0.0D0
+  ntotal=dble(nr)  
+
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.bed')
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+  nbytes14 = nbytes
+  offset14 = offset
+  do i=1,nc 
+    i14=cls(i)
+    pos(i) = 1 + offset14 + (i14-1)*nbytes14
+  enddo
+
+  !$omp parallel do private(i,j)
+  do i=1,nc
+    j=omp_get_thread_num()+1 
+    read(13, pos=pos(i)) raw(1:n,j)
+    g(1:n,j) = raw2int(n,nbytes,raw(1:n,j))
+    grws(1:nr,j) = g(rws,j)
+    nmiss(i)=dble(count(grws(1:nr,j)==3))
+    n0(i)=dble(count(grws(1:nr,j)==0))
+    n1(i)=dble(count(grws(1:nr,j)==1)) 
+    n2(i)=dble(count(grws(1:nr,j)==2))
+    if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
+  enddo 
+  !$omp end parallel do
+
+  close(unit=13)
+
+  end subroutine mafbed
 
 
   !==============================================================================================================
