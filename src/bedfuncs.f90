@@ -327,7 +327,7 @@
   integer, external :: omp_get_thread_num
 
   integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes,nc)
+  integer(byte) :: raw(nbytes,ncores)
   integer :: i,j
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -351,15 +351,14 @@
   do i=1,nc 
     i14=cls(i)
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos(i)) raw(1:nbytes,i)
+    !read(13, pos=pos(i)) raw(1:nbytes,i)
   enddo
 
   !$omp parallel do private(i,j)
   do i=1,nc
     j=omp_get_thread_num()+1 
-    print*,i,j
-    read(13, pos=pos(i)) raw(1:n,j)
-    g(1:n,j) = raw2int(n,nbytes,raw(1:n,i))
+    read(13, pos=pos(i)) raw(1:nbytes,j)
+    g(1:n,j) = raw2int(n,nbytes,raw(1:n,j))
     grws(1:nr,j) = g(rws,j)
     nmiss(i)=dble(count(grws(1:nr,j)==3))
     n0(i)=dble(count(grws(1:nr,j)==0))
