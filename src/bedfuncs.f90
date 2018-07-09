@@ -324,6 +324,7 @@
   integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n,ncores),grws(nr,ncores),ncores,nchar,offset 
   real*8 :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
   character(len=1000) :: fnRAW
+  integer, external :: omp_get_thread_num
 
   integer, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes,ncores)
