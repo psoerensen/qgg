@@ -342,7 +342,7 @@
   offset=0
   nchar=index(fnRAW, '.bed')
   if(nchar>0) offset=3
-  if(nchar==0) nchar=index(fnRAW, '.bed')
+  if(nchar==0) nchar=index(fnRAW, '.raw')
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
   nbytes14 = nbytes
