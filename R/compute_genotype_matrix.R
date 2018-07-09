@@ -546,7 +546,7 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
 #' @export
 #'
 
-mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) { 
+mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) { 
      n <- Wlist$n
      m <- Wlist$m
      nbytes <- ceiling(n/4)
@@ -557,7 +557,7 @@ mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
      if(!is.null(ids)) rws <- match(ids,Wlist$ids)
      if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
      nr <- length(rws)
-     af <-rep(0,nc)
+     af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
      fnRAW <- Wlist$fnRAW
      OS <- .Platform$OS.type
      if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
@@ -568,17 +568,33 @@ mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL) {
                     nc = as.integer(nc),
                     cls = as.integer(cls),
                     af = as.double(af),  
+                    nmiss = as.double(nmiss),  
+                    n0 = as.double(n0),  
+                    n1 = as.double(n1),  
+                    n2 = as.double(n2),  
                     nbytes = as.integer(nbytes),  
                     fnRAW = as.character(fnRAW),                     
+                    ncores = as.integer(ncores),  
                     PACKAGE = 'qgg'
                     
      )
+     qc$hom <- (qc$n0+qc$n2)/(qc$nr-qc$nmiss)
+     qc$het <- qc$n1/(qc$nr-qc$nmiss)
      qc$maf <- qc$af
      qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
      rsids <- unlist(Wlist$rsids)[cls]
+     names(qc$af) <- rsids
      names(qc$maf) <- rsids
-     return(qc$maf)
+     names(qc$hom) <- rsids
+     names(qc$het) <- rsids
+     names(qc$n0) <- rsids
+     names(qc$n1) <- rsids
+     names(qc$n2) <- rsids
+     names(qc$nmiss) <- rsids
+     return(qc)
 }
+
+
 
 
 #######################################################################################

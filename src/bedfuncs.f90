@@ -351,7 +351,6 @@
   do i=1,nc 
     i14=cls(i)
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
-    !read(13, pos=pos(i)) raw(1:nbytes,i)
   enddo
 
   !$omp parallel do private(i,j)
