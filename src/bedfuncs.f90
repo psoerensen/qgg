@@ -818,7 +818,7 @@
 
   ld=0.0D0
 
-  !$omp parallel do private(i,j,k,dots)
+  !$omp parallel do private(i,j,k)
   do i=1,nc
     thread=omp_get_thread_num()+1 
     w1(1:4000,thread) = raw2real(4000,1000,raww(1:1000,i))
