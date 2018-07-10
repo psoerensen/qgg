@@ -279,7 +279,7 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
 #' @export
 #'
 
-readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE, method="direct") { 
+readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE, method="direct", ncores=1) { 
      n <- Wlist$n
      m <- Wlist$m
      nbytes <- ceiling(n/4)
@@ -323,6 +323,7 @@ readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
                           W = matrix(as.double(0),nrow=nr,ncol=nc),
                           nbytes = as.integer(nbytes),
                           fnRAW = as.character(fnRAW),
+                          ncores = as.integer(ncores),
                           PACKAGE = 'qgg'
                           
           )
