@@ -786,7 +786,7 @@
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchar,offset,msize, 
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchar,offset,msize
   real*8 :: ld(nc,2*msize+1),w1(4000,ncores),w2(4000,ncores),dots(msize,ncores)
   character(len=1000) :: fnRAW,fnLD
   integer, external :: omp_get_thread_num
