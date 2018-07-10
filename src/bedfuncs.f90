@@ -164,7 +164,7 @@
 
   integer*4, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
-  integer*4 :: i
+  integer*4 :: i, stat
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos,nbytes14,offset14,i14
