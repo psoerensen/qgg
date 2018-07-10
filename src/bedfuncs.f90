@@ -428,23 +428,115 @@
 
     call readbed(n,nr,rws,ncw,cls(i:(i+ncw-1)),scaled,W(:,1:ncw),nbytes,fnRAW)
     call dgemm("n","n",nr,nprs,ncw,1.0d0,W(:,1:ncw),nr,s(i:(i+ncw-1),:),ncw,1.0d0,prs,nr)
-  
-    !if((i+msize-1)<nc) then 
-    !  call readbed(n,nr,rws,msize,cls(i:(i+msize-1)),scaled,W,nbytes,fnRAW)
-    !  k = msize
-    !  call dgemm("n","n",nr,nprs,k,1.0d0,W,nr,s(i:(i+msize-1),:),k,1.0d0,prs,nr)
-    !endif
-    !if((i+msize-1)>=nc) then
-    !  call readbed(n,nr,rws,size(cls(i:nc)),cls(i:nc),scaled,W,nbytes,fnRAW)
-    !  k = size(cls(i:nc))
-    !  call dgemm("n","n",nr,nprs,k,1.0d0,W(:,1:size(cls(i:nc))),nr,s(i:nc,:),k,1.0d0,prs,nr)
-    !endif  
-  
+ 
     print*,'Finished block',i
 
   enddo
   end subroutine mmbed
 
+
+      subroutine bedgemm(imax,ncores)
+      implicit none
+      !integer,parameter::imax=1024*4
+      integer :: imax,ncores
+      real*8::flop
+      real*8, dimension(:,:), allocatable::a,b,c
+      !integer::i,j,m,k,n
+      real*8::time0,start,finish
+      external dgemm      
+
+      allocate(a(imax,imax),b(imax,imax),c(imax,imax)) 
+
+      call omp_set_num_threads(ncores)
+
+      flop=real(imax)*real(imax)*real(imax)*2.0D0
+      c(:,:) = 0.0d0
+      a(:,:) = 1.0d0
+      b(:,:) = 2.0d0
+ 
+      start = time()
+      call dgemm("n","n",imax,imax,imax,1.0d0,a,imax,b,imax,0.0d0,c,imax)
+      finish = time()
+      time0 = finish - start
+      print*, "omp time:",time0, flop/time0/1000000000.0D0,"Gflops"
+      deallocate(a,b,c)
+
+      end subroutine bedgemm
+
+
+  !==============================================================================================================
+  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scaled,nbytes,fnRAW,msize,ncores,fnG,gmodel)	
+  !==============================================================================================================
+  use bedfuncs 
+  
+  implicit none
+  
+  integer*4 :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),scaled,nbytes,ncores,msize,nchar,ncw,gmodel 
+  real*8 :: G(nr,nr), W1(nr,msize), traceG
+  character(len=1000) :: fnRAW,fnG
+  real*8, allocatable :: W2(:,:)
+
+  call omp_set_num_threads(ncores)
+
+  G = 0.0D0
+  W1 = 0.0D0
+  if(gmodel==3) then 
+    allocate(W2(nr,msize))
+    W2 = 0.0D0
+  endif
+
+  do i=1,nc,msize
+
+    if((i+msize-1)<nc) ncw = size(cls1(i:(i+msize-1)))
+    if((i+msize-1)>=nc) ncw = size(cls1(i:nc))          
+  
+    select case (gmodel)
+
+      case (1) ! additive 
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
+      case (2) ! dominance
+      scaled=2
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
+      case (3) ! epistasis
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls2(i:(i+ncw-1)),scaled,W2(:,1:ncw),nbytes,fnRAW)
+      do j=1,ncw
+        W1(:,j) = W1(:,j)*W2(:,j)
+      enddo
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
+    end select
+  
+    print*,'Finished block',i
+
+  enddo
+ 
+  traceG = 0.0D0
+  do i=1,size(G,1)
+      traceG = traceG + G(i,i)
+  enddo
+  !traceG = traceG/real(nr) 
+  traceG = traceG/dble(nr) 
+ 
+  do i=1,size(G,1)
+    do j=i,size(G,1)
+      G(i,j) = G(i,j)/traceG
+      G(j,i) = G(i,j)
+    enddo
+  enddo
+
+  nchar=index(fnG, '.grm')
+  open(unit=10, file=fnG(1:(nchar+3)), status='unknown', access='stream', form='unformatted', action='write')
+  do j=1,size(G,1)
+    write(unit=10) G(1:size(G,1),j)
+  enddo
+  close(10)
+
+  end subroutine grmbed
 
 
 !==============================================================================================================
@@ -565,108 +657,6 @@
 
 
 
-      subroutine bedgemm(imax,ncores)
-      implicit none
-      !integer,parameter::imax=1024*4
-      integer :: imax,ncores
-      real*8::flop
-      real*8, dimension(:,:), allocatable::a,b,c
-      !integer::i,j,m,k,n
-      real*8::time0,start,finish
-      external dgemm      
-
-      allocate(a(imax,imax),b(imax,imax),c(imax,imax)) 
-
-      call omp_set_num_threads(ncores)
-
-      flop=real(imax)*real(imax)*real(imax)*2.0D0
-      c(:,:) = 0.0d0
-      a(:,:) = 1.0d0
-      b(:,:) = 2.0d0
- 
-      start = time()
-      call dgemm("n","n",imax,imax,imax,1.0d0,a,imax,b,imax,0.0d0,c,imax)
-      finish = time()
-      time0 = finish - start
-      print*, "omp time:",time0, flop/time0/1000000000.0D0,"Gflops"
-      deallocate(a,b,c)
-
-      end subroutine bedgemm
-
-
-  !==============================================================================================================
-  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scaled,nbytes,fnRAW,msize,ncores,fnG,gmodel)	
-  !==============================================================================================================
-  use bedfuncs 
-  
-  implicit none
-  
-  integer*4 :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),scaled,nbytes,ncores,msize,nchar,ncw,gmodel 
-  real*8 :: G(nr,nr), W1(nr,msize), traceG
-  character(len=1000) :: fnRAW,fnG
-  real*8, allocatable :: W2(:,:)
-
-  call omp_set_num_threads(ncores)
-
-  G = 0.0D0
-  W1 = 0.0D0
-  if(gmodel==3) then 
-    allocate(W2(nr,msize))
-    W2 = 0.0D0
-  endif
-
-  do i=1,nc,msize
-
-    if((i+msize-1)<nc) ncw = size(cls1(i:(i+msize-1)))
-    if((i+msize-1)>=nc) ncw = size(cls1(i:nc))          
-  
-    select case (gmodel)
-
-      case (1) ! additive 
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
-      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
-
-      case (2) ! dominance
-      scaled=2
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
-      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
-
-      case (3) ! epistasis
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
-      call readbed(n,nr,rws,ncw,cls2(i:(i+ncw-1)),scaled,W2(:,1:ncw),nbytes,fnRAW)
-      do j=1,ncw
-        W1(:,j) = W1(:,j)*W2(:,j)
-      enddo
-      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
-
-    end select
-  
-    print*,'Finished block',i
-
-  enddo
- 
-  traceG = 0.0D0
-  do i=1,size(G,1)
-      traceG = traceG + G(i,i)
-  enddo
-  !traceG = traceG/real(nr) 
-  traceG = traceG/dble(nr) 
- 
-  do i=1,size(G,1)
-    do j=i,size(G,1)
-      G(i,j) = G(i,j)/traceG
-      G(j,i) = G(i,j)
-    enddo
-  enddo
-
-  nchar=index(fnG, '.grm')
-  open(unit=10, file=fnG(1:(nchar+3)), status='unknown', access='stream', form='unformatted', action='write')
-  do j=1,size(G,1)
-    write(unit=10) G(1:size(G,1),j)
-  enddo
-  close(10)
-
-  end subroutine grmbed
 
 
   
@@ -784,4 +774,77 @@
   !tol=sum((s-os)**2)
   
   end subroutine mtsolvebed
+
+
+
+
+  !==============================================================================================================
+  subroutine ldbed(n,nr,rws,nc,cls,msize,nbytes,fnRAW,ncores)	
+  !==============================================================================================================
+
+  use bedfuncs 
+  
+  implicit none
+  
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchar,offset,msize, 
+  real*8 :: ld(nc,2*msize+1),w1(4000,ncores),w2(4000,ncores),dots(msize,ncores)
+  character(len=1000) :: fnRAW,fnLD
+  integer, external :: omp_get_thread_num
+
+  integer, parameter :: byte = selected_int_kind(1) 
+  integer(byte) :: raw(nbytes),raww(1000,nc)
+  integer :: i,j,k,thread
+
+  integer, parameter :: k14 = selected_int_kind(14) 
+  integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
+
+  call omp_set_num_threads(ncores)
+
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+  nbytes14 = nbytes
+  offset14 = offset
+  do i=1,nc 
+    i14=cls(i)
+    pos(i) = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos(i)) raw
+    raww(1:1000,i)=raw(1:1000,i)
+  enddo
+
+  ld=0.0D0
+
+  !$omp parallel do private(i,j,k,dots)
+  do i=1,nc
+    thread=omp_get_thread_num()+1 
+    w1(1:4000,thread) = raw2real(4000,1000,raww(1:1000,i))
+    w1(1:4000,thread)=scale(4000,w1(1:4000,thread))
+    dots=0.0D0
+    do j=1,msize
+      k = i+j
+      if(k<(nc+1)) then 
+        w2(1:4000,thread) = raw2real(4000,1000,raww(1:1000,k))
+        w2(1:4000,thread)=scale(4000,w2(1:4000,thread))
+        dots(j,thread) = dot_product(w1(1:4000,thread),w2(1:4000,thread))/4000.0D0
+      endif
+    enddo
+    ld(i,(i+1):(i+msize))=dots(1:msize,thread)
+  enddo 
+  !$omp end parallel do
+
+  close(unit=13)
+
+  !nchar=index(fnLD, '.ld')
+  !open(unit=14, file=fnLD(1:(nchar+2)), status='new', access='sequential', form='unformatted', action='write')
+  !do i=1:nc
+  !  write(unit=14) ld(i,1:(2*msize+1))
+  !enddo
+  !close(14)
+
+  end subroutine ldbed
+
 
