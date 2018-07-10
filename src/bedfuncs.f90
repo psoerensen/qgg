@@ -228,7 +228,7 @@
   integer, external :: omp_get_thread_num
 
   integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos,nbytes14,offset14,i14
+  integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
 
   offset=0
   nchar=index(fnRAW, '.bed')
