@@ -224,7 +224,8 @@
 
   integer*4, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes,nc)
-  integer*4 :: i,stat
+  integer*4 :: i,j
+  integer, external :: omp_get_thread_num
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos,nbytes14,offset14,i14
