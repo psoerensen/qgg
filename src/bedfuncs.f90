@@ -813,7 +813,7 @@
     i14=cls(i)
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos(i)) raw
-    raww(1:1000,i)=raw(1:1000,i)
+    raww(1:1000,i)=raw(1:1000)
   enddo
 
   ld=0.0D0
