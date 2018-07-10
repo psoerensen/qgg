@@ -230,6 +230,8 @@
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
 
+  call omp_set_num_threads(ncores)
+
   offset=0
   nchar=index(fnRAW, '.bed')
   if(nchar>0) offset=3
