@@ -823,16 +823,16 @@
     thread=omp_get_thread_num()+1 
     w1(1:4000,thread) = raw2real(4000,1000,raww(1:1000,i))
     w1(1:4000,thread)=scale(4000,w1(1:4000,thread))
-    dots=0.0D0
-    do j=1,msize
-      k = i+j
-      if(k<(nc+1)) then 
-        w2(1:4000,thread) = raw2real(4000,1000,raww(1:1000,k))
-        w2(1:4000,thread)=scale(4000,w2(1:4000,thread))
-        dots(j,thread) = dot_product(w1(1:4000,thread),w2(1:4000,thread))/4000.0D0
-      endif
-    enddo
-    ld(i,(i+1):(i+msize))=dots(1:msize,thread)
+    !dots=0.0D0
+    !do j=1,msize
+    !  k = i+j
+    !  if(k<(nc+1)) then 
+    !    w2(1:4000,thread) = raw2real(4000,1000,raww(1:1000,k))
+    !    w2(1:4000,thread)=scale(4000,w2(1:4000,thread))
+    !    dots(j,thread) = dot_product(w1(1:4000,thread),w2(1:4000,thread))/4000.0D0
+    !  endif
+    !enddo
+    !ld(i,(i+1):(i+msize))=dots(1:msize,thread)
   enddo 
   !$omp end parallel do
 
