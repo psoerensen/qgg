@@ -817,7 +817,7 @@
   enddo
 
   ld=0.0D0
-
+  ld(:,msize+1) = 1.0D0
   !$omp parallel do private(i,j,k)
   do i=1,nc
     thread=omp_get_thread_num()+1 
@@ -833,6 +833,16 @@
       endif
     enddo
     ld(i,(msize+1):(2*msize+1))=dots(1:msize,thread)
+    dots=0.0D0
+    do j=1,msize
+      k = i-j
+      if(k>1) then 
+        w2(1:4000,thread) = raw2real(4000,1000,raww(1:1000,k))
+        w2(1:4000,thread)=scale(4000,w2(1:4000,thread))
+        dots(j,thread) = dot_product(w1(1:4000,thread),w2(1:4000,thread))/4000.0D0
+      endif
+    enddo
+    ld(i,1:msize)=dots(msize:1,thread)
   enddo 
   !$omp end parallel do
 
