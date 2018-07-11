@@ -786,19 +786,21 @@
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchar,offset,msize
-  real*8 :: ld(nc,2*msize+1),w1(4000,ncores),w2(4000,ncores),dots(msize,ncores)
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchar,offset,msize,nrw
+  real*8 :: ld(nc,2*msize+1),w1(nr*4,ncores),w2(nr*4,ncores),dots(msize,ncores)
   character(len=1000) :: fnRAW,fnLD
   integer, external :: omp_get_thread_num
 
   integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes),raww(1000,nc)
+  integer(byte) :: raw(nbytes),raww(nr,nc)
   integer :: i,j,k,thread
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
 
   call omp_set_num_threads(ncores)
+
+  nrw =nr*4
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -813,23 +815,23 @@
     i14=cls(i)
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos(i)) raw
-    raww(1:1000,i)=raw(1:1000)
+    raww(1:nr,i)=raw(rws)
   enddo
 
   ld=0.0D0
-  ld(:,msize+1) = 1.0D0
+  ld(1:nc,msize+1) = 1.0D0
   !$omp parallel do private(i,j,k)
   do i=1,nc
     thread=omp_get_thread_num()+1 
-    w1(1:4000,thread) = raw2real(4000,1000,raww(1:1000,i))
-    w1(1:4000,thread)=scale(4000,w1(1:4000,thread))
+    w1(1:nrw,thread) = raw2real(nrw,nr,raww(rws,i))
+    w1(1:nrw,thread)=scale(nrw,w1(1:nrw,thread))
     dots=0.0D0
     do j=1,msize
       k = i+j
       if(k<(nc+1)) then 
-        w2(1:4000,thread) = raw2real(4000,1000,raww(1:1000,k))
-        w2(1:4000,thread)=scale(4000,w2(1:4000,thread))
-        dots(j,thread) = dot_product(w1(1:4000,thread),w2(1:4000,thread))/4000.0D0
+        w2(1:nrw,thread) = raw2real(nrw,nr,raww(rws,k))
+        w2(1:nrw,thread)=scale(nrw,w2(1:nrw,thread))
+        dots(j,thread) = dot_product(w1(1:nrw,thread),w2(1:nrw,thread))/dble(nrw)
       endif
     enddo
     ld(i,(msize+1):(2*msize+1))=dots(1:msize,thread)
@@ -837,9 +839,9 @@
     do j=1,msize
       k = i-j
       if(k>1) then 
-        w2(1:4000,thread) = raw2real(4000,1000,raww(1:1000,k))
-        w2(1:4000,thread)=scale(4000,w2(1:4000,thread))
-        dots(j,thread) = dot_product(w1(1:4000,thread),w2(1:4000,thread))/4000.0D0
+        w2(1:nrw,thread) = raw2real(nrw,nr,raww(rws,k))
+        w2(1:nrw,thread)=scale(nrw,w2(1:nrw,thread))
+        dots(j,thread) = dot_product(w1(1:nrw,thread),w2(1:nrw,thread))/dble(nrw)
       endif
     enddo
     ld(i,1:msize)=dots(msize:1,thread)
