@@ -779,7 +779,7 @@
 
 
   !==============================================================================================================
-  subroutine ldbed(n,nr,rws,nc,cls,msize,nbytes,fnRAW,ncores)	
+  subroutine ldbed(n,nr,rws,nc,cls,msize,nbytes,fnRAW,ncores,fnLD)	
   !==============================================================================================================
 
   use bedfuncs 
@@ -848,12 +848,12 @@
 
   close(unit=13)
 
-  !nchar=index(fnLD, '.ld')
-  !open(unit=14, file=fnLD(1:(nchar+2)), status='new', access='sequential', form='unformatted', action='write')
-  !do i=1:nc
-  !  write(unit=14) ld(i,1:(2*msize+1))
-  !enddo
-  !close(14)
+  nchar=index(fnLD, '.ld')
+  open(unit=14, file=fnLD(1:(nchar+2)), status='unknown', access='sequential', form='unformatted', action='write')
+  do i=1:nc
+    write(unit=14) ld(i,1:(2*msize+1))
+  enddo
+  close(14)
 
   end subroutine ldbed
 
