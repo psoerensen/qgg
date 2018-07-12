@@ -814,13 +814,13 @@
   do i=1,nc 
     i14=cls(i)
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos(i)) raw
+    read(13, pos=pos(i)) raw(rws)
     raww(1:nr,i)=raw(rws)
   enddo
 
   ld=0.0D0
   ld(1:nc,msize+1) = 1.0D0
-  !$omp parallel do private(i,j,k)
+  !$omp parallel do private(i,j,k,thread)
   do i=1,nc
     thread=omp_get_thread_num()+1 
     w1(1:nrw,thread) = raw2real(nrw,nr,raww(rws,i))
