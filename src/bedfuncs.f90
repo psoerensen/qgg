@@ -844,7 +844,7 @@
         dots(j,thread) = dot_product(w1(1:nrw,thread),w2(1:nrw,thread))/dble(nrw)
       endif
     enddo
-    ld(i,1:msize)=dots(msize:1,thread)
+    ld(i,1:msize)=dots(msize:1:-1,thread)
   enddo 
   !$omp end parallel do
 
