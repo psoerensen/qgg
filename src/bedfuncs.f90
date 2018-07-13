@@ -832,9 +832,10 @@
         w2(1:nrw,thread) = raw2real(nrw,nr,raww(rws,k))
         w2(1:nrw,thread)=scale(nrw,w2(1:nrw,thread))
         dots(j,thread) = dot_product(w1(1:nrw,thread),w2(1:nrw,thread))/dble(nrw)
+        ld(i,msize+1+j)=dots(j,thread)
       endif
     enddo
-    ld(i,(msize+1):(2*msize+1))=dots(1:msize,thread)
+    !ld(i,(msize+1):(2*msize+1))=dots(1:msize,thread)
     dots=0.0D0
     do j=1,msize
       k = i-j
@@ -842,9 +843,10 @@
         w2(1:nrw,thread) = raw2real(nrw,nr,raww(rws,k))
         w2(1:nrw,thread)=scale(nrw,w2(1:nrw,thread))
         dots(j,thread) = dot_product(w1(1:nrw,thread),w2(1:nrw,thread))/dble(nrw)
+        ld(i,msize+1-j)=dots(j,thread)
       endif
     enddo
-    ld(i,1:msize)=dots(msize:1:-1,thread)
+    !ld(i,1:msize)=dots(msize:1:-1,thread)
   enddo 
   !$omp end parallel do
 
