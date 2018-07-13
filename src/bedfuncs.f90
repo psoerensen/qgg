@@ -851,7 +851,7 @@
   close(unit=13)
 
   nchar=index(fnLD, '.ld')
-  open(unit=14, file=fnLD(1:(nchar+2)), status='unknown', access='sequential', form='unformatted', action='write')
+  open(unit=14, file=fnLD(1:(nchar+2)), status='unknown', access='stream', form='unformatted', action='write')
   do i=1,nc
     write(unit=14) ld(i,1:(2*msize+1))
   enddo
