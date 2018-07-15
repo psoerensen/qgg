@@ -874,7 +874,7 @@
 
   nchar=index(fnBIN, '.bin')
   open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  read(13, iostat=stat) raw
+  read(13) raw
   close(unit=13)
   w = raw(rws)
 
