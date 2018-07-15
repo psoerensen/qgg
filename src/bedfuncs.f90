@@ -874,7 +874,7 @@
 
   nchar=index(fnBIN, '.bin')
   !open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='direct', form='unformatted', action='read')
-  open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=n)
+  open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=n*8)
   read(13, rec=1) raw
   close(unit=13)
   w = raw(rws)
