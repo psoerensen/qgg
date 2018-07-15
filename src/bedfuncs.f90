@@ -860,3 +860,22 @@
   end subroutine ldbed
 
 
+
+
+  !==============================================================================================================
+  subroutine readbin(n,nr,rws,w,nbytes,fnBIN)	
+  !==============================================================================================================
+
+  implicit none
+  
+  integer*4 :: n,nr,rws(nr),nbytes,nchar  
+  real*8 :: w(nr),raw(n)
+  character(len=1000) :: fnBIN
+
+  nchar=index(fnBIN, '.bin')
+  open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  read(13, iostat=stat) raw
+  close(unit=13)
+  w = raw(rws)
+
+  end subroutine readbin
