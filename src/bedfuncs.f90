@@ -868,15 +868,20 @@
 
   implicit none
   
-  integer*4 :: n,nr,rws(nr),nbytes,nchar  
+  integer*4 :: n,nr,rws(nr),nbytes,nchar,i  
   real*8 :: w(nr),raw(n)
   character(len=1000) :: fnBIN
 
+
   nchar=index(fnBIN, '.bin')
   !open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='direct', form='unformatted', action='read')
+
+  do i =1,1000 
   open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=n*8)
   read(13, rec=1) raw
   close(unit=13)
   w = raw(rws)
+  print*,i 
+  enddo
 
   end subroutine readbin
