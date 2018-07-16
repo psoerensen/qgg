@@ -925,10 +925,11 @@
   nchar=index(fnBIN, '.bin')
   open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=8)
   do i=1,nc
+    raw=0.0D0
     do j=1,n,1000
       k = cls(i) + j - 1 
       if(j < (n-1000-1) ) read(13, rec=k) raw(j:(j+1000-1))
-      if(j > (n-1000-1) ) read(13, rec=k) raw(j:n)
+      !if(j > (n-1000-1) ) read(13, rec=k) raw(j:n)
     enddo
     W(1:nr,i) = raw(rws)
   enddo
