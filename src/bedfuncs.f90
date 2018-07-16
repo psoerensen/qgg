@@ -911,6 +911,7 @@
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos(i)) raw
     W(1:nr,i) = raw(rws)
+    call flush(13)
   enddo
 
   !nchar=index(fnBIN, '.bin')
