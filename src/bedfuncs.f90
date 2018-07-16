@@ -885,3 +885,27 @@
   enddo
 
   end subroutine readbin
+
+
+  !==============================================================================================================
+  subroutine readmatbin(n,nr,rws,nc,cls,w,nbytes,fnBIN)	
+  !==============================================================================================================
+
+  implicit none
+  
+  integer*4 :: n,nr,rws(nr),nc,cls(nc),nbytes,nchar,i  
+  real*8 :: w(nr,nc),raw(n)
+  character(len=1000) :: fnBIN
+
+
+  nchar=index(fnBIN, '.bin')
+  open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=n*8)
+
+  do i=1,nc 
+    read(13, rec=cls(i)) raw
+    w(1:nr,i) = raw(rws)
+  enddo
+
+  close(unit=13)
+
+  end subroutine readmatbin
