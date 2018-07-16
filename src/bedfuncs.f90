@@ -888,13 +888,13 @@
 
 
   !==============================================================================================================
-  subroutine readmatbin(n,nr,rws,nc,cls,w,nbytes,fnBIN)	
+  subroutine readmatbin(n,nr,rws,nc,cls,W,nbytes,fnBIN)	
   !==============================================================================================================
 
   implicit none
   
   integer*4 :: n,nr,rws(nr),nc,cls(nc),nbytes,nchar,i  
-  real*8 :: w(nr,nc),raw(n)
+  real*8 :: W(nr,nc),raw(n)
   character(len=1000) :: fnBIN
 
 
@@ -903,7 +903,7 @@
 
   do i=1,nc 
     read(13, rec=cls(i)) raw
-    w(1:nr,i) = raw(rws)
+    W(1:nr,i) = raw(rws)
   enddo
 
   close(unit=13)
