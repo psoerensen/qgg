@@ -923,18 +923,19 @@
   !enddo
 
   nchar=index(fnBIN, '.bin')
-  open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=8)
-  nbytes14 = n
+  open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  nbytes14 = 8*n
+  offset14 = 0
   do i=1,nc
-    raw=0.0D0
+    raw=0.0D0 
     i14=cls(i)
-    do j=1,n,1000
-      pos(i) = j + (i14-1)*nbytes14
-      if(j < (n-1000) ) read(13, rec=pos(i)) raw(j:(j+1000-1))
-      !if(j > (n-1000-1) ) read(13, rec=k) raw(j:n)
-    enddo
+    pos(i) = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos(i)) raw(1:nbytes)
     W(1:nr,i) = raw(rws)
   enddo
+
+
+
 
   close(unit=13)
 
