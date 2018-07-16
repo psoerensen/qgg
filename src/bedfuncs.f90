@@ -927,8 +927,8 @@
   do i=1,nc
     do j=1,n,1000
       k = cls(i) + j - 1 
-      if(j < (n-1000) ) read(13, rec=k) raw(j:(j+1000-1))
-      if(j > (n-1000) ) read(13, rec=k) raw(j:n)
+      if(j < (n-1000-1) ) read(13, rec=k) raw(j:(j+1000-1))
+      if(j > (n-1000-1) ) read(13, rec=k) raw(j:n)
     enddo
     W(1:nr,i) = raw(rws)
   enddo
