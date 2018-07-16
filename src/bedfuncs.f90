@@ -922,26 +922,17 @@
   !  call flush(13)
   !enddo
 
-  !nchar=index(fnBIN, '.bin')
-  !open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  !nbytes14 = 8*n
-  !offset14 = 0
-  !do i=1,nc
-  !  raw=0.0D0 
-  !  i14=cls(i)
-  !  pos(i) = 1 + offset14 + (i14-1)*nbytes14
-  !  read(13, pos=pos(i)) raw(1:nbytes)
-  !  W(1:nr,i) = raw(rws)
-  !enddo
-
   nchar=index(fnBIN, '.bin')
-  open(unit=13, file=fnBIN(1:(nchar+3)), status='old', form='unformatted', action='read')
+  open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read', buffered='yes')
+  nbytes14 = 8*n
+  offset14 = 0
   do i=1,nc
     raw=0.0D0 
-    read(13) raw
+    i14=cls(i)
+    pos(i) = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos(i)) raw(1:nbytes)
     W(1:nr,i) = raw(rws)
   enddo
-
 
 
 
