@@ -909,7 +909,7 @@
   do i=1,nc 
     i14=cls(i)
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos(i)) raw
+    read(13, pos=pos(i)) raw(1:n)
     W(1:nr,i) = raw(rws)
     call flush(13)
   enddo
