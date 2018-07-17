@@ -935,10 +935,13 @@
   implicit none
   
   integer*4 :: m,nstat,msets(nstat),p(nstat),np,ncores   
-  integer*4 :: i,j,k,k1,k2,seed(ncores),maxm   
-  real*8 :: w(m),stat(nstat),u,pstat
+  integer*4 :: i,j,k,k1,k2,seed(ncores),maxm,thread   
+  real*8 :: w(m),pw(m,ncores),stat(nstat),u,pstat
 
   p=0
+  do i=1,ncores
+  pw(:,i)=w
+  enddo
 
   call omp_set_num_threads(ncores)
 
@@ -949,11 +952,12 @@
 
   !$omp parallel do private(i,j,k1,k2,u,pstat)
   do i=1,nstat
+    thread=omp_get_thread_num()+1 
     do j=1,np
       call random_number(u)
       k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
       k2 = k1+msets(i)-1
-      pstat = sum(w(k1:k2))
+      pstat = sum(pw(k1:k2,thread))
       if (pstat < stat(i)) p(i) = p(i) + 1
     enddo
   enddo   
