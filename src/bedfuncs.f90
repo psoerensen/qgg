@@ -945,7 +945,7 @@
   
   maxm = m - max(msets) - 1
 
-  do=1,np
+  do i=1,np
     call random_number(u)
     k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
     do j=1,nstat
