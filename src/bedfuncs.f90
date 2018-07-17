@@ -940,8 +940,8 @@
 
   p=0
 
-  call random_seed(size=ncores)
-  call random_seed(get=seed)
+  !call random_seed(size=ncores)
+  !call random_seed(get=seed)
   
   maxm = m - maxval(msets) - 1
 
