@@ -940,21 +940,24 @@
 
   p=0
 
+  call omp_set_num_threads(ncores)
+
   !call random_seed(size=ncores)
   !call random_seed(get=seed)
   
   maxm = m - maxval(msets) - 1
 
-  do i=1,np
-    call random_number(u)
-    k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
-    do j=1,nstat
-      k2 = k1+msets(j)-1
+  !$omp parallel do private(i,j,k1,k2,u,pstat)
+  do i=1,nstat
+    do j=1,np
+      call random_number(u)
+      k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
+      k2 = k1+msets(i)-1
       pstat = sum(w(k1:k2))
-      if (pstat < stat(j)) p(j) = p(j) + 1
-      !print*,pstat,stat(j),k1,k2
+      if (pstat < stat(i)) p(i) = p(i) + 1
     enddo
   enddo   
+  !$omp end parallel do
 
   end subroutine psets
 
