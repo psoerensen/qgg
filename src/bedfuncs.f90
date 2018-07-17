@@ -929,7 +929,7 @@
 
 
   !==============================================================================================================
-  subroutine settest(m,w,nstat,stat,msets,p,np,ncores)	
+  subroutine psets(m,w,nstat,stat,msets,p,np,ncores)	
   !==============================================================================================================
 
   implicit none
@@ -956,6 +956,6 @@
     enddo
   enddo   
 
-  end subroutine settest
+  end subroutine psets
 
 
