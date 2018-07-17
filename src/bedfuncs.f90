@@ -937,6 +937,7 @@
   integer*4 :: m,nstat,msets(nstat),p(nstat),np,ncores   
   integer*4 :: i,j,k,k1,k2,seed(ncores),maxm,thread   
   real*8 :: w(m),pw(m,ncores),stat(nstat),u,pstat
+  integer, external :: omp_get_thread_num
 
   p=0
   do i=1,ncores
