@@ -929,14 +929,14 @@
 
 
   !==============================================================================================================
-  subroutine pstat(m,w,nstat,stat,msets,p,np,ncores)	
+  subroutine settest(m,w,nstat,stat,msets,p,np,ncores)	
   !==============================================================================================================
 
   implicit none
   
   integer*4 :: m,nstat,msets(nstat),p(nstat),np,ncores   
   integer*4 :: i,j,k,k1,k2,seed(ncores),maxm   
-  real*8 :: w(m),stat(nstat),u,setstat
+  real*8 :: w(m),stat(nstat),u,pstat
 
   p=0
 
@@ -950,12 +950,12 @@
     k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
     do j=1,nstat
       k2 = k1+msets(j)-1
-      setstat = sum(w(k1:k2))
-      if (setstat < stat(j)) p(j) = p(j) + 1
-      !print*,setstat,stat(j),k1,k2
+      pstat = sum(w(k1:k2))
+      if (pstat < stat(j)) p(j) = p(j) + 1
+      !print*,pstat,stat(j),k1,k2
     enddo
   enddo   
 
-  end subroutine pstat
+  end subroutine settest
 
 
