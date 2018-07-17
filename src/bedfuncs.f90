@@ -951,7 +951,7 @@
     do j=1,nstat
       k2 = k1+msets(j)-1
       setstat = sum(abs(w(k1:k2))) 
-      if (pstat < stat(j)) p(j) = p(j) + 1
+      if (setstat < stat(j)) p(j) = p(j) + 1
     enddo
   enddo   
 
