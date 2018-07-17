@@ -943,7 +943,7 @@
   call random_seed(size=ncores)
   call random_seed(get=seed)
   
-  maxm = m - max(msets) - 1
+  maxm = m - maxval(msets) - 1
 
   do i=1,np
     call random_number(u)
