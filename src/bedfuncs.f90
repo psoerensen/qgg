@@ -950,8 +950,9 @@
     k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
     do j=1,nstat
       k2 = k1+msets(j)-1
-      setstat = sum(w(k1:k2)) 
+      setstat = sum(w(k1:k2))
       if (setstat < stat(j)) p(j) = p(j) + 1
+      print*,setstat,stat(j),k1,k2
     enddo
   enddo   
 
