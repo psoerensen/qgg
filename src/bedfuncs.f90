@@ -952,7 +952,7 @@
       k2 = k1+msets(j)-1
       setstat = sum(w(k1:k2))
       if (setstat < stat(j)) p(j) = p(j) + 1
-      print*,setstat,stat(j),k1,k2
+      !print*,setstat,stat(j),k1,k2
     enddo
   enddo   
 
