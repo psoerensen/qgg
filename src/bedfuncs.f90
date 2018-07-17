@@ -864,7 +864,7 @@
 
 
   !==============================================================================================================
-  subroutine readbin(n,nr,rws,w,nbytes,fnBIN)	
+  subroutine readbinold(n,nr,rws,w,nbytes,fnBIN)	
   !==============================================================================================================
 
   implicit none
@@ -885,11 +885,11 @@
   print*,i 
   enddo
 
-  end subroutine readbin
+  end subroutine readbinold
 
 
   !==============================================================================================================
-  subroutine readmatbin(n,nr,rws,nc,cls,W,nbytes,fnBIN)	
+  subroutine readbin(n,nr,rws,nc,cls,W,nbytes,fnBIN)	
   !==============================================================================================================
 
   implicit none
@@ -900,7 +900,6 @@
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
-
 
   nchar=index(fnBIN, '.bin')
   open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
@@ -923,8 +922,6 @@
   !enddo
 
 
-
-
   close(unit=13)
 
-  end subroutine readmatbin
+  end subroutine readbin
