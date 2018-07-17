@@ -910,7 +910,7 @@
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos(i)) raw(1:n)
     W(1:nr,i) = raw(rws)
-    call flush(13)
+    !call flush(13)
   enddo
 
   !nchar=index(fnBIN, '.bin')
@@ -925,3 +925,36 @@
   close(unit=13)
 
   end subroutine readbin
+
+
+
+  !==============================================================================================================
+  subroutine pstat(m,w,nstat,stat,msets,p,np,nbytes,ncores)	
+  !==============================================================================================================
+
+  implicit none
+  
+  integer*4 :: m,nstat,msets(nstat),p(nstat),np,nbytes,ncores   
+  integer*4 :: i,j,k,k1,k2,seed(ncores)   
+  real*8 :: w(m),stat(nstat),u
+
+  p=0
+
+  call random_seed(size=ncores)
+  call random_seed(get=seed)
+  
+  maxm = m - max(nsets) - 1
+
+  do=1,np
+    call random_number(u)
+    k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
+    do j=1,nstat
+      k2 = k1+msets(j)-1
+      pstat = sum(abs(w(k1:k2))) 
+      if (pstat < stat(j)) p(j) = p(j) + 1
+    enddo
+  endo   
+
+  end subroutine pstat
+
+
