@@ -929,12 +929,12 @@
 
 
   !==============================================================================================================
-  subroutine pstat(m,w,nstat,stat,msets,p,np,nbytes,ncores)	
+  subroutine pstat(m,w,nstat,stat,msets,p,np,ncores)	
   !==============================================================================================================
 
   implicit none
   
-  integer*4 :: m,nstat,msets(nstat),p(nstat),np,nbytes,ncores   
+  integer*4 :: m,nstat,msets(nstat),p(nstat),np,ncores   
   integer*4 :: i,j,k,k1,k2,seed(ncores),maxm   
   real*8 :: w(m),stat(nstat),u,setstat
 
