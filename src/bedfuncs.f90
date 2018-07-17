@@ -935,7 +935,7 @@
   implicit none
   
   integer*4 :: m,nstat,msets(nstat),p(nstat),np,nbytes,ncores   
-  integer*4 :: i,j,k,k1,k2,seed(ncores)   
+  integer*4 :: i,j,k,k1,k2,seed(ncores),maxm   
   real*8 :: w(m),stat(nstat),u
 
   p=0
@@ -943,7 +943,7 @@
   call random_seed(size=ncores)
   call random_seed(get=seed)
   
-  maxm = m - max(nsets) - 1
+  maxm = m - max(msets) - 1
 
   do=1,np
     call random_number(u)
@@ -953,7 +953,7 @@
       pstat = sum(abs(w(k1:k2))) 
       if (pstat < stat(j)) p(j) = p(j) + 1
     enddo
-  endo   
+  enddo   
 
   end subroutine pstat
 
