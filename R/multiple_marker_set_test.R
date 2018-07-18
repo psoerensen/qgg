@@ -283,11 +283,15 @@ hgTest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 gsets <- function(stat=NULL,sets=NULL,ncores=1, np=1000) {
      
      m <- length(stat)
+     #rws <- 1:m 
+     #names(rws) <- names(stat)
+     #sets <- lapply(sets, function(x) {rws[x]}) 
+
      nsets <- length(sets)
      msets <- sapply(sets, length)
-     setstat <- sapply(sets, function(x) {
-          sum(stat[x])})
-     
+     setstat <- sapply(sets, function(x) {sum(stat[x])})
+   
+
      
      res <- .Fortran("psets", 
                      m = as.integer(m),
