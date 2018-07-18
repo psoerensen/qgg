@@ -278,4 +278,29 @@ hgTest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 
 }
 
+#' @export
 
+gsets <- function(stat=NULL,sets=NULL,ncores=1, np=1000) {
+     
+     m <- length(stat)
+     nsets <- length(sets)
+     msets <- sapply(sets, length)
+     setstat <- sapply(sets, function(x) {
+          sum(stat[x])})
+     
+     
+     res <- .Fortran("psets", 
+                     m = as.integer(m),
+                     stat = as.double(stat),
+                     nsets = as.integer(nsets),
+                     setstat = as.double(setstat),
+                     msets = as.integer(msets),
+                     p = as.integer(rep(0,nsets)),
+                     np = as.integer(np),
+                     ncores = as.integer(ncores),
+                     PACKAGE = 'qgg'
+     )
+     
+     res$p/np
+     
+}
