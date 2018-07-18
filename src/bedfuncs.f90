@@ -950,7 +950,7 @@
 
   case (0) ! no multicore 
 
-  do i=1,nstat
+  do i=1,nsets
     do j=1,np
       call random_number(u)
       k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
@@ -965,7 +965,7 @@
   call omp_set_num_threads(ncores)
 
   !$omp parallel do private(i,j,k1,k2,u,pstat)
-  do i=1,nstat
+  do i=1,nsets
     thread=omp_get_thread_num()+1 
     do j=1,np
       call random_number(u)
