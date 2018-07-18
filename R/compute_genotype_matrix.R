@@ -1,5 +1,5 @@
 ###############################################################################################
-#  Compute W (processed genotypes) for target population
+#  Prepare (processed genotypes) for target population
 ###############################################################################################
 #
 # Description:
@@ -13,11 +13,11 @@
 # Below are functions to compute and access the processed genotypes in W as implemented 
 # in the qgg package
 #
-# The genotype matrix is computed using the computeW function based on the raw genotypes. 
+# The genotype matrix is computed using the computeRAW function based on the raw genotypes. 
 # Currently the raw genotype format supported is plink bed/bim/fam files. Other formats such as
 # bgen will be supported later. To fascilitate a simple and common interface for using raw genotypes 
 # we prepare a Glist structure which contains information about the raw and processed genotypes. 
-# Glist is obtained using the prepW function based on plink bed/bim/fam files. 
+# Glist is obtained using the prepG function based on plink bed/bim/fam files. 
 #
 # The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
 # By default the W matrix is stored in a binary file which is compressed by a ratio
@@ -28,9 +28,9 @@
 #
 # Examples of simple usage:
 #
-# 	Glist <- prepW( bedfiles, bimfiles, study, path, additional arguments...)
-# 	Glist <- computeW( Glist, chr, additional arguments...)
-# 	Glist <- computeW( bedfiles, bimfiles, study, path,  additional arguments...)
+# 	Glist <- prepG( bedfiles, bimfiles, study, path, additional arguments...)
+# 	Glist <- computeRAW( Glist, chr, additional arguments...)
+# 	Glist <- computeRAW( bedfiles, bimfiles, study, path,  additional arguments...)
 # 	W <- getW( Glist, ids, rsids, additional arguments...)
 #
 #
@@ -49,7 +49,7 @@
 #
 # Output:
 #
-# The output of the prepW and computeW functions is a Glist structure containing information 
+# The output of the prepG and computeRAW functions is a Glist structure containing information 
 # about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
 # for downstream analyses. Most users do not use this directly. Furthermore this structure 
 # also allow us to change the underlying data structures without apparent changes in 
@@ -80,7 +80,7 @@
 #' @export
 #'
 
-computeW <- function(Glist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
+computeRAW <- function(Glist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
   bed2raw( fnRAW=Glist$fnRAW, bedfiles=Glist$bedfiles, bimfiles=Glist$bimfiles, famfiles=Glist$famfiles, ids=ids, rsids=rsids, overwrite=overwrite)
 }
 
@@ -88,7 +88,7 @@ computeW <- function(Glist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
 #' @export
 #'
 
-prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=TRUE, ncores=1){
+prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=TRUE, ncores=1){
      
      nfiles <- length(bedfiles)
      
@@ -149,10 +149,10 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$famfiles <- famfiles
 
           print("Preparing raw file")
-          if(overwrite) computeW( Glist=Glist, ids=ids, rsids=Glist$study_rsids, overwrite=overwrite)  # write genotypes to .raw file 
+          if(overwrite) computeRAW( Glist=Glist, ids=ids, rsids=Glist$study_rsids, overwrite=overwrite)  # write genotypes to .raw file 
 
           print("Computing allele frequencies, missingness")
-          if(overwrite) Glist <- summaryW(Glist=Glist, ids=ids, rsids=Glist$study_rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
+          if(overwrite) Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=Glist$study_rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
     
 
      }
@@ -204,10 +204,10 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$famfiles <- famfiles
 
           print("Preparing raw file")
-          computeW( Glist=Glist, ids=ids, rsids=rsids, overwrite=overwrite)  # write genotypes to .raw file 
+          computeRAW( Glist=Glist, ids=ids, rsids=rsids, overwrite=overwrite)  # write genotypes to .raw file 
           
           print("Computing allele frequencies, missingness")
-          Glist <- summaryW(Glist=Glist, ids=ids, rsids=rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
+          Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
           
      }
      return(Glist)
@@ -476,7 +476,7 @@ getW <- function(Glist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FAL
 #' @export
 #'
 
-summaryW <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, ncores=1) {
+summaryRAW <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, ncores=1) {
      
      #qc <- qcraw(Glist=Glist,ids=ids, rsids=rsids, rws=rws, cls=cls)    
      qc <- qcbed(Glist=Glist,ids=ids, rsids=rsids, rws=rws, cls=cls, ncores=ncores)    
