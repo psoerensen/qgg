@@ -934,9 +934,9 @@
 
   implicit none
   
-  integer*4 :: m,nstat,msets(nstat),p(nstat),np,ncores   
+  integer*4 :: m,nsets,msets(nsets),p(nsets),np,ncores   
   integer*4 :: i,j,k,k1,k2,seed(ncores),maxm,thread,multicore   
-  real*8 :: w(m),stat(nstat),u,pstat
+  real*8 :: stat(m),setstat(nsets),u,pstat
   integer, external :: omp_get_thread_num
 
   p=0
@@ -955,8 +955,8 @@
       call random_number(u)
       k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
       k2 = k1+msets(i)-1
-      pstat = sum(w(k1:k2))
-      if (pstat < stat(i)) p(i) = p(i) + 1
+      pstat = sum(stat(k1:k2))
+      if (pstat < setstat(i)) p(i) = p(i) + 1
     enddo
   enddo   
 
@@ -971,8 +971,8 @@
       call random_number(u)
       k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
       k2 = k1+msets(i)-1
-      pstat = sum(w(k1:k2))
-      if (pstat < stat(i)) p(i) = p(i) + 1
+      pstat = sum(stat(k1:k2))
+      if (pstat < setstat(i)) p(i) = p(i) + 1
     enddo
   enddo   
   !$omp end parallel do
