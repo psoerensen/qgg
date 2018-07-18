@@ -16,22 +16,22 @@
 # The genotype matrix is computed using the computeW function based on the raw genotypes. 
 # Currently the raw genotype format supported is plink bed/bim/fam files. Other formats such as
 # bgen will be supported later. To fascilitate a simple and common interface for using raw genotypes 
-# we prepare a Wlist structure which contains information about the raw and processed genotypes. 
-# Wlist is obtained using the prepW function based on plink bed/bim/fam files. 
+# we prepare a Glist structure which contains information about the raw and processed genotypes. 
+# Glist is obtained using the prepW function based on plink bed/bim/fam files. 
 #
 # The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
 # By default the W matrix is stored in a binary file which is compressed by a ratio
 # of 25-30 such that the resulting file size is approximately n*m*8/25 bytes. 
 #
-# Information about the processed genotype matrix W is provided in a Wlist structure. 
+# Information about the processed genotype matrix W is provided in a Glist structure. 
 # The W matrix can be accessed using the getW function. 
 #
 # Examples of simple usage:
 #
-# 	Wlist <- prepW( bedfiles, bimfiles, study, path, additional arguments...)
-# 	Wlist <- computeW( Wlist, chr, additional arguments...)
-# 	Wlist <- computeW( bedfiles, bimfiles, study, path,  additional arguments...)
-# 	W <- getW( Wlist, ids, rsids, additional arguments...)
+# 	Glist <- prepW( bedfiles, bimfiles, study, path, additional arguments...)
+# 	Glist <- computeW( Glist, chr, additional arguments...)
+# 	Glist <- computeW( bedfiles, bimfiles, study, path,  additional arguments...)
+# 	W <- getW( Glist, ids, rsids, additional arguments...)
 #
 #
 # Required input:
@@ -49,26 +49,26 @@
 #
 # Output:
 #
-# The output of the prepW and computeW functions is a Wlist structure containing information 
+# The output of the prepW and computeW functions is a Glist structure containing information 
 # about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
 # for downstream analyses. Most users do not use this directly. Furthermore this structure 
 # also allow us to change the underlying data structures without apparent changes in 
-# the Wlist interface.  
+# the Glist interface.  
 # 
-# The Wlist structure contains the following slots (which are likely to change in future releases):
+# The Glist structure contains the following slots (which are likely to change in future releases):
 #
-#   Wlist$fnW vector of file names 
-#   Wlist$rsids vector of rsids
-#   Wlist$alleles vector of allele used as alternative  
-#   Wlist$chr vector chromosome
-#   Wlist$ids vector of subject ids used in W
-#   Wlist$nb number of chunks
-#   Wlist$m total number of markers in W
-#   Wlist$n total number if subjects
-#   Wlist$msize number of markers in each chunk
-#   Wlist$study study name
-#   Wlist$bedfiles vector bedfile names
-#   Wlist$bimfiles vector bimfile names
+#   Glist$fnW vector of file names 
+#   Glist$rsids vector of rsids
+#   Glist$alleles vector of allele used as alternative  
+#   Glist$chr vector chromosome
+#   Glist$ids vector of subject ids used in W
+#   Glist$nb number of chunks
+#   Glist$m total number of markers in W
+#   Glist$n total number if subjects
+#   Glist$msize number of markers in each chunk
+#   Glist$study study name
+#   Glist$bedfiles vector bedfile names
+#   Glist$bimfiles vector bimfile names
 #
 ###############################################################################################
 
@@ -80,8 +80,8 @@
 #' @export
 #'
 
-computeW <- function(Wlist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
-  bed2raw( fnRAW=Wlist$fnRAW, bedfiles=Wlist$bedfiles, bimfiles=Wlist$bimfiles, famfiles=Wlist$famfiles, ids=ids, rsids=rsids, overwrite=overwrite)
+computeW <- function(Glist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
+  bed2raw( fnRAW=Glist$fnRAW, bedfiles=Glist$bedfiles, bimfiles=Glist$bimfiles, famfiles=Glist$famfiles, ids=ids, rsids=rsids, overwrite=overwrite)
 }
 
 
@@ -96,26 +96,26 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           nchr <- nfiles
           if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
           
-          Wlist <- NULL
-          if(!is.null(fnRAW)) Wlist$fnRAW <- fnRAW
-          Wlist$rsids <- vector(mode="list",length=nchr)
-          Wlist$alleles <- vector(mode="list",length=nchr)
-          Wlist$position <- vector(mode="list",length=nchr)
-          Wlist$af <- vector(mode="list",length=nchr)
-          Wlist$maf <- vector(mode="list",length=nchr)
-          Wlist$nmiss <- vector(mode="list",length=nchr)
-          Wlist$het <- vector(mode="list",length=nchr)
-          Wlist$n0 <- vector(mode="list",length=nchr)
-          Wlist$n1 <- vector(mode="list",length=nchr)
-          Wlist$n2 <- vector(mode="list",length=nchr)
-          Wlist$chr <- 1:nchr
-          Wlist$nchr <- nchr
+          Glist <- NULL
+          if(!is.null(fnRAW)) Glist$fnRAW <- fnRAW
+          Glist$rsids <- vector(mode="list",length=nchr)
+          Glist$alleles <- vector(mode="list",length=nchr)
+          Glist$position <- vector(mode="list",length=nchr)
+          Glist$af <- vector(mode="list",length=nchr)
+          Glist$maf <- vector(mode="list",length=nchr)
+          Glist$nmiss <- vector(mode="list",length=nchr)
+          Glist$het <- vector(mode="list",length=nchr)
+          Glist$n0 <- vector(mode="list",length=nchr)
+          Glist$n1 <- vector(mode="list",length=nchr)
+          Glist$n2 <- vector(mode="list",length=nchr)
+          Glist$chr <- 1:nchr
+          Glist$nchr <- nchr
           
-          Wlist$study_ids <- NULL
+          Glist$study_ids <- NULL
           fam <- read.table(file=famfiles[1], header=FALSE)
           #fam <- fread(input=famfiles[1], header=FALSE)
-          Wlist$ids <- as.character(fam[,2])
-          if(!is.null(ids)) Wlist$study_ids <- as.character(ids) 
+          Glist$ids <- as.character(fam[,2])
+          if(!is.null(ids)) Glist$study_ids <- as.character(ids) 
           if(!is.null(ids)) if(any(!ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
           
           for ( chr in 1:length(bedfiles) ) {
@@ -128,31 +128,31 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
                fam <- read.table(file=famfiles[chr], header=FALSE)
                #fam <- fread(input=famfiles[chr], header=FALSE)
                
-               if(any(!Wlist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
-               Wlist$alleles[[chr]] <- as.character(bim[,6])   
-               Wlist$position[[chr]] <- as.numeric(bim[,4])   
-               Wlist$rsids[[chr]] <- as.character(bim[,2])   
+               if(any(!Glist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
+               Glist$alleles[[chr]] <- as.character(bim[,6])   
+               Glist$position[[chr]] <- as.numeric(bim[,4])   
+               Glist$rsids[[chr]] <- as.character(bim[,2])   
                print(paste("Finished processing bim file",bimfiles[chr]))
           }   
-          Wlist$study_rsids <- NULL
-          if(!is.null(rsids)) Wlist$study_rsids <- as.character(rsids) 
-          if(!is.null(rsids)) if( any(!rsids%in%unlist(Wlist$rsids)) ) warning(paste("some rsids not found in bimfiles"))
-          Wlist$study_rsids <- unlist(Wlist$rsids)[unlist(Wlist$rsids)%in%rsids]
+          Glist$study_rsids <- NULL
+          if(!is.null(rsids)) Glist$study_rsids <- as.character(rsids) 
+          if(!is.null(rsids)) if( any(!rsids%in%unlist(Glist$rsids)) ) warning(paste("some rsids not found in bimfiles"))
+          Glist$study_rsids <- unlist(Glist$rsids)[unlist(Glist$rsids)%in%rsids]
           
 
-          Wlist$mchr <- sapply(Wlist$rsids,length)
-          Wlist$m <- sum(Wlist$mchr)
-          Wlist$n <- length(Wlist$ids)
-          Wlist$study <- study
-          Wlist$bedfiles <- bedfiles
-          Wlist$bimfiles <- bimfiles
-          Wlist$famfiles <- famfiles
+          Glist$mchr <- sapply(Glist$rsids,length)
+          Glist$m <- sum(Glist$mchr)
+          Glist$n <- length(Glist$ids)
+          Glist$study <- study
+          Glist$bedfiles <- bedfiles
+          Glist$bimfiles <- bimfiles
+          Glist$famfiles <- famfiles
 
           print("Preparing raw file")
-          if(overwrite) computeW( Wlist=Wlist, ids=ids, rsids=Wlist$study_rsids, overwrite=overwrite)  # write genotypes to .raw file 
+          if(overwrite) computeW( Glist=Glist, ids=ids, rsids=Glist$study_rsids, overwrite=overwrite)  # write genotypes to .raw file 
 
           print("Computing allele frequencies, missingness")
-          if(overwrite) Wlist <- summaryW(Wlist=Wlist, ids=ids, rsids=Wlist$study_rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
+          if(overwrite) Glist <- summaryW(Glist=Glist, ids=ids, rsids=Glist$study_rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
     
 
      }
@@ -162,55 +162,55 @@ prepW <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           bim <- read.table(file=bimfiles[1], header=FALSE)
           fam <- read.table(file=famfiles[1], header=FALSE)
 
-          Wlist <- NULL
+          Glist <- NULL
           
-          Wlist$chr <- bim[!duplicated(bim[,1]),1]
-          nchr <- length(Wlist$chr)
-          Wlist$nchr <- length(Wlist$chr)
-          Wlist$rsids <- split(as.character(bim[,2]),f=as.factor(bim[,1]))
-          Wlist$alleles <- split(as.character(bim[,6]),f=as.factor(bim[,1]))
-          Wlist$position <- split(bim[,4],f=as.factor(bim[,1]))
+          Glist$chr <- bim[!duplicated(bim[,1]),1]
+          nchr <- length(Glist$chr)
+          Glist$nchr <- length(Glist$chr)
+          Glist$rsids <- split(as.character(bim[,2]),f=as.factor(bim[,1]))
+          Glist$alleles <- split(as.character(bim[,6]),f=as.factor(bim[,1]))
+          Glist$position <- split(bim[,4],f=as.factor(bim[,1]))
           
           if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
-          Wlist$fnRAW <- fnRAW
+          Glist$fnRAW <- fnRAW
           
-          Wlist$af <- vector(mode="list",length=nchr)
-          Wlist$maf <- vector(mode="list",length=nchr)
-          Wlist$nmiss <- vector(mode="list",length=nchr)
-          Wlist$nhet <- vector(mode="list",length=nchr)
-          Wlist$n0 <- vector(mode="list",length=nchr)
-          Wlist$n1 <- vector(mode="list",length=nchr)
-          Wlist$n2 <- vector(mode="list",length=nchr)
-          Wlist$chr <- 1:nchr
+          Glist$af <- vector(mode="list",length=nchr)
+          Glist$maf <- vector(mode="list",length=nchr)
+          Glist$nmiss <- vector(mode="list",length=nchr)
+          Glist$nhet <- vector(mode="list",length=nchr)
+          Glist$n0 <- vector(mode="list",length=nchr)
+          Glist$n1 <- vector(mode="list",length=nchr)
+          Glist$n2 <- vector(mode="list",length=nchr)
+          Glist$chr <- 1:nchr
           
-          Wlist$study_ids <- NULL
+          Glist$study_ids <- NULL
           fam <- read.table(file=famfiles[1], header=FALSE)
-          Wlist$ids <- as.character(fam[,2])
-          if(!is.null(ids)) Wlist$study_ids <- as.character(ids) 
+          Glist$ids <- as.character(fam[,2])
+          if(!is.null(ids)) Glist$study_ids <- as.character(ids) 
           if(!is.null(ids)) if(any(!ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
           
-          if(any(duplicated(Wlist$ids))) stop("Duplicated ids found in famfiles")
+          if(any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
 
-          Wlist$study_rsids <- NULL
-          if(!is.null(rsids)) Wlist$study_rsids <- as.character(rsids) 
-          if(!is.null(rsids)) if( any(!rsids%in%unlist(Wlist$rsids)) ) stop(paste("some rsids not found in bimfiles"))
+          Glist$study_rsids <- NULL
+          if(!is.null(rsids)) Glist$study_rsids <- as.character(rsids) 
+          if(!is.null(rsids)) if( any(!rsids%in%unlist(Glist$rsids)) ) stop(paste("some rsids not found in bimfiles"))
           
-          Wlist$mchr <- sapply(Wlist$rsids,length)
-          Wlist$m <- sum(Wlist$mchr)
-          Wlist$n <- length(Wlist$ids)
-          Wlist$study <- study
-          Wlist$bedfiles <- bedfiles
-          Wlist$bimfiles <- bimfiles
-          Wlist$famfiles <- famfiles
+          Glist$mchr <- sapply(Glist$rsids,length)
+          Glist$m <- sum(Glist$mchr)
+          Glist$n <- length(Glist$ids)
+          Glist$study <- study
+          Glist$bedfiles <- bedfiles
+          Glist$bimfiles <- bimfiles
+          Glist$famfiles <- famfiles
 
           print("Preparing raw file")
-          computeW( Wlist=Wlist, ids=ids, rsids=rsids, overwrite=overwrite)  # write genotypes to .raw file 
+          computeW( Glist=Glist, ids=ids, rsids=rsids, overwrite=overwrite)  # write genotypes to .raw file 
           
           print("Computing allele frequencies, missingness")
-          Wlist <- summaryW(Wlist=Wlist, ids=ids, rsids=rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
+          Glist <- summaryW(Glist=Glist, ids=ids, rsids=rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
           
      }
-     return(Wlist)
+     return(Glist)
 }
 
 
@@ -279,22 +279,22 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
 #' @export
 #'
 
-readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE, method="direct", ncores=1) { 
-     n <- Wlist$n
-     m <- Wlist$m
+readbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE, method="direct", ncores=1) { 
+     n <- Glist$n
+     m <- Glist$m
      nbytes <- ceiling(n/4)
      if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+     if(!is.null(rsids)) cls <- match(rsids,unlist(Glist$rsids))
      nc <- length(cls)
      if (is.null(rws)) 1:n
-     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+     if(!is.null(ids)) rws <- match(ids,Glist$ids)
      #if (is.null(rws)) {
      #     rws <- 1:n
-     #     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
-     #     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
+     #     if(!is.null(ids)) rws <- match(ids,Glist$ids)
+     #     if(!is.null(Glist$study_ids)) rws <- match(Glist$study_ids,Glist$ids)
      #}
      nr <- length(rws)
-     fnRAW <- Wlist$fnRAW
+     fnRAW <- Glist$fnRAW
      OS <- .Platform$OS.type
      if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T )) 
      if (method=="direct") {
@@ -329,8 +329,8 @@ readbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
           )
      }
      
-     #rownames(res$W) <- Wlist$ids[rws]
-     #colnames(res$W) <- unlist(Wlist$ids)[cls]
+     #rownames(res$W) <- Glist$ids[rws]
+     #colnames(res$W) <- unlist(Glist$ids)[cls]
      return(res$W)
 }
 
@@ -442,22 +442,22 @@ readbed.R <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rs
 #'
 
 
-getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FALSE) {
-     if(is.null(ids)) ids <- Wlist$ids
-     if(is.null(cls)) cls <- match(rsids,unlist(Wlist$rsids))
-     W <- readbed(Wlist=Wlist,ids=ids,rsids=rsids,rws=rws,cls=cls,scaled=scaled, method="direct") 
+getW <- function(Glist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FALSE) {
+     if(is.null(ids)) ids <- Glist$ids
+     if(is.null(cls)) cls <- match(rsids,unlist(Glist$rsids))
+     W <- readbed(Glist=Glist,ids=ids,rsids=rsids,rws=rws,cls=cls,scaled=scaled, method="direct") 
      rownames(W) <- ids
-     colnames(W) <- unlist(Wlist$rsids)[cls]
+     colnames(W) <- unlist(Glist$rsids)[cls]
      
-     #if(is.null(rws)) rws <- match(ids,Wlist$ids)
-     #maf <- unlist(Wlist$maf)[cls]
+     #if(is.null(rws)) rws <- match(ids,Glist$ids)
+     #maf <- unlist(Glist$maf)[cls]
      #meanW <- 2*maf
      #sdW <- sqrt(2*maf*(1-maf))
-     #n <- Wlist$n
+     #n <- Glist$n
      #W <- matrix(logical(0),nrow=length(rws),ncol=length(cls))
      #W <- rep(0,length(rws)*length(cls))
      #dim(W) <- c(length(rws),length(cls))
-     #bfW <- file(Wlist$fnRAW,"rb")
+     #bfW <- file(Glist$fnRAW,"rb")
      #current <- 0
      #for (i in 1:length(cls) ) {
      #     where <- (cls[i]-current-1)*n
@@ -476,39 +476,39 @@ getW <- function(Wlist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FAL
 #' @export
 #'
 
-summaryW <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, ncores=1) {
+summaryW <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, ncores=1) {
      
-     #qc <- qcraw(Wlist=Wlist,ids=ids, rsids=rsids, rws=rws, cls=cls)    
-     qc <- qcbed(Wlist=Wlist,ids=ids, rsids=rsids, rws=rws, cls=cls, ncores=ncores)    
-     Wlist$nmiss <- qc$nmiss
-     Wlist$af <- qc$af
-     Wlist$maf <- qc$maf
-     Wlist$hom <- qc$hom
-     Wlist$het <- qc$het
-     Wlist$n0 <- qc$n0
-     Wlist$n1 <- qc$n1
-     Wlist$n2 <- qc$n2
+     #qc <- qcraw(Glist=Glist,ids=ids, rsids=rsids, rws=rws, cls=cls)    
+     qc <- qcbed(Glist=Glist,ids=ids, rsids=rsids, rws=rws, cls=cls, ncores=ncores)    
+     Glist$nmiss <- qc$nmiss
+     Glist$af <- qc$af
+     Glist$maf <- qc$maf
+     Glist$hom <- qc$hom
+     Glist$het <- qc$het
+     Glist$n0 <- qc$n0
+     Glist$n1 <- qc$n1
+     Glist$n2 <- qc$n2
      
-     return(Wlist)
+     return(Glist)
 }
 
 
 #' @export
 #'
 
-qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) { 
-     n <- Wlist$n
-     m <- Wlist$m
+qcbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) { 
+     n <- Glist$n
+     m <- Glist$m
      nbytes <- ceiling(n/4)
      if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+     if(!is.null(rsids)) cls <- match(rsids,unlist(Glist$rsids))
      nc <- length(cls)
      rws <- 1:n
-     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
-     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
+     if(!is.null(ids)) rws <- match(ids,Glist$ids)
+     if(!is.null(Glist$study_ids)) rws <- match(Glist$study_ids,Glist$ids)
      nr <- length(rws)
      af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
-     fnRAW <- Wlist$fnRAW
+     fnRAW <- Glist$fnRAW
      OS <- .Platform$OS.type
      if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
      qc <- .Fortran("qcbed", 
@@ -532,7 +532,7 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
      qc$het <- qc$n1/(qc$nr-qc$nmiss)
      qc$maf <- qc$af
      qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
-     rsids <- unlist(Wlist$rsids)[cls]
+     rsids <- unlist(Glist$rsids)[cls]
      names(qc$af) <- rsids
      names(qc$maf) <- rsids
      names(qc$hom) <- rsids
@@ -547,19 +547,19 @@ qcbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
 #' @export
 #'
 
-mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) { 
-     n <- Wlist$n
-     m <- Wlist$m
+mafbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) { 
+     n <- Glist$n
+     m <- Glist$m
      nbytes <- ceiling(n/4)
      if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+     if(!is.null(rsids)) cls <- match(rsids,unlist(Glist$rsids))
      nc <- length(cls)
      rws <- 1:n
-     if(!is.null(ids)) rws <- match(ids,Wlist$ids)
-     if(!is.null(Wlist$study_ids)) rws <- match(Wlist$study_ids,Wlist$ids)
+     if(!is.null(ids)) rws <- match(ids,Glist$ids)
+     if(!is.null(Glist$study_ids)) rws <- match(Glist$study_ids,Glist$ids)
      nr <- length(rws)
      af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
-     fnRAW <- Wlist$fnRAW
+     fnRAW <- Glist$fnRAW
      OS <- .Platform$OS.type
      if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
      qc <- .Fortran("mafbed", 
@@ -583,7 +583,7 @@ mafbed <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
      qc$het <- qc$n1/(qc$nr-qc$nmiss)
      qc$maf <- qc$af
      qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
-     rsids <- unlist(Wlist$rsids)[cls]
+     rsids <- unlist(Glist$rsids)[cls]
      names(qc$af) <- rsids
      names(qc$maf) <- rsids
      names(qc$hom) <- rsids

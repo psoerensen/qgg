@@ -16,7 +16,7 @@
 #' 
 #' @param fm a formula with model statement for the linear mixed model 
 #' @param data a data frame containing the phenotypic observations and fixed factors specified in the model statements
-#' @param Glist a list of relationship / correlation matrices corresponding to random effects specified in vfm
+#' @param GRMlist a list of relationship / correlation matrices corresponding to random effects specified in vfm
 #' @param validate a matrix or a list with the ids of validation sets corresponding to the rows in data
 #' @param bin is the directory for DMU binaries (dmu1 and dmuai1)
 #' @return Returns results in a list structure including 
@@ -49,30 +49,30 @@
 #' data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
 #' 
 #' fm <- y ~ f + (1 | g~G) 
-#' Glist <- list(G = G)
+#' GRMlist <- list(G = G)
 #' 
 #' 
-#' fit <- remlDMU(fm = fm, Glist = Glist, data = data)
+#' fit <- remlDMU(fm = fm, GRMlist = GRMlist, data = data)
 #'   str(fit)
 #' 
 #' @export
 #'
 
 # Main function for reml analyses suing DMU
-remlDMU <- function(fm = NULL, vfm = NULL, Glist = NULL, restrict = NULL, data = NULL, validate = NULL, bin = NULL) {
+remlDMU <- function(fm = NULL, vfm = NULL, GRMlist = NULL, restrict = NULL, data = NULL, validate = NULL, bin = NULL) {
      
      tol <- 0.001
      fit <- cvfit <- NULL
      #model <- extractModel(fm = fm, data = data)
      model <- lapply(fm, function(x) {extractModel(fm = x, data = data)})
      model <- modelDMU(model = model, restrict = restrict)
-     flevels <- writeDMU(model = model, data = data, Glist = Glist)
+     flevels <- writeDMU(model = model, data = data, GRMlist = GRMlist)
      executeDMU(bin = bin)
      fit <- readDMU(model = model, flevels = flevels)
      if (!is.null(validate)) {
           for (i in 1:ncol(validate)) {
                #set data missing
-               writeDMU(model = model, data = data, Glist = Glist)
+               writeDMU(model = model, data = data, GRMlist = GRMlist)
                executeDMU(bin = bin)
                cvfit[[i]] <- readDMU(model = model, flevels = flevels)
           }
@@ -203,7 +203,7 @@ recodeDMU <- function(data = NULL) {
 }
 
 # Write DIR file, data file, and cor files for DMU 
-writeDMU <- function(model = NULL, data = NULL, Glist = NULL, tol = 0.001) {
+writeDMU <- function(model = NULL, data = NULL, GRMlist = NULL, tol = 0.001) {
      
      # Write DMU DIR file
      dir.file <- "gfm.DIR"
@@ -269,11 +269,11 @@ writeDMU <- function(model = NULL, data = NULL, Glist = NULL, tol = 0.001) {
                  quote = FALSE, col.names = FALSE, sep = "\t", row.names = FALSE)
      
      # Write DMU cor data files
-     if (!is.null(Glist)) {
+     if (!is.null(GRMlist)) {
           for (i in 1:length(model$data$covmat)) {
                vvarname <- names(model$data$covmat)[i]
                vvarfile <- paste(vvarname, ".txt", sep = "")
-               iG <- qggginv(Glist[[model$data$covmat[i]]], tol = tol)
+               iG <- qggginv(GRMlist[[model$data$covmat[i]]], tol = tol)
                colnames(iG$G) <- rownames(iG$G) <- rec$rlevels[[vvarname]][rownames(iG$G)]
                writeGDMU(G = iG$G, filename = vvarfile, ldet = iG$ldet)
           }

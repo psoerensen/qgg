@@ -6,14 +6,14 @@
 #'
 
 
-computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE) {
+computeG <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE) {
 
      if(method=="add") gmodel <- 1 
      if(method=="dom") gmodel <- 2
      if(method=="epi") gmodel <- 3
      
-     n <- Wlist$n
-     m <- Wlist$m
+     n <- Glist$n
+     m <- Glist$m
      nbytes <- ceiling(n/4)
      
      if(is.null(cls)) cls1 <- cls2 <- 1:m
@@ -24,33 +24,33 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="a
      }
      if(is.list(rsids)) {
           gmodel <- 3
-          cls1 <- match(rsids[[1]],unlist(Wlist$rsids))
-          cls2 <- match(rsids[[2]],unlist(Wlist$rsids))
+          cls1 <- match(rsids[[1]],unlist(Glist$rsids))
+          cls2 <- match(rsids[[2]],unlist(Glist$rsids))
      }
      if(is.vector(rsids)&!is.list(rsids)) {
-          cls1 <- cls2 <- match(rsids,unlist(Wlist$rsids))
+          cls1 <- cls2 <- match(rsids,unlist(Glist$rsids))
      }
      nc <- length(cls1)
      
      if (is.null(rws)) {
        rws <- 1:n
-       if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+       if(!is.null(ids)) rws <- match(ids,Glist$ids)
      }
      nr <- length(rws)
-     fnRAW <- Wlist$fnRAW
+     fnRAW <- Glist$fnRAW
 
-     # Initiate Glist
-     idsG <- Wlist$ids[rws]
-     rsidsG <- unlist(Wlist$rsids)[unique(c(cls1,cls2))] 
+     # Initiate GRMlist
+     idsG <- Glist$ids[rws]
+     rsidsG <- unlist(Glist$rsids)[unique(c(cls1,cls2))] 
      nG <- length(idsG)
      mG <- length(rsidsG) 
-     Glist <- list(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG,method=method)
+     GRMlist <- list(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG,method=method)
      
      # Initiate G file
      if(file.exists(fnG)) {
        if(!overwrite) stop("G file name allready exist")
      }
-     fnG <- Glist$fnG
+     fnG <- GRMlist$fnG
      OS <- .Platform$OS.type
      if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
      if(OS=="windows") fnG <- gsub( "/", "\\" , fnG, fixed=T )    
@@ -71,7 +71,7 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="a
            #G = matrix(as.double(0),nrow=nr,ncol=nr),
            PACKAGE = 'qgg'
      )
-     if(!is.null(fnG)) return(Glist)
+     if(!is.null(fnG)) return(GRMlist)
 }
 
 
@@ -79,35 +79,35 @@ computeG <- function(Wlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="a
 #' @export
 #'
 
-getG <- function( Glist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=NULL) {
+getG <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=NULL) {
      
-     #Glist(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG)
+     #GRMlist(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG)
      
      if (!is.null(ids)) {
        idsRWS <- idsCLS <- ids     
      }
-     if (!is.null(rws)) idsRWS <- Glist$idsG[rws]
-     if (!is.null(cls)) idsCLS <- Glist$idsG[cls]
+     if (!is.null(rws)) idsRWS <- GRMlist$idsG[rws]
+     if (!is.null(cls)) idsCLS <- GRMlist$idsG[cls]
      if (is.null(idsRWS)) stop("Please specify ids or idsRWS and idsCLS or rws and cls")
      if (is.null(idsCLS)) stop("Please specify ids or idsRWS and idsCLS or rws and cls")
      
-     if (sum(!idsCLS%in%Glist$idsG)>0) stop("Error some ids not found in idsG")
-     if (sum(!idsRWS%in%Glist$idsG)>0) stop("Error some ids not found in idsG")
+     if (sum(!idsCLS%in%GRMlist$idsG)>0) stop("Error some ids not found in idsG")
+     if (sum(!idsRWS%in%GRMlist$idsG)>0) stop("Error some ids not found in idsG")
      
-     rws <- match(idsRWS,Glist$idsG)		# no reorder needed
-     cls <- match(idsCLS,Glist$idsG)
+     rws <- match(idsRWS,GRMlist$idsG)		# no reorder needed
+     cls <- match(idsCLS,GRMlist$idsG)
      
-     nG <- Glist$n  # nG <- Glist$nG
+     nG <- GRMlist$n  # nG <- GRMlist$nG
      nr <- length(rws)
      nc <- length(cls)
      
      # Sub matrix
      G <- matrix(0,nrow=nr,ncol=nc)
-     rownames(G) <- Glist$idsG[rws]
-     colnames(G) <- Glist$idsG[cls]
+     rownames(G) <- GRMlist$idsG[rws]
+     colnames(G) <- GRMlist$idsG[cls]
      
      # If full stored project study matrix
-     fileG <- file(Glist$fnG,"rb")
+     fileG <- file(GRMlist$fnG,"rb")
      for (i in 1:nr) {
           k <- rws[i]
           where <- (k-1)*nG 
@@ -124,10 +124,10 @@ getG <- function( Glist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=NU
 #' @export
 #'
 
-   mergeG <- function(Glist=NULL) {
-     Glist <- do.call(function(...) mapply(c,...,SIMPLIFY = FALSE),args = Glist)
-     Glist$idsG <- unique(Glist$idsG)
-     Glist$n <- length(Glist$idsG)
-     Glist$m <- length(Glist$rsids)
-     Glist
+   mergeG <- function(GRMlist=NULL) {
+     GRMlist <- do.call(function(...) mapply(c,...,SIMPLIFY = FALSE),args = GRMlist)
+     GRMlist$idsG <- unique(GRMlist$idsG)
+     GRMlist$n <- length(GRMlist$idsG)
+     GRMlist$m <- length(GRMlist$rsids)
+     GRMlist
    }

@@ -97,11 +97,11 @@ gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE,
 
 #' @export
 
-rsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
+rsolve <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
      
-     cls <- match(rsids,unlist(Wlist$rsids))
+     cls <- match(rsids,unlist(Glist$rsids))
      
-     maf <- unlist(Wlist$maf)[cls]
+     maf <- unlist(Glist$maf)[cls]
      meanW <- 2*maf
      sdW <- sqrt(2*maf*(1-maf))
      gc()
@@ -110,11 +110,11 @@ rsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL,
      if(!is.null(ids)) yt <- y[ids]
      if(!is.null(ids)) Xt <- as.matrix(X[ids,])
      
-     n <- Wlist$n                        # number of observations
-     m <- Wlist$m                          # number of markers
+     n <- Glist$n                        # number of observations
+     m <- Glist$m                          # number of markers
      if(!is.null(rsids)) m <- length(rsids)
-     rwsW <- 1:Wlist$n 
-     if(!is.null(ids)) rwsW <- match(ids,Wlist$ids)
+     rwsW <- 1:Glist$n 
+     if(!is.null(ids)) rwsW <- match(ids,Glist$ids)
      b <- bold <- bnew <- NULL
      if (!is.null(X)) {
           b <- (solve(t(Xt)%*%Xt)%*%t(Xt))%*%yt     # initialize b
@@ -128,12 +128,12 @@ rsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL,
      s <- rep(0,m)                         # initialize diagonal elements of the W'W matrix
      
      current <- 0
-     bfW <- file(Wlist$fnRAW,"rb")
+     bfW <- file(Glist$fnRAW,"rb")
      for( i in 1:m ) {
-      where <- (cls[i]-current-1)*Wlist$n
+      where <- (cls[i]-current-1)*Glist$n
       current <- cls[i]
       seek(bfW,where=where, origin="current", rw="read")
-      w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
+      w <- as.double(readBin( bfW, "raw", n=Glist$n, size = 1, endian = "little"))
       #w[w>0] <- as.vector(scale(w[w>0]))
       w[w>0] <- (w[w>0]-1-meanW[i])/sdW[i]
       dww[i] <- sum(w[rwsW]**2)
@@ -147,13 +147,13 @@ rsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL,
      delta <- 1
      while ( delta>tol ) {
        nit <- nit + 1
-       bfW <- file(Wlist$fnRAW,"rb")
+       bfW <- file(Glist$fnRAW,"rb")
        current <- 0
        for( i in 1:m) {
-          where <- (cls[i]-current-1)*Wlist$n
+          where <- (cls[i]-current-1)*Glist$n
           current <- cls[i]
           seek(bfW, where=where, origin="current", rw="read")
-          w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
+          w <- as.double(readBin( bfW, "raw", n=Glist$n, size = 1, endian = "little"))
           #w[w>0] <- as.vector(scale(w[w>0]))
           w[w>0] <- (w[w>0]-1-meanW[i])/sdW[i]
           lhs <- dww[i] + lambda[i]          # form lhs
@@ -172,20 +172,20 @@ rsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL,
         print(paste("Iteration",nit,"delta",delta))
      }
      names(s) <- rsids
-     ghat <- rep(0,Wlist$n)
-     bfW <- file(Wlist$fnRAW,"rb")
+     ghat <- rep(0,Glist$n)
+     bfW <- file(Glist$fnRAW,"rb")
      current <- 0
      for( i in 1:m) {
-       where <- (cls[i]-current-1)*Wlist$n
+       where <- (cls[i]-current-1)*Glist$n
        current <- cls[i]
        seek(bfW, where=where, origin="current", rw="read")
-       w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
+       w <- as.double(readBin( bfW, "raw", n=Glist$n, size = 1, endian = "little"))
        #w[w>0] <- as.vector(scale(w[w>0]))
        w[w>0] <- (w[w>0]-meanW[i])/sdW[i]
        ghat <- ghat + w*s[i]
      } 
      close(bfW) 
-     names(ghat) <- Wlist$ids
+     names(ghat) <- Glist$ids
      if (!is.null(X)) yhat <- ghat[names(y)] + X[names(y),]%*%b
      e <- y - yhat
      return(list(s=s,b=b,nit=nit,delta=delta, e=e, yhat=yhat, g=ghat[names(y)]))
@@ -269,18 +269,18 @@ fsolve <- function(n=NULL,nr=NULL,rws=NULL,nc=NULL,cls=NULL,scaled=TRUE,nbytes=N
 #' @export
 
 
-bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001, ncores=1) { 
+bigsolve <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001, ncores=1) { 
      
      ids <- names(y)
-     fnRAW <- Wlist$fnRAW
-     n <- Wlist$n
+     fnRAW <- Glist$fnRAW
+     n <- Glist$n
      nbytes <- ceiling(n/4)
-     cls <- match(rsids,unlist(Wlist$rsids))
+     cls <- match(rsids,unlist(Glist$rsids))
      nc <- length(cls)
-     rws <- match(ids,Wlist$ids)
+     rws <- match(ids,Glist$ids)
      nr <- length(rws)
 
-     maf <- unlist(Wlist$maf)[cls]
+     maf <- unlist(Glist$maf)[cls]
      meanw <- 2*maf
      sdw <- sqrt(2*maf*(1-maf))
 
@@ -303,7 +303,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
      
      #if (!is.null(X)) yhat <- ghat[names(y)] + X[names(y),]%*%b
      yhat <- NULL
-     names(fit$g) <- Wlist$ids
+     names(fit$g) <- Glist$ids
      #e <- y - yhat
      delta <- NULL
      return(list(s=fit$s,b=b,nit=fit$nit,delta=delta, e=fit$e, yhat=yhat, g=fit$g))
@@ -311,21 +311,21 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
 
 
 
-#' bigsolve_old <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
+#' bigsolve_old <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
 #'      
-#'      indxSets <- lapply(Wlist$rsids,function(x){ (1:length(x))[x%in%rsids] })
-#'      rsidsSets <- lapply(Wlist$rsids,function(x){ x[x%in%rsids] })
+#'      indxSets <- lapply(Glist$rsids,function(x){ (1:length(x))[x%in%rsids] })
+#'      rsidsSets <- lapply(Glist$rsids,function(x){ x[x%in%rsids] })
 #'      rsids <- unlist(rsidsSets) # reordered rsids
 #'      indxS <- lapply(rsidsSets,function(x){ match(x,rsids) })
 #'      
 #'      if(!is.null(ids)) yt <- y[ids]
 #'      if(!is.null(ids)) Xt <- as.matrix(X[ids,])
 #'      
-#'      n <- Wlist$n                        # number of observations
-#'      m <- Wlist$m                          # number of markers
+#'      n <- Glist$n                        # number of observations
+#'      m <- Glist$m                          # number of markers
 #'      if(!is.null(rsids)) m <- length(rsids)
-#'      rwsW <- 1:Wlist$n 
-#'      if(!is.null(ids)) rwsW <- match(ids,Wlist$ids)
+#'      rwsW <- 1:Glist$n 
+#'      if(!is.null(ids)) rwsW <- match(ids,Glist$ids)
 #'      b <- bold <- bnew <- NULL
 #'      if (!is.null(X)) {
 #'           b <- (solve(t(Xt)%*%Xt)%*%t(Xt))%*%yt     # initialize b
@@ -341,12 +341,12 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
 #'      for (chr in 1:length(indxSets)) {
 #'           mChr <- length(indxSets[[chr]])          
 #'           if(mChr>0) {
-#'                bfW <- file(Wlist$fnRAW[chr],"rb")
+#'                bfW <- file(Glist$fnRAW[chr],"rb")
 #'                for( i in 1:length(indxSets[[chr]])) {
 #'                     rws <- indxS[[chr]][i]   
-#'                     where <- (indxSets[[chr]][i]-1)*Wlist$n 
+#'                     where <- (indxSets[[chr]][i]-1)*Glist$n 
 #'                     seek(bfW,where=where, rw="read")
-#'                     w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
+#'                     w <- as.double(readBin( bfW, "raw", n=Glist$n, size = 1, endian = "little"))
 #'                     w[w>0] <- as.vector(scale(w[w>0])) 
 #'                     dww[rws] <- sum(w[rwsW]**2)
 #'                     s[rws] <- (sum(w[rwsW]*e)/dww[rws])/m      # initialize s
@@ -363,12 +363,12 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
 #'           for (chr in 1:length(indxSets)) {
 #'                mChr <- length(indxSets[[chr]])          
 #'                if(mChr>0 ) {
-#'                     bfW <- file(Wlist$fnRAW[chr],"rb")
+#'                     bfW <- file(Glist$fnRAW[chr],"rb")
 #'                     for( i in 1:mChr) {
 #'                          rws <- indxS[[chr]][i]   
-#'                          where <- (indxSets[[chr]][i]-1)*Wlist$n 
+#'                          where <- (indxSets[[chr]][i]-1)*Glist$n 
 #'                          seek(bfW,where=where, rw="read")
-#'                          w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
+#'                          w <- as.double(readBin( bfW, "raw", n=Glist$n, size = 1, endian = "little"))
 #'                          w[w>0] <- as.vector(scale(w[w>0])) 
 #'                          lhs <- dww[rws] + lambda[rws]          # form lhs
 #'                          rhs <- crossprod(w[rwsW],e) + dww[rws]*s[rws]  # form rhs with y corrected by other effects
@@ -392,12 +392,12 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
 #'      for (chr in 1:length(indxSets)) {
 #'           mChr <- length(indxSets[[chr]])          
 #'           if(mChr>0 ) {
-#'                bfW <- file(Wlist$fnRAW[chr],"rb")
+#'                bfW <- file(Glist$fnRAW[chr],"rb")
 #'                for( i in 1:length(indxSets[[chr]])) {
 #'                     rws <- indxS[[chr]][i]
-#'                     where <- (indxSets[[chr]][i]-1)*Wlist$n 
+#'                     where <- (indxSets[[chr]][i]-1)*Glist$n 
 #'                     seek(bfW,where=where, rw="read")
-#'                     w <- as.double(readBin( bfW, "raw", n=Wlist$n, size = 1, endian = "little"))
+#'                     w <- as.double(readBin( bfW, "raw", n=Glist$n, size = 1, endian = "little"))
 #'                     w[w>0] <- as.vector(scale(w[w>0])) 
 #'                     # check if coding is OK
 #'                     ghat <- ghat + w*s[rws]
@@ -405,7 +405,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
 #'                close(bfW) 
 #'           }
 #'      }
-#'      names(ghat) <- Wlist$ids
+#'      names(ghat) <- Glist$ids
 #'      if (!is.null(X)) yhat <- ghat[names(y)] + X[names(y),]%*%b
 #'      e <- y - yhat
 #'      return(list(s=s,b=b,nit=nit,delta=delta, e=e, yhat=yhat, g=ghat[names(y)]))
@@ -413,15 +413,15 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
 #' 
 #' 
 #' 
-#' bigsolve_old_old <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
+#' bigsolve_old_old <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
 #'      
 #'      if(!is.null(ids)) yt <- y[ids]
 #'      if(!is.null(ids)) Xt <- as.matrix(X[ids,])
 #'      
-#'      n <- Wlist$n                        # number of observations
-#'      m <- Wlist$m                          # number of markers
-#'      rwsW <- 1:Wlist$n 
-#'      if(!is.null(ids)) rwsW <- match(ids,Wlist$ids)
+#'      n <- Glist$n                        # number of observations
+#'      m <- Glist$m                          # number of markers
+#'      rwsW <- 1:Glist$n 
+#'      if(!is.null(ids)) rwsW <- match(ids,Glist$ids)
 #'      b <- bold <- bnew <- NULL
 #'      if (!is.null(X)) {
 #'           b <- (solve(t(Xt)%*%Xt)%*%t(Xt))%*%yt     # initialize b
@@ -432,7 +432,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
 #'      if (!is.null(Xt)) e <- yt-Xt%*%b         # initialize e
 #'      dww <- rep(0,m)                       # initialize diagonal elements of the W'W matrix
 #'      s <- rep(0,m)                         # initialize diagonal elements of the W'W matrix
-#'      bfW <- file(Wlist$fnW,"rb")
+#'      bfW <- file(Glist$fnW,"rb")
 #'      for( i in 1:m) {
 #'           w <- readBin( bfW, "double", n=n, size = 8, endian = "little")
 #'           dww[i] <- sum(w[rwsW]**2)
@@ -446,7 +446,7 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
 #'      delta <- 1
 #'      while ( delta>tol ) {
 #'           nit <- nit + 1
-#'           bfW <- file(Wlist$fnW,"rb")
+#'           bfW <- file(Glist$fnW,"rb")
 #'           for( i in 1:nsets) {
 #'                rws <- sets[[i]] 
 #'                lhs <- dww[rws] + lambda[rws]          # form lhs
@@ -466,13 +466,13 @@ bigsolve <- function( y=NULL, X=NULL, Wlist=NULL, ids=NULL, rsids=NULL, sets=NUL
 #'           print(paste("Iteration",nit,"delta",delta))
 #'      }
 #'      ghat <- rep(0,n)
-#'      bfW <- file(Wlist$fnW,"rb")
+#'      bfW <- file(Glist$fnW,"rb")
 #'      for( i in 1:m) {
 #'           w <- readBin( bfW, "double", n=n, size = 8, endian = "little")
 #'           ghat <- ghat + w*s[i]
 #'      } 
 #'      close(bfW)
-#'      names(ghat) <- Wlist$ids
+#'      names(ghat) <- Glist$ids
 #'      if (!is.null(X)) yhat <- ghat[names(y)] + X[names(y),]%*%b
 #'      e <- y - yhat
 #'      return(list(s=s,b=b,nit=nit,delta=delta, e=e, yhat=yhat, g=ghat[names(y)]))

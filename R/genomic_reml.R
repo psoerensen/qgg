@@ -11,13 +11,13 @@
 #' @details
 #' Linear mixed model (LMM) that models covariance among individuals using realized relationships at genotyped loci.
 #' This modeling scheme is achieved through the genomic relationship matrix (G).
-#' This matrix can be inputted 'as is' or with a more efficient list structure, Glist, that contains information about G.
+#' This matrix can be inputted 'as is' or with a more efficient list structure, GRMlist, that contains information about G.
 #' The model can accomodate fixed effects.
 #' Individuals may be subsetted for additional analyses such as cross validation.
 #' 
 #' @param y vector of phenotypes
 #' @param X design matrix of fixed effects
-#' @param Glist list of information about G matrix
+#' @param GRMlist list of information about G matrix
 #' @param G genomic relationship matrix
 #' @param ids vector of subsetted individuals to retain for analysis, e.g. cross validation
 #' @param theta initial values for reml estimation
@@ -44,7 +44,7 @@
 #' \item{yVy}{product of y, variance-covariance matrix of y at convergence, and y}
 #' \item{fnamesG}{filename(s) and locations of of G}
 #' \item{wd}{working directory}
-#' \item{Glist}{list of information about G matrix}
+#' \item{GRMlist}{list of information about G matrix}
 #' @author Peter Sørensen
 #' @references Lee, S. H., & van Der Werf, J. H. (2006). An efficient variance component approach implementing an average information REML suitable for combined LD and linkage mapping with a general complex pedigree. Genetics Selection Evolution, 38(1), 25.
 #' @examples
@@ -96,17 +96,17 @@
 #' @export
 #'
 
-greml <- function(y = NULL, X = NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE,interface="R")
+greml <- function(y = NULL, X = NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE,interface="R")
 {
   if(interface=="R") { 
-    if (is.null(validate)) fit <- remlR(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
-    if (!is.null(validate)) fit <- cvreml(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir, makeplots=makeplots)
+    if (is.null(validate)) fit <- remlR(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
+    if (!is.null(validate)) fit <- cvreml(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir, makeplots=makeplots)
   }
   if(!is.null(bin)) { 
-    fit <- remlF(y=y, X=X, Glist=Glist, G=G, ids=ids, theta=theta, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
+    fit <- remlF(y=y, X=X, GRMlist=GRMlist, G=G, ids=ids, theta=theta, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
   }
   if(interface=="fortran") { 
-    fit <- freml(y=y, X=X, Glist=Glist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, ncores=ncores, verbose=verbose) 
+    fit <- freml(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, ncores=ncores, verbose=verbose) 
   }        
   return(fit)  
 }  
@@ -115,17 +115,17 @@ greml <- function(y = NULL, X = NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, 
 ####################################################################################################################
 # REML interface functions for fortran executable
 
-remlF <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE ) {
-#greml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, ids = NULL, theta = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd()) {
+remlF <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE ) {
+#greml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, ids = NULL, theta = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd()) {
     
 	write.reml(y = as.numeric(y), X = X, G = G)
 	n <- length(y)
 	nf <- ncol(X)
 	if (!is.null(G)) fnamesG <- paste("G", 1:length(G), sep = "")
-	if (!is.null(Glist$fnG)) fnamesG <- Glist$fnG
+	if (!is.null(GRMlist$fnG)) fnamesG <- GRMlist$fnG
 	nr <- length(fnamesG) + 1
  	if (is.null(ids)) {indxG <- c(n, 1:n)} 
-	if (!is.null(ids)) {indxG <- c(Glist$n, match(ids, Glist$idsG))} 
+	if (!is.null(ids)) {indxG <- c(GRMlist$n, match(ids, GRMlist$idsG))} 
 	write.table(indxG, file = "indxg.txt", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
 
 	write.table(paste(n, nf, nr, maxit, ncores), file = "param.txt", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
@@ -143,7 +143,7 @@ remlF <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
 	fit$yVy <- sum(y * fit$Vy)
 	fit$fnamesG <- fnamesG
 	fit$wd <- getwd()
-	fit$Glist <- Glist
+	fit$GRMlist <- GRMlist
 
 	clean.reml(wkdir = wkdir)
       
@@ -241,7 +241,7 @@ clean.reml <- function(wkdir = NULL) {
 ####################################################################################################################
 # REML R functions 
 
-remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxit=100, tol=0.00001, bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE )
+remlR <- function(y=NULL, X=NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, maxit=100, tol=0.00001, bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE )
   
 {
   
@@ -333,7 +333,7 @@ remlR <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, maxi
 }
 
 
-cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE)
+cvreml <- function(y=NULL, X=NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE)
 {
   n <- length(y)     
   theta <- yobs <- ypred <- yo <- yp <- NULL
@@ -383,7 +383,7 @@ cvreml <- function(y=NULL, X=NULL, Glist=NULL, G=NULL, theta=NULL, ids=NULL, val
 #' @export
 #'
 
-freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, ncores = 1, verbose = FALSE ) 
+freml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, ncores = 1, verbose = FALSE ) 
 
 {
 
@@ -395,12 +395,12 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
    nf <- ncol(X)
    if (!is.null(G)) rfnames <- paste("G", 1:length(G), sep = "")
    if (!is.null(G)) rfnames <- paste(getwd(),rfnames,sep="/")	 
-   if (!is.null(Glist)) rfnames <- Glist$fnG
+   if (!is.null(GRMlist)) rfnames <- GRMlist$fnG
    nr <- length(rfnames) + 1
    if (!is.null(G)) ngr <- nrow(G[[1]])
    if (!is.null(G)) indx <- match(ids, rownames(G[[1]]))
-   if (!is.null(Glist)) ngr <- Glist$n
-   if (!is.null(Glist)) indx <- match(ids, Glist$idsG)
+   if (!is.null(GRMlist)) ngr <- GRMlist$n
+   if (!is.null(GRMlist)) indx <- match(ids, GRMlist$idsG)
    
    fnr <- paste(paste(sample(letters,10,replace=TRUE),collapse=""),".qgg",sep="")
 
@@ -436,7 +436,7 @@ freml <- function(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL, ids 
    fit$ids <- names(y)
    fit$yVy <- sum(y * fit$Vy)
    fit$wd <- getwd()
-   fit$Glist <- Glist
+   fit$GRMlist <- GRMlist
    fit$g <- fit$u[,1:(nr-1)]
    fit$e <- fit$u[,nr]
    fit$u <- NULL 
@@ -465,9 +465,9 @@ writeG <- function(G = NULL) {
 #' @export
 #'
 
-gblup <- function(Glist=NULL,G=NULL,fit=NULL,g=NULL, ids=NULL, idsCLS=NULL, idsRWS=NULL) {
-     Glist <- fit$Glist
-     fnG <- Glist$fnG
+gblup <- function(GRMlist=NULL,G=NULL,fit=NULL,g=NULL, ids=NULL, idsCLS=NULL, idsRWS=NULL) {
+     GRMlist <- fit$GRMlist
+     fnG <- GRMlist$fnG
      Py <- fit$Py
      names(Py) <- fit$ids
      g <- NULL
@@ -475,10 +475,10 @@ gblup <- function(Glist=NULL,G=NULL,fit=NULL,g=NULL, ids=NULL, idsCLS=NULL, idsR
      if(is.null(idsCLS)) idsCLS <- fit$ids
      if(is.null(idsRWS)) idsRWS <- fit$ids
      if(!is.null(ids)) idsRWS <- ids
-     if (sum(!idsRWS%in%Glist$idsG)>0) stop("Error some ids not found in idsG")
+     if (sum(!idsRWS%in%GRMlist$idsG)>0) stop("Error some ids not found in idsG")
      for (i in 1:nr) {
-          Glist$fnG <- fnG[i]  
-          G <- getG(Glist=Glist, idsCLS=idsCLS,idsRWS=idsRWS) 
+          GRMlist$fnG <- fnG[i]  
+          G <- getG(GRMlist=GRMlist, idsCLS=idsCLS,idsRWS=idsRWS) 
           g <- cbind(g, G%*%Py[idsCLS]*fit$theta[i])
      }
      colnames(g) <- paste("G",1:nr,sep="")

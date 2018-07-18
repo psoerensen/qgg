@@ -128,7 +128,7 @@ plotma <- function(ma=NULL,chr=NULL,rsids=NULL,thresh=5) {
 
 #' @export
 
-lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
+lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
      if(is.vector(y)) y <- matrix(y,ncol=1, dimnames= list(names(y),"trait"))
      ids <- rownames(y)
      if(!is.null(W)) {
@@ -139,24 +139,24 @@ lma <- function( y=NULL, X=NULL, W=NULL, Wlist=NULL, ids=NULL, rsids=NULL, msize
           #lapply(res, function(x){colnames(x) <- colnames(y)})
           #lapply(res, function(x){rownames(x) <- colnames(W)})
      }
-     if(!is.null(Wlist)) {
-          if(any(!ids%in%Wlist$ids)) stop("Some names of y does not match names in Wlist$ids")
+     if(!is.null(Glist)) {
+          if(any(!ids%in%Glist$ids)) stop("Some names of y does not match names in Glist$ids")
           if(!is.null(X)) y <- residuals(lm(y~X))
           nt <- ncol(y) 
-          m <- Wlist$m
-          n <- Wlist$n
+          m <- Glist$m
+          n <- Glist$n
           cls <- 1:m
-          if(!is.null(rsids)) cls <- match(rsids,unlist(Wlist$rsids))
+          if(!is.null(rsids)) cls <- match(rsids,unlist(Glist$rsids))
           rws <- 1:n
-          if(!is.null(ids)) rws <- match(ids,Wlist$ids)
+          if(!is.null(ids)) rws <- match(ids,Glist$ids)
           s <- se <- stat <- p <- matrix(NA,nrow=m,ncol=nt)
-          rownames(s) <- rownames(se) <- rownames(stat) <- rownames(p) <- unlist(Wlist$rsids) 
+          rownames(s) <- rownames(se) <- rownames(stat) <- rownames(p) <- unlist(Glist$rsids) 
           colnames(s) <- colnames(se) <- colnames(stat) <- colnames(p) <- colnames(y) 
           sets <- split(cls, ceiling(seq_along(cls)/msize))
           nsets  <-  length(sets)
           for (i in 1:nsets) {
                cls <- sets[[i]]
-               W <- readbed(Wlist=Wlist,rws=rws, cls=cls, scaled=scaled)
+               W <- readbed(Glist=Glist,rws=rws, cls=cls, scaled=scaled)
                #W <- W[rws,]
                res <- smlm(y=y,X=X,W=W)
                s[cls,] <- res[[1]]
