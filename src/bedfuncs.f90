@@ -990,6 +990,7 @@
    
     module mmapfuncs
 
+    contains
    
     interface
     subroutine memcpy(dest, src, n) bind(C,name='memcpy')
