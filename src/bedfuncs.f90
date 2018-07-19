@@ -1012,7 +1012,8 @@
 
     end module mmapfuncs
 
-    subroutine mmapfile(fnRAW)	
+   !==============================================================================================================
+    subroutine fmmap(n,nr,rws,nc,cls,W,nbytes,fnBIN)	
    !==============================================================================================================
 
     use mmapfuncs 
@@ -1023,7 +1024,9 @@
     integer,parameter :: map_private=2   !MAP_PRIVATE=2 
 
     integer :: fd,nchar 
+    integer :: n,nr,rws(nr),nc,cls(nc) 
     real*8, pointer :: x(:) 
+    real*8 :: W(,nr,nc) 
 
     integer*8 :: fildes, getfd
 
@@ -1042,7 +1045,7 @@
     !bytes. The function c_f_pointer must be called to convert the "cptr" 
     !returned by mmap, to a fortran pointer. 
 
-    len = 4096 
+    len = n*nbytes 
     off = 0 
     !cptr = mmap(0,len,PROT_READ,MAP_PRIVATE,fd,off) 
     cptr = mmap(0,len,prot_read,map_private,fd,off) 
