@@ -995,10 +995,10 @@
     contains
 
 
-    !interface 
- 
+    interface 
+    use iso_c_binding 
+   
     type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
-    !use iso_c_binding 
     integer(c_int), value :: addr 
     integer(c_size_t), value :: len 
     integer(c_int), value :: prot 
@@ -1007,7 +1007,7 @@
     integer(c_size_t), value :: off 
     end function mmap 
 
-    !end interface 
+    end interface 
 
     end module mmapfuncs
 
