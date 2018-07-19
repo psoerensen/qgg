@@ -1048,7 +1048,7 @@
     integer :: fd,nchar 
     integer :: n,nr,rws(nr),nc,cls(nc) 
     real*8, pointer :: x(:) 
-    real*8 :: W(,nr,nc) 
+    real*8 :: W(nr,nc) 
 
     integer*8 :: fildes, getfd
 
