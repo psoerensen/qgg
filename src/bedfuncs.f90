@@ -1085,7 +1085,7 @@
     !call c_f_pointer(adr,x,[len]) 
     call c_f_pointer(cptr,x,[len]) 
 
-    do i = 1, 1024 
+    do i = 1,10 
     print *, i, x(i) 
     enddo
 
