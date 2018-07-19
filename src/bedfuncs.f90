@@ -1051,7 +1051,7 @@
     real*8, pointer :: x(:) 
     real*8 :: W(nr,nc) 
 
-    integer*8 :: fildes, getfd
+    integer :: fildes, getfd
 
     character(len=1000) :: fnBIN
 
@@ -1059,7 +1059,7 @@
 
     open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
-    fildes = getfd( unit=13 )
+    fildes = getfd( unitn=13 )
     if ( fildes .eq. -1 ) stop 'getfd: file not connected'
 
     !Here is the actual call to mmap. This call will return an address 
