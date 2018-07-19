@@ -1043,8 +1043,8 @@
 
     implicit none
 
-     
-    type(c_intptr_t) :: cptr 
+
+    type(c_ptr) :: cptr 
     integer(c_size_t) :: len, off 
     integer,parameter :: prot_read=1	 !PROT_READ=1 
     integer,parameter :: map_private=2   !MAP_PRIVATE=2 
