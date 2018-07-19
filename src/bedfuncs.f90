@@ -1077,7 +1077,7 @@
     !cptr = mmap(0,len,PROT_READ,MAP_PRIVATE,fd,off) 
     adr = mmap(0,len,prot_read,map_private,fd,off) 
 
-    call c_f_pointer(adr,x[,len]) 
+    call c_f_pointer(adr,x,[len]) 
     !call c_f_pointer(cptr,x,[len]) 
 
     do i = 1, 1024 
