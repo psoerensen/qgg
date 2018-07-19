@@ -990,8 +990,6 @@
    
     module mmapfuncs
 
-    contains
-   
     interface
     subroutine memcpy(dest, src, n) bind(C,name='memcpy')
     use iso_c_binding
@@ -1033,9 +1031,7 @@
     !end function mmap 
     !end interface 
 
-
-
-    end module mmapfuncs
+    end module
 
    !==============================================================================================================
     subroutine fmmap(n,nr,rws,nc,cls,W,nbytes,fnBIN)	
