@@ -1060,9 +1060,12 @@
     real*8, pointer :: x(:) 
     real*8 :: W(nr,nc) 
 
-    integer*4 :: fildes, getfd
+    integer*4 :: fildes, getfd,k1,k2
 
     character(len=1000) :: fnBIN
+
+    integer, parameter :: k14 = selected_int_kind(14) 
+    integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
 
     nchar=index(fnBIN, '.bin')
 
@@ -1085,8 +1088,10 @@
     !call c_f_pointer(adr,x,[len]) 
     call c_f_pointer(cptr,x,[len]) 
 
-    do i = 1,10 
-    print *, i, x(i) 
+    do i = 1,nc 
+      k1=(i-1)*nr+1
+      k2=i*nr
+      W(1:nr,i)=x(k1:k2) 
     enddo
 
     end subroutine fmmap	
