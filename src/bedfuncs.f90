@@ -990,8 +990,7 @@
    
     module mmapfuncs
 
-    implicit none
-
+   
     use iso_c_binding 
    
     interface 
