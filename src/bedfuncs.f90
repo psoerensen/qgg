@@ -992,10 +992,10 @@
 
     implicit none
 
-    
-    interface 
     use iso_c_binding 
    
+    interface 
+    
     type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
     integer(c_int), value :: addr 
     integer(c_size_t), value :: len 
