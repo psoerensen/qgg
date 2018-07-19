@@ -992,9 +992,7 @@
 
     implicit none
 
-    contains
-
-
+    
     interface 
     use iso_c_binding 
    
