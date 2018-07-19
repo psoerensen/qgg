@@ -1068,8 +1068,8 @@
 
     open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
-    fildes = fnum( unit=13 )
-    if ( fildes .eq. -1 ) stop 'getfd: file not connected'
+    fd = fnum( unit=13 )
+    !if ( fildes .eq. -1 ) stop 'getfd: file not connected'
 
     !Here is the actual call to mmap. This call will return an address 
     !in memory that points to the first location(off=0) in the file associated 
