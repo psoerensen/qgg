@@ -113,10 +113,10 @@
     end interface
 
     interface
-    INTEGER(c_intptr_t) function mmap(addr,len,prot, &
-        & flags,fildes,off) bind(c,name='mmap') 
+    !INTEGER(c_intptr_t) function mmap(addr,len,prot, &
+    !    & flags,fildes,off) bind(c,name='mmap') 
     !integer(c_ptr) function mmap(addr,len,prot, flags,fildes,off) bind(c,name='mmap') 
-    !integer(c_intptr_t) function mmap(addr,len,prot, flags,fildes,off) bind(c,name='mmap') 
+    integer(c_intptr_t) function mmap(addr,len,prot, flags,fildes,off) bind(c,name='mmap') 
     use iso_c_binding 
     integer(c_int), value :: addr 
     integer(c_size_t), value :: len
