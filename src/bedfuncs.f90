@@ -1051,7 +1051,7 @@
     real*8, pointer :: x(:) 
     real*8 :: W(nr,nc) 
 
-    integer :: fildes, getfd
+    integer*4 :: fildes, getfd
 
     character(len=1000) :: fnBIN
 
