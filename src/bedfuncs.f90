@@ -1038,10 +1038,11 @@
     subroutine fmmap(n,nr,rws,nc,cls,W,nbytes,fnBIN)	
    !==============================================================================================================
 
-    implicit none
 
     use mmapfuncs 
     use iso_c_binding 
+
+    implicit none
 
     type(c_ptr) :: cptr 
     integer(c_size_t) :: len, off 
