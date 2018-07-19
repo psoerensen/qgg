@@ -113,7 +113,8 @@
     end interface
 
     interface
-    integer(c_intptr_t) function mmap(addr,len,prot, flags,fildes,off) bind(c,name='mmap') 
+    integer(c_ptr) function mmap(addr,len,prot, flags,fildes,off) bind(c,name='mmap') 
+    !integer(c_intptr_t) function mmap(addr,len,prot, flags,fildes,off) bind(c,name='mmap') 
     use iso_c_binding 
     integer(c_int), value :: addr 
     integer(c_size_t), value :: len
@@ -1074,11 +1075,11 @@
 
     len = n*nbytes 
     off = 0 
-    !cptr = mmap(0,len,PROT_READ,MAP_PRIVATE,fd,off) 
-    adr = mmap(0,len,prot_read,map_private,fd,off) 
+    cptr = mmap(0,len,PROT_READ,MAP_PRIVATE,fd,off) 
+    !adr = mmap(0,len,prot_read,map_private,fd,off) 
 
-    call c_f_pointer(adr,x,[len]) 
-    !call c_f_pointer(cptr,x,[len]) 
+    !call c_f_pointer(adr,x,[len]) 
+    call c_f_pointer(cptr,x,[len]) 
 
     do i = 1, 1024 
     print *, i, x(i) 
