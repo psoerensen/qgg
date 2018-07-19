@@ -991,20 +991,49 @@
     module mmapfuncs
 
    
+    interface
+    subroutine memcpy(dest, src, n) bind(C,name='memcpy')
+    use iso_c_binding
+    INTEGER(c_intptr_t), value:: dest
+    INTEGER(c_intptr_t), value:: src
+    integer(c_size_t), value :: n
+    end subroutine memcpy
+    end interface
+
+    interface
+    integer(c_intptr_t) function mmap(addr,len,prot, flags,fildes,off) bind(c,name='mmap') 
     use iso_c_binding 
-   
-    interface 
-    
-    type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
     integer(c_int), value :: addr 
-    integer(c_size_t), value :: len 
+    integer(c_size_t), value :: len
     integer(c_int), value :: prot 
     integer(c_int), value :: flags 
     integer(c_int), value :: fildes 
     integer(c_size_t), value :: off 
     end function mmap 
+    end interface
+
+    interface
+    integer(c_int) munmap(addr, len) bind(c,name='munmap')
+    use iso_c_binding  
+    integer(c_int), value :: addr 
+    integer(c_size_t), value :: len
+    end function munmap
+    end interface
+
+    !use iso_c_binding 
+    !interface 
+    !type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
+    !integer(c_int), value :: addr 
+    !integer(c_size_t), value :: len 
+    !integer(c_int), value :: prot 
+    !integer(c_int), value :: flags 
+    !integer(c_int), value :: fildes 
+    !integer(c_size_t), value :: off 
+    !end function mmap 
 
     end interface 
+
+
 
     end module mmapfuncs
 
