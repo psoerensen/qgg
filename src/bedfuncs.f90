@@ -1048,7 +1048,7 @@
     integer,parameter :: prot_read=1	 !PROT_READ=1 
     integer,parameter :: map_private=2   !MAP_PRIVATE=2 
 
-    integer :: fd,nchar 
+    integer :: fd,nchar,i,nbytes 
     integer :: n,nr,rws(nr),nc,cls(nc) 
     real*8, pointer :: x(:) 
     real*8 :: W(nr,nc) 
