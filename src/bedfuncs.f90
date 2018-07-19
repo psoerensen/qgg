@@ -983,3 +983,74 @@
   end subroutine psets
 
 
+!==============================================================================================================
+! functions for memory mapping of files 
+!==============================================================================================================
+! https://www.pgroup.com/userforum/viewtopic.php?p=8139&sid=900dee3e8bacb79da27dc14d5e644cf2
+   
+    module mmapfuncs
+
+    implicit none
+
+    contains
+
+    use iso_c_binding 
+
+    interface 
+ 
+    type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
+    !use iso_c_binding 
+    integer(c_int), value :: addr 
+    integer(c_size_t), value :: len 
+    integer(c_int), value :: prot 
+    integer(c_int), value :: flags 
+    integer(c_int), value :: fildes 
+    integer(c_size_t), value :: off 
+    end function mmap 
+
+    end interface 
+
+    end module mmapfuncs
+
+    subroutine mmapfile(fnRAW)	
+   !==============================================================================================================
+
+    use mmapfuncs 
+
+    type(c_ptr) :: cptr 
+    integer(c_size_t) :: len, off 
+    integer,parameter :: prot_read=1	 !PROT_READ=1 
+    integer,parameter :: map_private=2   !MAP_PRIVATE=2 
+
+    integer :: fd,nchar 
+    real*8, pointer :: x(:) 
+
+    integer*8 :: fildes, getfd
+
+    character(len=1000) :: fnBIN
+
+    nchar=index(fnBIN, '.bin')
+
+    open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+    fildes = getfd( unit=13 )
+    if ( fildes .eq. -1 ) stop 'getfd: file not connected'
+
+    !Here is the actual call to mmap. This call will return an address 
+    !in memory that points to the first location(off=0) in the file associated 
+    !with the file descriptor, fd. The size of this memory buffer is 4096 
+    !bytes. The function c_f_pointer must be called to convert the "cptr" 
+    !returned by mmap, to a fortran pointer. 
+
+    len = 4096 
+    off = 0 
+    !cptr = mmap(0,len,PROT_READ,MAP_PRIVATE,fd,off) 
+    cptr = mmap(0,len,prot_read,map_private,fd,off) 
+
+    call c_f_pointer(cptr,x,[len]) 
+
+    do i = 1, 1024 
+    print *, i, x(i) 
+    enddo
+
+    subroutine mmapfile	
