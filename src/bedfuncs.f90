@@ -1079,4 +1079,4 @@
     print *, i, x(i) 
     enddo
 
-    subroutine fmmap	
+    end subroutine fmmap	
