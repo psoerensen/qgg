@@ -994,7 +994,6 @@
 
     contains
 
-    use iso_c_binding 
 
     interface 
  
@@ -1017,6 +1016,7 @@
    !==============================================================================================================
 
     use mmapfuncs 
+    use iso_c_binding 
 
     type(c_ptr) :: cptr 
     integer(c_size_t) :: len, off 
