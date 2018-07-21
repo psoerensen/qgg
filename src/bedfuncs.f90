@@ -1083,7 +1083,7 @@
     adr = mmap(loc(0),len,prot_read,map_private,fd,off)
     call memcpy(loc(mapx), adr, len)
     W(1:nr,i)=mapx(1:n) 
-    k = munmap(adr, eln)
+    k = munmap(adr, len)
     enddo
 
     !cptr = mmap(0,len,prot_read,map_private,fd,off) 
