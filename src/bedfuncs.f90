@@ -1035,6 +1035,14 @@
     end function mmap 
     end interface 
 
+    interface
+    integer(c_int) munmap(addr, len) bind(c,name='munmap')
+    use iso_c_binding  
+    integer(c_int), value :: addr 
+    integer(c_size_t), value :: len
+    end function munmap
+    end interface
+
     end module
 
 
@@ -1052,8 +1060,9 @@
     type(c_ptr) :: cptr
     integer(c_intptr_t) :: adr
     integer(c_size_t) :: len, off 
-    integer,parameter :: prot_read=1	 !PROT_READ=1 
-    integer,parameter :: map_private=2   !MAP_PRIVATE=2 
+    integer(c_size_t) :: len, off 
+    integer,parameter :: prot_read=1	  
+    integer,parameter :: map_private=2    
 
     integer :: fd,nchar,i,nbytes 
     integer :: n,nr,rws(nr),nc,cls(nc) 
@@ -1068,36 +1077,31 @@
     integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
     integer (kind=c_long) :: nbytes_c_long,i_c_long, off_c_long
 
-
     nchar=index(fnBIN, '.bin')
 
     open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
     fd = fnum( unit=13 )
-    !if ( fildes .eq. -1 ) stop 'getfd: file not connected'
 
-    !Here is the actual call to mmap. This call will return an address 
-    !in memory that points to the first location(off=0) in the file associated 
-    !with the file descriptor, fd. The size of this memory buffer is 4096 
-    !bytes. The function c_f_pointer must be called to convert the "cptr" 
-    !returned by mmap, to a fortran pointer. 
+    off=0
+    len = n*nbytes
 
-    len = n*nbytes*nc 
+    !cptr = mmap(0,len,prot_read,map_private,fd,off) 
+    !call c_f_pointer(cptr,x,[len]) 
+    
     nbytes_c_long = nbytes 
-    cptr = mmap(0,len,prot_read,map_private,fd,off) 
-    !adr = mmap(0,len,prot_read,map_private,fd,off) 
-
-    !call c_f_pointer(adr,x,[len]) 
-    call c_f_pointer(cptr,x,[len]) 
 
     do i = 1,nc
-      !i_c_long = cls(i) 
-      !off_c_long = 0 + (i_c_long-1)*nbytes_c_long
-      !cptr = mmap(0,len,prot_read,map_private,fd,off_c_long) 
-      k1=(i-1)*nr+1
-      k2=i*nr
-      !call c_f_pointer(cptr,x,[len]) 
-      W(1:nr,i)=x(k1:k2) 
+      i_c_long = cls(i) 
+      off_c_long = 0 + (i_c_long-1)*nbytes_c_long
+      cptr = mmap(0,len,prot_read,map_private,fd,off_c_long) 
+      !k1=(i-1)*nr+1
+      !k2=i*nr
+      call c_f_pointer(cptr,x,[len]) 
+      W(1:nr,i)=x(rws) 
+      munmap(cptr, len)  
     enddo
+
+
 
     end subroutine fmmap	
