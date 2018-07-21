@@ -1057,7 +1057,7 @@
     implicit none
 
 
-    type(c_ptr) :: cptr
+    type(c_ptr) :: cptr,ccptr
     integer(c_intptr_t) :: adr
     integer(c_size_t) :: len, off 
     integer,parameter :: prot_read=1	  
@@ -1098,7 +1098,7 @@
       !k2=i*nr
       call c_f_pointer(cptr,x,[len]) 
       W(1:nr,i)=x(rws) 
-      munmap(cptr, len)  
+      ccptr = munmap(cptr, len)  
     enddo
 
 
