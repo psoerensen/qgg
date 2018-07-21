@@ -1001,17 +1001,17 @@
     end subroutine memcpy
     end interface
 
-    interface
-    integer(c_intptr_t) function mmap(addr,len,prot,flags,fildes,off) result(result) bind(c,name='mmap') 
-    use iso_c_binding 
-    integer(c_intptr_t), value :: addr 
-    integer(c_size_t), value :: len
-    integer(c_int), value :: prot 
-    integer(c_int), value :: flags 
-    integer(c_int), value :: fildes 
-    integer(c_size_t), value :: off 
-    end function mmap 
-    end interface
+    !interface
+    !integer(c_intptr_t) function mmap(addr,len,prot,flags,fildes,off) result(result) bind(c,name='mmap') 
+    !use iso_c_binding 
+    !integer(c_intptr_t), value :: addr 
+    !integer(c_size_t), value :: len
+    !integer(c_int), value :: prot 
+    !integer(c_int), value :: flags 
+    !integer(c_int), value :: fildes 
+    !integer(c_size_t), value :: off 
+    !end function mmap 
+    !end interface
 
     interface
     integer(c_int) function munmap(addr, len) bind(c,name='munmap')
@@ -1021,18 +1021,17 @@
     end function munmap
     end interface
 
-    !use iso_c_binding 
-    !interface 
-    !type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
-    !use iso_c_binding 
-    !integer(c_int), value :: addr 
-    !integer(c_size_t), value :: len 
-    !integer(c_int), value :: prot 
-    !integer(c_int), value :: flags 
-    !integer(c_int), value :: fildes 
-    !integer(c_size_t), value :: off 
-    !end function mmap 
-    !end interface 
+    interface 
+    type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
+    use iso_c_binding 
+    integer(c_int), value :: addr 
+    integer(c_size_t), value :: len 
+    integer(c_int), value :: prot 
+    integer(c_int), value :: flags 
+    integer(c_int), value :: fildes 
+    integer(c_size_t), value :: off 
+    end function mmap 
+    end interface 
 
     end module
 
@@ -1076,32 +1075,29 @@
 
     off=0
     len = n*nbytes*nc
-    len1 = n*nbytes
 
-    null=0
-
-    do i = 1,nc
-    off = 0 + (i-1)*n*nbytes
-    adr = mmap(loc(null),len,prot_read,map_private,fd,off)
-    print*,'was here',off,len,len1
-    print*, loc(mapx)
-    call memcpy(loc(mapx), adr, len1)
-    print*,'was here'
-    W(1:nr,i)=mapx(1:n) 
-    print*,'was here'
-    k = munmap(adr, len1)
-    print*,k
-
-
-    enddo
-
-    !cptr = mmap(0,len,prot_read,map_private,fd,off) 
-    !call c_f_pointer(cptr,x,[len]) 
+    !len1 = n*nbytes
+    !null=0
     !do i = 1,nc
-    !  k1=(i-1)*nr+1
-    !  k2=i*nr
-    !  W(1:nr,i)=x(k1:k2) 
+    !off = 0 + (i-1)*n*nbytes
+    !adr = mmap(loc(null),len,prot_read,map_private,fd,off)
+    !print*,'was here',off,len,len1
+    !print*, loc(mapx)
+    !call memcpy(loc(mapx), adr, len1)
+    !print*,'was here'
+    !W(1:nr,i)=mapx(1:n) 
+    !print*,'was here'
+    !k = munmap(adr, len1)
+    !print*,k
     !enddo
+
+    cptr = mmap(0,len,prot_read,map_private,fd,off) 
+    call c_f_pointer(cptr,x,[len]) 
+    do i = 1,nc
+      k1=(i-1)*nr+1
+      k2=i*nr
+      W(1:nr,i)=x(k1:k2) 
+    enddo
     
     !nbytes_c_long = nbytes 
     !do i = 1,nc
