@@ -1070,9 +1070,9 @@
 
     nchar=index(fnBIN, '.bin')
 
-    !open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+    open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
-    !fd = fnum( unit=13 )
+    fd = fnum( unit=13 )
 
     off=0
     len = n*nbytes
@@ -1081,11 +1081,8 @@
 
     do i = 1,nc
 
-    open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-
-    fd = fnum( unit=13 )
-
     off = 0 + (i-1)*n*nbytes
+    off=0
     adr = mmap(loc(null),len,prot_read,map_private,fd,off)
     print*,'was here',off
     print*, loc(mapx)
@@ -1096,7 +1093,6 @@
     k = munmap(adr, len)
     print*,k
 
-close(13)
 
     enddo
 
