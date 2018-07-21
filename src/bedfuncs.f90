@@ -1066,6 +1066,8 @@
 
     integer, parameter :: k14 = selected_int_kind(14) 
     integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
+    integer (kind=c_long) :: nbytes_c_long,i_c_long, off_c_long
+
 
     nchar=index(fnBIN, '.bin')
 
@@ -1081,17 +1083,21 @@
     !returned by mmap, to a fortran pointer. 
 
     len = n*nbytes 
-    off = 0 
-    cptr = mmap(0,len,PROT_READ,MAP_PRIVATE,fd,off) 
+    nbytes_c_long = nbytes 
+    cptr = mmap(0,len,prot_read,map_private,fd,off) 
     !adr = mmap(0,len,prot_read,map_private,fd,off) 
 
     !call c_f_pointer(adr,x,[len]) 
     call c_f_pointer(cptr,x,[len]) 
 
-    do i = 1,nc 
-      k1=(i-1)*nr+1
-      k2=i*nr
-      W(1:nr,i)=x(k1:k2) 
+    do i = 1,nc
+      i_c_long = cls(i) 
+      off_c_long = 0 + (i_c_long-1)*nbytes_c_long
+      cptr = mmap(0,len,prot_read,map_private,fd,off_c_long) 
+      !k1=(i-1)*nr+1
+      !k2=i*nr
+      call c_f_pointer(cptr,x,[len]) 
+      W(1:nr,i)=x(1:n)[rws] 
     enddo
 
     end subroutine fmmap	
