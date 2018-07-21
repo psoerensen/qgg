@@ -1089,7 +1089,7 @@
     print*,'was here'
     W(1:nr,i)=mapx(1:n) 
     print*,'was here'
-    k = munmap(adr, len)
+    k = munmap(adr, len1)
     print*,k
 
 
