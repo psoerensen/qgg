@@ -1024,9 +1024,9 @@
 
     !use iso_c_binding 
     interface 
-    type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
+    type(c_intptr_t) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
     use iso_c_binding 
-    integer(c_int), value :: addr 
+    integer(c_intptr_t), value :: addr 
     integer(c_size_t), value :: len 
     integer(c_int), value :: prot 
     integer(c_int), value :: flags 
@@ -1038,7 +1038,7 @@
     interface
     integer(c_int) function munmap(addr, len) bind(c,name='munmap')
     use iso_c_binding  
-    integer(c_int), value :: addr 
+    integer(c_intptr_t), value :: addr 
     integer(c_size_t), value :: len 
     end function munmap
     end interface
