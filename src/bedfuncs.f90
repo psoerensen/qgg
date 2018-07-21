@@ -1098,7 +1098,7 @@
       !k2=i*nr
       call c_f_pointer(cptr,x,[len]) 
       W(1:nr,i)=x(rws) 
-      k = munmap(cptr, len)  
+      !k = munmap(cptr, len)  
     enddo
 
 
