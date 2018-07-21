@@ -1036,7 +1036,7 @@
     end interface 
 
     interface
-    integer(c_int) function munmap(addr, len) bind(c,name='munmap')
+    type(c_ptr) function munmap(addr, len) bind(c,name='munmap')
     use iso_c_binding  
     integer(c_int), value :: addr 
     integer(c_size_t), value :: len
