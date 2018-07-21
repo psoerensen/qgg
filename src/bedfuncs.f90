@@ -1038,7 +1038,7 @@
 
    
     !==============================================================================================================
-    subroutine fmmap(n,nr,rws,nc,cls,W,nbytes,fnBIN)	
+    subroutine fmmap(n,m,nr,rws,nc,cls,W,nbytes,fnBIN)	
    !==============================================================================================================
 
     use mmapfuncs 
@@ -1054,7 +1054,7 @@
     integer,parameter :: map_private=2    
 
     integer :: fd,nchar,i,nbytes,null 
-    integer :: n,nr,rws(nr),nc,cls(nc) 
+    integer :: n,m,nr,rws(nr),nc,cls(nc) 
     real*8, pointer :: x(:) 
     real*8 :: mapx(n) 
     real*8 :: W(nr,nc) 
@@ -1074,7 +1074,7 @@
     fd = fnum( unit=13 )
 
     off=0
-    len = n*nbytes*nc
+    len = n*m*nbytes
 
     !len1 = n*nbytes
     !null=0
@@ -1091,9 +1091,11 @@
     !print*,k
     !enddo
 
+
+    off = 0 + (cls(i)-1)*n*nbytes
     cptr = mmap(0,len,prot_read,map_private,fd,off) 
     call c_f_pointer(cptr,x,[len]) 
-    do i = 100,110
+    do i = 1,nc
       k1=(i-1)*nr+1
       k2=i*nr
       W(1:nr,i)=x(k1:k2) 
