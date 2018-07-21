@@ -1090,8 +1090,7 @@
     do i = 1,nc
       k1=(i-1)*nr+1
       k2=i*nr
-      call c_f_pointer(cptr,x,[k1:k2]) 
-      W(1:nr,i)=x(rws) 
+      W(1:nr,i)=x(k1:k2) 
     enddo
     
     !nbytes_c_long = nbytes 
