@@ -1083,23 +1083,28 @@
     fd = fnum( unit=13 )
 
     off=0
-    len = n*nbytes
+    len = n*nbytes*nc
 
-    !cptr = mmap(0,len,prot_read,map_private,fd,off) 
-    !call c_f_pointer(cptr,x,[len]) 
-    
-    nbytes_c_long = nbytes 
-
+    cptr = mmap(0,len,prot_read,map_private,fd,off) 
+    call c_f_pointer(cptr,x,[len]) 
     do i = 1,nc
-      i_c_long = cls(i) 
-      off_c_long = 0 + (i_c_long-1)*nbytes_c_long
-      cptr = mmap(0,len,prot_read,map_private,fd,off_c_long) 
-      !k1=(i-1)*nr+1
-      !k2=i*nr
-      call c_f_pointer(cptr,x,[len]) 
+      k1=(i-1)*nr+1
+      k2=i*nr
+      call c_f_pointer(cptr,x,[k1:k2]) 
       W(1:nr,i)=x(rws) 
-      !k = munmap(cptr, len)  
     enddo
+    
+    !nbytes_c_long = nbytes 
+    !do i = 1,nc
+    !  i_c_long = cls(i) 
+    !  off_c_long = 0 + (i_c_long-1)*nbytes_c_long
+    !  cptr = mmap(0,len,prot_read,map_private,fd,off_c_long) 
+    !  !k1=(i-1)*nr+1
+    !  !k2=i*nr
+    !  call c_f_pointer(cptr,x,[len]) 
+    !  W(1:nr,i)=x(rws) 
+    !  !k = munmap(cptr, len)  
+    !enddo
 
 
 
