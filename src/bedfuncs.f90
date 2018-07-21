@@ -1097,7 +1097,7 @@
       !k1=(i-1)*nr+1
       !k2=i*nr
       call c_f_pointer(cptr,x,[len]) 
-      W(1:nr,i)=x(1:n)[rws] 
+      W(1:nr,i)=x(rws) 
     enddo
 
     end subroutine fmmap	
