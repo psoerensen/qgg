@@ -1036,7 +1036,7 @@
     end interface 
 
     interface
-    type(c_ptr) function munmap(addr, len) bind(c,name='munmap')
+    integer(c_int) function munmap(addr, len) bind(c,name='munmap')
     use iso_c_binding  
     integer(c_int), value :: addr 
     integer(c_size_t), value :: len 
@@ -1068,7 +1068,7 @@
     real*8, pointer :: x(:) 
     real*8 :: W(nr,nc) 
 
-    integer*4 :: fildes, getfd,k1,k2
+    integer*4 :: fildes, getfd,k,k1,k2
 
     character(len=1000) :: fnBIN
 
