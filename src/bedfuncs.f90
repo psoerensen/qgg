@@ -1083,6 +1083,7 @@
     off = 0 + (i-1)*n*nbytes
     adr = mmap(loc(null),len,prot_read,map_private,fd,off)
     print*,'was here',off
+    print*, loc(mapx)
     call memcpy(loc(mapx), adr, len)
     print*,'was here'
     W(1:nr,i)=mapx(1:n) 
