@@ -1024,7 +1024,8 @@
 
     !use iso_c_binding 
     interface 
-    type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
+    integer(c_intptr_t) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
+    !type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
     use iso_c_binding 
     integer(c_int), value :: addr 
     integer(c_size_t), value :: len 
@@ -1058,7 +1059,7 @@
 
 
     type(c_ptr) :: cptr
-    integer(c_intptr_t) :: adr
+    integer(c_intptr_t) :: addr
     integer(c_size_t) :: len, off 
     integer,parameter :: prot_read=1	  
     integer,parameter :: map_private=2    
@@ -1093,12 +1094,13 @@
     do i = 1,nc
       i_c_long = cls(i) 
       off_c_long = 0 + (i_c_long-1)*nbytes_c_long
-      cptr = mmap(0,len,prot_read,map_private,fd,off_c_long) 
+      addr = mmap(0,len,prot_read,map_private,fd,off_c_long) 
       !k1=(i-1)*nr+1
       !k2=i*nr
-      call c_f_pointer(cptr,x,[len]) 
+      call c_f_pointer(addr,x,[len]) 
+      !call c_f_pointer(cptr,x,[len]) 
       W(1:nr,i)=x(rws) 
-      !k = munmap(cptr, len)  
+      k = munmap(addr, len)  
     enddo
 
 
