@@ -1085,6 +1085,7 @@
     call memcpy(loc(mapx), adr, len)
     W(1:nr,i)=mapx(1:n) 
     k = munmap(adr, len)
+    print*,k
     enddo
 
     !cptr = mmap(0,len,prot_read,map_private,fd,off) 
