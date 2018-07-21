@@ -1050,7 +1050,7 @@
 
     type(c_ptr) :: cptr
     integer(c_intptr_t) :: adr
-    integer(c_size_t) :: len, off 
+    integer(c_size_t) :: len, len1,off 
     integer,parameter :: prot_read=1	  
     integer,parameter :: map_private=2    
 
@@ -1076,6 +1076,7 @@
 
     off=0
     len = n*nbytes*nc
+    len1 = n*nbytes
 
     null=0
 
@@ -1084,7 +1085,7 @@
     adr = mmap(loc(null),len,prot_read,map_private,fd,off)
     print*,'was here',off
     print*, loc(mapx)
-    call memcpy(loc(mapx), adr, len)
+    call memcpy(loc(mapx), adr, len1)
     print*,'was here'
     W(1:nr,i)=mapx(1:n) 
     print*,'was here'
