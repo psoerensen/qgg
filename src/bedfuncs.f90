@@ -1082,7 +1082,7 @@
     !bytes. The function c_f_pointer must be called to convert the "cptr" 
     !returned by mmap, to a fortran pointer. 
 
-    len = n*nbytes 
+    len = 14046200*8 !n*nbytes 
     nbytes_c_long = nbytes 
     cptr = mmap(0,len,prot_read,map_private,fd,off) 
     !adr = mmap(0,len,prot_read,map_private,fd,off) 
