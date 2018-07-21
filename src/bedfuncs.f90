@@ -1097,7 +1097,7 @@
     call c_f_pointer(cptr,x,[len]) 
     do i = 1,nc
       k1=(cls(i)-1)*n+1
-      k2=cls(i)*n
+      k2=cls(i)*nr
       W(1:nr,i)=x(k1:k2) 
     enddo
     
