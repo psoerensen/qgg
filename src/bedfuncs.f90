@@ -1097,8 +1097,9 @@
     call c_f_pointer(cptr,x,[len]) 
     do i = 1,nc
       k1=(cls(i)-1)*n+1
-      k2=k1+nr
-      W(1:nr,i)=x(k1:k2) 
+      k2=cls(i)*n
+      mapx(1:n)=x(k1:k2) 
+      W(1:ne,i)=mapw(rws) 
     enddo
     
     !nbytes_c_long = nbytes 
