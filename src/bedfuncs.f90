@@ -1039,7 +1039,7 @@
     type(c_ptr) function munmap(addr, len) bind(c,name='munmap')
     use iso_c_binding  
     integer(c_int), value :: addr 
-    integer(c_size_t), value :: len
+    integer(c_size_t), value :: len 
     end function munmap
     end interface
 
@@ -1098,7 +1098,7 @@
       !k2=i*nr
       call c_f_pointer(cptr,x,[len]) 
       W(1:nr,i)=x(rws) 
-      ccptr = munmap(cptr, len)  
+      k = munmap(cptr, len)  
     enddo
 
 
