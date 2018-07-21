@@ -1054,7 +1054,7 @@
     integer,parameter :: prot_read=1	  
     integer,parameter :: map_private=2    
 
-    integer :: fd,nchar,i,nbytes 
+    integer :: fd,nchar,i,nbytes,null 
     integer :: n,nr,rws(nr),nc,cls(nc) 
     real*8, pointer :: x(:) 
     real*8 :: mapx(n) 
@@ -1077,10 +1077,11 @@
     off=0
     len = n*nbytes
 
+    null=0
 
     do i = 1,nc
     off = 0 + (i-1)*nbytes
-    adr = mmap(0,len,prot_read,map_private,fd,off)
+    adr = mmap(loc(null),len,prot_read,map_private,fd,off)
     call memcpy(loc(mapx), adr, len)
     W(1:nr,i)=mapx(1:n) 
     k = munmap(adr, len)
