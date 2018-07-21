@@ -1075,12 +1075,11 @@
     fd = fnum( unit=13 )
 
     off=0
-    len = n*nbytes
+    len = n*nbytes*nc
 
     null=0
 
-    do i = 3,nc
-
+    do i = 1,nc
     off = 0 + (i-1)*n*nbytes
     adr = mmap(loc(null),len,prot_read,map_private,fd,off)
     print*,'was here',off
