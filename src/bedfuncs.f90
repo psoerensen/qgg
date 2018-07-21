@@ -1081,7 +1081,8 @@
 
     do i = 1,nc
     off = 0 + (i-1)*n*nbytes
-    adr = mmap(loc(null),len,prot_read,map_private,fd,off)
+    !adr = mmap(loc(null),len,prot_read,map_private,fd,off)
+    adr = mmap(loc(null),len,prot_read,1,fd,off)
     call memcpy(loc(mapx), adr, len)
     W(1:nr,i)=mapx(1:n) 
     k = munmap(adr, len)
