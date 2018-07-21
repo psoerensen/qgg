@@ -1079,10 +1079,9 @@
 
     null=0
 
-    do i = 1,nc
+    do i = 3,nc
 
     off = 0 + (i-1)*n*nbytes
-    off=0
     adr = mmap(loc(null),len,prot_read,map_private,fd,off)
     print*,'was here',off
     print*, loc(mapx)
