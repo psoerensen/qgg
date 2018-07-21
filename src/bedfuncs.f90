@@ -1060,7 +1060,6 @@
     type(c_ptr) :: cptr
     integer(c_intptr_t) :: adr
     integer(c_size_t) :: len, off 
-    integer(c_size_t) :: len, off 
     integer,parameter :: prot_read=1	  
     integer,parameter :: map_private=2    
 
