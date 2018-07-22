@@ -1083,7 +1083,7 @@
 
     off=0
     offset14=minval(cls) 
-    off=(offset14-1)*nbytes14
+    off=(offset14-1)*n14*nbytes14
 
     !len1 = n*nbytes
     !null=0
