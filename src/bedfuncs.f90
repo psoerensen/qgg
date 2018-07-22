@@ -1074,11 +1074,14 @@
 
     fd = fnum( unit=13 )
 
-    off=0
     nbytes14=nbytes
     n14=n
     m14=m
     len = n14*m14*nbytes14
+
+    off=0
+    offset14=minval(cls) 
+    off=(offset14-1)*nbytes14
 
     !len1 = n*nbytes
     !null=0
