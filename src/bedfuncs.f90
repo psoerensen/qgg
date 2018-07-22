@@ -1075,7 +1075,10 @@
     fd = fnum( unit=13 )
 
     off=0
-    len = n*m*nbytes
+    nbytes14=nbytes
+    n14=n
+    m14=m
+    len = n14*m14*nbytes14
 
     !len1 = n*nbytes
     !null=0
@@ -1098,7 +1101,6 @@
     call c_f_pointer(cptr,x,[len]) 
     do i = 1,nc
       i14 =cls(i)
-      n14=n
       k1=(i14-1)*n14+1
       k2=i14*n14
       mapx(1:n)=x(k1:k2) 
