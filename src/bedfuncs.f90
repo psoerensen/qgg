@@ -1110,8 +1110,8 @@
       i14 =i
       k1=(i14-1)*n14+1
       k2=i14*n14
-      mapx(1:n)=x(k1:k2) 
-      W(1:nr,i)=mapx(rws)
+      !mapx(1:n)=x(k1:k2) 
+      !W(1:nr,i)=mapx(rws)
       print*,i 
     enddo
     
