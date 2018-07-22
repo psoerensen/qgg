@@ -1052,6 +1052,7 @@
     integer(c_size_t) :: len, len1,off 
     integer,parameter :: prot_read=1	  
     integer,parameter :: map_private=2    
+    integer,parameter :: map_share=1    
 
     integer :: fd,nchar,i,nbytes,null 
     integer :: n,m,nr,rws(nr),nc,cls(nc) 
@@ -1093,7 +1094,8 @@
 
 
     off = 0 !+ (cls(i)-1)*n*nbytes
-    cptr = mmap(0,len,prot_read,map_private,fd,off) 
+    !cptr = mmap(0,len,prot_read,map_private,fd,off) 
+    cptr = mmap(0,len,prot_read,map_share,fd,off) 
     call c_f_pointer(cptr,x,[len]) 
     do i = 1,nc
       k1=(cls(i)-1)*n+1
