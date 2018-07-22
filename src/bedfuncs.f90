@@ -1092,7 +1092,7 @@
     !print*,k
     !enddo
 
-
+    
     off = 0 !+ (cls(i)-1)*n*nbytes
     cptr = mmap(0,len,prot_read,map_private,fd,off) 
     !cptr = mmap(0,len,prot_read,map_share,fd,off) 
