@@ -1065,7 +1065,7 @@
     character(len=1000) :: fnBIN
 
     integer, parameter :: k14 = selected_int_kind(14) 
-    integer (kind=k14) :: pos(nc),nbytes14,offset14,i14,k,k1,k2,n14,m14
+    integer (kind=k14) :: pos(nc),nbytes14,offset14,i14,k,k1,k2,n14,m14,nc14
     integer (kind=c_long) :: nbytes_c_long,i_c_long, off_c_long
 
     nchar=index(fnBIN, '.bin')
@@ -1077,7 +1077,9 @@
     nbytes14=nbytes
     n14=n
     m14=m
-    len = n14*m14*nbytes14
+    nc14=nc
+    !len = n14*m14*nbytes14
+    len = n14*nc14*nbytes14
 
     off=0
     offset14=minval(cls) 
@@ -1104,7 +1106,8 @@
     !cptr = mmap(0,len,prot_read,map_private,fd,off) 
     call c_f_pointer(cptr,x,[len]) 
     do i = 1,nc
-      i14 =cls(i)
+      !i14 =cls(i)
+      i14 =i
       k1=(i14-1)*n14+1
       k2=i14*n14
       mapx(1:n)=x(k1:k2) 
