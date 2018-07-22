@@ -91,7 +91,7 @@ computeRAW <- function(Glist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
 prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=TRUE, ncores=1){
      
      nfiles <- length(bedfiles)
-     
+      
      if(nfiles>1) {
           nchr <- nfiles
           if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
