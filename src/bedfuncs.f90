@@ -1049,7 +1049,8 @@
 
     type(c_ptr) :: cptr
     integer(c_intptr_t) :: adr
-    integer(c_size_t) :: len, len1,off 
+    integer(c_size_t) :: len, off 
+    integer(kind=off64_t) :: len64, off64 
     integer,parameter :: prot_read=1	  
     integer,parameter :: map_private=2    
     integer,parameter :: map_share=1    
