@@ -1094,8 +1094,8 @@
 
 
     off = 0 !+ (cls(i)-1)*n*nbytes
-    !cptr = mmap(0,len,prot_read,map_private,fd,off) 
-    cptr = mmap(0,len,prot_read,map_share,fd,off) 
+    cptr = mmap(0,len,prot_read,map_private,fd,off) 
+    !cptr = mmap(0,len,prot_read,map_share,fd,off) 
     call c_f_pointer(cptr,x,[len]) 
     do i = 1,nc
       k1=(cls(i)-1)*n+1
