@@ -1049,8 +1049,7 @@
 
     type(c_ptr) :: cptr
     integer(c_intptr_t) :: adr
-    integer(c_size_t) :: len, off 
-    integer(kind=off64_t) :: len64, off64 
+    integer(c_size_t) :: len, off, n_size_t, m_size_t, nbytes_size_t 
     integer,parameter :: prot_read=1	  
     integer,parameter :: map_private=2    
     integer,parameter :: map_share=1    
@@ -1061,12 +1060,12 @@
     real*8 :: mapx(n) 
     real*8 :: W(nr,nc) 
 
-    integer*4 :: fildes, getfd,k,k1,k2
+    integer*4 :: fildes, getfd
 
     character(len=1000) :: fnBIN
 
     integer, parameter :: k14 = selected_int_kind(14) 
-    integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
+    integer (kind=k14) :: pos(nc),nbytes14,offset14,i14, k,k1,k2,n14,m14
     integer (kind=c_long) :: nbytes_c_long,i_c_long, off_c_long
 
     nchar=index(fnBIN, '.bin')
@@ -1098,12 +1097,12 @@
     cptr = mmap(0,len,prot_read,map_private,fd,off) 
     !cptr = mmap(0,len,prot_read,map_share,fd,off) 
     call c_f_pointer(cptr,x,[len]) 
-    do i = 1,nc
-      k1=(cls(i)-1)*n+1
-      k2=cls(i)*n
-      mapx(1:n)=x(k1:k2) 
-      W(1:nr,i)=mapx(rws) 
-    enddo
+    !do i = 1,nc
+    !  k1=(cls(i)-1)*n+1
+    !  k2=cls(i)*n
+    !  mapx(1:n)=x(k1:k2) 
+    !  W(1:nr,i)=mapx(rws) 
+    !enddo
     
     !nbytes_c_long = nbytes 
     !do i = 1,nc
