@@ -1099,7 +1099,7 @@
       k1=(cls(i)-1)*n+1
       k2=cls(i)*n
       mapx(1:n)=x(k1:k2) 
-      W(1:nr,i)=mapw(rws) 
+      W(1:nr,i)=mapx(rws) 
     enddo
     
     !nbytes_c_long = nbytes 
