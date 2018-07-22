@@ -4,6 +4,8 @@
 #
 # Description:
 #
+# test
+#
 # The processed genotypes for a particular target population are stored in a matrix W. This 
 # matrix is used for computing genomic relationship matrices used for estimation of variance 
 # components using REML methods (GREML), linear (mixed) model marker association analyses (LMMA)
