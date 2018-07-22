@@ -1022,7 +1022,7 @@
     end interface
 
     interface 
-    type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmp6') 
+    type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap64') 
     use iso_c_binding 
     integer(c_int), value :: addr 
     integer(c_size_t), value :: len 
