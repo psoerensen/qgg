@@ -2,6 +2,7 @@
 
 export(bgfm)
 export(bigsolve)
+export(gscore)
 export(computeG)
 export(computeGRM)
 export(computeRAW)

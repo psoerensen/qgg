@@ -2,6 +2,65 @@
 #    Module 5: GSOLVE 
 ####################################################################################################################
 
+
+#' @export
+#'
+
+gscore <- function(Glist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, scaled=TRUE, msize=100, ncores=1) { 
+     
+     if (is.vector(S)) S <- as.matrix(S)
+     rsids <- rownames(S)
+     #if(any( !rsids%in%unlist(Glist$rsids) )) stop("rsids not found in Glist")
+     rsidsinWlist <- rsids%in%unlist(Glist$rsids)
+     if(any( !rsidsinWlist )) {
+          warning("Some rsids not found in Glist")
+          print(paste("Number of rsids missing;",sum(!rsidsinWlist)))
+          print(paste("Number of rsids used;",sum(rsidsinWlist)))
+          S <- S[rsidsinWlist,]
+          rsids <- rownames(S)
+     }
+     
+     nprs <- ncol(S)
+     
+     n <- Glist$n
+     m <- Glist$m
+     nbytes <- ceiling(n/4)
+     cls <- match(rsids,unlist(Glist$rsids))
+     nc <- length(cls)
+     
+     rws <- 1:n
+     if(!is.null(ids)) rws <- match(ids,Glist$ids)
+     if(!is.null(Glist$study_ids)) rws <- match(Glist$study_ids,Glist$ids)
+     nr <- length(rws)
+     
+     
+     fnRAW <- Glist$fnRAW
+     # prsbed(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)
+     # prsbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
+     prs <- .Fortran("mmbed", 
+                     n = as.integer(n),
+                     nr = as.integer(nr),
+                     rws = as.integer(rws),
+                     nc = as.integer(nc),
+                     cls = as.integer(cls),
+                     scaled = as.integer(scaled),
+                     nbytes = as.integer(nbytes),
+                     fnRAW = as.character(fnRAW),
+                     msize = as.integer(msize),
+                     ncores = as.integer(ncores),
+                     nprs = as.integer(nprs),
+                     s = matrix(as.double(S),nrow=nc,ncol=nprs),
+                     prs = matrix(as.double(0),nrow=nr,ncol=nprs),
+                     PACKAGE = 'qgg'
+                     
+     )
+     colnames(prs$prs) <- colnames(S)
+     rownames(prs$prs) <- Glist$ids[rws]
+     return(prs$prs)
+}
+
+
+
 #' @export
 
 gsolve <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, validate=NULL, weights=FALSE, method="gsru", maxit=500, tol=0.0000001) { 
