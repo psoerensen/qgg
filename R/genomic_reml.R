@@ -480,7 +480,7 @@ gblup <- function(GRMlist=NULL,G=NULL,fit=NULL,g=NULL, ids=NULL, idsCLS=NULL, id
      if (sum(!idsRWS%in%GRMlist$idsG)>0) stop("Error some ids not found in idsG")
      for (i in 1:nr) {
           GRMlist$fnG <- fnG[i]  
-          G <- getG(GRMlist=GRMlist, idsCLS=idsCLS,idsRWS=idsRWS) 
+          G <- getGRM(GRMlist=GRMlist, idsCLS=idsCLS,idsRWS=idsRWS) 
           g <- cbind(g, G%*%Py[idsCLS]*fit$theta[i])
      }
      colnames(g) <- paste("G",1:nr,sep="")
