@@ -109,6 +109,7 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$n1 <- vector(mode="list",length=nchr)
           Glist$n2 <- vector(mode="list",length=nchr)
           Glist$chr <- 1:nchr
+          Glist$chrnames <- 1:nchr
           Glist$nchr <- nchr
           
           Glist$study_ids <- NULL
@@ -142,6 +143,11 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           
 
           Glist$mchr <- sapply(Glist$rsids,length)
+          Glist$chr <- rep(1:nchr,times=Glist$mchr)
+          Glist$rsids <- unlist(Glist$rsids)
+          Glist$alleles <- unlist(Glist$alleles)
+          Glist$position <- unlist(Glist$position)
+          
           Glist$m <- sum(Glist$mchr)
           Glist$n <- length(Glist$ids)
           Glist$study <- study
@@ -149,11 +155,12 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$bimfiles <- bimfiles
           Glist$famfiles <- famfiles
 
+          
           print("Preparing raw file")
-          if(overwrite) computeRAW( Glist=Glist, ids=Glist$ids, rsids=unlist(Glist$rsids), overwrite=overwrite)  # write genotypes to .raw file 
+          if(overwrite) computeRAW( Glist=Glist, ids=Glist$ids, rsids=Glist$rsids, overwrite=overwrite)  # write genotypes to .raw file 
 
           print("Computing allele frequencies, missingness")
-          if(overwrite) Glist <- summaryRAW(Glist=Glist, ids=Glist$study_ids, rsids=unlist(Glist$rsids), ncores=ncores) # compute allele frequencies, missingness, ....    
+          if(overwrite) Glist <- summaryRAW(Glist=Glist, ids=Glist$study_ids, rsids=Glist$rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
     
 
      }
@@ -183,6 +190,7 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$n1 <- vector(mode="list",length=nchr)
           Glist$n2 <- vector(mode="list",length=nchr)
           Glist$chr <- 1:nchr
+          Glist$chrnames <- 1:nchr
           
           Glist$study_ids <- NULL
           fam <- read.table(file=famfiles[1], header=FALSE)
@@ -199,6 +207,11 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           if (!is.null(rsids)) Glist$study_rsids <- unlist(Glist$rsids)[unlist(Glist$rsids)%in%rsids]
           
           Glist$mchr <- sapply(Glist$rsids,length)
+          Glist$chr <- rep(1:nchr,times=Glist$mchr)
+          Glist$rsids <- unlist(Glist$rsids)
+          Glist$alleles <- unlist(Glist$alleles)
+          Glist$position <- unlist(Glist$position)
+          
           Glist$m <- sum(Glist$mchr)
           Glist$n <- length(Glist$ids)
           Glist$study <- study
@@ -207,10 +220,10 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$famfiles <- famfiles
 
           print("Preparing raw file")
-          computeRAW( Glist=Glist, ids=ids, rsids=unlist(Glist$rsids), overwrite=overwrite)  # write genotypes to .raw file 
+          computeRAW( Glist=Glist, ids=ids, rsids=Glist$rsids, overwrite=overwrite)  # write genotypes to .raw file 
           
           print("Computing allele frequencies, missingness")
-          Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=unlist(Glist$rsids), ncores=ncores) # compute allele frequencies, missingness, ....    
+          Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=Glist$rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
           
      }
      return(Glist)
@@ -287,7 +300,7 @@ readbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
      m <- Glist$m
      nbytes <- ceiling(n/4)
      if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,unlist(Glist$rsids))
+     if(!is.null(rsids)) cls <- match(rsids,Glist$rsids)
      nc <- length(cls)
      if (is.null(rws)) 1:n
      if(!is.null(ids)) rws <- match(ids,Glist$ids)
@@ -333,7 +346,7 @@ readbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
      }
      
      #rownames(res$W) <- Glist$ids[rws]
-     #colnames(res$W) <- unlist(Glist$ids)[cls]
+     #colnames(res$W) <- Glist$ids[cls]
      return(res$W)
 }
 
@@ -447,10 +460,10 @@ readbed.R <- function( bedfiles=NULL, bimfiles=NULL, famfiles=NULL, chr=NULL, rs
 
 getW <- function(Glist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, scaled=FALSE) {
      if(is.null(ids)) ids <- Glist$ids
-     if(is.null(cls)) cls <- match(rsids,unlist(Glist$rsids))
+     if(is.null(cls)) cls <- match(rsids,Glist$rsids)
      W <- readbed(Glist=Glist,ids=ids,rsids=rsids,rws=rws,cls=cls,scaled=scaled, method="direct") 
      rownames(W) <- ids
-     colnames(W) <- unlist(Glist$rsids)[cls]
+     colnames(W) <- Glist$rsids[cls]
      
      #if(is.null(rws)) rws <- match(ids,Glist$ids)
      #maf <- unlist(Glist$maf)[cls]
@@ -504,7 +517,7 @@ qcbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
      m <- Glist$m
      nbytes <- ceiling(n/4)
      if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,unlist(Glist$rsids))
+     if(!is.null(rsids)) cls <- match(rsids,Glist$rsids)
      nc <- length(cls)
      rws <- 1:n
      if(!is.null(ids)) rws <- match(ids,Glist$ids)
@@ -535,7 +548,7 @@ qcbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
      qc$het <- qc$n1/(qc$nr-qc$nmiss)
      qc$maf <- qc$af
      qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
-     rsids <- unlist(Glist$rsids)[cls]
+     rsids <- Glist$rsids[cls]
      names(qc$af) <- rsids
      names(qc$maf) <- rsids
      names(qc$hom) <- rsids
@@ -555,7 +568,7 @@ mafbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
      m <- Glist$m
      nbytes <- ceiling(n/4)
      if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,unlist(Glist$rsids))
+     if(!is.null(rsids)) cls <- match(rsids,Glist$rsids)
      nc <- length(cls)
      rws <- 1:n
      if(!is.null(ids)) rws <- match(ids,Glist$ids)
@@ -586,7 +599,7 @@ mafbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
      qc$het <- qc$n1/(qc$nr-qc$nmiss)
      qc$maf <- qc$af
      qc$maf[qc$maf>0.5] <- 1-qc$maf[qc$maf>0.5]
-     rsids <- unlist(Glist$rsids)[cls]
+     rsids <- Glist$rsids[cls]
      names(qc$af) <- rsids
      names(qc$maf) <- rsids
      names(qc$hom) <- rsids

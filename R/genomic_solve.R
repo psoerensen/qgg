@@ -10,8 +10,8 @@ gscore <- function(Glist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
      
      if (is.vector(S)) S <- as.matrix(S)
      rsids <- rownames(S)
-     #if(any( !rsids%in%unlist(Glist$rsids) )) stop("rsids not found in Glist")
-     rsidsinWlist <- rsids%in%unlist(Glist$rsids)
+     #if(any( !rsids%in%Glist$rsids )) stop("rsids not found in Glist")
+     rsidsinWlist <- rsids%in%Glist$rsids
      if(any( !rsidsinWlist )) {
           warning("Some rsids not found in Glist")
           print(paste("Number of rsids missing;",sum(!rsidsinWlist)))
@@ -25,7 +25,7 @@ gscore <- function(Glist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
      n <- Glist$n
      m <- Glist$m
      nbytes <- ceiling(n/4)
-     cls <- match(rsids,unlist(Glist$rsids))
+     cls <- match(rsids,Glist$rsids)
      nc <- length(cls)
      
      rws <- 1:n
@@ -158,7 +158,7 @@ gsru <- function( y=NULL, X=NULL, W=NULL, sets=NULL, lambda=NULL, weights=FALSE,
 
 rsolve <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, lambda=NULL, weights=FALSE, maxit=500, tol=0.0000001) { 
      
-     cls <- match(rsids,unlist(Glist$rsids))
+     cls <- match(rsids,Glist$rsids)
      
      maf <- unlist(Glist$maf)[cls]
      meanW <- 2*maf
@@ -334,7 +334,7 @@ bigsolve <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NUL
      fnRAW <- Glist$fnRAW
      n <- Glist$n
      nbytes <- ceiling(n/4)
-     cls <- match(rsids,unlist(Glist$rsids))
+     cls <- match(rsids,Glist$rsids)
      nc <- length(cls)
      rws <- match(ids,Glist$ids)
      nr <- length(rws)

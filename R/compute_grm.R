@@ -6,7 +6,7 @@
 #'
 
 
-computeG <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE) {
+computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE) {
 
      if(method=="add") gmodel <- 1 
      if(method=="dom") gmodel <- 2
@@ -24,11 +24,11 @@ computeG <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="a
      }
      if(is.list(rsids)) {
           gmodel <- 3
-          cls1 <- match(rsids[[1]],unlist(Glist$rsids))
-          cls2 <- match(rsids[[2]],unlist(Glist$rsids))
+          cls1 <- match(rsids[[1]],Glist$rsids)
+          cls2 <- match(rsids[[2]],Glist$rsids)
      }
      if(is.vector(rsids)&!is.list(rsids)) {
-          cls1 <- cls2 <- match(rsids,unlist(Glist$rsids))
+          cls1 <- cls2 <- match(rsids,Glist$rsids)
      }
      nc <- length(cls1)
      
@@ -41,7 +41,7 @@ computeG <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="a
 
      # Initiate GRMlist
      idsG <- Glist$ids[rws]
-     rsidsG <- unlist(Glist$rsids)[unique(c(cls1,cls2))] 
+     rsidsG <- Glist$rsids[unique(c(cls1,cls2))] 
      nG <- length(idsG)
      mG <- length(rsidsG) 
      GRMlist <- list(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG,method=method)
