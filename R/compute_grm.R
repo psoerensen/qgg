@@ -79,7 +79,7 @@ computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method=
 #' @export
 #'
 
-getG <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=NULL) {
+getGRM <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=NULL) {
      
      #GRMlist(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG)
      
