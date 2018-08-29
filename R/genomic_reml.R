@@ -98,14 +98,16 @@
 
 greml <- function(y = NULL, X = NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE,interface="R")
 {
-  if(interface=="R") { 
+  #if(interface=="R") {
+  if(!is.null(G)) {
     if (is.null(validate)) fit <- remlR(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
     if (!is.null(validate)) fit <- cvreml(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir, makeplots=makeplots)
   }
   if(!is.null(bin)) { 
     fit <- remlF(y=y, X=X, GRMlist=GRMlist, G=G, ids=ids, theta=theta, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
   }
-  if(interface=="fortran") { 
+  #if(interface=="fortran") {
+  if(!is.null(GRMlist)) {
     fit <- freml(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, ncores=ncores, verbose=verbose) 
   }        
   return(fit)  
