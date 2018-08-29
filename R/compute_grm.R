@@ -124,7 +124,7 @@ getGRM <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rw
 #' @export
 #'
 
-   mergeG <- function(GRMlist=NULL) {
+   mergeGRM <- function(GRMlist=NULL) {
      GRMlist <- do.call(function(...) mapply(c,...,SIMPLIFY = FALSE),args = GRMlist)
      GRMlist$idsG <- unique(GRMlist$idsG)
      GRMlist$n <- length(GRMlist$idsG)
