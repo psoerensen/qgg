@@ -355,6 +355,7 @@
     ai = inverse(ai)
     theta0 = theta + matmul(ai,s)
     where (theta0<tol) theta0 = tol
+    !where (abs(theta0)<tol) theta0 = tol   ! check this if theta include covariances 
     delta = theta - theta0
     theta = theta0
 

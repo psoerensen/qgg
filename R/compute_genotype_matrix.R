@@ -115,6 +115,7 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           fam <- read.table(file=famfiles[1], header=FALSE)
           #fam <- fread(input=famfiles[1], header=FALSE)
           Glist$ids <- as.character(fam[,2])
+          Glist$study_ids <- Glist$ids
           if(!is.null(ids)) Glist$study_ids <- as.character(ids) 
           if(!is.null(ids)) if(any(!ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
           
@@ -134,10 +135,10 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
                Glist$rsids[[chr]] <- as.character(bim[,2])   
                print(paste("Finished processing bim file",bimfiles[chr]))
           }   
-          Glist$study_rsids <- NULL
+          Glist$study_rsids <- unlist(Glist$rsids)
           if(!is.null(rsids)) Glist$study_rsids <- as.character(rsids) 
           if(!is.null(rsids)) if( any(!rsids%in%unlist(Glist$rsids)) ) warning(paste("some rsids not found in bimfiles"))
-          Glist$study_rsids <- unlist(Glist$rsids)[unlist(Glist$rsids)%in%rsids]
+          if (!is.null(rsids)) Glist$study_rsids <- unlist(Glist$rsids)[unlist(Glist$rsids)%in%rsids]
           
 
           Glist$mchr <- sapply(Glist$rsids,length)
@@ -149,10 +150,10 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$famfiles <- famfiles
 
           print("Preparing raw file")
-          if(overwrite) computeRAW( Glist=Glist, ids=ids, rsids=Glist$study_rsids, overwrite=overwrite)  # write genotypes to .raw file 
+          if(overwrite) computeRAW( Glist=Glist, ids=Glist$ids, rsids=unlist(Glist$rsids), overwrite=overwrite)  # write genotypes to .raw file 
 
           print("Computing allele frequencies, missingness")
-          if(overwrite) Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=Glist$study_rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
+          if(overwrite) Glist <- summaryRAW(Glist=Glist, ids=Glist$study_ids, rsids=unlist(Glist$rsids), ncores=ncores) # compute allele frequencies, missingness, ....    
     
 
      }
@@ -186,14 +187,16 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$study_ids <- NULL
           fam <- read.table(file=famfiles[1], header=FALSE)
           Glist$ids <- as.character(fam[,2])
+          Glist$study_ids <- Glist$ids
           if(!is.null(ids)) Glist$study_ids <- as.character(ids) 
           if(!is.null(ids)) if(any(!ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
           
           if(any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
 
-          Glist$study_rsids <- NULL
+          Glist$study_rsids <- unlist(Glist$rsids)
           if(!is.null(rsids)) Glist$study_rsids <- as.character(rsids) 
-          if(!is.null(rsids)) if( any(!rsids%in%unlist(Glist$rsids)) ) stop(paste("some rsids not found in bimfiles"))
+          if(!is.null(rsids)) if( any(!rsids%in%unlist(Glist$rsids)) ) warning(paste("some rsids not found in bimfiles"))
+          if (!is.null(rsids)) Glist$study_rsids <- unlist(Glist$rsids)[unlist(Glist$rsids)%in%rsids]
           
           Glist$mchr <- sapply(Glist$rsids,length)
           Glist$m <- sum(Glist$mchr)
@@ -204,10 +207,10 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$famfiles <- famfiles
 
           print("Preparing raw file")
-          computeRAW( Glist=Glist, ids=ids, rsids=rsids, overwrite=overwrite)  # write genotypes to .raw file 
+          computeRAW( Glist=Glist, ids=ids, rsids=unlist(Glist$rsids), overwrite=overwrite)  # write genotypes to .raw file 
           
           print("Computing allele frequencies, missingness")
-          Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
+          Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=unlist(Glist$rsids), ncores=ncores) # compute allele frequencies, missingness, ....    
           
      }
      return(Glist)
