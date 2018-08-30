@@ -72,6 +72,12 @@ computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method=
            PACKAGE = 'qgg'
      )
      if(!is.null(fnG)) return(GRMlist)
+     if(is.null(fnG)) {
+          GRM <- getGRM( GRMlist=GRMlist, ids=GRMlist$idsG)
+          return(GRM)
+     }
+     
+     
 }
 
 
