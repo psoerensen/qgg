@@ -446,6 +446,7 @@ freml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
    fit$g <- fit$u[,1:(nr-1)]
    fit$e <- fit$u[,nr]
    fit$u <- NULL 
+   np <- length(fit$theta)
    names(fit$theta) <- c(paste("G",1:(np-1),sep=""),"E")
    
    return(fit)
