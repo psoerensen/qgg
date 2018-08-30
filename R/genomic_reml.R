@@ -375,7 +375,7 @@ cvreml <- function(y=NULL, X=NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, v
    coef <- lm(yo ~ yp)$coef
    abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
   }
-  return(list(pred=res,theta=theta,yobs=yo,ypred=yp))
+  return(list(accuracy=res,theta=theta,yobs=yo,ypred=yp))
 }
 
 
