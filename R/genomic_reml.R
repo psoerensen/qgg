@@ -355,7 +355,7 @@ cvreml <- function(y=NULL, X=NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, v
       ypred <- ypred + G[[j]][v,t]%*%fit$Py*fit$theta[j]
     }
     yobs <- y[v]
-    if(!is.atomic(validate)) res <- rbind(res,qcpred(yobs=yobs,ypred=ypred,typeoftrait=typeoftrait))
+    if(!is.atomic(validate)) res <- rbind(res,auc(yobs=yobs,ypred=ypred,typeoftrait=typeoftrait))
     yo <- c(yo, yobs)
     yp <- c(yp, ypred)
   }
