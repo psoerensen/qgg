@@ -6,7 +6,7 @@
 #'
 
 
-computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE, returnGRM=FALSE) {
+computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE, returnGRM=FALSE, miss==0) {
 
      if(method=="add") gmodel <- 1 
      if(method=="dom") gmodel <- 2
@@ -14,8 +14,8 @@ computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL,
 
      if (!is.null(W)) { 
           SS <- tcrossprod(W)                              # compute crossproduct, all SNPs
-          #N <- tcrossprod(!W == miss)                      # compute number of observations, all SNPs
-          G <- SS / nrow(W)
+          N <- tcrossprod(!W == miss)                      # compute number of observations, all SNPs
+          G <- SS /N
           return(G)
      }     
      if (is.null(W)) { 
