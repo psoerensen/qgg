@@ -121,15 +121,15 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           if(!is.null(ids)) if(any(!ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
           
           for ( chr in 1:length(bedfiles) ) {
-               bim <- read.table(file=bimfiles[chr], header=FALSE)
-               #bim <- fread(input=bimfiles[chr], header=FALSE)
+               #bim <- read.table(file=bimfiles[chr], header=FALSE)
+               bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE)
 
                rsidsBIM <- as.character(bim[,2])
                if(!is.null(rsids)) bim <- droplevels(bim[rsidsBIM%in%rsids,])
                
-               fam <- read.table(file=famfiles[chr], header=FALSE)
-               #fam <- fread(input=famfiles[chr], header=FALSE)
-               
+               #fam <- read.table(file=famfiles[chr], header=FALSE)
+               fam <- fread(input=famfiles[chr], header=FALSE, data.table = FALSE)
+
                if(any(!Glist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
                Glist$alleles[[chr]] <- as.character(bim[,6])   
                Glist$position[[chr]] <- as.numeric(bim[,4])   
@@ -167,9 +167,11 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
 
      if(nfiles==1) {
 
-          bim <- read.table(file=bimfiles[1], header=FALSE)
-          fam <- read.table(file=famfiles[1], header=FALSE)
-
+          #bim <- read.table(file=bimfiles[1], header=FALSE)
+          #fam <- read.table(file=famfiles[1], header=FALSE)
+          bim <- fread(input=bimfiles[1], header=FALSE, data.table = FALSE)
+          fam <- fread(input=bimfiles[1], header=FALSE, data.table = FALSE)
+          
           Glist <- NULL
           
           Glist$chr <- bim[!duplicated(bim[,1]),1]
@@ -193,7 +195,8 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$chrnames <- 1:nchr
           
           Glist$study_ids <- NULL
-          fam <- read.table(file=famfiles[1], header=FALSE)
+          #fam <- read.table(file=famfiles[1], header=FALSE)
+          fam <- fread(input=bimfiles[1], header=FALSE, data.table = FALSE)
           Glist$ids <- as.character(fam[,2])
           Glist$study_ids <- Glist$ids
           if(!is.null(ids)) Glist$study_ids <- as.character(ids) 
@@ -242,10 +245,11 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
      #bfRAW <- file(fnRAW,"wb")
      for ( chr in 1:length(bedfiles)) {
           print(paste("Processing bedfile:",bedfiles[chr]))
-          bim <- read.table(file=bimfiles[chr], header=FALSE)
-          fam <- read.table(file=famfiles[chr], header=FALSE)
-          #bim <- fread(input=bimfiles[chr], header=FALSE)
-          #fam <- fread(input=famfiles[chr], header=FALSE)
+          #bim <- read.table(file=bimfiles[chr], header=FALSE)
+          #fam <- read.table(file=famfiles[chr], header=FALSE)
+          bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE)
+          fam <- fread(input=famfiles[chr], header=FALSE, data.table = FALSE)
+
           n <- nrow(fam)
           m <- nrow(bim)
           rsidsBIM <- as.character(bim[,2])
