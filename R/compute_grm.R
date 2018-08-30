@@ -6,12 +6,20 @@
 #'
 
 
-computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE) {
+computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE, returnGRM=FALSE) {
 
      if(method=="add") gmodel <- 1 
      if(method=="dom") gmodel <- 2
      if(method=="epi") gmodel <- 3
-     
+
+     if (!is.null(W)) { 
+          SS <- tcrossprod(W)                              # compute crossproduct, all SNPs
+          N <- tcrossprod(!W == miss)                      # compute number of observations, all SNPs
+          G <- SS / N
+          return(G)
+     }     
+     if (is.null(W)) { 
+          
      n <- Glist$n
      m <- Glist$m
      nbytes <- ceiling(n/4)
@@ -72,11 +80,11 @@ computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method=
            PACKAGE = 'qgg'
      )
      if(!is.null(fnG)) return(GRMlist)
-     if(is.null(fnG)) {
+     if(returnGRM) {
           GRM <- getGRM( GRMlist=GRMlist, ids=GRMlist$idsG)
           return(GRM)
      }
-     
+     }
      
 }
 
