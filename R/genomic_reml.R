@@ -442,6 +442,8 @@ freml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
    fit$wd <- getwd()
    fit$GRMlist <- GRMlist
    fit$g <- fit$u[,1:(nr-1)]
+    rownames(fit$g) <- names(y)
+    colnames(fit$g) <- paste("G",1:(ncol(fit$u)-1),sep="")
    fit$e <- fit$u[,nr]
    fit$u <- NULL 
 
