@@ -330,6 +330,8 @@ remlR <- function(y=NULL, X=NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, ma
   theta <- as.vector(theta)
   if(is.null(names(G))) names(theta) <- c(paste("G",1:(np-1),sep=""),"E")
   if(!is.null(names(G))) names(theta) <- c(names(G)[-np],"E")
+  if(is.null(names(G))) colnames(u) <- c(paste("G",1:(np-1),sep=""))
+  if(!is.null(names(G))) colnames(u) <- names(G)[-np]
   
   return(list( y=y, X=X, b=b, vb=vb, g=u, e=e, fitted=fitted, predicted=predicted, Py=Py, Vy=Vy, theta=theta, asd=theta.cov, llik=llik, niter=it,trPG=trPG, trVG=trVG,ids=names(y),yVy=yVy   ))
 }
