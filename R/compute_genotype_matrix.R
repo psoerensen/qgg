@@ -298,7 +298,7 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
 
 #' @export
 #'
-
+ 
 readbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE, method="direct", ncores=1) { 
      n <- Glist$n
      m <- Glist$m
