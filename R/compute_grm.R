@@ -15,7 +15,7 @@ computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL,
      if (!is.null(W)) { 
           SS <- tcrossprod(W)                              # compute crossproduct, all SNPs
           #N <- tcrossprod(!W == miss)                      # compute number of observations, all SNPs
-          G <- SS / ncol(W)
+          G <- SS / nrow(W)
           return(G)
      }     
      if (is.null(W)) { 
