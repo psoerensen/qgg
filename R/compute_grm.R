@@ -6,7 +6,7 @@
 #'
 
 
-computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE, returnGRM=FALSE, miss==0) {
+computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE, returnGRM=FALSE, miss=0) {
 
      if(method=="add") gmodel <- 1 
      if(method=="dom") gmodel <- 2
