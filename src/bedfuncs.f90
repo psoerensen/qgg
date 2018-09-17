@@ -988,18 +988,18 @@
 ! https://www.pgroup.com/userforum/viewtopic.php?p=8139&sid=900dee3e8bacb79da27dc14d5e644cf2
 
 
-   module mmapfuncs
+!   module mmapfuncs
 
 
 
-    interface
-    subroutine memcpy(dest, src, n) bind(C,name='memcpy')
-    use iso_c_binding
-    integer(c_intptr_t), value:: dest
-    integer(c_intptr_t), value:: src
-    integer(c_size_t), value :: n
-    end subroutine memcpy
-    end interface
+!    interface
+!    subroutine memcpy(dest, src, n) bind(C,name='memcpy')
+!    use iso_c_binding
+!    integer(c_intptr_t), value:: dest
+!    integer(c_intptr_t), value:: src
+!    integer(c_size_t), value :: n
+!    end subroutine memcpy
+!    end interface
 
     !interface
     !integer(c_intptr_t) function mmap(addr,len,prot,flags,fildes,off) result(result) bind(c,name='mmap') 
@@ -1013,77 +1013,77 @@
     !end function mmap 
     !end interface
 
-    interface
-    integer(c_int) function munmap(addr, len) bind(c,name='munmap')
-    use iso_c_binding 
-    integer(c_intptr_t), value :: addr 
-    integer(c_size_t), value :: len
-    end function munmap
-    end interface
+!    interface
+!    integer(c_int) function munmap(addr, len) bind(c,name='munmap')
+!    use iso_c_binding 
+!    integer(c_intptr_t), value :: addr 
+!    integer(c_size_t), value :: len
+!    end function munmap
+!    end interface
 
-    interface 
-    type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
-    use iso_c_binding 
-    integer(c_int), value :: addr 
-    integer(c_size_t), value :: len 
-    integer(c_int), value :: prot 
-    integer(c_int), value :: flags 
-    integer(c_int), value :: fildes 
-    integer(c_size_t), value :: off 
-    end function mmap 
-    end interface 
+!    interface 
+!    type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
+!    use iso_c_binding 
+!    integer(c_int), value :: addr 
+!    integer(c_size_t), value :: len 
+!    integer(c_int), value :: prot 
+!    integer(c_int), value :: flags 
+!    integer(c_int), value :: fildes 
+!    integer(c_size_t), value :: off 
+!    end function mmap 
+!    end interface 
 
-    end module
+!    end module
 
 
    
     !==============================================================================================================
-    subroutine fmmap(n,m,nr,rws,nc,cls,W,nbytes,fnBIN)	
+!    subroutine fmmap(n,m,nr,rws,nc,cls,W,nbytes,fnBIN)	
    !==============================================================================================================
 
-    use mmapfuncs 
-    use iso_c_binding 
+!    use mmapfuncs 
+!    use iso_c_binding 
 
-    implicit none
+!    implicit none
 
 
-    type(c_ptr) :: cptr
-    integer(c_intptr_t) :: adr
-    integer(c_size_t) :: len, off, n_size_t, m_size_t, nbytes_size_t 
-    integer,parameter :: prot_read=1	  
-    integer,parameter :: map_private=2    
-    integer,parameter :: map_share=1    
+!    type(c_ptr) :: cptr
+!    integer(c_intptr_t) :: adr
+!    integer(c_size_t) :: len, off, n_size_t, m_size_t, nbytes_size_t 
+!    integer,parameter :: prot_read=1	  
+!    integer,parameter :: map_private=2    
+!    integer,parameter :: map_share=1    
 
-    integer :: fd,nchar,i,nbytes,null 
-    integer :: n,m,nr,rws(nr),nc,cls(nc) 
-    real*8, pointer :: x(:) 
-    real*8 :: mapx(n) 
-    real*8 :: W(nr,nc) 
+!    integer :: fd,nchar,i,nbytes,null 
+!    integer :: n,m,nr,rws(nr),nc,cls(nc) 
+!    real*8, pointer :: x(:) 
+!    real*8 :: mapx(n) 
+!    real*8 :: W(nr,nc) 
 
-    integer*4 :: fildes, getfd
+!    integer*4 :: fildes, getfd
 
-    character(len=1000) :: fnBIN
+!    character(len=1000) :: fnBIN
 
-    integer, parameter :: k14 = selected_int_kind(14) 
-    integer (kind=k14) :: pos(nc),nbytes14,offset14,i14,k,k1,k2,n14,m14,nc14
-    integer (kind=c_long) :: nbytes_c_long,i_c_long, off_c_long
+!    integer, parameter :: k14 = selected_int_kind(14) 
+!    integer (kind=k14) :: pos(nc),nbytes14,offset14,i14,k,k1,k2,n14,m14,nc14
+!    integer (kind=c_long) :: nbytes_c_long,i_c_long, off_c_long
 
-    nchar=index(fnBIN, '.bin')
+!    nchar=index(fnBIN, '.bin')
 
-    open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+!    open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
-    fd = fnum( unit=13 )
+!    fd = fnum( unit=13 )
 
-    nbytes14=nbytes
-    n14=n
-    m14=m
-    nc14=nc
-    !len = n14*m14*nbytes14
-    len = n14*nc14*nbytes14
+!    nbytes14=nbytes
+!    n14=n
+!    m14=m
+!    nc14=nc
+!    !len = n14*m14*nbytes14
+!    len = n14*nc14*nbytes14
 
-    off=0
-    offset14=minval(cls) 
-    off=(offset14-1)*n14*nbytes14
+!    off=0
+!    offset14=minval(cls) 
+!    off=(offset14-1)*n14*nbytes14
 
     !len1 = n*nbytes
     !null=0
@@ -1102,19 +1102,19 @@
 
     
     !off = 0 !+ (cls(i)-1)*n*nbytes
-    print*,len,off
-    cptr = mmap(0,len,prot_read,map_share,fd,off) 
+!    print*,len,off
+!    cptr = mmap(0,len,prot_read,map_share,fd,off) 
     !cptr = mmap(0,len,prot_read,map_private,fd,off) 
-    call c_f_pointer(cptr,x,[len]) 
-    do i = 1,nc
-      !i14 =cls(i)
-      i14 =i
-      k1=(i14-1)*n14+1
-      k2=i14*n14
-      !mapx(1:n)=x(k1:k2) 
-      !W(1:nr,i)=mapx(rws)
-      print*,i 
-    enddo
+!    call c_f_pointer(cptr,x,[len]) 
+!    do i = 1,nc
+!      !i14 =cls(i)
+!      i14 =i
+!      k1=(i14-1)*n14+1
+!      k2=i14*n14
+!      !mapx(1:n)=x(k1:k2) 
+!      !W(1:nr,i)=mapx(rws)
+!      print*,i 
+!    enddo
     
     !nbytes_c_long = nbytes 
     !do i = 1,nc
@@ -1130,4 +1130,4 @@
 
 
 
-    end subroutine fmmap	
+!    end subroutine fmmap	
