@@ -805,8 +805,6 @@
   if(nchar>0) offset=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
 
-  print*,offset 
-
   !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
    open(unit=13,file=fnRAW(1:(nchar+3)), status='old', form='unformatted', access='direct', recl=nbytes)
    
@@ -821,7 +819,7 @@
     raww(1:nbytes,i)=raw
     if(i<6) then
       w3=0.0D0
-      w3=raw2real(nbytes,n,raw) 
+      w3=raw2real(n,nbytes,raw) 
       print*,sum(w3(rws)),sum(w3)
     endif
   enddo 
@@ -837,7 +835,7 @@
   do i=1,1
     W1=0.0D0
     thread=omp_get_thread_num()+1
-    w1(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,i))
+    w1(1:n,thread) = raw2real(n,nbytes,raww(1:nbytes,i))
     print*,sum(w1(rws,thread))
     w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
@@ -847,7 +845,7 @@
       w2=0.0D0
       k = i+j
       if(k<(nc+1)) then 
-        w2(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,k))
+        w2(1:n,thread) = raw2real(n,nbytes,raww(1:nbytes,k))
         print*,sum(w2(rws,thread))
         w2(rws,thread)=scale(nr,w2(rws,thread))
         !dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
@@ -860,7 +858,7 @@
     do j=1,msize
       k = i-j
       if(k>1) then 
-        w2(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,k))
+        w2(1:n,thread) = raw2real(n,nbytes,raww(1:nbytes,k))
         w2(rws,thread)=scale(nr,w2(rws,thread))
         !dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
         !ld(i,msize+1-j)=dots(j,thread)
