@@ -828,7 +828,9 @@
     w1(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,i))
     w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
-    do j=1,msize
+
+    !do j=1,msize
+    do j=1,5
       k = i+j
       if(k<(nc+1)) then 
         w2(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,k))
@@ -836,8 +838,8 @@
         !dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
         !ld(i,msize+1+j)=dots(j,thread)
         ld(i,msize+1+j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
-        print*, rws(1:5), thread,w1(rws(1:5),thread)
-        print*,dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
+        print*, rws(1:5), thread,w1(rws(1:5),thread),w2(rws(1:5),thread)
+        print*,dble(dot_product(w1(rws,thread)),w2(rws,thread))/dble(nr)
       endif
     enddo
     dots=0.0D0
