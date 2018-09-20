@@ -816,7 +816,9 @@
     !pos(i) = 1 + offset14 + (i14-1)*nbytes14
     !read(13, pos=pos(i)) raw
     read(13, rec=cls(i)) raw
-
+    if(i<6) then
+       print*,raw(1:8)
+    endif
     raww(1:nbytes,i)=raw
   enddo 
   print*,cls(1:5), sum(cls), sum(rws)
