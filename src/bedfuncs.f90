@@ -816,12 +816,15 @@
     raww(1:nbytes,i)=raw
   enddo 
 
+   
+
   ld=0.0D0
   ld(1:nc,msize+1) = 1.0D0
   !$omp parallel do private(i,j,k,thread,w1,w2)
-  do i=1,nc
+   
+  !do i=1,nc
+  do i=1,1
     thread=omp_get_thread_num()+1
-    print*,thread 
     w1(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,i))
     w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
@@ -833,6 +836,8 @@
         !dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
         !ld(i,msize+1+j)=dots(j,thread)
         ld(i,msize+1+j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
+        print*, rws(1:5), thread,w1(rws(1:5),thread)
+        print*,dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
       endif
     enddo
     dots=0.0D0
