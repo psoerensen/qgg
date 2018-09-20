@@ -787,12 +787,12 @@
   implicit none
   
   integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchar,offset,msize,nrw
-  real*8 :: ld(nc,2*msize+1),w1(nr*4,ncores),w2(nr*4,ncores),dots(msize,ncores)
+  real*8 :: ld(nc,2*msize+1),w1(n,ncores),w2(n,ncores),dots(msize,ncores)
   character(len=1000) :: fnRAW,fnLD
   integer, external :: omp_get_thread_num
 
   integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes),raww(nr,nc)
+  integer(byte) :: raw(nbytes),raww(nbytes,nc) 
   integer :: i,j,k,thread
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -800,7 +800,7 @@
 
   call omp_set_num_threads(ncores)
 
-  nrw =nr*4
+  nrw =nr
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -814,8 +814,8 @@
   do i=1,nc 
     i14=cls(i)
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos(i)) raw(rws)
-    raww(1:nr,i)=raw(rws)
+    read(13, pos=pos(i)) raw
+    raww(1:nbytes,i)=raw
   enddo
 
   ld=0.0D0
@@ -823,15 +823,15 @@
   !$omp parallel do private(i,j,k,thread)
   do i=1,nc
     thread=omp_get_thread_num()+1 
-    w1(1:nrw,thread) = raw2real(nrw,nr,raww(rws,i))
-    w1(1:nrw,thread)=scale(nrw,w1(1:nrw,thread))
+    w1(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,i))
+    w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
     do j=1,msize
       k = i+j
       if(k<(nc+1)) then 
-        w2(1:nrw,thread) = raw2real(nrw,nr,raww(rws,k))
-        w2(1:nrw,thread)=scale(nrw,w2(1:nrw,thread))
-        dots(j,thread) = dot_product(w1(1:nrw,thread),w2(1:nrw,thread))/dble(nrw)
+        w2(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,k))
+        w2(rws,thread)=scale(nr,w2(rws,thread))
+        dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
         ld(i,msize+1+j)=dots(j,thread)
       endif
     enddo
@@ -839,9 +839,9 @@
     do j=1,msize
       k = i-j
       if(k>1) then 
-        w2(1:nrw,thread) = raw2real(nrw,nr,raww(rws,k))
-        w2(1:nrw,thread)=scale(nrw,w2(1:nrw,thread))
-        dots(j,thread) = dot_product(w1(1:nrw,thread),w2(1:nrw,thread))/dble(nrw)
+        w2(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,k))
+        w2(rws,thread)=scale(nr,w2(rws,thread))
+        dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nrw)
         ld(i,msize+1-j)=dots(j,thread)
       endif
     enddo
