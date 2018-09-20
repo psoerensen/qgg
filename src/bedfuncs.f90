@@ -814,7 +814,7 @@
     pos(i) = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos(i)) raw
     raww(1:nbytes,i)=raw
-  enddo
+  enddo 
 
   ld=0.0D0
   ld(1:nc,msize+1) = 1.0D0
