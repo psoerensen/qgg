@@ -805,14 +805,18 @@
   if(nchar>0) offset=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
 
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+   open(unit=13,file=fnRAW(1:(nchar+3)), status='old', form='unformatted', access='direct', recl=nbytes)
+   
 
   nbytes14 = nbytes
   offset14 = offset
   do i=1,nc 
-    i14=cls(i)
-    pos(i) = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos(i)) raw
+    !i14=cls(i)
+    !pos(i) = 1 + offset14 + (i14-1)*nbytes14
+    !read(13, pos=pos(i)) raw
+    read(13, rec=cls(i)) raw
+
     raww(1:nbytes,i)=raw
   enddo 
 
@@ -824,10 +828,7 @@
    
   !do i=1,nc
   do i=1,1
-    !thread=omp_get_thread_num()+1
-
-    thread=1
-
+    thread=omp_get_thread_num()+1
     w1(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,i))
     w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
