@@ -787,7 +787,7 @@
   implicit none
   
   integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchar,offset,msize
-  real*8 :: ld(nc,2*msize+1),w1(n,ncores),w2(n,ncores),w3(n),dots(msize,ncores)
+  real*8 :: ld(nc,2*msize+1),w1(n,ncores),w2(n,ncores)!,dots(msize,ncores)
   character(len=1000) :: fnRAW,fnLD
   integer, external :: omp_get_thread_num
 
@@ -817,56 +817,37 @@
     !read(13, pos=pos(i)) raw
     read(13, rec=cls(i)) raw
     raww(1:nbytes,i)=raw
-    if(i<6) then
-      w3=0.0D0
-      w3=raw2real(n,nbytes,raw) 
-      print*,sum(w3(rws)),sum(w3)
-    endif
   enddo 
-  print*,cls(1:5), sum(cls), sum(rws)
 
-   
 
   ld=0.0D0
   ld(1:nc,msize+1) = 1.0D0
-  !!$omp parallel do private(i,j,k,thread,w1,w2)
+  !$omp parallel do private(i,j,k,thread,w1,w2)
    
-  !do i=1,nc
-  do i=1,1
+  do i=1,nc
     W1=0.0D0
     thread=omp_get_thread_num()+1
     w1(1:n,thread) = raw2real(n,nbytes,raww(1:nbytes,i))
-    print*,sum(w1(rws,thread))
     w1(rws,thread)=scale(nr,w1(rws,thread))
-    dots=0.0D0
-
-    !do j=1,msize
-    do j=1,5
+    do j=1,msize
       w2=0.0D0
       k = i+j
       if(k<(nc+1)) then 
         w2(1:n,thread) = raw2real(n,nbytes,raww(1:nbytes,k))
-        print*,sum(w2(rws,thread))
         w2(rws,thread)=scale(nr,w2(rws,thread))
-        !dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
-        !ld(i,msize+1+j)=dots(j,thread)
         ld(i,msize+1+j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
-        print*,dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
       endif
     enddo
-    dots=0.0D0
     do j=1,msize
       k = i-j
       if(k>1) then 
         w2(1:n,thread) = raw2real(n,nbytes,raww(1:nbytes,k))
         w2(rws,thread)=scale(nr,w2(rws,thread))
-        !dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
-        !ld(i,msize+1-j)=dots(j,thread)
         ld(i,msize+1-j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
       endif
     enddo
   enddo 
-  !!$omp end parallel do
+  !$omp end parallel do
 
   close(unit=13)
 
