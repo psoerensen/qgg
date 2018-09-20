@@ -787,7 +787,7 @@
   implicit none
   
   integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchar,offset,msize
-  real*8 :: ld(nc,2*msize+1),w1(n,ncores),w2(n,ncores),dots(msize,ncores)
+  real*8 :: ld(nc,2*msize+1),w1(n,ncores),w2(n,ncores),w3(n),dots(msize,ncores)
   character(len=1000) :: fnRAW,fnLD
   integer, external :: omp_get_thread_num
 
@@ -817,6 +817,10 @@
     !read(13, pos=pos(i)) raw
     read(13, rec=cls(i)) raw
     raww(1:nbytes,i)=raw
+    if(i<6) then
+      w3=raw2real(nbytes,n,raw) 
+      print*,sum(w3(rws))
+    endif
   enddo 
   print*,cls(1:5), sum(cls), sum(rws)
 
