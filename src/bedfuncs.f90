@@ -819,7 +819,8 @@
 
     raww(1:nbytes,i)=raw
   enddo 
-  print*,cls(1:5)
+  print*,cls(1:5), sum(cls), sum(rws)
+
    
 
   ld=0.0D0
