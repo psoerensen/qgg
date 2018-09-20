@@ -839,7 +839,7 @@
         !ld(i,msize+1+j)=dots(j,thread)
         ld(i,msize+1+j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
         print*, rws(1:5), thread,w1(rws(1:5),thread),w2(rws(1:5),thread)
-        print*,dble(dot_product(w1(rws,thread)),w2(rws,thread))/dble(nr)
+        print*,dble(dot_product(w1(rws,thread),w2(rws,thread)))/dble(nr)
       endif
     enddo
     dots=0.0D0
