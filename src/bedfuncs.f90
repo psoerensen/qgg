@@ -818,7 +818,7 @@
 
   ld=0.0D0
   ld(1:nc,msize+1) = 1.0D0
-  !$omp parallel do private(i,j,k,thread)
+  !$omp parallel do private(i,j,k,thread,w1,w2)
   do i=1,nc
     thread=omp_get_thread_num()+1
     print*,thread 
