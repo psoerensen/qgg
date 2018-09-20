@@ -828,6 +828,7 @@
    
   !do i=1,nc
   do i=1,1
+    W1=0.0D0
     thread=omp_get_thread_num()+1
     raw=raww(1:nbytes,i)
     print*, raw(1:8),rws(1:5)
