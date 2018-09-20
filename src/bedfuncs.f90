@@ -818,6 +818,7 @@
     read(13, rec=cls(i)) raw
     raww(1:nbytes,i)=raw
     if(i<6) then
+      w3=0.0D0
       w3=raw2real(nbytes,n,raw) 
       print*,sum(w3(rws)),sum(w3)
     endif
