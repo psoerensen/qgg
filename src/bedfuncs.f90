@@ -820,7 +820,7 @@
 
   ld=0.0D0
   ld(1:nc,msize+1) = 1.0D0
-  !$omp parallel do private(i,j,k,thread,w1,w2)
+  !!$omp parallel do private(i,j,k,thread,w1,w2)
    
   !do i=1,nc
   do i=1,1
@@ -854,7 +854,7 @@
       endif
     enddo
   enddo 
-  !$omp end parallel do
+  !!$omp end parallel do
 
   close(unit=13)
 
