@@ -816,9 +816,6 @@
     !pos(i) = 1 + offset14 + (i14-1)*nbytes14
     !read(13, pos=pos(i)) raw
     read(13, rec=cls(i)) raw
-    if(i<6) then
-       print*,raw(1:8)
-    endif
     raww(1:nbytes,i)=raw
   enddo 
   print*,cls(1:5), sum(cls), sum(rws)
@@ -835,6 +832,7 @@
     w1(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,i))
     w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
+    print*, w1(rws(1:5),1)
 
     !do j=1,msize
     do j=1,5
