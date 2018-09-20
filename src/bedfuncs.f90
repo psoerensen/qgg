@@ -832,6 +832,7 @@
     raw=raww(1:nbytes,i)
     print*, raw(1:8),rws(1:5)
     w1(1:n,thread) = raw2real(nbytes,n,raw)
+    print*, w1(rws(1:5),1)
     w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
     print*, w1(rws(1:5),1)
