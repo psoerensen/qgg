@@ -830,6 +830,7 @@
   do i=1,1
     thread=omp_get_thread_num()+1
     raw=raww(1:nbytes,i)
+    print*, raw(1:8)
     w1(1:n,thread) = raw2real(nbytes,n,raw)
     w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
