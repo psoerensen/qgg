@@ -820,7 +820,8 @@
   ld(1:nc,msize+1) = 1.0D0
   !$omp parallel do private(i,j,k,thread)
   do i=1,nc
-    thread=omp_get_thread_num()+1 
+    thread=omp_get_thread_num()+1
+    print*,thread 
     w1(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,i))
     w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
