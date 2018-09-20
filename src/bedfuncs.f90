@@ -819,7 +819,7 @@
     raww(1:nbytes,i)=raw
     if(i<6) then
       w3=raw2real(nbytes,n,raw) 
-      print*,sum(w3(rws))
+      print*,sum(w3(rws)),sum(w3)
     endif
   enddo 
   print*,cls(1:5), sum(cls), sum(rws)
