@@ -824,7 +824,10 @@
    
   !do i=1,nc
   do i=1,1
-    thread=omp_get_thread_num()+1
+    !thread=omp_get_thread_num()+1
+
+    thread=1
+
     w1(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,i))
     w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
@@ -832,7 +835,6 @@
     !do j=1,msize
     do j=1,5
       k = i+j
-      print*,'k',k 
       if(k<(nc+1)) then 
         w2(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,k))
         w2(rws,thread)=scale(nr,w2(rws,thread))
