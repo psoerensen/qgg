@@ -831,15 +831,13 @@
     W1=0.0D0
     thread=omp_get_thread_num()+1
     raw=raww(1:nbytes,i)
-    print*, raw(1:8),rws(1:5)
     w1(1:n,thread) = raw2real(nbytes,n,raw)
-    print*, sum(w1(rws,1))
     w1(rws,thread)=scale(nr,w1(rws,thread))
     dots=0.0D0
-    print*, w1(rws(1:5),1)
 
     !do j=1,msize
     do j=1,5
+      w2=0.0D0
       k = i+j
       if(k<(nc+1)) then 
         w2(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,k))
@@ -848,7 +846,7 @@
         !ld(i,msize+1+j)=dots(j,thread)
         ld(i,msize+1+j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
         print*, rws(1:5), thread,w1(rws(1:5),thread),w2(rws(1:5),thread)
-        print*,dble(sum(w1(rws,thread)*w2(rws,thread)))/dble(nr)
+        print*,dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
       endif
     enddo
     dots=0.0D0
