@@ -832,6 +832,7 @@
     !do j=1,msize
     do j=1,5
       k = i+j
+      print*,'k',k 
       if(k<(nc+1)) then 
         w2(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,k))
         w2(rws,thread)=scale(nr,w2(rws,thread))
