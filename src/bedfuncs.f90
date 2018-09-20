@@ -786,7 +786,7 @@
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchar,offset,msize,nrw
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchar,offset,msize
   real*8 :: ld(nc,2*msize+1),w1(n,ncores),w2(n,ncores),dots(msize,ncores)
   character(len=1000) :: fnRAW,fnLD
   integer, external :: omp_get_thread_num
@@ -799,8 +799,6 @@
   integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
 
   call omp_set_num_threads(ncores)
-
-  nrw =nr
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -831,8 +829,9 @@
       if(k<(nc+1)) then 
         w2(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,k))
         w2(rws,thread)=scale(nr,w2(rws,thread))
-        dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
-        ld(i,msize+1+j)=dots(j,thread)
+        !dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
+        !ld(i,msize+1+j)=dots(j,thread)
+        ld(i,msize+1+j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
       endif
     enddo
     dots=0.0D0
@@ -841,8 +840,9 @@
       if(k>1) then 
         w2(1:n,thread) = raw2real(nbytes,n,raww(1:nbytes,k))
         w2(rws,thread)=scale(nr,w2(rws,thread))
-        dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nrw)
-        ld(i,msize+1-j)=dots(j,thread)
+        !dots(j,thread) = dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
+        !ld(i,msize+1-j)=dots(j,thread)
+        ld(i,msize+1-j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
       endif
     enddo
   enddo 
