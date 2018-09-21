@@ -7,6 +7,7 @@
 !	01 Missing genotype
 !	10 Heterozygous
 !	11 Homozygous for second allele in .bim file
+!
 !==============================================================================================================
     
 
@@ -16,8 +17,10 @@
     
     contains
 
-
+    !============================================
     function raw2int(n,nbytes,raw) result(g)
+    !============================================
+
     implicit none
 
     integer, intent(in) :: nbytes,n
@@ -44,7 +47,10 @@
     end function raw2int
 
 
+    !============================================
     function raw2real(n,nbytes,raw) result(w)
+    !============================================
+
     implicit none
 
     integer, intent(in) :: nbytes,n
@@ -72,7 +78,10 @@
     end function raw2real
 
 
+    !============================================
     function scale(nr,g) result(w)
+    !============================================
+
     implicit none
 
     integer, intent(in) :: nr
@@ -160,7 +169,7 @@
   integer*4 :: i, stat,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos14,nbytes14,offset14,i14
+  integer (kind=k14) :: pos14, nbytes14, offset14, i14
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -204,80 +213,7 @@
 
 
   !==============================================================================================================
-  subroutine readbedstream(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW,ncores)	
-  !==============================================================================================================
-
-  use bedfuncs 
-  
-  implicit none
-  
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores  
-  real*8 :: W(nr,nc),gsc(nr,ncores),gr(n,ncores),n0,n1,n2,nmiss,af,ntotal
-  character(len=1000) :: fnRAW
-
-  integer*4, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes,nc)
-  integer*4 :: i,j,nchar,offset
-  integer, external :: omp_get_thread_num
-
-  integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos14(nc),nbytes14,offset14,i14
-
-  call omp_set_num_threads(ncores)
-
-  offset=0
-  nchar=index(fnRAW, '.bed')
-  if(nchar>0) offset=3
-  if(nchar==0) nchar=index(fnRAW, '.raw')
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-
-  ntotal=dble(nr)  
-
-  nbytes14 = nbytes
-  offset14 = offset
-  do i=1,nc 
-    i14=cls(i)
-    pos14(i) = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14(i)) raw(1:nbytes,i)
-  enddo
-
-  W=0.0D0
-  !$omp parallel do private(i,j,nmiss,n0,n1,n2,af)
-  do i=1,nc
-    j=omp_get_thread_num()+1 
-    gr(1:n,j) = raw2real(n,nbytes,raw(1:n,i))
-
-    if (scaled==0) then
-      where(gr(1:n,j)==3.0D0) gr(:,j)=0.0D0
-      W(1:nr,i) = gr(rws,j)
-    endif
-    if (scaled==1) then
-      gsc(1:nr,j)=gr(rws,j)
-      W(1:nr,i)=scale(nr,gsc(1:nr,j))
-    endif
-    if (scaled==2) then
-      nmiss=dble(count(gr(rws,j)==3.0D0))
-      n0=dble(count(gr(rws,j)==0.0D0))
-      n1=dble(count(gr(rws,j)==1.0D0)) 
-      n2=dble(count(gr(rws,j)==2.0D0))
-      af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
-      W(1:nr,i) = gr(rws,j)
-      where(W(1:nr,i)==0.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
-      where(W(1:nr,i)==1.0D0) W(1:nr,i)=1.0D0 - 2.0D0*(af)*(1.0D0-af)
-      where(W(1:nr,i)==2.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
-      where(W(1:nr,i)==3.0D0) W(1:nr,i)=0.0D0
-    endif
-
-
-  enddo 
-  !$omp end parallel do
-
-  close(unit=13)
-
-  end subroutine readbedstream
-
-  !==============================================================================================================
-  subroutine qcbed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,ncores)	
+  subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,ncores)	
   !==============================================================================================================
 
   use bedfuncs 
@@ -327,7 +263,7 @@
 
   close(unit=13)
 
-  end subroutine qcbed
+  end subroutine summarybed
 
   !==============================================================================================================
   subroutine mafbed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,ncores)	
@@ -389,71 +325,6 @@
 
   end subroutine mafbed
 
-
-  !==============================================================================================================
-  subroutine mmbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
-  !==============================================================================================================
-  ! C = A*B (dimenions: mxn = mxk kxn) 
-  ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,0.0d0,c,m)
-  ! C = A*B + C
-  ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,1.0d0,c,m)
-
-  use bedfuncs 
-  
-  implicit none
-  
-  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores,msize,nprs,ncw 
-  real*8 :: W(nr,msize)
-  character(len=1000) :: fnRAW
-  real*8 :: prs(nr,nprs),s(nc,nprs)
-
-  call omp_set_num_threads(ncores)
-
-  prs = 0.0D0
-  W = 0.0D0 
-
-  do i=1,nc,msize
-
-    if((i+msize-1)<nc) ncw = size(cls(i:(i+msize-1)))
-    if((i+msize-1)>=nc) ncw = size(cls(i:nc))          
-
-    call readbed(n,nr,rws,ncw,cls(i:(i+ncw-1)),scaled,W(:,1:ncw),nbytes,fnRAW)
-    call dgemm("n","n",nr,nprs,ncw,1.0d0,W(:,1:ncw),nr,s(i:(i+ncw-1),:),ncw,1.0d0,prs,nr)
- 
-    print*,'Finished block',i
-
-  enddo
-  end subroutine mmbed
-
-
-  !==============================================================================================================
-   subroutine bedgemm(imax,ncores)
-  !==============================================================================================================
-   implicit none
-   
-   integer :: imax,ncores
-   real*8::flop
-   real*8, dimension(:,:), allocatable::a,b,c
-   real*8::time0,start,finish
-   external dgemm      
-
-   allocate(a(imax,imax),b(imax,imax),c(imax,imax)) 
-
-   call omp_set_num_threads(ncores)
-
-   flop=real(imax)*real(imax)*real(imax)*2.0D0
-   c(:,:) = 0.0d0
-   a(:,:) = 1.0d0
-   b(:,:) = 2.0d0
- 
-   start = time()
-   call dgemm("n","n",imax,imax,imax,1.0d0,a,imax,b,imax,0.0d0,c,imax)
-   finish = time()
-   time0 = finish - start
-   print*, "omp time:",time0, flop/time0/1000000000.0D0,"Gflops"
-   deallocate(a,b,c)
-
-   end subroutine bedgemm
 
 
   !==============================================================================================================
@@ -529,247 +400,6 @@
   close(10)
 
   end subroutine grmbed
-
-
-!==============================================================================================================
-  subroutine solvebed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
-!==============================================================================================================
-
-  use bedfuncs 
-
-  !implicit none
-  
-  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,nchar,offset
-  real*8 :: y(n),e(n),raww(n),w(n),g(n)
-  real*8 :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
-  real*8 :: lhs,rhs,snew,tol,sigma,dots
-  character(len=1000) :: fnRAW
-  real*8, external  :: ddot
-
-  integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos
-
-  integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
-  integer :: stat
-
-  call omp_set_num_threads(ncores)
-
-  offset=0
-  nchar=index(fnRAW, '.bed')
-  if(nchar>0) offset=3
-  if(nchar==0) nchar=index(fnRAW, '.raw')
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
-  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-
-  ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
-  do i=1,nc
-    read(13, iostat=stat, rec=cls(i)) raw
-    !if (stat /= 0) exit
-    !pos = 1 + offset + (cls(i)-1)*nbytes
-    !read(13, pos=pos) raw
-
-    raww = raw2real(n,nbytes,raw)
-    where (raww<3.0D0)
-      w = (raww-mean(i))/sd(i)
-    elsewhere
-      w = 0.0D0
-    end where
-    dww(i)=0.0D0
-    dww(i)=dot_product(w(rws),w(rws))
-    if(s(i).eq.0.0D0) then
-      s(i)=0.0D0  
-      !s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
-      s(i)=(ddot(nr,w(rws),1,y(rws),1)/dww(i))/nc
-    endif     
-  enddo
-  close (unit=13)
-  os=s
-
-  e=0.0D0
-  e(rws)=y(rws)
-
-  do it=1,nit
-    g=0.0D0
-    open(unit=13,file=fnRAW(1:(nchar+3)), status='old', form='unformatted', access='direct', recl=nbytes)
-    !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-    do i=1,nc
-      read(13, iostat=stat, rec=cls(i)) raw
-      !if (stat /= 0) exit
-      !pos = 1 + offset + (cls(i)-1)*nbytes
-      !read(13, pos=pos) raw
-      raww = raw2real(n,nbytes,raw)
-        where (raww<3.0D0)
-        w = (raww-mean(i))/sd(i)
-      elsewhere
-        w = 0.0D0
-      end where
-      lhs=dww(i)+lambda(i)
-      !rhs=ddot(nr,w(rws),1,e(rws),1) 
-      !rhs=rhs + dww(i)*s(i)
-      !rhs=dot_product(w(rws),e(rws)) 
-      !rhs=rhs + dww(i)*s(i)
-      dots = 0.0D0
-      !$omp parallel &
-      !$omp   shared ( w,e ) &
-      !$omp   private ( j )
-      !$omp do reduction ( + : dots )
-      do j=1,nr
-        dots = dots + w(rws(j))*e(rws(j))
-      end do
-      !$omp end do
-      !$omp end parallel
-      rhs=dww(i)*s(i)+dots
-
-      snew=rhs/lhs
-  
-      !e(rws)=e(rws) - w(rws)*(snew-s(i))
-      !do j=1,nr
-      !call daxpy(nr, (snew-s(i)), w(rws(j)), 1, e(rws(j)), 1)
-      !enddo
-      !$omp parallel do
-      do j=1,nr
-         e(rws(j))=e(rws(j))-w(rws(j))*(snew-s(i))
-      enddo  
-      !$omp end parallel do
-
-      s(i)=snew
-      g=g+w*s(i)
-    enddo
-    close (unit=13)
-    print*,(sum((s-os)**2)/sqrt(dble(nc)))
-    if( (sum((s-os)**2)/sqrt(dble(nc)))<tol) exit  
-    os=s  
-  enddo
-  
-  nit=it
-  tol=sum((s-os)**2)
-  
-  end subroutine solvebed
-
-
-
-
-
-  
-!==============================================================================================================
-  subroutine mtsolvebed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,ncores,nit,lambda,tol,nt,y,g,e,s,mean,sd)
-!==============================================================================================================
-
-  use bedfuncs 
-
-  !implicit none
-  
-  integer*4 :: i,j,k,n,nr,nc,nt,t,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,nchar,offset
-  real*8 :: y(n,nt),e(n,nt),g(n,nt),crit(nt)
-  real*8 :: raww(n),w(n)
-  real*8 :: dww(nc),s(nc,nt),os(nc,nt),lambda(nt),mean(nc),sd(nc)
-  real*8 :: lhs(nt),rhs(nt),snew(nt),dots(nt),tol,sigma
-  character(len=1000) :: fnRAW
-  real*8, external  :: ddot
-  integer*4, external :: omp_get_thread_num
-
-  integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos(nc),nbytes14,offset14,i14
-
-  integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
-  integer :: stat
-
-  call omp_set_num_threads(ncores)
-
-  offset=0
-  nchar=index(fnRAW, '.bed')
-  if(nchar>0) offset=3
-  if(nchar==0) nchar=index(fnRAW, '.raw')
-
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-
-  nbytes14 = nbytes
-  offset14 = offset
-
-  do i=1,nc
-    i14=cls(i)
-    pos(i) = 1 + offset14 + (i14-1)*nbytes14
-  enddo
-
-  ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
-  !!$omp parallel do private(t,i)
-  do i=1,nc
-    read(13, pos=pos(i)) raw
-    !call flush(13)
-    raww = raw2real(n,nbytes,raw)
-    where (raww<3.0D0)
-      w = (raww-mean(i))/sd(i)
-    elsewhere
-      w = 0.0D0
-    end where
-    dww(i)=0.0D0
-    dww(i)=dot_product(w(rws),w(rws))
-    !$omp parallel do private(t)
-    do t=1,nt
-      if(s(i,t).eq.0.0D0) then
-        s(i,t)=(ddot(nr,w(rws),1,y(rws,t),1)/dww(i))/nc
-      endif
-    enddo     
-    !$omp end parallel do
-  enddo
-  !!$omp end parallel do
-
-  close (unit=13)
-  os=s
-
-  e=0.0D0
-  e(rws,1:nt)=y(rws,1:nt)
-
-  do it=1,nit
-    g=0.0D0
-    open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-
-    do i=1,nc
-
-     read(13, pos=pos(i)) raw
-      raww = raw2real(n,nbytes,raw)
-        where (raww<3.0D0)
-        w = (raww-mean(i))/sd(i)
-      elsewhere
-        w = 0.0D0
-      end where
-
-      !$omp parallel do private(t,j)
-      do t=1,nt
-        lhs(t)=dww(i)+lambda(t)
-        !dots(t) = dot_product(w(rws),e(rws,t))
-        dots(t)=0.0D0
-        do j=1,nr
-          dots(t) = dots(t) + w(rws(j))*e(rws(j),t)
-        end do
-        rhs(t)=dww(i)*s(i,t)+dots(t)
-        snew(t)=rhs(t)/lhs(t)
-        e(rws,t)=e(rws,t)-w(rws)*(snew(t)-s(i,t))
-        s(i,t)=snew(t)
-        !g(1:n,t)=g(1:n,t)+w*s(i,t)
-      enddo
-      !$omp end parallel do
-
-    enddo
-    close (unit=13)
-    do t=1,nt
-      crit(t) = sum((s(1:nc,t)-os(1:nc,t))**2)/sqrt(dble(nc))
-      print*,crit(t)
-    enddo
-    os=s  
-    if( maxval(crit)<tol ) exit
-
-  enddo
-  
-  nit=it
-  !tol=sum((s-os)**2)
-  
-  end subroutine mtsolvebed
-
-
-
 
   !==============================================================================================================
   subroutine ldbed(n,nr,rws,nc,cls,msize,nbytes,fnRAW,ncores,fnLD)	
@@ -855,30 +485,311 @@
 
 
 
-
   !==============================================================================================================
-  subroutine readbinold(n,nr,rws,w,nbytes,fnBIN)	
+  subroutine mmbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
   !==============================================================================================================
+  ! C = A*B (dimenions: mxn = mxk kxn) 
+  ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,0.0d0,c,m)
+  ! C = A*B + C
+  ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,1.0d0,c,m)
 
+  use bedfuncs 
+  
   implicit none
   
-  integer*4 :: n,nr,rws(nr),nbytes,nchar,i  
-  real*8 :: w(nr),raw(n)
-  character(len=1000) :: fnBIN
+  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,ncores,msize,nprs,ncw 
+  real*8 :: W(nr,msize)
+  character(len=1000) :: fnRAW
+  real*8 :: prs(nr,nprs),s(nc,nprs)
+
+  call omp_set_num_threads(ncores)
+
+  prs = 0.0D0
+  W = 0.0D0 
+
+  do i=1,nc,msize
+
+    if((i+msize-1)<nc) ncw = size(cls(i:(i+msize-1)))
+    if((i+msize-1)>=nc) ncw = size(cls(i:nc))          
+
+    call readbed(n,nr,rws,ncw,cls(i:(i+ncw-1)),scaled,W(:,1:ncw),nbytes,fnRAW)
+    call dgemm("n","n",nr,nprs,ncw,1.0d0,W(:,1:ncw),nr,s(i:(i+ncw-1),:),ncw,1.0d0,prs,nr)
+ 
+    print*,'Finished block',i
+
+  enddo
+  end subroutine mmbed
 
 
-  nchar=index(fnBIN, '.bin')
-  !open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='direct', form='unformatted', action='read')
 
-  do i =1,1000 
-  open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=n*8)
-  read(13, rec=1) raw
-  close(unit=13)
-  w = raw(rws)
-  print*,i 
+!==============================================================================================================
+  subroutine solvebed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
+!==============================================================================================================
+
+  use bedfuncs 
+
+  !implicit none
+  
+  integer*4 :: i,j,k,n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,nchar,offset
+  real*8 :: y(n),e(n),raww(n),w(n),g(n)
+  real*8 :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
+  real*8 :: lhs,rhs,snew,tol,sigma,dots
+  character(len=1000) :: fnRAW
+  real*8, external  :: ddot
+
+  integer, parameter :: k14 = selected_int_kind(14) 
+  integer (kind=k14) :: pos14
+
+  integer, parameter :: byte = selected_int_kind(1) 
+  integer(byte) :: raw(nbytes)
+  integer :: stat
+
+  call omp_set_num_threads(ncores)
+
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+  ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
+  do i=1,nc
+    read(13, iostat=stat, rec=cls(i)) raw
+    !if (stat /= 0) exit
+    !pos14 = 1 + offset + (cls(i)-1)*nbytes
+    !read(13, pos=pos14) raw
+
+    raww = raw2real(n,nbytes,raw)
+    where (raww<3.0D0)
+      w = (raww-mean(i))/sd(i)
+    elsewhere
+      w = 0.0D0
+    end where
+    dww(i)=0.0D0
+    dww(i)=dot_product(w(rws),w(rws))
+    if(s(i).eq.0.0D0) then
+      s(i)=0.0D0  
+      !s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
+      s(i)=(ddot(nr,w(rws),1,y(rws),1)/dww(i))/nc
+    endif     
+  enddo
+  close (unit=13)
+  os=s
+
+  e=0.0D0
+  e(rws)=y(rws)
+
+  do it=1,nit
+    g=0.0D0
+    open(unit=13,file=fnRAW(1:(nchar+3)), status='old', form='unformatted', access='direct', recl=nbytes)
+    !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+    do i=1,nc
+      read(13, iostat=stat, rec=cls(i)) raw
+      !if (stat /= 0) exit
+      !pos14 = 1 + offset + (cls(i)-1)*nbytes
+      !read(13, pos=pos14) raw
+      raww = raw2real(n,nbytes,raw)
+        where (raww<3.0D0)
+        w = (raww-mean(i))/sd(i)
+      elsewhere
+        w = 0.0D0
+      end where
+      lhs=dww(i)+lambda(i)
+      !rhs=ddot(nr,w(rws),1,e(rws),1) 
+      !rhs=rhs + dww(i)*s(i)
+      !rhs=dot_product(w(rws),e(rws)) 
+      !rhs=rhs + dww(i)*s(i)
+      dots = 0.0D0
+      !$omp parallel &
+      !$omp   shared ( w,e ) &
+      !$omp   private ( j )
+      !$omp do reduction ( + : dots )
+      do j=1,nr
+        dots = dots + w(rws(j))*e(rws(j))
+      end do
+      !$omp end do
+      !$omp end parallel
+      rhs=dww(i)*s(i)+dots
+
+      snew=rhs/lhs
+  
+      !e(rws)=e(rws) - w(rws)*(snew-s(i))
+      !do j=1,nr
+      !call daxpy(nr, (snew-s(i)), w(rws(j)), 1, e(rws(j)), 1)
+      !enddo
+      !$omp parallel do
+      do j=1,nr
+         e(rws(j))=e(rws(j))-w(rws(j))*(snew-s(i))
+      enddo  
+      !$omp end parallel do
+
+      s(i)=snew
+      g=g+w*s(i)
+    enddo
+    close (unit=13)
+    print*,(sum((s-os)**2)/sqrt(dble(nc)))
+    if( (sum((s-os)**2)/sqrt(dble(nc)))<tol) exit  
+    os=s  
+  enddo
+  
+  nit=it
+  tol=sum((s-os)**2)
+  
+  end subroutine solvebed
+
+
+
+
+
+  
+!==============================================================================================================
+  subroutine mtsolvebed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,ncores,nit,lambda,tol,nt,y,g,e,s,mean,sd)
+!==============================================================================================================
+
+  use bedfuncs 
+
+  !implicit none
+  
+  integer*4 :: i,j,k,n,nr,nc,nt,t,rws(nr),cls(nc),scaled,nbytes,nit,it,ncores,nchar,offset
+  real*8 :: y(n,nt),e(n,nt),g(n,nt),crit(nt)
+  real*8 :: raww(n),w(n)
+  real*8 :: dww(nc),s(nc,nt),os(nc,nt),lambda(nt),mean(nc),sd(nc)
+  real*8 :: lhs(nt),rhs(nt),snew(nt),dots(nt),tol,sigma
+  character(len=1000) :: fnRAW
+  real*8, external  :: ddot
+  integer*4, external :: omp_get_thread_num
+
+  integer, parameter :: k14 = selected_int_kind(14) 
+  integer (kind=k14) :: pos14(nc),nbytes14,offset14,i14
+
+  integer, parameter :: byte = selected_int_kind(1) 
+  integer(byte) :: raw(nbytes)
+  integer :: stat
+
+  call omp_set_num_threads(ncores)
+
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+  nbytes14 = nbytes
+  offset14 = offset
+
+  do i=1,nc
+    i14=cls(i)
+    pos14(i) = 1 + offset14 + (i14-1)*nbytes14
   enddo
 
-  end subroutine readbinold
+  ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
+  !!$omp parallel do private(t,i)
+  do i=1,nc
+    read(13, pos=pos14(i)) raw
+    !call flush(13)
+    raww = raw2real(n,nbytes,raw)
+    where (raww<3.0D0)
+      w = (raww-mean(i))/sd(i)
+    elsewhere
+      w = 0.0D0
+    end where
+    dww(i)=0.0D0
+    dww(i)=dot_product(w(rws),w(rws))
+    !$omp parallel do private(t)
+    do t=1,nt
+      if(s(i,t).eq.0.0D0) then
+        s(i,t)=(ddot(nr,w(rws),1,y(rws,t),1)/dww(i))/nc
+      endif
+    enddo     
+    !$omp end parallel do
+  enddo
+  !!$omp end parallel do
+
+  close (unit=13)
+  os=s
+
+  e=0.0D0
+  e(rws,1:nt)=y(rws,1:nt)
+
+  do it=1,nit
+    g=0.0D0
+    open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+    do i=1,nc
+
+     read(13, pos=pos14(i)) raw
+      raww = raw2real(n,nbytes,raw)
+        where (raww<3.0D0)
+        w = (raww-mean(i))/sd(i)
+      elsewhere
+        w = 0.0D0
+      end where
+
+      !$omp parallel do private(t,j)
+      do t=1,nt
+        lhs(t)=dww(i)+lambda(t)
+        !dots(t) = dot_product(w(rws),e(rws,t))
+        dots(t)=0.0D0
+        do j=1,nr
+          dots(t) = dots(t) + w(rws(j))*e(rws(j),t)
+        end do
+        rhs(t)=dww(i)*s(i,t)+dots(t)
+        snew(t)=rhs(t)/lhs(t)
+        e(rws,t)=e(rws,t)-w(rws)*(snew(t)-s(i,t))
+        s(i,t)=snew(t)
+        !g(1:n,t)=g(1:n,t)+w*s(i,t)
+      enddo
+      !$omp end parallel do
+
+    enddo
+    close (unit=13)
+    do t=1,nt
+      crit(t) = sum((s(1:nc,t)-os(1:nc,t))**2)/sqrt(dble(nc))
+      print*,crit(t)
+    enddo
+    os=s  
+    if( maxval(crit)<tol ) exit
+
+  enddo
+  
+  nit=it
+  !tol=sum((s-os)**2)
+  
+  end subroutine mtsolvebed
+
+
+
+  !==============================================================================================================
+  ! subroutine bedgemm(imax,ncores)
+  !==============================================================================================================
+  ! implicit none
+  ! 
+  !integer :: imax,ncores
+  !real*8::flop
+  !real*8, dimension(:,:), allocatable::a,b,c
+  !real*8::time0,start,finish
+  !external dgemm      
+  !
+  !allocate(a(imax,imax),b(imax,imax),c(imax,imax)) 
+  !
+  !call omp_set_num_threads(ncores)
+  !
+  !flop=real(imax)*real(imax)*real(imax)*2.0D0
+  !c(:,:) = 0.0d0
+  !a(:,:) = 1.0d0
+  !b(:,:) = 2.0d0
+  !
+  !start = time()
+  !call dgemm("n","n",imax,imax,imax,1.0d0,a,imax,b,imax,0.0d0,c,imax)
+  !finish = time()
+  !time0 = finish - start
+  !print*, "omp time:",time0, flop/time0/1000000000.0D0,"Gflops"
+  !deallocate(a,b,c)
+  !
+  !end subroutine bedgemm
+
 
 
   !==============================================================================================================

@@ -531,7 +531,7 @@ qcbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
      fnRAW <- Glist$fnRAW
      OS <- .Platform$OS.type
      if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
-     qc <- .Fortran("qcbed", 
+     qc <- .Fortran("summarybed", 
                     n = as.integer(n),
                     nr = as.integer(nr),
                     rws = as.integer(rws),
