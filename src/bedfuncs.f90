@@ -106,9 +106,9 @@
     end module bedfuncs
 
 
-  !==============================================================================================================
+!==============================================================================================================
   subroutine bed2raw(n,m,cls,nbytes,append,fnBED,fnRAW)	
-  !==============================================================================================================
+!==============================================================================================================
 
   use bedfuncs 
   
@@ -150,11 +150,12 @@
   close(unit=14)
 
   end subroutine bed2raw
+!==============================================================================================================
 
 
-  !==============================================================================================================
+!==============================================================================================================
   subroutine readbed(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
-  !==============================================================================================================
+!==============================================================================================================
 
   use bedfuncs 
   
@@ -210,11 +211,12 @@
   close(unit=13)
 
   end subroutine readbed
+!==============================================================================================================
 
 
-  !==============================================================================================================
+!==============================================================================================================
   subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,ncores)	
-  !==============================================================================================================
+!==============================================================================================================
 
   use bedfuncs 
   
@@ -258,78 +260,18 @@
     n1(i)=dble(count(grws==1)) 
     n2(i)=dble(count(grws==2))
     if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
-    !af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
   enddo 
 
   close(unit=13)
 
   end subroutine summarybed
-
-  !==============================================================================================================
-  subroutine mafbed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,ncores)	
-  !==============================================================================================================
-
-  use bedfuncs 
-  
-  implicit none
-  
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n,ncores),grws(nr,ncores),ncores 
-  real*8 :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
-  character(len=1000) :: fnRAW
-  integer, external :: omp_get_thread_num
-
-  integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes,nc)
-  integer :: i,j,nchar,offset
-
-  integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos14(nc),nbytes14,offset14,i14
-
-  call omp_set_num_threads(ncores)
-
-  offset=0
-  nchar=index(fnRAW, '.bed')
-  if(nchar>0) offset=3
-  if(nchar==0) nchar=index(fnRAW, '.raw')
-
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-
-  nbytes14 = nbytes
-  offset14 = offset
-  do i=1,nc 
-    i14=cls(i)
-    pos14(i) = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14(i)) raw(1:nbytes,i)
-  enddo
-
-  af=0.0D0
-  nmiss=0.0D0
-  ntotal=dble(nr)  
-
-  !$omp parallel do private(i,j)
-  do i=1,nc
-    j=omp_get_thread_num()+1 
-    !read(13, pos=pos(i)) raw(1:nbytes,j)
-    !g(1:n,j) = raw2int(n,nbytes,raw(1:n,j))
-    g(1:n,j) = raw2int(n,nbytes,raw(1:n,i))
-    grws(1:nr,j) = g(rws,j)
-    nmiss(i)=dble(count(grws(1:nr,j)==3))
-    n0(i)=dble(count(grws(1:nr,j)==0))
-    n1(i)=dble(count(grws(1:nr,j)==1)) 
-    n2(i)=dble(count(grws(1:nr,j)==2))
-    if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
-  enddo 
-  !$omp end parallel do
-
-  close(unit=13)
-
-  end subroutine mafbed
+!==============================================================================================================
 
 
-
-  !==============================================================================================================
+!==============================================================================================================
   subroutine grmbed(n,nr,rws,nc,cls1,cls2,scaled,nbytes,fnRAW,msize,ncores,fnG,gmodel)	
-  !==============================================================================================================
+!==============================================================================================================
+
   use bedfuncs 
   
   implicit none
@@ -400,10 +342,12 @@
   close(10)
 
   end subroutine grmbed
+!==============================================================================================================
 
-  !==============================================================================================================
+
+!==============================================================================================================
   subroutine ldbed(n,nr,rws,nc,cls,msize,nbytes,fnRAW,ncores,fnLD)	
-  !==============================================================================================================
+!==============================================================================================================
 
   use bedfuncs 
   
@@ -482,16 +426,17 @@
   close(14)
 
   end subroutine ldbed
+!==============================================================================================================
 
 
 
-  !==============================================================================================================
+!==============================================================================================================
   subroutine mmbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
-  !==============================================================================================================
-  ! C = A*B (dimenions: mxn = mxk kxn) 
-  ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,0.0d0,c,m)
-  ! C = A*B + C
-  ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,1.0d0,c,m)
+!==============================================================================================================
+! C = A*B (dimenions: mxn = mxk kxn) 
+! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,0.0d0,c,m)
+! C = A*B + C
+! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,1.0d0,c,m)
 
   use bedfuncs 
   
@@ -519,6 +464,7 @@
 
   enddo
   end subroutine mmbed
+!==============================================================================================================
 
 
 
@@ -637,12 +583,9 @@
   tol=sum((s-os)**2)
   
   end subroutine solvebed
+!==============================================================================================================
 
 
-
-
-
-  
 !==============================================================================================================
   subroutine mtsolvebed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,ncores,nit,lambda,tol,nt,y,g,e,s,mean,sd)
 !==============================================================================================================
@@ -758,43 +701,12 @@
   !tol=sum((s-os)**2)
   
   end subroutine mtsolvebed
-
-
-
   !==============================================================================================================
-  ! subroutine bedgemm(imax,ncores)
-  !==============================================================================================================
-  ! implicit none
-  ! 
-  !integer :: imax,ncores
-  !real*8::flop
-  !real*8, dimension(:,:), allocatable::a,b,c
-  !real*8::time0,start,finish
-  !external dgemm      
-  !
-  !allocate(a(imax,imax),b(imax,imax),c(imax,imax)) 
-  !
-  !call omp_set_num_threads(ncores)
-  !
-  !flop=real(imax)*real(imax)*real(imax)*2.0D0
-  !c(:,:) = 0.0d0
-  !a(:,:) = 1.0d0
-  !b(:,:) = 2.0d0
-  !
-  !start = time()
-  !call dgemm("n","n",imax,imax,imax,1.0d0,a,imax,b,imax,0.0d0,c,imax)
-  !finish = time()
-  !time0 = finish - start
-  !print*, "omp time:",time0, flop/time0/1000000000.0D0,"Gflops"
-  !deallocate(a,b,c)
-  !
-  !end subroutine bedgemm
 
 
-
-  !==============================================================================================================
+!==============================================================================================================
   subroutine readbin(n,nr,rws,nc,cls,W,nbytes,fnBIN)	
-  !==============================================================================================================
+!==============================================================================================================
 
   implicit none
   
@@ -828,12 +740,12 @@
   close(unit=13)
 
   end subroutine readbin
+!==============================================================================================================
 
 
-
-  !==============================================================================================================
+!==============================================================================================================
   subroutine psets(m,stat,nsets,setstat,msets,p,np,ncores)	
-  !==============================================================================================================
+!==============================================================================================================
 
   implicit none
   
@@ -882,156 +794,6 @@
 
   end select
 
-
   end subroutine psets
-
-
 !==============================================================================================================
-! functions for memory mapping of files 
-!==============================================================================================================
-! https://www.pgroup.com/userforum/viewtopic.php?p=8139&sid=900dee3e8bacb79da27dc14d5e644cf2
 
-
-!   module mmapfuncs
-
-
-
-!    interface
-!    subroutine memcpy(dest, src, n) bind(C,name='memcpy')
-!    use iso_c_binding
-!    integer(c_intptr_t), value:: dest
-!    integer(c_intptr_t), value:: src
-!    integer(c_size_t), value :: n
-!    end subroutine memcpy
-!    end interface
-
-    !interface
-    !integer(c_intptr_t) function mmap(addr,len,prot,flags,fildes,off) result(result) bind(c,name='mmap') 
-    !use iso_c_binding 
-    !integer(c_intptr_t), value :: addr 
-    !integer(c_size_t), value :: len
-    !integer(c_int), value :: prot 
-    !integer(c_int), value :: flags 
-    !integer(c_int), value :: fildes 
-    !integer(c_size_t), value :: off 
-    !end function mmap 
-    !end interface
-
-!    interface
-!    integer(c_int) function munmap(addr, len) bind(c,name='munmap')
-!    use iso_c_binding 
-!    integer(c_intptr_t), value :: addr 
-!    integer(c_size_t), value :: len
-!    end function munmap
-!    end interface
-
-!    interface 
-!    type(c_ptr) function mmap(addr,len,prot,flags,fildes,off) bind(c,name='mmap') 
-!    use iso_c_binding 
-!    integer(c_int), value :: addr 
-!    integer(c_size_t), value :: len 
-!    integer(c_int), value :: prot 
-!    integer(c_int), value :: flags 
-!    integer(c_int), value :: fildes 
-!    integer(c_size_t), value :: off 
-!    end function mmap 
-!    end interface 
-
-!    end module
-
-
-   
-    !==============================================================================================================
-!    subroutine fmmap(n,m,nr,rws,nc,cls,W,nbytes,fnBIN)	
-   !==============================================================================================================
-
-!    use mmapfuncs 
-!    use iso_c_binding 
-
-!    implicit none
-
-
-!    type(c_ptr) :: cptr
-!    integer(c_intptr_t) :: adr
-!    integer(c_size_t) :: len, off, n_size_t, m_size_t, nbytes_size_t 
-!    integer,parameter :: prot_read=1	  
-!    integer,parameter :: map_private=2    
-!    integer,parameter :: map_share=1    
-
-!    integer :: fd,nchar,i,nbytes,null 
-!    integer :: n,m,nr,rws(nr),nc,cls(nc) 
-!    real*8, pointer :: x(:) 
-!    real*8 :: mapx(n) 
-!    real*8 :: W(nr,nc) 
-
-!    integer*4 :: fildes, getfd
-
-!    character(len=1000) :: fnBIN
-
-!    integer, parameter :: k14 = selected_int_kind(14) 
-!    integer (kind=k14) :: pos(nc),nbytes14,offset14,i14,k,k1,k2,n14,m14,nc14
-!    integer (kind=c_long) :: nbytes_c_long,i_c_long, off_c_long
-
-!    nchar=index(fnBIN, '.bin')
-
-!    open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-
-!    fd = fnum( unit=13 )
-
-!    nbytes14=nbytes
-!    n14=n
-!    m14=m
-!    nc14=nc
-!    !len = n14*m14*nbytes14
-!    len = n14*nc14*nbytes14
-
-!    off=0
-!    offset14=minval(cls) 
-!    off=(offset14-1)*n14*nbytes14
-
-    !len1 = n*nbytes
-    !null=0
-    !do i = 1,nc
-    !off = 0 + (i-1)*n*nbytes
-    !adr = mmap(loc(null),len,prot_read,map_private,fd,off)
-    !print*,'was here',off,len,len1
-    !print*, loc(mapx)
-    !call memcpy(loc(mapx), adr, len1)
-    !print*,'was here'
-    !W(1:nr,i)=mapx(1:n) 
-    !print*,'was here'
-    !k = munmap(adr, len1)
-    !print*,k
-    !enddo
-
-    
-    !off = 0 !+ (cls(i)-1)*n*nbytes
-!    print*,len,off
-!    cptr = mmap(0,len,prot_read,map_share,fd,off) 
-    !cptr = mmap(0,len,prot_read,map_private,fd,off) 
-!    call c_f_pointer(cptr,x,[len]) 
-!    do i = 1,nc
-!      !i14 =cls(i)
-!      i14 =i
-!      k1=(i14-1)*n14+1
-!      k2=i14*n14
-!      !mapx(1:n)=x(k1:k2) 
-!      !W(1:nr,i)=mapx(rws)
-!      print*,i 
-!    enddo
-    
-    !nbytes_c_long = nbytes 
-    !do i = 1,nc
-    !  i_c_long = cls(i) 
-    !  off_c_long = 0 + (i_c_long-1)*nbytes_c_long
-    !  cptr = mmap(0,len,prot_read,map_private,fd,off_c_long) 
-    !  !k1=(i-1)*nr+1
-    !  !k2=i*nr
-    !  call c_f_pointer(cptr,x,[len]) 
-    !  W(1:nr,i)=x(rws) 
-    !  !k = munmap(cptr, len)  
-    !enddo
-
-
-
-!    end subroutine fmmap	
