@@ -117,9 +117,11 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           #fam <- fread(input=famfiles[1], header=FALSE)
           Glist$ids <- as.character(fam[,2])
           Glist$study_ids <- Glist$ids
-          if(!is.null(ids)) Glist$study_ids <- as.character(ids) 
-          if(!is.null(ids)) if(any(!ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
-          
+          if(!is.null(ids)) {
+               if(any(!ids%in%as.character(fam[,2]))) warning(paste("some ids not found in famfiles"))
+               Glist$study_ids <- Glist$ids[Glist$ids%in%as.character(ids)]
+          }
+          if(any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
           for ( chr in 1:length(bedfiles) ) {
                #bim <- read.table(file=bimfiles[chr], header=FALSE)
                bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE)
@@ -197,10 +199,16 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$study_ids <- NULL
           #fam <- read.table(file=famfiles[1], header=FALSE)
           fam <- fread(input=bimfiles[1], header=FALSE, data.table = FALSE)
+          #Glist$ids <- as.character(fam[,2])
+          #Glist$study_ids <- Glist$ids
+          #if(!is.null(ids)) Glist$study_ids <- as.character(ids) 
+          #if(!is.null(ids)) if(any(!ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
           Glist$ids <- as.character(fam[,2])
           Glist$study_ids <- Glist$ids
-          if(!is.null(ids)) Glist$study_ids <- as.character(ids) 
-          if(!is.null(ids)) if(any(!ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
+          if(!is.null(ids)) {
+               if(any(!ids%in%as.character(fam[,2]))) warning(paste("some ids not found in famfiles"))
+               Glist$study_ids <- Glist$ids[Glist$ids%in%as.character(ids)]
+          }
           
           if(any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
 
