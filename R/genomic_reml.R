@@ -98,14 +98,16 @@
 
 greml <- function(y = NULL, X = NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE,interface="R")
 {
-  if(interface=="R") { 
+  #if(interface=="R") {
+  if(!is.null(G)) {
     if (is.null(validate)) fit <- remlR(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
     if (!is.null(validate)) fit <- cvreml(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir, makeplots=makeplots)
   }
   if(!is.null(bin)) { 
     fit <- remlF(y=y, X=X, GRMlist=GRMlist, G=G, ids=ids, theta=theta, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
   }
-  if(interface=="fortran") { 
+  #if(interface=="fortran") {
+  if(!is.null(GRMlist)) {
     fit <- freml(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, ncores=ncores, verbose=verbose) 
   }        
   return(fit)  
@@ -328,6 +330,8 @@ remlR <- function(y=NULL, X=NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, ma
   theta <- as.vector(theta)
   if(is.null(names(G))) names(theta) <- c(paste("G",1:(np-1),sep=""),"E")
   if(!is.null(names(G))) names(theta) <- c(names(G)[-np],"E")
+  if(is.null(names(G))) colnames(u) <- c(paste("G",1:(np-1),sep=""))
+  if(!is.null(names(G))) colnames(u) <- names(G)[-np]
   
   return(list( y=y, X=X, b=b, vb=vb, g=u, e=e, fitted=fitted, predicted=predicted, Py=Py, Vy=Vy, theta=theta, asd=theta.cov, llik=llik, niter=it,trPG=trPG, trVG=trVG,ids=names(y),yVy=yVy   ))
 }
@@ -353,7 +357,7 @@ cvreml <- function(y=NULL, X=NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, v
       ypred <- ypred + G[[j]][v,t]%*%fit$Py*fit$theta[j]
     }
     yobs <- y[v]
-    if(!is.atomic(validate)) res <- rbind(res,qcpred(yobs=yobs,ypred=ypred,typeoftrait=typeoftrait))
+    if(!is.atomic(validate)) res <- rbind(res,acc(yobs=yobs,ypred=ypred,typeoftrait=typeoftrait))
     yo <- c(yo, yobs)
     yp <- c(yp, ypred)
   }
@@ -373,7 +377,7 @@ cvreml <- function(y=NULL, X=NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, v
    coef <- lm(yo ~ yp)$coef
    abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
   }
-  return(list(pred=res,theta=theta,yobs=yo,ypred=yp))
+  return(list(accuracy=res,theta=theta,yobs=yo,ypred=yp))
 }
 
 
@@ -437,10 +441,14 @@ freml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
    fit$yVy <- sum(y * fit$Vy)
    fit$wd <- getwd()
    fit$GRMlist <- GRMlist
+   rownames(fit$u) <- names(y)
+   colnames(fit$u) <- c(paste("G",1:(ncol(fit$u)-1),sep=""),"E1")
    fit$g <- fit$u[,1:(nr-1)]
    fit$e <- fit$u[,nr]
    fit$u <- NULL 
-
+   np <- length(fit$theta)
+   names(fit$theta) <- c(paste("G",1:(np-1),sep=""),"E")
+   
    return(fit)
 }
 
@@ -478,7 +486,7 @@ gblup <- function(GRMlist=NULL,G=NULL,fit=NULL,g=NULL, ids=NULL, idsCLS=NULL, id
      if (sum(!idsRWS%in%GRMlist$idsG)>0) stop("Error some ids not found in idsG")
      for (i in 1:nr) {
           GRMlist$fnG <- fnG[i]  
-          G <- getG(GRMlist=GRMlist, idsCLS=idsCLS,idsRWS=idsRWS) 
+          G <- getGRM(GRMlist=GRMlist, idsCLS=idsCLS,idsRWS=idsRWS) 
           g <- cbind(g, G%*%Py[idsCLS]*fit$theta[i])
      }
      colnames(g) <- paste("G",1:nr,sep="")

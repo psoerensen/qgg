@@ -6,12 +6,20 @@
 #'
 
 
-computeG <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE) {
+computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE, returnGRM=FALSE, miss=0) {
 
      if(method=="add") gmodel <- 1 
      if(method=="dom") gmodel <- 2
      if(method=="epi") gmodel <- 3
-     
+
+     if (!is.null(W)) { 
+          SS <- tcrossprod(W)                              # compute crossproduct, all SNPs
+          N <- tcrossprod(!W == miss)                      # compute number of observations, all SNPs
+          G <- SS /N
+          return(G)
+     }     
+     if (is.null(W)) { 
+          
      n <- Glist$n
      m <- Glist$m
      nbytes <- ceiling(n/4)
@@ -24,11 +32,11 @@ computeG <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="a
      }
      if(is.list(rsids)) {
           gmodel <- 3
-          cls1 <- match(rsids[[1]],unlist(Glist$rsids))
-          cls2 <- match(rsids[[2]],unlist(Glist$rsids))
+          cls1 <- match(rsids[[1]],Glist$rsids)
+          cls2 <- match(rsids[[2]],Glist$rsids)
      }
      if(is.vector(rsids)&!is.list(rsids)) {
-          cls1 <- cls2 <- match(rsids,unlist(Glist$rsids))
+          cls1 <- cls2 <- match(rsids,Glist$rsids)
      }
      nc <- length(cls1)
      
@@ -41,7 +49,7 @@ computeG <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="a
 
      # Initiate GRMlist
      idsG <- Glist$ids[rws]
-     rsidsG <- unlist(Glist$rsids)[unique(c(cls1,cls2))] 
+     rsidsG <- Glist$rsids[unique(c(cls1,cls2))] 
      nG <- length(idsG)
      mG <- length(rsidsG) 
      GRMlist <- list(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG,method=method)
@@ -71,7 +79,13 @@ computeG <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="a
            #G = matrix(as.double(0),nrow=nr,ncol=nr),
            PACKAGE = 'qgg'
      )
-     if(!is.null(fnG)) return(GRMlist)
+     if(!returnGRM) return(GRMlist)
+     if(returnGRM) {
+          GRM <- getGRM( GRMlist=GRMlist, ids=GRMlist$idsG)
+          return(GRM)
+     }
+     }
+     
 }
 
 
@@ -79,7 +93,7 @@ computeG <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, method="a
 #' @export
 #'
 
-getG <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=NULL) {
+getGRM <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=NULL) {
      
      #GRMlist(fnG=fnG,idsG=idsG,rsids=rsidsG,n=nG,m=mG)
      
@@ -124,7 +138,7 @@ getG <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rws=
 #' @export
 #'
 
-   mergeG <- function(GRMlist=NULL) {
+   mergeGRM <- function(GRMlist=NULL) {
      GRMlist <- do.call(function(...) mapply(c,...,SIMPLIFY = FALSE),args = GRMlist)
      GRMlist$idsG <- unique(GRMlist$idsG)
      GRMlist$n <- length(GRMlist$idsG)

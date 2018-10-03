@@ -241,7 +241,7 @@ gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, G = NULL, data
 
 #' @export
 
-     computeGRM <- function(W = NULL, miss = 0, pdf = TRUE) {
+     computeG <- function(W = NULL, miss = 0, pdf = TRUE) {
           
           SS <- tcrossprod(W)                              # compute crossproduct, all SNPs
           N <- tcrossprod(!W == miss)                      # compute number of observations, all SNPs
