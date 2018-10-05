@@ -108,4 +108,3 @@ fitGT <- gfm(fm = fmf, W = W, sets = setsGT, data = data.frame(y, pc1, pc2, f1),
 \author{
 Peter Sørensen
 }
-

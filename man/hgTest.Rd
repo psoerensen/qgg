@@ -51,4 +51,3 @@ res <- hgTest(p = p, sets = sets, threshold = 0.05)
 \author{
 Peter Sørensen
 }
-
