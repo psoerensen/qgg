@@ -1,6 +1,6 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "Using gqq"
+author: "Izel Fourie Sørensen"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >

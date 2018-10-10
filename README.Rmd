@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# qgg
+# qgg for Quantitative Genetic Analyses
 
 The goal of qgg is to ...
 
