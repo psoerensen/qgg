@@ -59,9 +59,6 @@ fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
 maGB <- lmma(fit = fitGB, W = W)
 
 }
-\author{
-Peter Sørensen
-}
 \references{
 Chen, W. M., & Abecasis, G. R. (2007). Family-based association tests for genomewide association scans. The American Journal of Human Genetics, 81(5), 913-926.
 
@@ -85,4 +82,6 @@ Yang, J., Zaitlen, N. A., Goddard, M. E., Visscher, P. M., & Price, A. L. (2014)
 
 Bulik-Sullivan, B. K., Loh, P. R., Finucane, H. K., Ripke, S., Yang, J., Patterson, N., ... & Schizophrenia Working Group of the Psychiatric Genomics Consortium. (2015). LD Score regression distinguishes confounding from polygenicity in genome-wide association studies. Nature genetics, 47(3), 291-295.
 }
-
+\author{
+Peter Sørensen
+}

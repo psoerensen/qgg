@@ -76,4 +76,3 @@ cvat(s = s, W = W, sets = setsGT, nperm = 1000)
 \author{
 Peter Sørensen
 }
-

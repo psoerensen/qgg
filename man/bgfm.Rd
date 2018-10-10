@@ -42,4 +42,3 @@ important computational role in the Markov chain Monte Carlo strategy implemente
 \author{
 Peter Sørensen
 }
-

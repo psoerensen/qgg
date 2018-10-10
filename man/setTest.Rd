@@ -65,4 +65,3 @@ res <- setTest(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
 \author{
 Peter Sørensen
 }
-

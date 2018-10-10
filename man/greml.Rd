@@ -4,16 +4,17 @@
 \alias{greml}
 \title{Genomic REML analysis}
 \usage{
-greml(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL,
-  ids = NULL, validate = NULL, maxit = 100, tol = 1e-05, bin = NULL,
-  nthreads = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE)
+greml(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL,
+  ids = NULL, validate = NULL, maxit = 100, tol = 1e-05,
+  bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE,
+  makeplots = FALSE, interface = "R")
 }
 \arguments{
 \item{y}{vector of phenotypes}
 
 \item{X}{design matrix of fixed effects}
 
-\item{Glist}{list of information about G matrix}
+\item{GRMlist}{list of information about G matrix}
 
 \item{G}{genomic relationship matrix}
 
@@ -27,7 +28,7 @@ greml(y = NULL, X = NULL, Glist = NULL, G = NULL, theta = NULL,
 
 \item{bin}{executable file in fortran}
 
-\item{nthreads}{number of threads}
+\item{ncores}{number of cores}
 
 \item{wkdir}{working directory}
 }
@@ -50,7 +51,7 @@ Returns a list structure, fit, including
 \item{yVy}{product of y, variance-covariance matrix of y at convergence, and y}
 \item{fnamesG}{filename(s) and locations of of G}
 \item{wd}{working directory}
-\item{Glist}{list of information about G matrix}
+\item{GRMlist}{list of information about G matrix}
 }
 \description{
 Genomic restricted maximum likelihood estimation (REML) is an analysis used to estimate genomic and residual variance.
@@ -59,7 +60,7 @@ Genomic variance is the variance associated with the genomic relationship matrix
 \details{
 Linear mixed model (LMM) that models covariance among individuals using realized relationships at genotyped loci.
 This modeling scheme is achieved through the genomic relationship matrix (G).
-This matrix can be inputted 'as is' or with a more efficient list structure, Glist, that contains information about G.
+This matrix can be inputted 'as is' or with a more efficient list structure, GRMlist, that contains information about G.
 The model can accomodate fixed effects.
 Individuals may be subsetted for additional analyses such as cross validation.
 }
@@ -110,10 +111,9 @@ cvGT
 boxplot(cbind(cvGB[,1:4],cvGF[,1:4],cvGT[,1:4]))
 
 }
-\author{
-Peter Sørensen
-}
 \references{
 Lee, S. H., & van Der Werf, J. H. (2006). An efficient variance component approach implementing an average information REML suitable for combined LD and linkage mapping with a general complex pedigree. Genetics Selection Evolution, 38(1), 25.
 }
-
+\author{
+Peter Sørensen
+}
