@@ -3,7 +3,7 @@ navbar:
     left:
     - home
     - intro
-    - reference
+    - functions
     - articles
     - tutorials
     - news
@@ -12,8 +12,8 @@ navbar:
     home:
       icon: fa-home fa-lg
       href: index.html
-    reference:
-      text: Reference
+    functions:
+      text: Functions
       href: reference/index.html
     intro:
       text: Get started
