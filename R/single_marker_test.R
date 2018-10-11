@@ -141,7 +141,7 @@ lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize
      }
      if(!is.null(Glist)) {
           if(any(!ids%in%Glist$ids)) stop("Some names of y does not match names in Glist$ids")
-          if(!is.null(X)) y <- residuals(lm(y~X))
+          if(!is.null(X)) y <- as.matrix(residuals(lm(y~X)))
           nt <- ncol(y) 
           m <- Glist$m
           n <- Glist$n
@@ -166,7 +166,7 @@ lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize
                print(paste("Finished block",i,"out of",nsets,"blocks"))
           }
           cls <- unlist(sets)
-          res <- list(s=s[cls,],se=se[cls,],stat=stat[cls,],p=p[cls,])
+          res <- data.frame(s=s[cls,],se=se[cls,],stat=stat[cls,],p=p[cls,])
      }
      return(res)
 }
