@@ -1,1 +1,36 @@
- 
+navbar:
+  structure:
+    left:
+    - home
+    - intro
+    - functions
+    - articles
+    - tutorials
+    - news
+    right: github
+  components:
+    home:
+      icon: fa-home fa-lg
+      href: index.html
+    functions:
+      - text: "Functions"
+      href: reference/index.html
+    intro:
+      - text: "Get started"
+      href: articles/qgg.html
+    articles:
+      - text: "Articles"
+      menu:
+      - text: Prepare Phenotype and Covariate Data
+        href: articles/Prepare_Phenotype_Data_Starvation_html.html
+    tutorials:
+      - text: "Tutorials"
+      menu:  
+      - text: Prepare Phenotype and Covariate Data
+        href: articles/Prepare_Phenotype_Data_Starvation_html.html
+    news:
+      text: Changelog
+      href: news/index.html
+    github:
+      icon: fa-github fa-lg
+      href: https://github.com/psoerensen/qgg 
