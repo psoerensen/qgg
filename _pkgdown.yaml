@@ -13,18 +13,18 @@ navbar:
       icon: fa-home fa-lg
       href: index.html
     functions:
-      text: Functions
+      text: "Functions"
       href: reference/index.html
     intro:
-      text: Get started
+      text: "Get started"
       href: articles/qgg.html
     articles:
-      text: Articles
+      text: "Articles"
       menu:
       - text: Prepare Phenotype and Covariate Data
         href: articles/Prepare_Phenotype_Data_Starvation_html.html
     tutorials:
-      text: Tutorials 
+      text: "Tutorials"
       menu:  
       - text: Prepare Phenotype and Covariate Data
         href: articles/Prepare_Phenotype_Data_Starvation_html.html
