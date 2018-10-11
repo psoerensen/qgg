@@ -497,44 +497,30 @@
   if(nchar>0) offset=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
-  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
 
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
   do i=1,nc
     read(13, iostat=stat, rec=cls(i)) raw
-    !if (stat /= 0) exit
-    !pos14 = 1 + offset + (cls(i)-1)*nbytes
-    !read(13, pos=pos14) raw
-
     raww = raw2real(n,nbytes,raw)
     where (raww<3.0D0)
       w = (raww-mean(i))/sd(i)
     elsewhere
       w = 0.0D0
     end where
-    dww(i)=0.0D0
     dww(i)=dot_product(w(rws),w(rws))
     if(s(i).eq.0.0D0) then
-      s(i)=0.0D0  
-      !s(i)=(dot_product(w(rws),y(rws))/dww(i))/nc
       s(i)=(ddot(nr,w(rws),1,y(rws),1)/dww(i))/nc
     endif     
   enddo
   close (unit=13)
   os=s
-
   e=0.0D0
   e(rws)=y(rws)
-
   do it=1,nit
     g=0.0D0
     open(unit=13,file=fnRAW(1:(nchar+3)), status='old', form='unformatted', access='direct', recl=nbytes)
-    !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
     do i=1,nc
       read(13, iostat=stat, rec=cls(i)) raw
-      !if (stat /= 0) exit
-      !pos14 = 1 + offset + (cls(i)-1)*nbytes
-      !read(13, pos=pos14) raw
       raww = raw2real(n,nbytes,raw)
         where (raww<3.0D0)
         w = (raww-mean(i))/sd(i)
@@ -542,34 +528,10 @@
         w = 0.0D0
       end where
       lhs=dww(i)+lambda(i)
-      !rhs=ddot(nr,w(rws),1,e(rws),1) 
-      !rhs=rhs + dww(i)*s(i)
-      !rhs=dot_product(w(rws),e(rws)) 
-      !rhs=rhs + dww(i)*s(i)
-      dots = 0.0D0
-      !$omp parallel &
-      !$omp   shared ( w,e ) &
-      !$omp   private ( j )
-      !$omp do reduction ( + : dots )
-      do j=1,nr
-        dots = dots + w(rws(j))*e(rws(j))
-      end do
-      !$omp end do
-      !$omp end parallel
-      rhs=dww(i)*s(i)+dots
-
+      rhs=dot_product(w(rws),e(rws)) 
+      rhs=rhs + dww(i)*s(i)
       snew=rhs/lhs
-  
-      !e(rws)=e(rws) - w(rws)*(snew-s(i))
-      !do j=1,nr
-      !call daxpy(nr, (snew-s(i)), w(rws(j)), 1, e(rws(j)), 1)
-      !enddo
-      !$omp parallel do
-      do j=1,nr
-         e(rws(j))=e(rws(j))-w(rws(j))*(snew-s(i))
-      enddo  
-      !$omp end parallel do
-
+      e(rws)=e(rws) - w(rws)*(snew-s(i))
       s(i)=snew
       g=g+w*s(i)
     enddo
