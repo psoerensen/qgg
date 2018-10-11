@@ -362,7 +362,8 @@ cvreml <- function(y=NULL, X=NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, v
     yp <- c(yp, ypred)
   }
 
-  if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp,typeoftrait=typeoftrait),nrow=1)
+  if(is.atomic(validate)) res <- matrix(acc(yobs=yo,ypred=yp,typeoftrait=typeoftrait),nrow=1)
+  #if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp,typeoftrait=typeoftrait),nrow=1)
   res <- as.data.frame(res)
   names(res) <- c("Corr","R2","Nagel R2", "AUC", "intercept", "slope", "MSPE")
   if(is.null(names(G))) names(G) <- paste("G",1:(np-1),sep="")
