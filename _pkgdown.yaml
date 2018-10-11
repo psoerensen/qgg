@@ -12,12 +12,12 @@ navbar:
     home:
       icon: fa-home fa-lg
       href: index.html
-    functions:
+    - functions:
       - text: "Functions"
-      href: reference/index.html
+        href: reference/index.html
     intro:
       - text: "Get started"
-      href: articles/qgg.html
+        href: articles/qgg.html
     articles:
       - text: "Articles"
       menu:
