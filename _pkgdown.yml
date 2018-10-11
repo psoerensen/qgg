@@ -12,7 +12,7 @@ navbar:
     home:
       icon: fa-home fa-lg
       href: index.html
-    functions:
+    - functions:
       - text: "Functions"
       href: reference/index.html
     intro:
