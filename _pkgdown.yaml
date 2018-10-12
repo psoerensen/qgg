@@ -10,7 +10,7 @@ navbar:
         menu:
         - text: Prepare Phenotype and Covariate Data
           href: articles/Prepare_Phenotype_Data_Starvation_html.html
-     right: github
+     right:
       - news:
         text: Changelog
         href: news/index.html
