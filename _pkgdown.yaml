@@ -1,5 +1,4 @@
 navbar:
-  
     left:
       - icon: fa-home fa-lg
         href: index.html
@@ -11,11 +10,10 @@ navbar:
         menu:
         - text: Prepare Phenotype and Covariate Data
           href: articles/Prepare_Phenotype_Data_Starvation_html.html
-
-        right: github
-    news:
-      text: Changelog
-      href: news/index.html
-    github:
-      icon: fa-github fa-lg
-      href: https://github.com/psoerensen/qgg
+     right: github
+      - news:
+        text: Changelog
+        href: news/index.html
+      - github:
+        icon: fa-github fa-lg
+        href: https://github.com/psoerensen/qgg
