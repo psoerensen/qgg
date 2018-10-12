@@ -166,7 +166,8 @@ lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize
                print(paste("Finished block",i,"out of",nsets,"blocks"))
           }
           cls <- unlist(sets)
-          res <- data.frame(s=s[cls,],se=se[cls,],stat=stat[cls,],p=p[cls,])
+          res <- list(s=s[cls,],se=se[cls,],stat=stat[cls,],p=p[cls,])
+          if (nt==1) res <- as.data.frame(res)
      }
      return(res)
 }
