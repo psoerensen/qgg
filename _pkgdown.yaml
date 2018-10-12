@@ -12,7 +12,7 @@ navbar:
           href: articles/Prepare_Phenotype_Data_Starvation_html.html
      right:
       - news:
-        text: Changelog
+        text: "Changelog"
         href: news/index.html
       - github:
         icon: fa-github fa-lg
