@@ -278,10 +278,41 @@ hgTest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 
 }
 
+#' @export
+
+mma <- function(stat=NULL,sets=NULL,ncores=1, np=1000, method="sum") {
+     
+     m <- length(stat)
+     #rws <- 1:m 
+     #names(rws) <- names(stat)
+     #sets <- lapply(sets, function(x) {rws[x]}) 
+     
+     nsets <- length(sets)
+     msets <- sapply(sets, length)
+     setstat <- sapply(sets, function(x) {sum(stat[x])})
+     
+     
+     
+     res <- .Fortran("psets", 
+                     m = as.integer(m),
+                     stat = as.double(stat),
+                     nsets = as.integer(nsets),
+                     setstat = as.double(setstat),
+                     msets = as.integer(msets),
+                     p = as.integer(rep(0,nsets)),
+                     np = as.integer(np),
+                     ncores = as.integer(ncores),
+                     PACKAGE = 'qgg'
+     )
+     
+     res$p/np
+     
+}
+
 
 #' @export
 
-gsets <- function(stat=NULL,sets=NULL,ncores=1, np=1000) {
+gsets <- function(stat=NULL,sets=NULL,ncores=1, np=1000, method="sum") {
      
      m <- length(stat)
      #rws <- 1:m 
@@ -308,4 +339,22 @@ gsets <- function(stat=NULL,sets=NULL,ncores=1, np=1000) {
      
      res$p/np
      
+}
+
+
+#' @export
+#'
+
+mapSets <- function( sets=NULL, rsids=NULL, Glist=NULL, index=TRUE ) { 
+     if(!is.null(Glist)) rsids <- unlist(Glist$rsids)
+     nsets <- sapply(sets,length)
+     rs <- rep(names(sets),times=nsets)
+     rsSets <- unlist(sets,use.names=FALSE)
+     rsSets <- match(rsSets,rsids)
+     inW <- !is.na(rsSets)
+     rsSets <- rsSets[inW]
+     if(!index) rsSets <- rsids[rsSets]
+     rs <-  rs[inW]
+     rsSets <- split(rsSets,f=as.factor(rs))
+     return(rsSets)
 }

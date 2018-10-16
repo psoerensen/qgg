@@ -61,41 +61,41 @@ gscore <- function(Glist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
 
 
 
-#' @export
-
-gsolve <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, validate=NULL, weights=FALSE, method="gsru", maxit=500, tol=0.0000001) { 
-     if(is.null(validate)) {
-        if(method=="gsru")  fit <- gsru(y=y, W=W, X=X, sets=sets, lambda=lambda, weights=weights, maxit=maxit, tol=tol)
-        if(method=="gsqr")  fit <- gsqr(y=y, W=W, X=X, sets=sets,msets=msets,lambda=lambda,weights=weights, maxit=maxit, tol=tol)
-     }
-     if(!is.null(validate)) { 
-          n <- length(y)     
-          #pa <- mspe <- intercept <- slope <- r2 <- NULL
-          res <- NULL
-          for ( k in 1:ncol(validate)) {
-               v <- validate[, k]
-               t <- (1:n)[-v]
-               if(method=="gsru")  fit <- gsru(y=y[t], X=as.matrix(X[t,]), W=W[t,], sets=sets, lambda=lambda, weights=weights, maxit=maxit, tol=tol)
-               if(method=="gsqr")  fit <- gsqr(y=y[t], X=as.matrix(X[t,]), W=W[t,], sets=sets, msets=msets, lambda=lambda, weights=weights, maxit=maxit, tol=tol)
+##' @export
+#
+#gsolve <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, validate=NULL, weights=FALSE, method="gsru", maxit=500, tol=0.0000001) { 
+#     if(is.null(validate)) {
+#        if(method=="gsru")  fit <- gsru(y=y, W=W, X=X, sets=sets, lambda=lambda, weights=weights, maxit=maxit, tol=tol)
+#        if(method=="gsqr")  fit <- gsqr(y=y, W=W, X=X, sets=sets,msets=msets,lambda=lambda,weights=weights, maxit=maxit, tol=tol)
+#     }
+#     if(!is.null(validate)) { 
+#          n <- length(y)     
+#          #pa <- mspe <- intercept <- slope <- r2 <- NULL
+#          res <- NULL
+#          for ( k in 1:ncol(validate)) {
+#               v <- validate[, k]
+#               t <- (1:n)[-v]
+#               if(method=="gsru")  fit <- gsru(y=y[t], X=as.matrix(X[t,]), W=W[t,], sets=sets, lambda=lambda, weights=weights, maxit=maxit, tol=tol)
+#               if(method=="gsqr")  fit <- gsqr(y=y[t], X=as.matrix(X[t,]), W=W[t,], sets=sets, msets=msets, lambda=lambda, weights=weights, maxit=maxit, tol=tol)
                #yv <- y[v]
                #yvhat <- W[v,]%*%fit$s
                #if(!is.null(X)) yvhat <- yvhat + X[v,]%*%fit$b
-               yobs <- y[v]
-               ypred <- W[v,]%*%fit$s
-               if(!is.null(X)) ypred <- ypred + X[v,]%*%fit$b
+#               yobs <- y[v]
+#               ypred <- W[v,]%*%fit$s
+#               if(!is.null(X)) ypred <- ypred + X[v,]%*%fit$b
                #r2 <- c(r2, summary(lm(yv ~ yvhat))$r.squared)
                #pa <- c(pa, cor(yvhat, yv))
                #mspe <- c(mspe, sum((yvhat - yv)^2)/length(yv))
                #intercept <- c(intercept, lm(yv ~ yvhat )$coef[1])
                #slope <- c(slope, lm(yv ~ yvhat)$coef[2])
-               res <- rbind(res,qcpred(yobs=yobs,ypred=ypred))
+#               res <- rbind(res,qcpred(yobs=yobs,ypred=ypred))
           }
           #res <- data.frame(Corr=pa, R2=r2, R2NAG=NA, AUC=NA, intercept, slope, MSPE=mspe)
           #colnames(res)[3] <- "Nagel R2"
-          fit <- res
-     }   
-     return(fit)         
-}
+#          fit <- res
+#     }   
+#     return(fit)         
+#}
 
 
 #' @export
@@ -328,7 +328,7 @@ fsolve <- function(n=NULL,nr=NULL,rws=NULL,nc=NULL,cls=NULL,scaled=TRUE,nbytes=N
 #' @export
 
 
-bigsolve <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001, ncores=1) { 
+gsolve <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001, ncores=1) { 
      
      ids <- names(y)
      fnRAW <- Glist$fnRAW
