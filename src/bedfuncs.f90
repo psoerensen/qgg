@@ -314,6 +314,10 @@
       enddo
       call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
 
+      case (4) ! epistasis hadamard 
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
     end select
   
     print*,'Finished block',i
@@ -337,7 +341,8 @@
   nchar=index(fnG, '.grm')
   open(unit=10, file=fnG(1:(nchar+3)), status='unknown', access='stream', form='unformatted', action='write')
   do j=1,size(G,1)
-    write(unit=10) G(1:size(G,1),j)
+    if (gmodel<4) write(unit=10) G(1:size(G,1),j)
+    if (gmodel==4) write(unit=10) G(1:size(G,1),j)**2
   enddo
   close(10)
 
