@@ -107,7 +107,7 @@
 
 
 !==============================================================================================================
-  subroutine bed2raw(n,m,cls,nbytes,append,fnBED,fnRAW)	
+  subroutine bed2raw(n,m,cls,nbytes,append,fnBED,fnRAW)
 !==============================================================================================================
 
   use bedfuncs 
@@ -192,7 +192,7 @@
     endif
     if (scaled==1) then
       gsc=gr(rws)
-      W(1:nr,i)=scale(nr,gsc)
+      W(1:nr,i)=scalew(nr,gsc)
     endif
     if (scaled==2) then
       nmiss=dble(count(gr==3.0D0))
@@ -394,13 +394,13 @@
     w1=0.0D0 
     thread=omp_get_thread_num()+1
     w1(1:n,thread) = raw2real(n,nbytes,raw(1:nbytes,i))
-    w1(rws,thread)=scale(nr,w1(rws,thread))
+    w1(rws,thread)=scalew(nr,w1(rws,thread))
     do j=1,msize
       k = i+j
       if(k<(nc+1)) then 
         w2=0.0D0
         w2(1:n,thread) = raw2real(n,nbytes,raw(1:nbytes,k))
-        w2(rws,thread)=scale(nr,w2(rws,thread))
+        w2(rws,thread)=scalew(nr,w2(rws,thread))
         ld(i,msize+1+j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
       endif
     enddo
@@ -409,7 +409,7 @@
       if(k>1) then 
         w2=0.0D0
         w2(1:n,thread) = raw2real(n,nbytes,raw(1:nbytes,k))
-        w2(rws,thread)=scale(nr,w2(rws,thread))
+        w2(rws,thread)=scalew(nr,w2(rws,thread))
         ld(i,msize+1-j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
       endif
     enddo
@@ -733,7 +733,7 @@
       k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
       k2 = k1+msets(i)-1
       pstat = sum(stat(k1:k2))
-      if (pstat < setstat(i)) p(i) = p(i) + 1
+      if (pstat > setstat(i)) p(i) = p(i) + 1
     enddo
   enddo   
 
@@ -749,7 +749,7 @@
       k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
       k2 = k1+msets(i)-1
       pstat = sum(stat(k1:k2))
-      if (pstat < setstat(i)) p(i) = p(i) + 1
+      if (pstat > setstat(i)) p(i) = p(i) + 1
     enddo
   enddo   
   !$omp end parallel do
