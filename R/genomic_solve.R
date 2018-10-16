@@ -89,7 +89,7 @@ gscore <- function(Glist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
                #intercept <- c(intercept, lm(yv ~ yvhat )$coef[1])
                #slope <- c(slope, lm(yv ~ yvhat)$coef[2])
 #               res <- rbind(res,qcpred(yobs=yobs,ypred=ypred))
-          }
+#          }
           #res <- data.frame(Corr=pa, R2=r2, R2NAG=NA, AUC=NA, intercept, slope, MSPE=mspe)
           #colnames(res)[3] <- "Nagel R2"
 #          fit <- res
