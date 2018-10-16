@@ -305,8 +305,9 @@ mma <- function(stat=NULL,sets=NULL,ncores=1, np=1000, method="sum") {
                      PACKAGE = 'qgg'
      )
      
-     res <- matrix(m=msets,stat=setstat,p=res$p/np)
+     res <- cbind(m=msets,stat=setstat,p=res$p/np)
      rownames(res) <- names(sets)  
+     res 
      
 }
 
