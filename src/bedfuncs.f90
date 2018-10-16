@@ -79,7 +79,7 @@
 
 
     !============================================
-    function scale(nr,g) result(w)
+    function scalew(nr,g) result(w)
     !============================================
 
     implicit none
@@ -101,7 +101,7 @@
     if(sd>tol) w=w/sd
     if(sd<tol) w=0.0D0
 
-    end function scale
+    end function scalew
 
     end module bedfuncs
 
