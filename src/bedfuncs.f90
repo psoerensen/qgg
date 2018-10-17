@@ -200,13 +200,13 @@
       n0=dble(count(gr==0.0D0))
       n1=dble(count(gr==1.0D0)) 
       n2=dble(count(gr==2.0D0))
-      if ( nmiss(i)<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+      if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
       W(1:nr,i) = gr(rws)
       where(W(1:nr,i)==0.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
       where(W(1:nr,i)==1.0D0) W(1:nr,i)=1.0D0 - 2.0D0*(af)*(1.0D0-af)
       where(W(1:nr,i)==2.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
       where(W(1:nr,i)==3.0D0) W(1:nr,i)=0.0D0
-      if ( nmiss(i)==ntotal ) W(1:nr,i)=0.0D0
+      if ( nmiss==ntotal ) W(1:nr,i)=0.0D0
     endif
   enddo 
 
