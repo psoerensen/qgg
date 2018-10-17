@@ -279,20 +279,18 @@
   implicit none
   
   integer*4 :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),scaled,nbytes,ncores,msize,nchar,ncw,gmodel 
-  real*8 :: G(nr,nr), W1(nr,msize), W2(nr,msize), traceG
+  real*8 :: G(nr,nr), W1(nr,msize), traceG
   character(len=1000) :: fnRAW,fnG
-  !real*8, allocatable :: W2(:,:)
-  integer, external :: omp_get_num_threads, omp_set_num_threads
- 
+  real*8, allocatable :: W2(:,:)
+
   call omp_set_num_threads(ncores)
 
   G = 0.0D0
   W1 = 0.0D0
-  W2 = 0.0D0
-  !if(gmodel==3) then 
-  !  allocate(W2(nr,msize))
-  !  W2 = 0.0D0
-  !endif
+  if(gmodel==3) then 
+    allocate(W2(nr,msize))
+    W2 = 0.0D0
+  endif
 
   do i=1,nc,msize
 
