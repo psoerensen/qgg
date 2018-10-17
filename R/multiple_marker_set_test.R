@@ -286,6 +286,8 @@ mma <- function(stat=NULL,sets=NULL,ncores=1, np=1000, method="sum") {
      #rws <- 1:m 
      #names(rws) <- names(stat)
      #sets <- lapply(sets, function(x) {rws[x]}) 
+     if (is.matrix(stat)) sets <- mapSets(sets=sets,rsids=rownames(stat),index=TRUE)
+     if (is.vector(stat)) sets <- mapSets(sets=sets,rsids=names(stat),index=TRUE)
      
      nsets <- length(sets)
      msets <- sapply(sets, length)
