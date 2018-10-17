@@ -79,7 +79,7 @@
 
 
     !============================================
-    function scale(nr,g) result(w)
+    function scalew(nr,g) result(w)
     !============================================
 
     implicit none
@@ -101,13 +101,13 @@
     if(sd>tol) w=w/sd
     if(sd<tol) w=0.0D0
 
-    end function scale
+    end function scalew
 
     end module bedfuncs
 
 
 !==============================================================================================================
-  subroutine bed2raw(n,m,cls,nbytes,append,fnBED,fnRAW)	
+  subroutine bed2raw(n,m,cls,nbytes,append,fnBED,fnRAW)
 !==============================================================================================================
 
   use bedfuncs 
@@ -192,19 +192,21 @@
     endif
     if (scaled==1) then
       gsc=gr(rws)
-      W(1:nr,i)=scale(nr,gsc)
+      W(1:nr,i)=scalew(nr,gsc)
     endif
     if (scaled==2) then
+      af=0.0D0
       nmiss=dble(count(gr==3.0D0))
       n0=dble(count(gr==0.0D0))
       n1=dble(count(gr==1.0D0)) 
       n2=dble(count(gr==2.0D0))
-      af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+      if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
       W(1:nr,i) = gr(rws)
       where(W(1:nr,i)==0.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
       where(W(1:nr,i)==1.0D0) W(1:nr,i)=1.0D0 - 2.0D0*(af)*(1.0D0-af)
       where(W(1:nr,i)==2.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
       where(W(1:nr,i)==3.0D0) W(1:nr,i)=0.0D0
+      if ( nmiss==ntotal ) W(1:nr,i)=0.0D0
     endif
   enddo 
 
@@ -314,6 +316,10 @@
       enddo
       call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
 
+      case (4) ! epistasis hadamard 
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),scaled,W1(:,1:ncw),nbytes,fnRAW)
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
     end select
   
     print*,'Finished block',i
@@ -337,7 +343,8 @@
   nchar=index(fnG, '.grm')
   open(unit=10, file=fnG(1:(nchar+3)), status='unknown', access='stream', form='unformatted', action='write')
   do j=1,size(G,1)
-    write(unit=10) G(1:size(G,1),j)
+    if (gmodel<4) write(unit=10) G(1:size(G,1),j)
+    if (gmodel==4) write(unit=10) G(1:size(G,1),j)**2
   enddo
   close(10)
 
@@ -394,13 +401,13 @@
     w1=0.0D0 
     thread=omp_get_thread_num()+1
     w1(1:n,thread) = raw2real(n,nbytes,raw(1:nbytes,i))
-    w1(rws,thread)=scale(nr,w1(rws,thread))
+    w1(rws,thread)=scalew(nr,w1(rws,thread))
     do j=1,msize
       k = i+j
       if(k<(nc+1)) then 
         w2=0.0D0
         w2(1:n,thread) = raw2real(n,nbytes,raw(1:nbytes,k))
-        w2(rws,thread)=scale(nr,w2(rws,thread))
+        w2(rws,thread)=scalew(nr,w2(rws,thread))
         ld(i,msize+1+j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
       endif
     enddo
@@ -409,7 +416,7 @@
       if(k>1) then 
         w2=0.0D0
         w2(1:n,thread) = raw2real(n,nbytes,raw(1:nbytes,k))
-        w2(rws,thread)=scale(nr,w2(rws,thread))
+        w2(rws,thread)=scalew(nr,w2(rws,thread))
         ld(i,msize+1-j)=dot_product(w1(rws,thread),w2(rws,thread))/dble(nr)
       endif
     enddo
@@ -733,7 +740,7 @@
       k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
       k2 = k1+msets(i)-1
       pstat = sum(stat(k1:k2))
-      if (pstat < setstat(i)) p(i) = p(i) + 1
+      if (pstat > setstat(i)) p(i) = p(i) + 1
     enddo
   enddo   
 
@@ -749,7 +756,7 @@
       k1 = 1 + floor(maxm*u)  ! sample: k = n + floor((m+1-n)*u) n, n+1, ..., m-1, m
       k2 = k1+msets(i)-1
       pstat = sum(stat(k1:k2))
-      if (pstat < setstat(i)) p(i) = p(i) + 1
+      if (pstat > setstat(i)) p(i) = p(i) + 1
     enddo
   enddo   
   !$omp end parallel do

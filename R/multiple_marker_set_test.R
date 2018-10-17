@@ -278,16 +278,42 @@ hgTest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 
 }
 
-
 #' @export
 
-gsets <- function(stat=NULL,sets=NULL,ncores=1, np=1000) {
+mma <- function(stat=NULL,sets=NULL,ncores=1, np=1000, method="sum") {
      
      m <- length(stat)
      #rws <- 1:m 
      #names(rws) <- names(stat)
      #sets <- lapply(sets, function(x) {rws[x]}) 
+     if (is.matrix(stat)) sets <- mapSets(sets=sets,rsids=rownames(stat),index=TRUE)
+     if (is.vector(stat)) sets <- mapSets(sets=sets,rsids=names(stat),index=TRUE)
+     
+     nsets <- length(sets)
+     msets <- sapply(sets, length)
 
+     if (is.matrix(stat)) { 
+        p <- apply(stat,2, function(x) { gsets(stat=x,sets=sets, ncores=ncores, np=np) } )
+        setstat <- apply(stat,2,function(x) { sapply(sets, function(y) {sum(x[y])}) })
+        rownames(setstat) <- rownames(p) <- names(msets) <- names(sets)  
+        res <- list(m=msets,stat=setstat,p=p)
+     }
+     if (is.vector(stat)) { 
+       setstat <- sapply(sets, function(x) {sum(stat[x])})
+       p <- gsets(stat=stat,sets=sets, ncores=ncores, np=np, method=method) 
+       res <- cbind(m=msets,stat=setstat,p=p)
+       rownames(res) <- names(sets)  
+     }     
+     res
+
+}
+
+
+#' @export
+
+gsets <- function(stat=NULL,sets=NULL,ncores=1, np=1000, method="sum") {
+     
+     m <- length(stat)
      nsets <- length(sets)
      msets <- sapply(sets, length)
      setstat <- sapply(sets, function(x) {sum(stat[x])})
@@ -306,6 +332,23 @@ gsets <- function(stat=NULL,sets=NULL,ncores=1, np=1000) {
                      PACKAGE = 'qgg'
      )
      
-     res$p/np
-     
+     p <- res$p/np
+}
+
+
+#' @export
+#'
+
+mapSets <- function( sets=NULL, rsids=NULL, Glist=NULL, index=TRUE ) { 
+     if(!is.null(Glist)) rsids <- unlist(Glist$rsids)
+     nsets <- sapply(sets,length)
+     rs <- rep(names(sets),times=nsets)
+     rsSets <- unlist(sets,use.names=FALSE)
+     rsSets <- match(rsSets,rsids)
+     inW <- !is.na(rsSets)
+     rsSets <- rsSets[inW]
+     if(!index) rsSets <- rsids[rsSets]
+     rs <-  rs[inW]
+     rsSets <- split(rsSets,f=as.factor(rs))
+     return(rsSets)
 }

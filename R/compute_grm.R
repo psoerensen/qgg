@@ -10,8 +10,9 @@ computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL,
 
      if(method=="add") gmodel <- 1 
      if(method=="dom") gmodel <- 2
-     if(method=="epi") gmodel <- 3
-
+     if(method=="epi-pairs") gmodel <- 3
+     if(method=="epi-hadamard") gmodel <- 4
+     
      if (!is.null(W)) { 
           SS <- tcrossprod(W)                              # compute crossproduct, all SNPs
           N <- tcrossprod(!W == miss)                      # compute number of observations, all SNPs
