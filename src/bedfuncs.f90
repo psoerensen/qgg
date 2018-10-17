@@ -283,7 +283,7 @@
   character(len=1000) :: fnRAW,fnG
   real*8, allocatable :: W2(:,:)
 
-  call omp_set_num_threads(ncores)
+  if(ncores>1) call omp_set_num_threads(ncores)
 
   G = 0.0D0
   W1 = 0.0D0
