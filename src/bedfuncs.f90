@@ -282,10 +282,8 @@
   real*8 :: G(nr,nr), W1(nr,msize), W2(nr,msize), traceG
   character(len=1000) :: fnRAW,fnG
   !real*8, allocatable :: W2(:,:)
-  integer, external :: omp_get_num_threads
+  integer, external :: omp_get_num_threads, omp_set_num_threads
  
-  ncores = omp_get_num_threads()
-  print*,ncores 
   call omp_set_num_threads(ncores)
 
   G = 0.0D0
