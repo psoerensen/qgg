@@ -349,6 +349,7 @@ mapSets <- function( sets=NULL, rsids=NULL, Glist=NULL, index=TRUE ) {
      rsSets <- rsSets[inW]
      if(!index) rsSets <- rsids[rsSets]
      rs <-  rs[inW]
-     rsSets <- split(rsSets,f=as.factor(rs))
+     rs <- as.factor(rs, levels=unique(rs))  
+     rsSets <- split(rsSets,f=rs)
      return(rsSets)
 }
