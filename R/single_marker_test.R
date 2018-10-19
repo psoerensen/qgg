@@ -64,7 +64,7 @@
 #' @export
 #'
 
-lmma <- function( fit=NULL, W=NULL, m=NULL, statistic="mastor") {
+mlma <- function( fit=NULL, W=NULL, m=NULL, statistic="mastor") {
   
   if (is.null(m)) m <- ncol(W)
   n <- nrow(W)
