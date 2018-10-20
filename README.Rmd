@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 ### An R package for Quantitative Genetic and Genomic analyses
 
 **qgg** provides an infrastructure for efficient processing of large-scale genetic and phenotypic data including core functions for:  
-
+ 
 * fitting linear mixed models  
 * constructing marker-based genomic relationship matrices  
 * estimating genetic parameters (heritability and correlation)  
