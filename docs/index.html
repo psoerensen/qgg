@@ -46,7 +46,7 @@
   <a href="articles/qgg.html">Get started</a>
 </li>
 <li>
-  <a href="reference/index.html">Functions</a>
+  <a href="reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -60,11 +60,11 @@
     </li>
   </ul>
 </li>
-      </ul>
-<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="news/index.html">Changelog</a>
 </li>
+      </ul>
+<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/psoerensen/qgg">
     <span class="fa fa-github fa-lg"></span>
@@ -87,29 +87,16 @@
     
     
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-<div id="quantitative-genetic-analyses-using-qgg" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#quantitative-genetic-analyses-using-qgg" class="anchor"></a>Quantitative genetic analyses using qgg</h1></div>
-<div id="genomic-feature-linear-mixed-model-analyses" class="section level3">
+<div id="qgg" class="section level2">
+<h2 class="hasAnchor">
+<a href="#qgg" class="anchor"></a><strong>qgg</strong>
+</h2>
+<div id="an-r-package-for-quantitative-genetic-and-genomic-analyses" class="section level3">
 <h3 class="hasAnchor">
-<a href="#genomic-feature-linear-mixed-model-analyses" class="anchor"></a>Genomic Feature Linear Mixed Model Analyses</h3>
-<p>The qgg package provides a range of genomic feature linear mixed modeling approaches for predicting quantitative trait phenotypes from high resolution genomic polymorphism data. Genomic features are regions on the genome that are hypothesized to be enriched for causal variants affecting the trait. Several genomic feature classes can be formed based on previous studies and different sources of information including genes, chromosomes, biological pathways, gene ontologies, sequence annotation, prior QTL regions, or other types of external evidence. Using prior information on genomic features is important because prediction is difficult for populations of unrelated individuals when the number of causal variants is low relative to the total number of polymorphisms, and causal variants individually have small effects on the traits. The models were implemented using likelihood or Bayesian methods.</p>
-<p>Genomic feature best linear unbiased prediction (GFBLUP) models can be fitted. We have demonstrated that the GFBLUP model using prior information on Gene Ontology categories can increase prediction accuracy (compared to existing models) for three quantitative traits in the unrelated, sequenced inbred lines of the Drosophila melanogaster Genetic Reference Panel. These results were supported by simulation studies further illustrating the impact of trait- and genomic feature-specific factors on prediction accuracy. We have extended these models to include multiple features and multiple traits and are currently applying these to a range of quantitative traits in dairy cattle and pigs, and disease traits in human. Different genetic models (e.g. additive, dominance, gene by gene and gene by environment interactions) can be used. Further extensions include a weighted GFBLUP model using differential weighting of the individual genetic marker relationships.</p>
-<p>Bayesian multiple trait and multiple genomic feature models can be fitted. The models are implemented using an empirical Bayesian method that handles multiple features and multiple traits. The models were implemented using spectral decomposition that plays an important computational role in the Markov chain Monte Carlo strategy. This is a very flexible and formal statistical framework for using prior information to decompose genomic (co)variances and predict trait phenotypes. We applied the model to reveal a strong genetic control of environmental variation of quantitative traits of Drosophila melanogaster using whole-genome sequence data. Furthermore we are currently extending these models to binary outcomes in relation to human diseases and to evaluate different strategies for optimal use of prior information.</p>
-<p>We have developed GBLUP model derived SNP set tests. The premise of the genomic feature models presented above is that genomic features are enriched for causal variants affecting the traits. However, in reality, the number, location and effect sizes of the true causal variants in the genomic feature are unknown. Therefore we have developed and evaluated a number of SNP set tests derived from a standard Genomic BLUP model. Despite the GBLUP model being considered as a “black box modelling approach” we have shown, using simulations, that it is possible to derive powerful SNP set tests for identifying genomic features enriched for causal variants. These approaches are computationally very fast allowing us to rapidly analyze different layers of genomic feature classes to discover genomic features potentially enriched for causal variants. Results from these analyses are built into the above mentioned prediction models. We have applied these tests to genotypes and quantitative traits obtained from dairy cattle, pigs, Drosophila melanogaster, and disease traits in human. We are currently extending the Genomic BLUP derived set tests for multiple and longitudinal traits.</p>
-</div>
-<div id="installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
-<p>You can install qgg from github with:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># install.packages("devtools")</span>
-devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/devtools/topics/install_github">install_github</a></span>(<span class="st">"psoerensen/qgg"</span>)</code></pre></div>
-</div>
-<div id="example" class="section level2">
-<h2 class="hasAnchor">
-<a href="#example" class="anchor"></a>Example</h2>
-<p>This is a basic example which shows you how to solve a common problem:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## basic example code</code></pre></div>
+<a href="#an-r-package-for-quantitative-genetic-and-genomic-analyses" class="anchor"></a>An R package for Quantitative Genetic and Genomic analyses</h3>
+<p><strong>qgg</strong> provides an infrastructure for efficient processing of large-scale genetic and phenotypic data including core functions for: * fitting linear mixed models * constructing marker-based genomic relationship matrices * estimating genetic parameters (heritability and correlation) * performing genomic prediction and genetic risk profiling * single or multi-marker association analyses</p>
+<p>The <strong>qgg</strong> package was developed based on the hypothesis that certain regions on the genome, so-called <em>genomic features</em>, may be enriched for causal variants affecting the trait. Several genomic feature classes can be formed based on previous studies and different sources of information including genes, chromosomes, biological pathways, gene ontologies, sequence annotation, prior QTL regions, or other types of external evidence.</p>
+<p>The <strong>qgg</strong> package provides a range of genomic feature modeling approaches implemented using likelihood or Bayesian methods. Genomic feature best linear unbiased prediction (GFBLUP) models can be fitted. We have extended these models to include multiple features and multiple traits. Different genetic models (e.g. additive, dominance, gene by gene and gene by environment interactions) can be used. Further extensions include a weighted GFBLUP model using differential weighting of the individual genetic marker relationships. Furthermore we have implemented a number of marker set tests. These approaches are computationally very fast allowing rapid analyses of different layers of genomic feature classes to discover genomic features potentially enriched for causal variants. Such information can be used to built more accurate prediction models.</p>
 </div>
 </div>
   </div>
