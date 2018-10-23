@@ -781,6 +781,7 @@
 !---------------------------------------------------------!
   implicit none
 
+  external dsyev
   integer*4 :: n,l,inf,ncores
   real*8 :: GRM(n,n),evals(n),work(n*(3+n/2))
   character(len=1000) :: fnG,fnU
