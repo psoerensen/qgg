@@ -24,16 +24,12 @@ export(hgTest)
 export(hmcor)
 export(hmmat)
 export(lma)
+export(lmma)
 export(mafbed)
 export(mapSets)
-<<<<<<< HEAD
 export(mma)
 export(eigGRM)
-=======
->>>>>>> c924a5348106d953cc1ec92a31ea1119fa0282c9
 export(mergeGRM)
-export(mlma)
-export(mma)
 export(plotGS)
 export(plotma)
 export(prepG)
