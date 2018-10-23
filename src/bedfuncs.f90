@@ -786,6 +786,8 @@
   character(len=1000) :: fnG,fnU
 
   call omp_set_num_threads(ncores)
+  inf=0
+  l=0
 
   l=n*(3+n/2)
   call dsyev('V','U',n,GRM,n,evals,work,l,inf)
