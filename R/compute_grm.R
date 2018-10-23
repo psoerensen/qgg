@@ -155,6 +155,8 @@ getGRM <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rw
    eigGRM <- function( GRM=NULL, GRMlist=NULL, ncores=1) {
         #subroutine eiggrm(n,nev,ev,U,fnG,fnU,ncores)	
         #subroutine eiggrm(n,grm,eig,ncores)
+          n <- ncol(GRM)
+          evals <- rep(0,n) 
           res <- .Fortran("eiggrm", 
                          n = as.integer(n),
                          GRM = matrix(as.double(GRM),nrow=n,ncol=n),
