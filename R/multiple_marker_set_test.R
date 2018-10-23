@@ -353,3 +353,4 @@ mapSets <- function( sets=NULL, rsids=NULL, Glist=NULL, index=TRUE ) {
      rsSets <- split(rsSets,f=rs)
      return(rsSets)
 }
+
