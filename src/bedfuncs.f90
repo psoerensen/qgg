@@ -766,3 +766,40 @@
   end subroutine psets
 !==============================================================================================================
 
+
+
+!==============================================================================================================
+!  subroutine eiggrm(n,nev,ev,U,fnG,fnU,ncores)	
+  subroutine eiggrm(n,GRM,eig,ncores)
+ 
+!==============================================================================================================
+! calls the LAPACK diagonalization subroutine dsyev       !
+!input:  G(n,n) = real symmetric matrix to be diagonalized!
+!            n  = size of G                               !
+!output: G(n,n) = orthonormal eigenvectors of G           !
+!        eig(n) = eigenvalues of G in ascending order     !
+!---------------------------------------------------------!
+  implicit none
+
+  integer*4 :: n,l,inf,ncores
+  real*8 :: GRM(n,n),eig(n),work(n*(3+n/2))
+  character(len=1000) :: fnG,fnU
+
+  call omp_set_num_threads(ncores)
+
+  l=n*(3+n/2)
+  call dsyev('V','U',n,GRM,n,eig,work,l,inf)
+
+  !U = 0.0D0
+  !G = 0.0D0
+  !nchar=index(fnG, '.grm')
+  !open(unit=10, file=fnG(1:(nchar+3)), status='unknown', access='stream', form='unformatted', action='read')
+  !do j=1,size(G,1)
+  !  read(unit=10) G(1:size(G,1),j)
+  !enddo
+  !close(10)
+
+  !call sspevd(jobz, uplo, n, ap, w, z, ldz, work, lwork, iwork, liwork, info)
+
+  end subroutine eiggrm
+!==============================================================================================================

@@ -146,3 +146,23 @@ getGRM <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rw
      GRMlist$m <- length(GRMlist$rsids)
      GRMlist
    }
+
+   
+   #' @export
+   #'
+   
+   
+   eigGRM <- function( GRM=NULL, GRMlist=NULL, ncores=1) {
+        #subroutine eiggrm(n,nev,ev,U,fnG,fnU,ncores)	
+        #subroutine eiggrm(n,grm,eig,ncores)
+          res <- .Fortran("eiggrm", 
+                         n = as.integer(n),
+                         GRM = matrix(as.double(GRM),nrow=n,ncol=n),
+                         evals = as.double(evals),
+                         ncores = as.integer(ncores),
+                         PACKAGE = 'qgg'
+          )
+          list(evals=evals,U=G)
+   }
+   
+   
