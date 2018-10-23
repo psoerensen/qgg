@@ -770,7 +770,7 @@
 
 !==============================================================================================================
 !  subroutine eiggrm(n,nev,ev,U,fnG,fnU,ncores)	
-  subroutine eiggrm(n,GRM,eig,ncores)
+  subroutine eiggrm(n,GRM,evals,ncores)
  
 !==============================================================================================================
 ! calls the LAPACK diagonalization subroutine dsyev       !
@@ -782,13 +782,13 @@
   implicit none
 
   integer*4 :: n,l,inf,ncores
-  real*8 :: GRM(n,n),eig(n),work(n*(3+n/2))
+  real*8 :: GRM(n,n),evals(n),work(n*(3+n/2))
   character(len=1000) :: fnG,fnU
 
   call omp_set_num_threads(ncores)
 
   l=n*(3+n/2)
-  call dsyev('V','U',n,GRM,n,eig,work,l,inf)
+  call dsyev('V','U',n,GRM,n,evals,work,l,inf)
 
   !U = 0.0D0
   !G = 0.0D0
