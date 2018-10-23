@@ -164,7 +164,7 @@ getGRM <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rw
                          ncores = as.integer(ncores),
                          PACKAGE = 'qgg'
           )
-          list(evals=evals,U=GRM)
+          list(evals=res$evals,U=res$GRM)
    }
    
    

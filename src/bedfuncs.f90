@@ -792,7 +792,7 @@
 
   l=n*(3+n/2)
   call dsyev('V','U',n,GRM,n,evals,work,l,info)
-  print*,info
+  
 
   !U = 0.0D0
   !G = 0.0D0
