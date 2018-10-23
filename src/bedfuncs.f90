@@ -782,16 +782,17 @@
   implicit none
 
   external dsyev
-  integer*4 :: n,l,inf,ncores
+  integer*4 :: n,l,info,ncores
   real*8 :: GRM(n,n),evals(n),work(n*(3+n/2))
   character(len=1000) :: fnG,fnU
 
   call omp_set_num_threads(ncores)
-  inf=0
+  info=0
   l=0
 
   l=n*(3+n/2)
-  call dsyev('V','U',n,GRM,n,evals,work,l,inf)
+  call dsyev('V','U',n,GRM,n,evals,work,l,info)
+  print*,info
 
   !U = 0.0D0
   !G = 0.0D0
