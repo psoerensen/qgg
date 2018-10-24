@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 **qgg** provides an infrastructure for efficient processing of large-scale genetic and phenotypic data including core functions for:  
  
 * fitting linear mixed models  
-* constructing marker-based genomic relationship matrices  
+* construction and eigen-value decomposition of marker-based genomic relationship matrices  
 * estimating genetic parameters (heritability and correlation)  
 * genomic prediction and genetic risk profiling  
 * single or multi-marker association analyses  
