@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Mixed linear model marker association test — mlma • qgg</title>
+<title>Single marker association analyses using mixed linear models — mlma • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,9 +30,12 @@
 
 
 
-<meta property="og:title" content="Mixed linear model marker association test — mlma" />
+<meta property="og:title" content="Single marker association analyses using mixed linear models — mlma" />
 
-<meta property="og:description" content="Marker test using linear mixed model (LMM) to test for an association of single markers with a phenotype." />
+<meta property="og:description" content="Marker test using mixed linear model analyses (mlma) are used to test for an association of single markers with a phenotype.
+Linear mixed model single marker association (LMMA) statistics are based on an approximate method.
+It is a two step procedure. In the first step variance components are estimated and in the second step single marker effects are estimated
+conditionally on the estimated variance components." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -119,25 +122,29 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Mixed linear model marker association test</h1>
+    <h1>Single marker association analyses using mixed linear models</h1>
     <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/single_marker_test.R'><code>R/single_marker_test.R</code></a></small>
     <div class="hidden name"><code>mlma.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Marker test using linear mixed model (LMM) to test for an association of single markers with a phenotype.</p>
+    <p>Marker test using mixed linear model analyses (mlma) are used to test for an association of single markers with a phenotype.</p>
+<p>Linear mixed model single marker association (LMMA) statistics are based on an approximate method.
+It is a two step procedure. In the first step variance components are estimated and in the second step single marker effects are estimated
+conditionally on the estimated variance components.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>mlma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>m</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>statistic</span> <span class='kw'>=</span> <span class='st'>"mastor"</span>)</pre>
+    <pre class="usage"><span class='fu'>mlma</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>fit</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>m</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>statistic</span> <span class='kw'>=</span> <span class='st'>"mastor"</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>fit</th>
-      <td><p>list of information about linear model fit (output from greml)</p></td>
+      <td><p>list of information about linear mixed model fit (output from greml)</p></td>
     </tr>
     <tr>
       <th>W</th>
@@ -149,7 +156,7 @@
     </tr>
     <tr>
       <th>statistic</th>
-      <td><p>is the single marker test statistic used. Default is the "mastor", alternatives include "gblup", "bolt-lmm" and "grammar-gamma"</p></td>
+      <td><p>is the single marker test statistic used. Currently it is base don the "mastor" statistics.</p></td>
     </tr>
     </table>
     
@@ -161,12 +168,6 @@
 <dt>stat</dt><dd><p>single marker test statistic</p></dd>
 <dt>p</dt><dd><p>p-value</p></dd>
 
-    
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>Linear mixed model single marker association (LMMA) statistics are based on either exact or approximate methods.
-Exact methods estimate variance components and effects of single markers jointly.
-Approximate methods estimate single marker effects conditionally.</p>
     
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
@@ -196,32 +197,13 @@ Approximate methods estimate single marker effects conditionally.</p>
 <span class='no'>fm</span> <span class='kw'>&lt;-</span> <span class='no'>y</span> ~ <span class='fl'>0</span> + <span class='no'>mu</span>
 <span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'>model.matrix</span>(<span class='no'>fm</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>data</span>)
 
-<span class='co'># Create framework for lists</span>
-<span class='no'>setsGB</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>A</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)) <span class='co'># gblup model</span>
-<span class='no'>setsGF</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>C1</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>1000</span>], <span class='kw'>C2</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1001</span>:<span class='fl'>2000</span>], <span class='kw'>C3</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>2000</span>:<span class='fl'>10000</span>]) <span class='co'># gfblup model</span>
-<span class='no'>setsGT</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>C1</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>10</span>], <span class='kw'>C2</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1001</span>:<span class='fl'>1010</span>], <span class='kw'>C3</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>10000</span>]) <span class='co'># true model</span>
-
-<span class='co'># Compute G</span>
-<span class='no'>G</span> <span class='kw'>&lt;-</span> <span class='fu'>computeG</span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
-<span class='no'>GB</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGB</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'>computeG</span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
-<span class='no'>GF</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGF</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'>computeG</span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
-<span class='no'>GT</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGT</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'>computeG</span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
+<span class='co'># Compute GRM</span>
+<span class='no'>GRM</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
 
 <span class='co'># REML analyses and single marker association test</span>
-<span class='no'>fitGB</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>G</span> <span class='kw'>=</span> <span class='no'>GB</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; [1] "Iteration:" "1"          "Theta:"     "2.3"        "2.04"      
-#&gt; [1] "Iteration:" "2"          "Theta:"     "4.54"       "3.23"      
-#&gt; [1] "Iteration:" "3"          "Theta:"     "8.58"       "4.05"      
-#&gt; [1] "Iteration:" "4"          "Theta:"     "14.3"       "3.36"      
-#&gt; [1] "Iteration:" "5"          "Theta:"     "18.99"      "1.65"      
-#&gt; [1] "Iteration:" "6"          "Theta:"     "20.35"      "0.98"      
-#&gt; [1] "Iteration:" "7"          "Theta:"     "20.44"      "0.92"      
-#&gt; [1] "Iteration:" "8"          "Theta:"     "20.45"      "0.92"      
-#&gt; [1] "Iteration:" "9"          "Theta:"     "20.45"      "0.92"      
-#&gt; [1] "Iteration:" "10"         "Theta:"     "20.45"      "0.92"      
-#&gt; [1] "Iteration:" "11"         "Theta:"     "20.45"      "0.92"      
-#&gt; [1] "Converged at Iteration:" "11"                     
-#&gt; [3] "Theta:"                  "20.45"                  
-#&gt; [5] "0.92"                   </div><div class='input'><span class='no'>maGB</span> <span class='kw'>&lt;-</span> <span class='fu'>mlma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fitGB</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)</div></pre>
+<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='fu'>list</span>(<span class='no'>GRM</span>), <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; <span class='error'>Error in greml(y = y, X = X, GRM = list(GRM), verbose = TRUE): object 'G' not found</span></div><div class='input'><span class='no'>maMLM</span> <span class='kw'>&lt;-</span> <span class='fu'>mlma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fit</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)</div><div class='output co'>#&gt; <span class='error'>Error in mlma(fit = fit, W = W): object 'fit' not found</span></div><div class='input'>
+<span class='co'># Linear model analyses and single marker association test</span>
+<span class='no'>maLM</span> <span class='kw'>&lt;-</span> <span class='fu'>lma</span>(<span class='kw'>y</span><span class='kw'>=</span><span class='no'>y</span>,<span class='kw'>X</span><span class='kw'>=</span><span class='no'>X</span>,<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -230,8 +212,6 @@ Approximate methods estimate single marker effects conditionally.</p>
       
       <li><a href="#value">Value</a></li>
 
-      <li><a href="#details">Details</a></li>
-
       <li><a href="#references">References</a></li>
       
       <li><a href="#examples">Examples</a></li>
@@ -239,7 +219,7 @@ Approximate methods estimate single marker effects conditionally.</p>
 
     <h2>Author</h2>
     
-Peter S?rensen
+Peter Soerensen
 
   </div>
 </div>

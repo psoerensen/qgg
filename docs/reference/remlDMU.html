@@ -88,10 +88,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/Tutorial_small_data_set.html">Tutorial small data set</a>
+      <a href="../articles/Small_data_set_tutorial.html">Small data set tutorial</a>
     </li>
     <li>
-      <a href="../articles/Prepare_Phenotype_Data_Starvation_html.html">Prepare Phenotype and Covariate Data</a>
+      <a href="../articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
     </li>
   </ul>
 </li>
@@ -130,7 +130,7 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>remlDMU</span>(<span class='kw'>fm</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>vfm</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRMlist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>restrict</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+    <pre class="usage"><span class='fu'>remlDMU</span>(<span class='kw'>fm</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>vfm</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>restrict</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>data</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bin</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -141,7 +141,7 @@
       <td><p>a formula with model statement for the linear mixed model</p></td>
     </tr>
     <tr>
-      <th>GRMlist</th>
+      <th>GRM</th>
       <td><p>a list of relationship / correlation matrices corresponding to random effects specified in vfm</p></td>
     </tr>
     <tr>
@@ -178,31 +178,29 @@ This is an interface to be used for DMU.</p>
     
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
-    <p>Edwards, S. M., Sørensen, I. F., Sarup, P., Mackay, T. F., &amp; Sørensen, P. (2016). Genomic prediction for quantitative traits is improved by mapping variants to gene ontology categories in Drosophila melanogaster. Genetics, 203(4), 1871-1883.</p>
+    <p>Edwards, S. M., Soerensen, I. F., Sarup, P., Mackay, T. F., &amp; Soerensen, P. (2016). Genomic prediction for quantitative traits is improved by mapping variants to gene ontology categories in Drosophila melanogaster. Genetics, 203(4), 1871-1883.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'>
-<span class='fu'>library</span>(<span class='no'>qgg</span>)
 
-<span class='fu'>setwd</span>(<span class='st'>"C:/Users/sor/Dropbox/GFBLUP DGRP/scripts used in the analyses/work"</span>)</div><div class='output co'>#&gt; <span class='error'>Error in setwd("C:/Users/sor/Dropbox/GFBLUP DGRP/scripts used in the analyses/work"): cannot change working directory</span></div><div class='input'><span class='co'>#bin &lt;- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"</span>
+<span class='co'>#bin &lt;- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"</span>
 
 <span class='co'># Simulate data</span>
 <span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>4000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
   <span class='fu'>colnames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>))
   <span class='fu'>rownames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>nrow</span>(<span class='no'>W</span>))
 
-<span class='no'>G</span> <span class='kw'>&lt;-</span> <span class='no'>W</span> <span class='kw'>%*%</span> <span class='fu'>t</span>(<span class='no'>W</span>) / <span class='fu'>ncol</span>(<span class='no'>W</span>)
+<span class='no'>G</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span><span class='kw'>=</span><span class='no'>W</span>)
 
 <span class='no'>y</span> <span class='kw'>&lt;-</span> <span class='fu'>rowSums</span>(<span class='no'>W</span>[, <span class='fl'>1</span>:<span class='fl'>10</span>]) + <span class='fu'>rowSums</span>(<span class='no'>W</span>[, <span class='fl'>1001</span>:<span class='fl'>1010</span>]) + <span class='fl'>10</span> * <span class='fu'>rnorm</span>(<span class='fu'>nrow</span>(<span class='no'>W</span>))
 
 <span class='no'>data</span> <span class='kw'>&lt;-</span> <span class='fu'>data.frame</span>(<span class='kw'>f</span> <span class='kw'>=</span> <span class='fu'>factor</span>(<span class='fu'>sample</span>(<span class='fl'>1</span>:<span class='fl'>2</span>, <span class='fu'>nrow</span>(<span class='no'>W</span>), <span class='kw'>replace</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)), <span class='kw'>g</span> <span class='kw'>=</span> <span class='fu'>factor</span>(<span class='fl'>1</span>:<span class='fu'>nrow</span>(<span class='no'>W</span>)), <span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>)
 
 <span class='no'>fm</span> <span class='kw'>&lt;-</span> <span class='no'>y</span> ~ <span class='no'>f</span> + (<span class='fl'>1</span> <span class='kw'>|</span> <span class='no'>g</span>~<span class='no'>G</span>)
-<span class='no'>GRMlist</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>G</span> <span class='kw'>=</span> <span class='no'>G</span>)
 
 
-<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>remlDMU</span>(<span class='kw'>fm</span> <span class='kw'>=</span> <span class='no'>fm</span>, <span class='kw'>GRMlist</span> <span class='kw'>=</span> <span class='no'>GRMlist</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>data</span>)</div><div class='output co'>#&gt; <span class='error'>Error in remlDMU(fm = fm, GRMlist = GRMlist, data = data): could not find function "remlDMU"</span></div><div class='input'>  <span class='fu'>str</span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; <span class='error'>Error in str(fit): object 'fit' not found</span></div><div class='input'>
+<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>remlDMU</span>(<span class='kw'>fm</span> <span class='kw'>=</span> <span class='no'>fm</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='fu'>lits</span>(<span class='kw'>G</span><span class='kw'>=</span><span class='no'>G</span>), <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>data</span>)</div><div class='output co'>#&gt; <span class='error'>Error in model$data$integers[model[[i]]$factors]: invalid subscript type 'list'</span></div><div class='input'>  <span class='fu'>str</span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; <span class='error'>Error in str(fit): object 'fit' not found</span></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
@@ -221,7 +219,7 @@ This is an interface to be used for DMU.</p>
 
     <h2>Author</h2>
     
-Peter Sørensen
+Peter Soerensen
 
   </div>
 </div>

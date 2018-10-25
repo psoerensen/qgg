@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Prepare genotype data for all statistical analyses (initial step) — prepG • qgg</title>
+<title>Genomic prediction based on single marker summary statistics — gscore • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,22 +30,9 @@
 
 
 
-<meta property="og:title" content="Prepare genotype data for all statistical analyses (initial step) — prepG" />
+<meta property="og:title" content="Genomic prediction based on single marker summary statistics — gscore" />
 
-<meta property="og:description" content="The processed genotypes are stored in a matrix W. 
-By default genotypes are allele counts of alternative allele which are centered and scaled.
-Currently the raw genotype format supported is plink bed/bim/fam files. 
-To fascilitate a simple and common interface for using raw genotypes we prepare a Glist structure 
-which contains information about the raw and processed genotypes. 
-Glist is obtained using the prepG function based on plink bed/bim/fam files.
-The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
-By default the W matrix is stored in a binary file (n*m*4 bytes).
-Information about the processed genotype matrix W is provided in a Glist structure.
-The output of the prepG functions is a Glist structure containing information 
-about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
-for downstream analyses. Most users do not use this directly. Furthermore this structure 
-also allow us to change the underlying data structures without apparent changes in 
-the Glist interface." />
+<meta property="og:description" content="Function for genomic predictions based on single marker summary statistics and observed phenotypes" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -132,98 +119,52 @@ the Glist interface." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Prepare genotype data for all statistical analyses (initial step)</h1>
-    <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/compute_genotype_matrix.R'><code>R/compute_genotype_matrix.R</code></a></small>
-    <div class="hidden name"><code>prepG.Rd</code></div>
+    <h1>Genomic prediction based on single marker summary statistics</h1>
+    <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/genomic_solve.R'><code>R/genomic_solve.R</code></a></small>
+    <div class="hidden name"><code>gscore.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>The processed genotypes are stored in a matrix W. 
-By default genotypes are allele counts of alternative allele which are centered and scaled.</p>
-<p>Currently the raw genotype format supported is plink bed/bim/fam files. 
-To fascilitate a simple and common interface for using raw genotypes we prepare a Glist structure 
-which contains information about the raw and processed genotypes. 
-Glist is obtained using the prepG function based on plink bed/bim/fam files.
-The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
-By default the W matrix is stored in a binary file (n*m*4 bytes).
-Information about the processed genotype matrix W is provided in a Glist structure.</p>
-<p>The output of the prepG functions is a Glist structure containing information 
-about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
-for downstream analyses. Most users do not use this directly. Furthermore this structure 
-also allow us to change the underlying data structures without apparent changes in 
-the Glist interface.</p>
+    <p>Function for genomic predictions based on single marker summary statistics and observed phenotypes</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>prepG</span>(<span class='kw'>study</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>fnRAW</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bedfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bimfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>famfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><span class='fu'>gscore</span>(<span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>S</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rws</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>study</th>
-      <td><p>name of the study</p></td>
+      <th>Glist</th>
+      <td><p>list of information about genotype matrix</p></td>
     </tr>
     <tr>
-      <th>fnRAW</th>
-      <td><p>name of binary file used for storing genotypes on disk</p></td>
-    </tr>
-    <tr>
-      <th>bedfiles</th>
-      <td><p>a vector names for the bed files</p></td>
-    </tr>
-    <tr>
-      <th>bimfiles</th>
-      <td><p>a vector names for the bim files</p></td>
-    </tr>
-    <tr>
-      <th>famfiles</th>
-      <td><p>a vector names for the fam files</p></td>
+      <th>S</th>
+      <td><p>matrix of single marker effects</p></td>
     </tr>
     <tr>
       <th>ids</th>
-      <td><p>individual IDs used in study</p></td>
+      <td><p>vector of individuals used in the analysis</p></td>
     </tr>
     <tr>
       <th>rsids</th>
-      <td><p>marker rsids used in study</p></td>
-    </tr>
-    <tr>
-      <th>overwrite</th>
-      <td><p>logical if TRUE overwite binary genotype file</p></td>
+      <td><p>vector marker rsids used in the analysis</p></td>
     </tr>
     <tr>
       <th>ncores</th>
-      <td><p>used to process genotypes</p></td>
+      <td><p>number of cores</p></td>
     </tr>
     </table>
     
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Returns a list structure with information about genotypes</p>
-    
-
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>#Glist <- prepG( bedfiles, bimfiles, study, path, additional arguments...)
-#W <- getW( Glist, ids, rsids, additional arguments...)
-</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      
-      <li><a href="#value">Value</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
-    <h2>Author</h2>
-    
-Peter Soerensen
+                </ul>
 
   </div>
 </div>

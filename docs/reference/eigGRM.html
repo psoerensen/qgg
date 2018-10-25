@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Prepare genotype data for all statistical analyses (initial step) — prepG • qgg</title>
+<title>Eigen value decompostion of a genomic relationship matrix — eigGRM • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,22 +30,10 @@
 
 
 
-<meta property="og:title" content="Prepare genotype data for all statistical analyses (initial step) — prepG" />
+<meta property="og:title" content="Eigen value decompostion of a genomic relationship matrix — eigGRM" />
 
-<meta property="og:description" content="The processed genotypes are stored in a matrix W. 
-By default genotypes are allele counts of alternative allele which are centered and scaled.
-Currently the raw genotype format supported is plink bed/bim/fam files. 
-To fascilitate a simple and common interface for using raw genotypes we prepare a Glist structure 
-which contains information about the raw and processed genotypes. 
-Glist is obtained using the prepG function based on plink bed/bim/fam files.
-The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
-By default the W matrix is stored in a binary file (n*m*4 bytes).
-Information about the processed genotype matrix W is provided in a Glist structure.
-The output of the prepG functions is a Glist structure containing information 
-about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
-for downstream analyses. Most users do not use this directly. Furthermore this structure 
-also allow us to change the underlying data structures without apparent changes in 
-the Glist interface." />
+<meta property="og:description" content="A function for obtaining eigen values and vectors of a GRM. Supports GRM stored in a 
+binary file on disk" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -132,98 +120,61 @@ the Glist interface." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Prepare genotype data for all statistical analyses (initial step)</h1>
-    <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/compute_genotype_matrix.R'><code>R/compute_genotype_matrix.R</code></a></small>
-    <div class="hidden name"><code>prepG.Rd</code></div>
+    <h1>Eigen value decompostion of a genomic relationship matrix</h1>
+    <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/compute_grm.R'><code>R/compute_grm.R</code></a></small>
+    <div class="hidden name"><code>eigGRM.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>The processed genotypes are stored in a matrix W. 
-By default genotypes are allele counts of alternative allele which are centered and scaled.</p>
-<p>Currently the raw genotype format supported is plink bed/bim/fam files. 
-To fascilitate a simple and common interface for using raw genotypes we prepare a Glist structure 
-which contains information about the raw and processed genotypes. 
-Glist is obtained using the prepG function based on plink bed/bim/fam files.
-The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
-By default the W matrix is stored in a binary file (n*m*4 bytes).
-Information about the processed genotype matrix W is provided in a Glist structure.</p>
-<p>The output of the prepG functions is a Glist structure containing information 
-about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
-for downstream analyses. Most users do not use this directly. Furthermore this structure 
-also allow us to change the underlying data structures without apparent changes in 
-the Glist interface.</p>
+    <p>A function for obtaining eigen values and vectors of a GRM. Supports GRM stored in a 
+binary file on disk</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>prepG</span>(<span class='kw'>study</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>fnRAW</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bedfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bimfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>famfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><span class='fu'>eigGRM</span>(<span class='kw'>GRM</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRMlist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"default"</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>study</th>
-      <td><p>name of the study</p></td>
+      <th>GRM</th>
+      <td><p>genomic relationship matrix</p></td>
     </tr>
     <tr>
-      <th>fnRAW</th>
-      <td><p>name of binary file used for storing genotypes on disk</p></td>
+      <th>GRMlist</th>
+      <td><p>list of information about GRM matrix stored on disk</p></td>
     </tr>
     <tr>
-      <th>bedfiles</th>
-      <td><p>a vector names for the bed files</p></td>
-    </tr>
-    <tr>
-      <th>bimfiles</th>
-      <td><p>a vector names for the bim files</p></td>
-    </tr>
-    <tr>
-      <th>famfiles</th>
-      <td><p>a vector names for the fam files</p></td>
-    </tr>
-    <tr>
-      <th>ids</th>
-      <td><p>individual IDs used in study</p></td>
-    </tr>
-    <tr>
-      <th>rsids</th>
-      <td><p>marker rsids used in study</p></td>
-    </tr>
-    <tr>
-      <th>overwrite</th>
-      <td><p>logical if TRUE overwite binary genotype file</p></td>
+      <th>method</th>
+      <td><p>used for decompositon</p></td>
     </tr>
     <tr>
       <th>ncores</th>
-      <td><p>used to process genotypes</p></td>
+      <td><p>the number of cores used</p></td>
     </tr>
     </table>
     
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>Returns a list structure with information about genotypes</p>
-    
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>#Glist <- prepG( bedfiles, bimfiles, study, path, additional arguments...)
-#W <- getW( Glist, ids, rsids, additional arguments...)
-</div></pre>
+    <pre class="examples"><div class='input'>
+<span class='co'># Simulate data</span>
+<span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
+        <span class='fu'>colnames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>))
+        <span class='fu'>rownames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>nrow</span>(<span class='no'>W</span>))
+
+<span class='co'># Compute G</span>
+<span class='no'>GRM</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
+
+<span class='no'>eig</span> <span class='kw'>&lt;-</span> <span class='fu'>eigGRM</span>(<span class='kw'>GRM</span><span class='kw'>=</span><span class='no'>GRM</span>)</div><div class='output co'>#&gt; <span class='error'>Error in .Fortran("eiggrm", n = as.integer(n), GRM = matrix(as.double(GRM),     nrow = n, ncol = n), evals = as.double(evals), ncores = as.integer(ncores),     PACKAGE = "qgg"): "eiggrm" not available for .Fortran() for package "qgg"</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      
-      <li><a href="#value">Value</a></li>
-      
+            
       <li><a href="#examples">Examples</a></li>
     </ul>
-
-    <h2>Author</h2>
-    
-Peter Soerensen
 
   </div>
 </div>

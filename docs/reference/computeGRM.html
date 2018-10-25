@@ -33,7 +33,9 @@
 <meta property="og:title" content="Compute genomic relationship matrix (GRM) — computeGRM" />
 
 <meta property="og:description" content="A function for computing a genomic relationship matrix.
-The output of the prepG and computeRAW functions is a Glist structure containing information" />
+The output of the computeGRM function is a GRMlist structure containing information 
+about the genotypes stored in a binary file on disk. The Glist structure (created
+only once) is used in GREML and eigen value analyses and should be saved in Rdata file" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -128,21 +130,23 @@ The output of the prepG and computeRAW functions is a Glist structure containing
     <div class="ref-description">
     
     <p>A function for computing a genomic relationship matrix.</p>
-<p>The output of the prepG and computeRAW functions is a Glist structure containing information</p>
+<p>The output of the computeGRM function is a GRMlist structure containing information 
+about the genotypes stored in a binary file on disk. The Glist structure (created
+only once) is used in GREML and eigen value analyses and should be saved in Rdata file</p>
     
     </div>
 
     <pre class="usage"><span class='fu'>computeGRM</span>(<span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rws</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"add"</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>fnG</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>returnGRM</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>miss</span> <span class='kw'>=</span> <span class='fl'>0</span>)</pre>
+  <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"add"</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>,
+  <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>fnG</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>returnGRM</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>miss</span> <span class='kw'>=</span> <span class='fl'>0</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>Glist</th>
-      <td><p>information about genotypes</p></td>
+      <td><p>a list providing information about genotypes stored on disk</p></td>
     </tr>
     <tr>
       <th>ids</th>
@@ -169,38 +173,30 @@ The output of the prepG and computeRAW functions is a Glist structure containing
       <td><p>used for computing GRM including additive, dominance or epistasis</p></td>
     </tr>
     <tr>
-      <th>scaled</th>
-      <td><p>should genotypes be scaled (default: scaled=TRUE)</p></td>
-    </tr>
-    <tr>
       <th>msize</th>
-      <td><p>number of markers used for block updates</p></td>
+      <td><p>number of markers used for block processing of genotypes for large data</p></td>
     </tr>
     <tr>
       <th>fnG</th>
-      <td><p>name of file for storing GRM on disk</p></td>
+      <td><p>name of the binary file used for storing the GRM on disk</p></td>
     </tr>
     <tr>
       <th>overwrite</th>
-      <td><p>logical should the file fnG be overwritten</p></td>
+      <td><p>logical if TRUE the binary file fnG will be overwritten</p></td>
     </tr>
     <tr>
       <th>returnGRM</th>
-      <td><p>should the function return the GRM matrix</p></td>
+      <td><p>logical if TRUE function returns the GRM matrix</p></td>
     </tr>
     <tr>
       <th>miss</th>
-      <td><p>missing value code used in genotype matrix</p></td>
+      <td><p>is the missing code used for missing values in the genotype data</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Returns GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk</p>
-    
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>Individuals may be subsetted for additional analyses such as cross validation.</p>
+    <p>Returns a GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk</p>
     
 
   </div>
@@ -210,9 +206,11 @@ The output of the prepG and computeRAW functions is a Glist structure containing
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
-
-      <li><a href="#details">Details</a></li>
           </ul>
+
+    <h2>Author</h2>
+    
+Peter Soerensen
 
   </div>
 </div>
