@@ -50,6 +50,7 @@
 
 #' @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Boerglum, A. D., & Soerensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
 #' @references Rohde, P. D., Edwards S. M., Sarup P., Soerensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
+
 #' @examples
 #'
 #'  
@@ -81,7 +82,7 @@
 #' 
 #' # Set test based on hyperG 
 #' res <- mma(stat = ma[,4], sets = sets, method = "hyperG", threshold = 0.05)
-#' res <- mma(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
+
 #' 
 
 
