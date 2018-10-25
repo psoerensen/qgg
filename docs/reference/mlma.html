@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Linear mixed model marker association test — mlma • qgg</title>
+<title>Mixed linear model marker association test — mlma • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,7 +30,7 @@
 
 
 
-<meta property="og:title" content="Linear mixed model marker association test — mlma" />
+<meta property="og:title" content="Mixed linear model marker association test — mlma" />
 
 <meta property="og:description" content="Marker test using linear mixed model (LMM) to test for an association of single markers with a phenotype." />
 <meta name="twitter:card" content="summary" />
@@ -78,7 +78,7 @@
   <a href="../articles/qgg.html">Get started</a>
 </li>
 <li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">Functions</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -88,17 +88,20 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
+      <a href="../articles/Small_data_set_tutorial.html">Small data set tutorial</a>
+    </li>
+    <li>
       <a href="../articles/Prepare_Phenotype_Data_Starvation_html.html">Prepare Phenotype and Covariate Data</a>
     </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+<li>
   <a href="https://github.com/psoerensen/qgg">
     <span class="fa fa-github fa-lg"></span>
      
@@ -116,7 +119,7 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Linear mixed model marker association test</h1>
+    <h1>Mixed linear model marker association test</h1>
     <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/single_marker_test.R'><code>R/single_marker_test.R</code></a></small>
     <div class="hidden name"><code>mlma.Rd</code></div>
     </div>
@@ -205,19 +208,20 @@ Approximate methods estimate single marker effects conditionally.</p>
 <span class='no'>GT</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGT</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'>computeG</span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
 
 <span class='co'># REML analyses and single marker association test</span>
-<span class='no'>fitGB</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>G</span> <span class='kw'>=</span> <span class='no'>GB</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; [1] "Iteration:" "1"          "Theta:"     "2.31"       "1.99"      
-#&gt; [1] "Iteration:" "2"          "Theta:"     "4.63"       "3.03"      
-#&gt; [1] "Iteration:" "3"          "Theta:"     "8.91"       "3.5"       
-#&gt; [1] "Iteration:" "4"          "Theta:"     "14.98"      "2.31"      
-#&gt; [1] "Iteration:" "5"          "Theta:"     "19.7"       "0.47"      
-#&gt; [1] "Iteration:" "6"          "Theta:"     "20.83"      "0"         
-#&gt; [1] "Iteration:" "7"          "Theta:"     "20.86"      "0"         
-#&gt; [1] "Iteration:" "8"          "Theta:"     "20.86"      "0"         
-#&gt; [1] "Iteration:" "9"          "Theta:"     "20.86"      "0"         
-#&gt; [1] "Converged at Iteration:" "9"                      
-#&gt; [3] "Theta:"                  "20.86"                  
-#&gt; [5] "0"                      </div><div class='input'><span class='no'>maGB</span> <span class='kw'>&lt;-</span> <span class='fu'>lmma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fitGB</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)</div><div class='output co'>#&gt; <span class='error'>Error in lmma(fit = fitGB, W = W): could not find function "lmma"</span></div><div class='input'>
-</div></pre>
+<span class='no'>fitGB</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>G</span> <span class='kw'>=</span> <span class='no'>GB</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; [1] "Iteration:" "1"          "Theta:"     "2.3"        "2.04"      
+#&gt; [1] "Iteration:" "2"          "Theta:"     "4.54"       "3.23"      
+#&gt; [1] "Iteration:" "3"          "Theta:"     "8.58"       "4.05"      
+#&gt; [1] "Iteration:" "4"          "Theta:"     "14.3"       "3.36"      
+#&gt; [1] "Iteration:" "5"          "Theta:"     "18.99"      "1.65"      
+#&gt; [1] "Iteration:" "6"          "Theta:"     "20.35"      "0.98"      
+#&gt; [1] "Iteration:" "7"          "Theta:"     "20.44"      "0.92"      
+#&gt; [1] "Iteration:" "8"          "Theta:"     "20.45"      "0.92"      
+#&gt; [1] "Iteration:" "9"          "Theta:"     "20.45"      "0.92"      
+#&gt; [1] "Iteration:" "10"         "Theta:"     "20.45"      "0.92"      
+#&gt; [1] "Iteration:" "11"         "Theta:"     "20.45"      "0.92"      
+#&gt; [1] "Converged at Iteration:" "11"                     
+#&gt; [3] "Theta:"                  "20.45"                  
+#&gt; [5] "0.92"                   </div><div class='input'><span class='no'>maGB</span> <span class='kw'>&lt;-</span> <span class='fu'>mlma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fitGB</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -235,7 +239,7 @@ Approximate methods estimate single marker effects conditionally.</p>
 
     <h2>Author</h2>
     
-Peter Sørensen
+Peter S?rensen
 
   </div>
 </div>

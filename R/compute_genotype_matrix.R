@@ -21,8 +21,6 @@
 #' for downstream analyses. Most users do not use this directly. Furthermore this structure 
 #' also allow us to change the underlying data structures without apparent changes in 
 #' the Glist interface.  
-
-
 #' 
 #' @param study name of the study
 #' @param fnRAW name of binary file used for storing genotypes on disk
@@ -33,12 +31,10 @@
 #' @param rsids marker rsids used in study
 #' @param overwrite logical if TRUE overwite binary genotype file
 #' @param ncores used to process genotypes
-
-
-
 #' 
 #' @return Returns a list structure with information about genotypes
 #' 
+<<<<<<< HEAD
 
 #' @author Peter Soerensen
 
@@ -50,6 +46,9 @@
 
 
 
+=======
+#' @author Peter S?rensen
+>>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 
 #' @export
 #'
@@ -298,7 +297,7 @@ readbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
      nr <- length(rws)
      fnRAW <- Glist$fnRAW
      OS <- .Platform$OS.type
-     if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T )) 
+     #if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T)) 
      if (method=="direct") {
      res <- .Fortran("readbed", 
                      n = as.integer(n),
@@ -512,7 +511,7 @@ qcbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
      af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
      fnRAW <- Glist$fnRAW
      OS <- .Platform$OS.type
-     if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
+     #if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T))    
      qc <- .Fortran("summarybed", 
                     n = as.integer(n),
                     nr = as.integer(nr),
@@ -563,7 +562,7 @@ mafbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,ncores=1) {
      af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
      fnRAW <- Glist$fnRAW
      OS <- .Platform$OS.type
-     if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
+     #if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T))    
      qc <- .Fortran("mafbed", 
                     n = as.integer(n),
                     nr = as.integer(nr),

@@ -8,10 +8,10 @@
         href: reference/index.html
       - text: "Articles"
         menu:
-        - text: Tutorial small data set
-          href: articles/Tutorial_small_data_set.html
+        - text: Small data set tutorial
+          href: articles/Small_data_set_tutorial.html
         - text: Prepare Phenotype and Covariate Data
-          href: articles/Prepare_Phenotype_Data_Starvation_html.html
+          href: articles/Prepare_Phenotype_Data_Starvation.html
     right:
       - news:
         text: "Changelog"

@@ -1,6 +1,5 @@
 ---
 title: "Using qgg"
-date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Using qgg}
@@ -20,3 +19,17 @@ devtools::install_github("psoerensen/qgg")
 ```
 
 
+## Small data set tutorial
+
+Here are links to the following steps used for the analyses of a small scale data set. This set of tutorials shows how to:  
+
+* [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html)  
+  
+* [Compute a centered and scaled genotype matrix](http://psoerensen.github.io/qgg/articles/Compute_W.html)  
+  
+* next step
+
+1. [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html)  
+2. [Compute a centered and scaled genotype matrix](http://psoerensen.github.io/qgg/articles/Compute_W.html)  
+3. Next step
+  

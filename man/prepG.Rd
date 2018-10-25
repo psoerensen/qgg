@@ -2,7 +2,11 @@
 % Please edit documentation in R/compute_genotype_matrix.R
 \name{prepG}
 \alias{prepG}
+<<<<<<< HEAD
 \title{Prepare genotype data for all statistical analyses (initial step)}
+=======
+\title{Prepare information on genotypes stored in a binary file}
+>>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 \usage{
 prepG(study = NULL, fnRAW = NULL, bedfiles = NULL, bimfiles = NULL,
   famfiles = NULL, ids = NULL, rsids = NULL, overwrite = TRUE,
@@ -23,7 +27,11 @@ prepG(study = NULL, fnRAW = NULL, bedfiles = NULL, bimfiles = NULL,
 
 \item{rsids}{marker rsids used in study}
 
+<<<<<<< HEAD
 \item{overwrite}{logical if TRUE overwite binary genotype file}
+=======
+\item{overwrite}{overwite binary genotype file}
+>>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 
 \item{ncores}{used to process genotypes}
 }
@@ -48,10 +56,15 @@ for downstream analyses. Most users do not use this directly. Furthermore this s
 also allow us to change the underlying data structures without apparent changes in 
 the Glist interface.
 }
+<<<<<<< HEAD
 \examples{
 #Glist <- prepG( bedfiles, bimfiles, study, path, additional arguments...)
 #W <- getW( Glist, ids, rsids, additional arguments...)
 }
 \author{
 Peter Soerensen
+=======
+\author{
+Peter S?rensen
+>>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 }

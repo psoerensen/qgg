@@ -78,7 +78,7 @@
   <a href="../articles/qgg.html">Get started</a>
 </li>
 <li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">Functions</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -88,17 +88,20 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
+      <a href="../articles/Tutorial_small_data_set.html">Tutorial small data set</a>
+    </li>
+    <li>
       <a href="../articles/Prepare_Phenotype_Data_Starvation_html.html">Prepare Phenotype and Covariate Data</a>
     </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+<li>
   <a href="https://github.com/psoerensen/qgg">
     <span class="fa fa-github fa-lg"></span>
      
@@ -199,7 +202,7 @@ This is an interface to be used for DMU.</p>
 <span class='no'>GRMlist</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>G</span> <span class='kw'>=</span> <span class='no'>G</span>)
 
 
-<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>remlDMU</span>(<span class='kw'>fm</span> <span class='kw'>=</span> <span class='no'>fm</span>, <span class='kw'>GRMlist</span> <span class='kw'>=</span> <span class='no'>GRMlist</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>data</span>)</div><div class='output co'>#&gt; <span class='error'>Error in model$data$integers[model[[i]]$factors]: invalid subscript type 'list'</span></div><div class='input'>  <span class='fu'>str</span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; <span class='error'>Error in str(fit): object 'fit' not found</span></div><div class='input'>
+<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>remlDMU</span>(<span class='kw'>fm</span> <span class='kw'>=</span> <span class='no'>fm</span>, <span class='kw'>GRMlist</span> <span class='kw'>=</span> <span class='no'>GRMlist</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>data</span>)</div><div class='output co'>#&gt; <span class='error'>Error in remlDMU(fm = fm, GRMlist = GRMlist, data = data): could not find function "remlDMU"</span></div><div class='input'>  <span class='fu'>str</span>(<span class='no'>fit</span>)</div><div class='output co'>#&gt; <span class='error'>Error in str(fit): object 'fit' not found</span></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

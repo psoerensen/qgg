@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Genomic Feature Model analyses implemented using Bayesian Methods — bgfm • qgg</title>
+<title>Prepare information on genotypes stored in a binary file — prepG • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,11 +30,22 @@
 
 
 
-<meta property="og:title" content="Genomic Feature Model analyses implemented using Bayesian Methods — bgfm" />
+<meta property="og:title" content="Prepare information on genotypes stored in a binary file — prepG" />
 
-<meta property="og:description" content="Bayesian Genomic Feature models implemented using Bayesian Methods. 
-Multiple features and multiple traits models can be fitted.
-Different genetic models (e.g. additive, dominance, gene by gene and gene by environment interactions) can be specified." />
+<meta property="og:description" content="The processed genotypes are stored in a matrix W. 
+By default genotypes are allele counts of alternative allele which are centered and scaled.
+Currently the raw genotype format supported is plink bed/bim/fam files. 
+To fascilitate a simple and common interface for using raw genotypes we prepare a Glist structure 
+which contains information about the raw and processed genotypes. 
+Glist is obtained using the prepG function based on plink bed/bim/fam files.
+The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
+By default the W matrix is stored in a binary file (n*m*4 bytes).
+Information about the processed genotype matrix W is provided in a Glist structure.
+The output of the prepG functions is a Glist structure containing information 
+about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
+for downstream analyses. Most users do not use this directly. Furthermore this structure 
+also allow us to change the underlying data structures without apparent changes in 
+the Glist interface." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -121,67 +132,78 @@ Different genetic models (e.g. additive, dominance, gene by gene and gene by env
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Genomic Feature Model analyses implemented using Bayesian Methods</h1>
-    <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/bgfm.R'><code>R/bgfm.R</code></a></small>
-    <div class="hidden name"><code>bgfm.Rd</code></div>
+    <h1>Prepare information on genotypes stored in a binary file</h1>
+    <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/compute_genotype_matrix.R'><code>R/compute_genotype_matrix.R</code></a></small>
+    <div class="hidden name"><code>prepG.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Bayesian Genomic Feature models implemented using Bayesian Methods. 
-Multiple features and multiple traits models can be fitted.
-Different genetic models (e.g. additive, dominance, gene by gene and gene by environment interactions) can be specified.</p>
+    <p>The processed genotypes are stored in a matrix W. 
+By default genotypes are allele counts of alternative allele which are centered and scaled.</p>
+<p>Currently the raw genotype format supported is plink bed/bim/fam files. 
+To fascilitate a simple and common interface for using raw genotypes we prepare a Glist structure 
+which contains information about the raw and processed genotypes. 
+Glist is obtained using the prepG function based on plink bed/bim/fam files.
+The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
+By default the W matrix is stored in a binary file (n*m*4 bytes).
+Information about the processed genotype matrix W is provided in a Glist structure.</p>
+<p>The output of the prepG functions is a Glist structure containing information 
+about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
+for downstream analyses. Most users do not use this directly. Furthermore this structure 
+also allow us to change the underlying data structures without apparent changes in 
+the Glist interface.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>bgfm</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>g</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsamp</span> <span class='kw'>=</span> <span class='fl'>50</span>, <span class='kw'>nburn</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>nsave</span> <span class='kw'>=</span> <span class='fl'>10000</span>,
-  <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>0.001</span>)</pre>
+    <pre class="usage"><span class='fu'>prepG</span>(<span class='kw'>study</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>fnRAW</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bedfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bimfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>famfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>y</th>
-      <td><p>is a matrix of phenotypes</p></td>
+      <th>study</th>
+      <td><p>name of the study</p></td>
     </tr>
     <tr>
-      <th>g</th>
-      <td><p>is a list of G matrices (g$G), prior (co)variances (g$sigma), prior degrees of freedom (g$sigma),  prior distribution (g$ds)</p></td>
+      <th>fnRAW</th>
+      <td><p>name of binary file used for storing genotypes on disk</p></td>
     </tr>
     <tr>
-      <th>nsamp</th>
-      <td><p>is the number of samples after burnin</p></td>
+      <th>bedfiles</th>
+      <td><p>a vector names for the bed files</p></td>
     </tr>
     <tr>
-      <th>nburn</th>
-      <td><p>is the number of burnin samples</p></td>
+      <th>bimfiles</th>
+      <td><p>a vector names for the bim files</p></td>
     </tr>
     <tr>
-      <th>nsave</th>
-      <td><p>is the number of samples to save</p></td>
+      <th>famfiles</th>
+      <td><p>a vector names for the fam files</p></td>
     </tr>
     <tr>
-      <th>tol</th>
-      <td><p>is the tolerance</p></td>
+      <th>ids</th>
+      <td><p>individual IDs used in study</p></td>
+    </tr>
+    <tr>
+      <th>rsids</th>
+      <td><p>marker rsids used in study</p></td>
+    </tr>
+    <tr>
+      <th>overwrite</th>
+      <td><p>overwite binary genotype file</p></td>
+    </tr>
+    <tr>
+      <th>ncores</th>
+      <td><p>used to process genotypes</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Returns a list including</p>
-<dt>sigmas</dt><dd><p>posterior samples variance components</p></dd> 
-<dt>alphas</dt><dd><p>posterior samples alphas</p></dd>
-<dt>mus</dt><dd><p>posterior samples mu</p></dd>
-<dt>logCPO</dt><dd><p>log CPOs</p></dd>
-<dt>g</dt><dd><p>g is a list of G matrices (g$G), prior (co)variances (g$sigma), prior degrees of freedom (g$sigma),  prior distribution (g$ds)</p></dd>
-
-    
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>The models are implemented using empirical Bayesian methods. The hyperparameters of the dispersion parameters of the Bayesian model can
-be obtained from prior information or estimated by maximum likelihood, and conditional on these, the model is fitted using
-Markov chain Monte Carlo. Furthermore, a spectral decomposition of genomic feature relationship matrices plays an 
-important computational role in the Markov chain Monte Carlo strategy implemented.</p>
+    <p>Returns a list structure with information about genotypes</p>
     
 
   </div>
@@ -191,13 +213,11 @@ important computational role in the Markov chain Monte Carlo strategy implemente
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
-
-      <li><a href="#details">Details</a></li>
           </ul>
 
     <h2>Author</h2>
     
-Peter Sørensen
+Peter S?rensen
 
   </div>
 </div>

@@ -77,24 +77,21 @@
 #' 
 #' 
 #' # Set test based on hyperG 
+<<<<<<< HEAD
 #' res <- mma(stat = ma[,4], sets = sets, method = "hyperG", threshold = 0.05)
+=======
+#' res <- mma(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
+>>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 #' 
 
 
 #' @export
-
-mma <- function(stat=NULL,sets=NULL,ncores=1, nperm=1000, method="sum") {
-     
+mma <- function(stat=NULL,sets=NULL,ncores=1,nperm=1000,method="sum"){
      m <- length(stat)
-     #rws <- 1:m 
-     #names(rws) <- names(stat)
-     #sets <- lapply(sets, function(x) {rws[x]}) 
      if (is.matrix(stat)) sets <- mapSets(sets=sets,rsids=rownames(stat),index=TRUE)
      if (is.vector(stat)) sets <- mapSets(sets=sets,rsids=names(stat),index=TRUE)
-     
      nsets <- length(sets)
      msets <- sapply(sets, length)
-     
      if (is.matrix(stat)) { 
           p <- apply(stat,2, function(x) { gsets(stat=x,sets=sets, ncores=ncores, np=nperm) } )
           setstat <- apply(stat,2,function(x) { sapply(sets, function(y) {sum(x[y])}) })
@@ -108,12 +105,11 @@ mma <- function(stat=NULL,sets=NULL,ncores=1, nperm=1000, method="sum") {
           rownames(res) <- names(sets)  
      }     
      res
-     
 }
 
 #' @export
 
-setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
+setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL,method ="sum", threshold = 0.05) {
      
   if (method == "sum") setT <- sumTest(stat = stat, sets = sets, nperm = nperm) 
   if (method == "cvat") setT <- cvat(s = stat, W = W, sets = sets, nperm = nperm) 
@@ -124,11 +120,11 @@ setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "
 
 }
 
-sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
+sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method ="sum") {
      
-  if (method == "mean") setT <- sapply(sets, function(x) {mean(stat[x])})
-  if (method == "sum") setT <- sapply(sets, function(x) {sum(stat[x])})
-  if (method == "max") setT <- sapply(sets, function(x) {max(stat[x])})
+  if (method =="mean") setT <- sapply(sets, function(x) {mean(stat[x])})
+  if (method =="sum") setT <- sapply(sets, function(x) {sum(stat[x])})
+  if (method =="max") setT <- sapply(sets, function(x) {max(stat[x])})
   if (!is.null(nperm)) {
     p <- rep(0, length(sets)) 
     n <- length(stat)
@@ -153,7 +149,7 @@ sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 
 }
 
-msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
+msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method ="sum") {
      
      setT <- apply(stat, 2, function(x) {setTest(stat = x, sets = sets, nperm = nperm, method = method)})
      names(setT) <- colnames(stat)
@@ -161,7 +157,7 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 
 } 
 
-gsett <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
+gsett <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method ="sum", threshold = 0.05) {
      
      m <- length(stat)
      rws <- 1:m
@@ -252,7 +248,7 @@ gsets <- function(stat=NULL,sets=NULL,ncores=1, np=1000, method="sum") {
                      p = as.integer(rep(0,nsets)),
                      np = as.integer(np),
                      ncores = as.integer(ncores),
-                     PACKAGE = 'qgg'
+                     PACKAGE = "qgg"
      )
      
      p <- res$p/np
