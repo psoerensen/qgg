@@ -791,8 +791,10 @@
   l=0
 
   l=n*(3+n/2)
+  !l=max(1,3*n-1)  
   call dsyev('V','U',n,GRM,n,evals,work,l,info)
   
+
 
   !U = 0.0D0
   !G = 0.0D0

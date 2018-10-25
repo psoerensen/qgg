@@ -77,11 +77,11 @@
 #' 
 #' 
 #' # Set test based on hyperG 
-<<<<<<< HEAD
+
 #' res <- mma(stat = ma[,4], sets = sets, method = "hyperG", threshold = 0.05)
-=======
+
 #' res <- mma(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
+
 #' 
 
 

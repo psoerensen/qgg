@@ -34,7 +34,7 @@
 #' 
 #' @return Returns a list structure with information about genotypes
 #' 
-<<<<<<< HEAD
+
 
 #' @author Peter Soerensen
 
@@ -46,9 +46,9 @@
 
 
 
-=======
+
 #' @author Peter S?rensen
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
+
 
 #' @export
 #'
