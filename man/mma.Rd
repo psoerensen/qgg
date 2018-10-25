@@ -2,7 +2,7 @@
 % Please edit documentation in R/multiple_marker_set_test.R
 \name{mma}
 \alias{mma}
-\title{Genetic marker set tests based on sum statistics}
+\title{Genetic marker set tests}
 \usage{
 mma(stat = NULL, sets = NULL, ncores = 1, nperm = 1000,
   method = "sum")
@@ -85,46 +85,12 @@ res <- mma(stat = fit$s, W = W, sets = sets, method = "cvat", nperm = 100)
 # Set test based on hyperG 
 res <- mma(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
 
-#' # Simulate data
-W <- matrix(rnorm(20000000), ncol = 10000)
-	colnames(W) <- as.character(1:ncol(W))
-	rownames(W) <- as.character(1:nrow(W))
-y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
-
-# Create model
-data <- data.frame(y = y, mu = 1)
-fm <- y ~ 0 + mu
-X <- model.matrix(fm, data = data)
-
-# Create framework for lists
-setsGB <- list(A = colnames(W)) # gblup model
-setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
-setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
-
-# Compute G
-G <- computeGRM(W = W)
-GB <- lapply(setsGB, function(x) {computeGRM(W = W[, x])})
-GF <- lapply(setsGF, function(x) {computeGRM(W = W[, x])})
-GT <- lapply(setsGT, function(x) {computeGRM(W = W[, x])})
-
-# REML analyses and multi marker association (set) test
-fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
-
-# Use fit object as input
-cvat(fit = fitGB, W = W, sets = setsGF, nperm = 1000)
-cvat(fit = fitGB, W = W, sets = setsGT, nperm = 1000)
-
-# Use single coefficients as input 
-s <- crossprod(W / ncol(W), fitGB$Py) * fitGB$theta[1]
-cvat(s = s, W = W, sets = setsGF, nperm = 1000)
-cvat(s = s, W = W, sets = setsGT, nperm = 1000)
-
 }
 \references{
-Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Børglum, A. D., & Sørensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
+Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Boerglum, A. D., & Soerensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
 
-Rohde, P. D., Edwards S. M., Sarup P., Sørensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
+Rohde, P. D., Edwards S. M., Sarup P., Soerensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
 }
 \author{
-Peter SÃ¸rensen
+Peter Soerensen
 }

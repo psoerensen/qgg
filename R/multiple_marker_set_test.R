@@ -44,9 +44,9 @@
 #' \item{setT}{marker set test statistics} 
 #' \item{nset}{number of markers in the set}
 #' \item{p}{p-value for marker set}
-#' @author Peter Sørensen
-#' @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Børglum, A. D., & Sørensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
-#' @references Rohde, P. D., Edwards S. M., Sarup P., Sørensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
+#' @author Peter Soerensen
+#' @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Boerglum, A. D., & Soerensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
+#' @references Rohde, P. D., Edwards S. M., Sarup P., Soerensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
 #' @examples
 #' 
 #' # Simulate data
@@ -72,56 +72,15 @@
 #' # Set test based on hyperG 
 #' res <- mma(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
 #' 
-#' #' # Simulate data
-#' W <- matrix(rnorm(20000000), ncol = 10000)
-#' 	colnames(W) <- as.character(1:ncol(W))
-#' 	rownames(W) <- as.character(1:nrow(W))
-#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
-#'
-#' # Create model
-#' data <- data.frame(y = y, mu = 1)
-#' fm <- y ~ 0 + mu
-#' X <- model.matrix(fm, data = data)
-#'
-#' # Create framework for lists
-#' setsGB <- list(A = colnames(W)) # gblup model
-#' setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
-#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
-#'
-#' # Compute G
-#' G <- computeGRM(W = W)
-#' GB <- lapply(setsGB, function(x) {computeGRM(W = W[, x])})
-#' GF <- lapply(setsGF, function(x) {computeGRM(W = W[, x])})
-#' GT <- lapply(setsGT, function(x) {computeGRM(W = W[, x])})
-#'
-#' # REML analyses and multi marker association (set) test
-#' fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
-#'
-#' # Use fit object as input
-#' cvat(fit = fitGB, W = W, sets = setsGF, nperm = 1000)
-#' cvat(fit = fitGB, W = W, sets = setsGT, nperm = 1000)
-#'
-#' # Use single coefficients as input 
-#' s <- crossprod(W / ncol(W), fitGB$Py) * fitGB$theta[1]
-#' cvat(s = s, W = W, sets = setsGF, nperm = 1000)
-#' cvat(s = s, W = W, sets = setsGT, nperm = 1000)
-#' 
 
 
 #' @export
-
-mma <- function(stat=NULL,sets=NULL,ncores=1, nperm=1000, method="sum") {
-     
+mma <- function(stat=NULL,sets=NULL,ncores=1,nperm=1000,method="sum"){
      m <- length(stat)
-     #rws <- 1:m 
-     #names(rws) <- names(stat)
-     #sets <- lapply(sets, function(x) {rws[x]}) 
      if (is.matrix(stat)) sets <- mapSets(sets=sets,rsids=rownames(stat),index=TRUE)
      if (is.vector(stat)) sets <- mapSets(sets=sets,rsids=names(stat),index=TRUE)
-     
      nsets <- length(sets)
      msets <- sapply(sets, length)
-     
      if (is.matrix(stat)) { 
           p <- apply(stat,2, function(x) { gsets(stat=x,sets=sets, ncores=ncores, np=nperm) } )
           setstat <- apply(stat,2,function(x) { sapply(sets, function(y) {sum(x[y])}) })
@@ -135,12 +94,11 @@ mma <- function(stat=NULL,sets=NULL,ncores=1, nperm=1000, method="sum") {
           rownames(res) <- names(sets)  
      }     
      res
-     
 }
 
 #' @export
 
-setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
+setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL,method ="sum", threshold = 0.05) {
      
   if (method == "sum") setT <- sumTest(stat = stat, sets = sets, nperm = nperm) 
   if (method == "cvat") setT <- cvat(s = stat, W = W, sets = sets, nperm = nperm) 
@@ -151,11 +109,11 @@ setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "
 
 }
 
-sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
+sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method ="sum") {
      
-  if (method == "mean") setT <- sapply(sets, function(x) {mean(stat[x])})
-  if (method == "sum") setT <- sapply(sets, function(x) {sum(stat[x])})
-  if (method == "max") setT <- sapply(sets, function(x) {max(stat[x])})
+  if (method =="mean") setT <- sapply(sets, function(x) {mean(stat[x])})
+  if (method =="sum") setT <- sapply(sets, function(x) {sum(stat[x])})
+  if (method =="max") setT <- sapply(sets, function(x) {max(stat[x])})
   if (!is.null(nperm)) {
     p <- rep(0, length(sets)) 
     n <- length(stat)
@@ -180,7 +138,7 @@ sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 
 }
 
-msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
+msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method ="sum") {
      
      setT <- apply(stat, 2, function(x) {setTest(stat = x, sets = sets, nperm = nperm, method = method)})
      names(setT) <- colnames(stat)
@@ -188,7 +146,7 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 
 } 
 
-gsett <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
+gsett <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method ="sum", threshold = 0.05) {
      
      m <- length(stat)
      rws <- 1:m
@@ -279,7 +237,7 @@ gsets <- function(stat=NULL,sets=NULL,ncores=1, np=1000, method="sum") {
                      p = as.integer(rep(0,nsets)),
                      np = as.integer(np),
                      ncores = as.integer(ncores),
-                     PACKAGE = 'qgg'
+                     PACKAGE = "qgg"
      )
      
      p <- res$p/np

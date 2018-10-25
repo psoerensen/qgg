@@ -2,7 +2,7 @@
 % Please edit documentation in R/single_marker_test.R
 \name{mlma}
 \alias{mlma}
-\title{Linear mixed model marker association test}
+\title{Mixed linear model marker association test}
 \usage{
 mlma(fit = NULL, W = NULL, m = NULL, statistic = "mastor")
 }
@@ -56,7 +56,7 @@ GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
 
 # REML analyses and single marker association test
 fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
-maGB <- lmma(fit = fitGB, W = W)
+maGB <- mlma(fit = fitGB, W = W)
 
 }
 \references{
@@ -83,5 +83,5 @@ Yang, J., Zaitlen, N. A., Goddard, M. E., Visscher, P. M., & Price, A. L. (2014)
 Bulik-Sullivan, B. K., Loh, P. R., Finucane, H. K., Ripke, S., Yang, J., Patterson, N., ... & Schizophrenia Working Group of the Psychiatric Genomics Consortium. (2015). LD Score regression distinguishes confounding from polygenicity in genome-wide association studies. Nature genetics, 47(3), 291-295.
 }
 \author{
-Peter Sørensen
+Peter S?rensen
 }

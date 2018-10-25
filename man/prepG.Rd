@@ -48,10 +48,6 @@ for downstream analyses. Most users do not use this directly. Furthermore this s
 also allow us to change the underlying data structures without apparent changes in 
 the Glist interface.
 }
-\examples{
-Glist <- prepG( bedfiles, bimfiles, study, path, additional arguments...)
-W <- getW( Glist, ids, rsids, additional arguments...)
-}
 \author{
-Peter Sørensen
+Peter S?rensen
 }

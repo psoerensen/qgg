@@ -115,5 +115,5 @@ boxplot(cbind(cvGB[,1:4],cvGF[,1:4],cvGT[,1:4]))
 Lee, S. H., & van Der Werf, J. H. (2006). An efficient variance component approach implementing an average information REML suitable for combined LD and linkage mapping with a general complex pedigree. Genetics Selection Evolution, 38(1), 25.
 }
 \author{
-Peter Sørensen
+Peter S?rensen
 }

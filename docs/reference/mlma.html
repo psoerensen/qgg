@@ -208,18 +208,20 @@ Approximate methods estimate single marker effects conditionally.</p>
 <span class='no'>GT</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGT</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'>computeG</span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
 
 <span class='co'># REML analyses and single marker association test</span>
-<span class='no'>fitGB</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>G</span> <span class='kw'>=</span> <span class='no'>GB</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; [1] "Iteration:" "1"          "Theta:"     "2.31"       "1.99"      
-#&gt; [1] "Iteration:" "2"          "Theta:"     "4.63"       "3.03"      
-#&gt; [1] "Iteration:" "3"          "Theta:"     "8.91"       "3.5"       
-#&gt; [1] "Iteration:" "4"          "Theta:"     "14.98"      "2.31"      
-#&gt; [1] "Iteration:" "5"          "Theta:"     "19.7"       "0.47"      
-#&gt; [1] "Iteration:" "6"          "Theta:"     "20.83"      "0"         
-#&gt; [1] "Iteration:" "7"          "Theta:"     "20.86"      "0"         
-#&gt; [1] "Iteration:" "8"          "Theta:"     "20.86"      "0"         
-#&gt; [1] "Iteration:" "9"          "Theta:"     "20.86"      "0"         
-#&gt; [1] "Converged at Iteration:" "9"                      
-#&gt; [3] "Theta:"                  "20.86"                  
-#&gt; [5] "0"                      </div><div class='input'><span class='no'>maGB</span> <span class='kw'>&lt;-</span> <span class='fu'>lmma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fitGB</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)</div><div class='output co'>#&gt; <span class='error'>Error in lmma(fit = fitGB, W = W): could not find function "lmma"</span></div><div class='input'>
+<span class='no'>fitGB</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>G</span> <span class='kw'>=</span> <span class='no'>GB</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; [1] "Iteration:" "1"          "Theta:"     "2.3"        "2.04"      
+#&gt; [1] "Iteration:" "2"          "Theta:"     "4.54"       "3.23"      
+#&gt; [1] "Iteration:" "3"          "Theta:"     "8.58"       "4.05"      
+#&gt; [1] "Iteration:" "4"          "Theta:"     "14.3"       "3.36"      
+#&gt; [1] "Iteration:" "5"          "Theta:"     "18.99"      "1.65"      
+#&gt; [1] "Iteration:" "6"          "Theta:"     "20.35"      "0.98"      
+#&gt; [1] "Iteration:" "7"          "Theta:"     "20.44"      "0.92"      
+#&gt; [1] "Iteration:" "8"          "Theta:"     "20.45"      "0.92"      
+#&gt; [1] "Iteration:" "9"          "Theta:"     "20.45"      "0.92"      
+#&gt; [1] "Iteration:" "10"         "Theta:"     "20.45"      "0.92"      
+#&gt; [1] "Iteration:" "11"         "Theta:"     "20.45"      "0.92"      
+#&gt; [1] "Converged at Iteration:" "11"                     
+#&gt; [3] "Theta:"                  "20.45"                  
+#&gt; [5] "0.92"                   </div><div class='input'><span class='no'>maGB</span> <span class='kw'>&lt;-</span> <span class='fu'>lmma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fitGB</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)</div><div class='output co'>#&gt; <span class='error'>Error in lmma(fit = fitGB, W = W): could not find function "lmma"</span></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

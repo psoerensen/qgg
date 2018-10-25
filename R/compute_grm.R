@@ -26,9 +26,6 @@
 #' @param overwrite logical should the file fnG be overwritten
 #' @param returnGRM should the function return the GRM matrix  
 #' @param miss missing value code used in genotype matrix
-#' 
-#' 
-#' 
 #' @return Returns GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
 #' @export
 #'
@@ -89,8 +86,8 @@ computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL,
      }
      fnG <- GRMlist$fnG
      OS <- .Platform$OS.type
-     if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
-     if(OS=="windows") fnG <- gsub( "/", "\\" , fnG, fixed=T )    
+     #if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T))    
+     #if(OS=="windows") fnG <- gsub("/","\\",fnG,fixed=T)    
      res <- .Fortran("grmbed", 
            n = as.integer(n),
            nr = as.integer(nr),
