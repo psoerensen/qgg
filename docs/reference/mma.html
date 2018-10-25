@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Genetic marker set tests based on sum statistics — mma • qgg</title>
+<title>Genetic marker set tests — mma • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,7 +30,7 @@
 
 
 
-<meta property="og:title" content="Genetic marker set tests based on sum statistics — mma" />
+<meta property="og:title" content="Genetic marker set tests — mma" />
 
 <meta property="og:description" content="Genetic marker set tests based on summing the single genetic marker test statistics.
 The sum test is powerful if the genomic feature harbors many genetic markers having small to moderate effects. 
@@ -127,7 +127,7 @@ Genetic marker set tests based on the hyperG test statistics for a set of geneti
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Genetic marker set tests based on sum statistics</h1>
+    <h1>Genetic marker set tests</h1>
     <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/multiple_marker_set_test.R'><code>R/multiple_marker_set_test.R</code></a></small>
     <div class="hidden name"><code>mma.Rd</code></div>
     </div>
@@ -220,8 +220,8 @@ feature harbours genetic markers with large effects.</p>
     
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
-    <p>Rohde, P. D., Demontis, D., Cuyabano, B. C. D., B昼㸸rglum, A. D., &amp; S昼㸸rensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.</p>
-<p>Rohde, P. D., Edwards S. M., Sarup P., S昼㸸rensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.</p>
+    <p>Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Boerglum, A. D., &amp; Soerensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.</p>
+<p>Rohde, P. D., Edwards S. M., Sarup P., Soerensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
@@ -252,58 +252,6 @@ feature harbours genetic markers with large effects.</p>
 <span class='no'>res</span> <span class='kw'>&lt;-</span> <span class='fu'>mma</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='no'>fit</span>$<span class='no'>s</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>sets</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"cvat"</span>, <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>100</span>)</div><div class='output co'>#&gt; <span class='error'>Error in mma(stat = fit$s, W = W, sets = sets, method = "cvat", nperm = 100): unused argument (W = W)</span></div><div class='input'>
 <span class='co'># Set test based on hyperG </span>
 <span class='no'>res</span> <span class='kw'>&lt;-</span> <span class='fu'>mma</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='no'>fit</span>$<span class='no'>p</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>sets</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"hyperG"</span>, <span class='kw'>threshold</span> <span class='kw'>=</span> <span class='fl'>0.05</span>)</div><div class='output co'>#&gt; <span class='error'>Error in mma(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05): unused argument (threshold = 0.05)</span></div><div class='input'>
-<span class='co'>#' # Simulate data</span>
-<span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
-        <span class='fu'>colnames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>))
-        <span class='fu'>rownames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>nrow</span>(<span class='no'>W</span>))
-<span class='no'>y</span> <span class='kw'>&lt;-</span> <span class='fu'>rowSums</span>(<span class='no'>W</span>[, <span class='fl'>1</span>:<span class='fl'>10</span>]) + <span class='fu'>rowSums</span>(<span class='no'>W</span>[, <span class='fl'>1001</span>:<span class='fl'>1010</span>]) + <span class='fu'>rnorm</span>(<span class='fu'>nrow</span>(<span class='no'>W</span>))
-
-<span class='co'># Create model</span>
-<span class='no'>data</span> <span class='kw'>&lt;-</span> <span class='fu'>data.frame</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>mu</span> <span class='kw'>=</span> <span class='fl'>1</span>)
-<span class='no'>fm</span> <span class='kw'>&lt;-</span> <span class='no'>y</span> ~ <span class='fl'>0</span> + <span class='no'>mu</span>
-<span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'>model.matrix</span>(<span class='no'>fm</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>data</span>)
-
-<span class='co'># Create framework for lists</span>
-<span class='no'>setsGB</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>A</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)) <span class='co'># gblup model</span>
-<span class='no'>setsGF</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>C1</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>1000</span>], <span class='kw'>C2</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1001</span>:<span class='fl'>2000</span>], <span class='kw'>C3</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>2000</span>:<span class='fl'>10000</span>]) <span class='co'># gfblup model</span>
-<span class='no'>setsGT</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>C1</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>10</span>], <span class='kw'>C2</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1001</span>:<span class='fl'>1010</span>], <span class='kw'>C3</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>10000</span>]) <span class='co'># true model</span>
-
-<span class='co'># Compute G</span>
-<span class='no'>G</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
-<span class='no'>GB</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGB</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
-<span class='no'>GF</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGF</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
-<span class='no'>GT</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGT</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
-
-<span class='co'># REML analyses and multi marker association (set) test</span>
-<span class='no'>fitGB</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>G</span> <span class='kw'>=</span> <span class='no'>GB</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; [1] "Iteration:" "1"          "Theta:"     "2.32"       "1.99"      
-#&gt; [1] "Iteration:" "2"          "Theta:"     "4.67"       "3.02"      
-#&gt; [1] "Iteration:" "3"          "Theta:"     "9.03"       "3.43"      
-#&gt; [1] "Iteration:" "4"          "Theta:"     "15.26"      "2.11"      
-#&gt; [1] "Iteration:" "5"          "Theta:"     "20.14"      "0.17"      
-#&gt; [1] "Iteration:" "6"          "Theta:"     "21.31"      "0"         
-#&gt; [1] "Iteration:" "7"          "Theta:"     "21.36"      "0"         
-#&gt; [1] "Iteration:" "8"          "Theta:"     "21.36"      "0"         
-#&gt; [1] "Iteration:" "9"          "Theta:"     "21.36"      "0"         
-#&gt; [1] "Converged at Iteration:" "9"                      
-#&gt; [3] "Theta:"                  "21.36"                  
-#&gt; [5] "0"                      </div><div class='input'>
-<span class='co'># Use fit object as input</span>
-<span class='fu'>cvat</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fitGB</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>setsGF</span>, <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>1000</span>)</div><div class='output co'>#&gt;         setT nset     p
-#&gt; C1  7334.179 1000 0.096
-#&gt; C2  7692.847 1000 0.012
-#&gt; C3 26898.035 8001 0.995</div><div class='input'><span class='fu'>cvat</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fitGB</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>setsGT</span>, <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>1000</span>)</div><div class='output co'>#&gt;         setT  nset p
-#&gt; C1  3820.398    10 0
-#&gt; C2  4006.660    10 0
-#&gt; C3 41925.084 10000 1</div><div class='input'>
-<span class='co'># Use single coefficients as input </span>
-<span class='no'>s</span> <span class='kw'>&lt;-</span> <span class='fu'>crossprod</span>(<span class='no'>W</span> / <span class='fu'>ncol</span>(<span class='no'>W</span>), <span class='no'>fitGB</span>$<span class='no'>Py</span>) * <span class='no'>fitGB</span>$<span class='no'>theta</span>[<span class='fl'>1</span>]
-<span class='fu'>cvat</span>(<span class='kw'>s</span> <span class='kw'>=</span> <span class='no'>s</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>setsGF</span>, <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>1000</span>)</div><div class='output co'>#&gt;         setT nset     p
-#&gt; C1  7334.179 1000 0.130
-#&gt; C2  7692.847 1000 0.017
-#&gt; C3 26898.035 8001 0.992</div><div class='input'><span class='fu'>cvat</span>(<span class='kw'>s</span> <span class='kw'>=</span> <span class='no'>s</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>setsGT</span>, <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>1000</span>)</div><div class='output co'>#&gt;         setT  nset p
-#&gt; C1  3820.398    10 0
-#&gt; C2  4006.660    10 0
-#&gt; C3 41925.084 10000 1</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
@@ -322,7 +270,7 @@ feature harbours genetic markers with large effects.</p>
 
     <h2>Author</h2>
     
-Peter Sørensen
+Peter Soerensen
 
   </div>
 </div>

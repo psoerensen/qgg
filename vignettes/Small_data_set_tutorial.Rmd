@@ -9,4 +9,4 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Here we want to have links to our tutorials for the DGRP data set.
 
-Here I want to link to [compute W](Compute_W.Rmd)
+Here I want to link to [compute W](docs/articles/Compute_W.html)

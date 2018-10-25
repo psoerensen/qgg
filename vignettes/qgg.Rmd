@@ -19,4 +19,4 @@ library(devtools)
 devtools::install_github("psoerensen/qgg")
 ```
 
-
+Here I want to link to [compute W](docs/articles/Compute_W.html)
