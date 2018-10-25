@@ -53,8 +53,8 @@
 #' fm <- y ~ f + (1 | g~G) 
 #' 
 #' 
-#' fit <- remlDMU(fm = fm, GRM = lits(G=G), data = data)
-#'   str(fit)
+#' #fit <- remlDMU(fm = fm, GRM = list(G=G), data = data)
+#' #str(fit)
 #' 
 #' @export
 #'
