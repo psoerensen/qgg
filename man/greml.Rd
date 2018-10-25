@@ -4,10 +4,10 @@
 \alias{greml}
 \title{Genomic REML analysis}
 \usage{
-greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL,
-  ids = NULL, validate = NULL, maxit = 100, tol = 1e-05, bin = NULL,
-  ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE,
-  interface = "R")
+greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
+  theta = NULL, ids = NULL, validate = NULL, maxit = 100,
+  tol = 1e-05, bin = NULL, ncores = 1, wkdir = getwd(),
+  verbose = FALSE, makeplots = FALSE, interface = "R")
 }
 \arguments{
 \item{y}{vector of phenotypes}

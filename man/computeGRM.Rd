@@ -5,9 +5,9 @@
 \title{Compute genomic relationship matrix (GRM)}
 \usage{
 computeGRM(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL,
-  cls = NULL, W = NULL, method = "add", scaled = TRUE, msize = 100,
-  ncores = 1, fnG = NULL, overwrite = FALSE, returnGRM = FALSE,
-  miss = 0)
+  cls = NULL, W = NULL, method = "add", scaled = TRUE,
+  msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE,
+  returnGRM = FALSE, miss = 0)
 }
 \arguments{
 \item{Glist}{a list providing information about genotypes stored on disk}
