@@ -29,4 +29,7 @@ Here are links to the following steps used for the analyses of a small scale dat
   
 * next step
 
-
+1. [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html)  
+2. [Compute a centered and scaled genotype matrix](http://psoerensen.github.io/qgg/articles/Compute_W.html)  
+3. Next step
+  
