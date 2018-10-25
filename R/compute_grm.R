@@ -96,8 +96,8 @@ computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL,
      }
      fnG <- GRMlist$fnG
      OS <- .Platform$OS.type
-     #if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T))    
-     #if(OS=="windows") fnG <- gsub("/","\\",fnG,fixed=T)    
+     if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T))    
+     if(OS=="windows") fnG <- gsub("/","\\",fnG,fixed=T)    
      res <- .Fortran("grmbed", 
            n = as.integer(n),
            nr = as.integer(nr),
