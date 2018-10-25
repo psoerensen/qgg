@@ -201,7 +201,20 @@ conditionally on the estimated variance components.</p>
 <span class='no'>GRM</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
 
 <span class='co'># REML analyses and single marker association test</span>
-<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='fu'>list</span>(<span class='no'>GRM</span>), <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; <span class='error'>Error in greml(y = y, X = X, GRM = list(GRM), verbose = TRUE): object 'G' not found</span></div><div class='input'><span class='no'>maMLM</span> <span class='kw'>&lt;-</span> <span class='fu'>mlma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fit</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)</div><div class='output co'>#&gt; <span class='error'>Error in mlma(fit = fit, W = W): object 'fit' not found</span></div><div class='input'>
+<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='fu'>list</span>(<span class='no'>GRM</span>), <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; [1] "Iteration:" "1"          "Theta:"     "2.23"       "1.98"      
+#&gt; [1] "Iteration:" "2"          "Theta:"     "4.39"       "3.13"      
+#&gt; [1] "Iteration:" "3"          "Theta:"     "8.21"       "3.94"      
+#&gt; [1] "Iteration:" "4"          "Theta:"     "13.5"       "3.35"      
+#&gt; [1] "Iteration:" "5"          "Theta:"     "17.64"      "1.88"      
+#&gt; [1] "Iteration:" "6"          "Theta:"     "18.75"      "1.34"      
+#&gt; [1] "Iteration:" "7"          "Theta:"     "18.82"      "1.29"      
+#&gt; [1] "Iteration:" "8"          "Theta:"     "18.83"      "1.29"      
+#&gt; [1] "Iteration:" "9"          "Theta:"     "18.83"      "1.29"      
+#&gt; [1] "Iteration:" "10"         "Theta:"     "18.83"      "1.29"      
+#&gt; [1] "Converged at Iteration:" "10"                     
+#&gt; [3] "Theta:"                  "18.83"                  
+#&gt; [5] "1.29"                   </div><div class='input'><span class='no'>maMLM</span> <span class='kw'>&lt;-</span> <span class='fu'>mlma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fit</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
+
 <span class='co'># Linear model analyses and single marker association test</span>
 <span class='no'>maLM</span> <span class='kw'>&lt;-</span> <span class='fu'>lma</span>(<span class='kw'>y</span><span class='kw'>=</span><span class='no'>y</span>,<span class='kw'>X</span><span class='kw'>=</span><span class='no'>X</span>,<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)</div></pre>
   </div>
