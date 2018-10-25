@@ -16,25 +16,27 @@
 #' 
 #' @param fm a formula with model statement for the linear mixed model 
 #' @param data a data frame containing the phenotypic observations and fixed factors specified in the model statements
-#' @param GRMlist a list of relationship / correlation matrices corresponding to random effects specified in vfm
+#' @param GRM a list of relationship / correlation matrices corresponding to random effects specified in vfm
 #' @param validate a matrix or a list with the ids of validation sets corresponding to the rows in data
 #' @param bin is the directory for DMU binaries (dmu1 and dmuai1)
+
 #' @return Returns results in a list structure including 
 #' \item{f}{list of predicted random effects} 
 #' \item{sigma}{estimated variance components} 
 #' \item{asd}{asymptotic standard deviation for the estimated variance components} 
 #' \item{fitted}{fitted values from linear mixed model fit} 
 #' \item{residuals}{residuals from linear mixed model fit} 
-#' @author Peter Sørensen
-#' @references Edwards, S. M., Sørensen, I. F., Sarup, P., Mackay, T. F., & Sørensen, P. (2016). Genomic prediction for quantitative traits is improved by mapping variants to gene ontology categories in Drosophila melanogaster. Genetics, 203(4), 1871-1883.
-#’ @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Børglum, A. D., & Sørensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
-#’ @references Edwards, S. M., Thomsen, B., Madsen, P., & Sørensen, P. (2015). Partitioning of genomic variance reveals biological pathways associated with udder health and milk production traits in dairy cattle. Genetics Selection Evolution, 47(1), 60.
-#’ @references Sarup, P., Jensen, J., Ostersen, T., Henryon, M., & Sørensen, P. (2016). Increased prediction accuracy using a genomic feature model including prior information on quantitative trait locus regions in purebred Danish Duroc pigs. BMC genetics, 17(1), 11.
+
+#' @author Peter Soerensen
+
+#' @references Edwards, S. M., Soerensen, I. F., Sarup, P., Mackay, T. F., & Soerensen, P. (2016). Genomic prediction for quantitative traits is improved by mapping variants to gene ontology categories in Drosophila melanogaster. Genetics, 203(4), 1871-1883.
+#’ @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Børglum, A. D., & Soerensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
+#’ @references Edwards, S. M., Thomsen, B., Madsen, P., & Soerensen, P. (2015). Partitioning of genomic variance reveals biological pathways associated with udder health and milk production traits in dairy cattle. Genetics Selection Evolution, 47(1), 60.
+#’ @references Sarup, P., Jensen, J., Ostersen, T., Henryon, M., & Soerensen, P. (2016). Increased prediction accuracy using a genomic feature model including prior information on quantitative trait locus regions in purebred Danish Duroc pigs. BMC genetics, 17(1), 11.
+
 #' @examples
-#' 
-#' library(qgg)
-#' 
-#' setwd("C:/Users/sor/Dropbox/GFBLUP DGRP/scripts used in the analyses/work")
+#'
+#'  
 #' #bin <- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"
 #' 
 #' # Simulate data
@@ -42,37 +44,36 @@
 #'   colnames(W) <- as.character(1:ncol(W))
 #'   rownames(W) <- as.character(1:nrow(W))
 #' 
-#' G <- W %*% t(W) / ncol(W)
+#' G <- computeGRM(W=W)
 #'
 #' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + 10 * rnorm(nrow(W))
 #' 
 #' data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
 #' 
 #' fm <- y ~ f + (1 | g~G) 
-#' GRMlist <- list(G = G)
 #' 
 #' 
-#' fit <- remlDMU(fm = fm, GRMlist = GRMlist, data = data)
+#' fit <- remlDMU(fm = fm, GRM = lits(G=G), data = data)
 #'   str(fit)
 #' 
 #' @export
 #'
 
 # Main function for reml analyses suing DMU
-remlDMU <- function(fm = NULL, vfm = NULL, GRMlist = NULL, restrict = NULL, data = NULL, validate = NULL, bin = NULL) {
+remlDMU <- function(fm = NULL, vfm = NULL, GRM = NULL, restrict = NULL, data = NULL, validate = NULL, bin = NULL) {
      
      tol <- 0.001
      fit <- cvfit <- NULL
      #model <- extractModel(fm = fm, data = data)
      model <- lapply(fm, function(x) {extractModel(fm = x, data = data)})
      model <- modelDMU(model = model, restrict = restrict)
-     flevels <- writeDMU(model = model, data = data, GRMlist = GRMlist)
+     flevels <- writeDMU(model = model, data = data, GRM = GRM)
      executeDMU(bin = bin)
      fit <- readDMU(model = model, flevels = flevels)
      if (!is.null(validate)) {
           for (i in 1:ncol(validate)) {
                #set data missing
-               writeDMU(model = model, data = data, GRMlist = GRMlist)
+               writeDMU(model = model, data = data, GRM = GRM)
                executeDMU(bin = bin)
                cvfit[[i]] <- readDMU(model = model, flevels = flevels)
           }
@@ -203,7 +204,7 @@ recodeDMU <- function(data = NULL) {
 }
 
 # Write DIR file, data file, and cor files for DMU 
-writeDMU <- function(model = NULL, data = NULL, GRMlist = NULL, tol = 0.001) {
+writeDMU <- function(model = NULL, data = NULL, GRM = NULL, tol = 0.001) {
      
      # Write DMU DIR file
      dir.file <- "gfm.DIR"
@@ -269,11 +270,11 @@ writeDMU <- function(model = NULL, data = NULL, GRMlist = NULL, tol = 0.001) {
                  quote = FALSE, col.names = FALSE, sep = "\t", row.names = FALSE)
      
      # Write DMU cor data files
-     if (!is.null(GRMlist)) {
+     if (!is.null(GRM)) {
           for (i in 1:length(model$data$covmat)) {
                vvarname <- names(model$data$covmat)[i]
                vvarfile <- paste(vvarname, ".txt", sep = "")
-               iG <- qggginv(GRMlist[[model$data$covmat[i]]], tol = tol)
+               iG <- qggginv(GRM[[model$data$covmat[i]]], tol = tol)
                colnames(iG$G) <- rownames(iG$G) <- rec$rlevels[[vvarname]][rownames(iG$G)]
                writeGDMU(G = iG$G, filename = vvarfile, ldet = iG$ldet)
           }

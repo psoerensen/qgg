@@ -1,6 +1,83 @@
 ####################################################################################################################
 #    Module 5: GSOLVE 
 ####################################################################################################################
+#'
+#' Genomic prediction based on fitting a linear mixed model
+#' 
+#' 
+#' @description
+#' Function for genomic predictions based on solving linear mixed model equations
+#' 
+#' @param y vector or matrix of phenotypes
+#' @param X design matrix of fixed effects
+#' @param Glist list of information about genotype matrix
+#' @param rsids vector marker rsids used in the analysis
+#' @param ids vector of individuals used in the analysis
+#' @param lambda vector of single marker weights used in BLUP
+#' @param maxit maximum number of iterations of reml analysis
+#' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
+#' @param ncores number of cores
+
+
+
+#' @export
+
+
+gsolve <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001, ncores=1) { 
+     
+     ids <- names(y)
+     fnRAW <- Glist$fnRAW
+     n <- Glist$n
+     nbytes <- ceiling(n/4)
+     cls <- match(rsids,Glist$rsids)
+     nc <- length(cls)
+     rws <- match(ids,Glist$ids)
+     nr <- length(rws)
+     
+     maf <- unlist(Glist$maf)[cls]
+     meanw <- 2*maf
+     sdw <- sqrt(2*maf*(1-maf))
+     
+     b <- bold <- bnew <- NULL
+     #if (!is.null(X)) {
+     #     b <- (solve(t(Xt)%*%Xt)%*%t(Xt))%*%yt     # initialize b
+     #     bold <- rep(0,ncol(Xt))              # initialize b
+     #}
+     
+     #if (!is.null(Xt)) yt <- yt-Xt%*%b         # initialize e
+     
+     if(length(lambda)==1) { lambda <- rep(lambda,nc)}
+     s <- rep(0,nc)                         # initialize diagonal elements of the W'W matrix
+     
+     yn <- gn <- en <- rep(0,n)
+     yn[rws] <- as.vector(y)
+     
+     fit <- fsolve(n=n,nr=nr,rws=rws,nc=nc,cls=cls,scaled=scaled,nbytes=nbytes,fnRAW=fnRAW,ncores=ncores,nit=maxit,lambda=lambda,tol=tol,y=yn,g=gn,e=en,s=s,meanw=meanw,sdw=sdw) 
+     #fit <- fsolve(n=n,nc=nc,cls=cls,nr=nr,rws=rws,fnRAW=fnRAW,nit=maxit,lambda=lambda,tol=tol,y=y,g=g,e=e,s=s,meanw=meanw,sdw=sdw)
+     
+     #if (!is.null(X)) yhat <- ghat[names(y)] + X[names(y),]%*%b
+     yhat <- NULL
+     names(fit$g) <- Glist$ids
+     #e <- y - yhat
+     delta <- NULL
+     return(list(s=fit$s,b=b,nit=fit$nit,delta=delta, e=fit$e, yhat=yhat, g=fit$g))
+}
+
+
+#'
+#' Genomic prediction based on single marker summary statistics
+#' 
+#' 
+#' @description
+#' Function for genomic predictions based on single marker summary statistics and observed phenotypes
+#' 
+
+#' @param S matrix of single marker effects
+#' @param Glist list of information about genotype matrix
+#' @param rsids vector marker rsids used in the analysis
+#' @param ids vector of individuals used in the analysis
+#' @param ncores number of cores
+
 
 
 #' @export

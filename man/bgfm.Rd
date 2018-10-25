@@ -2,7 +2,7 @@
 % Please edit documentation in R/bgfm.R
 \name{bgfm}
 \alias{bgfm}
-\title{Genomic Feature Model analyses implemented using Bayesian Methods}
+\title{Genomic Feature Model analyses implemented using Bayesian Methods (small data)}
 \usage{
 bgfm(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000,
   tol = 0.001)

@@ -2,26 +2,28 @@
 #    Module 5: LMM marker association test
 ####################################################################################################################
 #'
-#' Mixed linear model marker association test
+#' Single marker association analyses using mixed linear models 
 #'
 #' @description
-#' Marker test using linear mixed model (LMM) to test for an association of single markers with a phenotype.
+#' Marker test using mixed linear model analyses (mlma) are used to test for an association of single markers with a phenotype.
 #'
-#' @details
-#' Linear mixed model single marker association (LMMA) statistics are based on either exact or approximate methods.
-#' Exact methods estimate variance components and effects of single markers jointly.
-#' Approximate methods estimate single marker effects conditionally.
+#' Linear mixed model single marker association (LMMA) statistics are based on an approximate method.
+#' It is a two step procedure. In the first step variance components are estimated and in the second step single marker effects are estimated
+#' conditionally on the estimated variance components.
 #'
-#' @param fit list of information about linear model fit (output from greml)
+#' @param fit list of information about linear mixed model fit (output from greml)
 #' @param W matrix of centered and scaled genotypes (n x m)
 #' @param m is the total number of markers in W 
-#' @param statistic is the single marker test statistic used. Default is the "mastor", alternatives include "gblup", "bolt-lmm" and "grammar-gamma"
+#' @param statistic is the single marker test statistic used. Currently it is base don the "mastor" statistics. 
+
 #' @return Returns a dataframe including 
 #' \item{coef}{single marker coefficients} 
 #' \item{se}{standard error of coefficients}
 #' \item{stat}{single marker test statistic}
 #' \item{p}{p-value}
-#' @author Peter Sørensen
+
+#' @author Peter Soerensen
+
 #' @references Chen, W. M., & Abecasis, G. R. (2007). Family-based association tests for genomewide association scans. The American Journal of Human Genetics, 81(5), 913-926.
 #' @references Loh, P. R., Tucker, G., Bulik-Sullivan, B. K., Vilhjalmsson, B. J., Finucane, H. K., Salem, R. M., ... & Patterson, N. (2015). Efficient Bayesian mixed-model analysis increases association power in large cohorts. Nature genetics, 47(3), 284-290.
 #' @references Kang, H. M., Sul, J. H., Zaitlen, N. A., Kong, S. Y., Freimer, N. B., Sabatti, C., & Eskin, E. (2010). Variance component model to account for sample structure in genome-wide association studies. Nature genetics, 42(4), 348-354.
@@ -33,6 +35,7 @@
 #' @references Svishcheva, G. R., Axenovich, T. I., Belonogova, N. M., van Duijn, C. M., & Aulchenko, Y. S. (2012). Rapid variance components-based method for whole-genome association analysis. Nature genetics, 44(10), 1166-1170.
 #' @references Yang, J., Zaitlen, N. A., Goddard, M. E., Visscher, P. M., & Price, A. L. (2014). Advantages and pitfalls in the application of mixed-model association methods. Nature genetics, 46(2), 100-106.
 #' @references Bulik-Sullivan, B. K., Loh, P. R., Finucane, H. K., Ripke, S., Yang, J., Patterson, N., ... & Schizophrenia Working Group of the Psychiatric Genomics Consortium. (2015). LD Score regression distinguishes confounding from polygenicity in genome-wide association studies. Nature genetics, 47(3), 291-295.
+
 #' @examples
 #'
 #' # Simulate data
@@ -46,25 +49,20 @@
 #' fm <- y ~ 0 + mu
 #' X <- model.matrix(fm, data = data)
 #'
-#' # Create framework for lists
-#' setsGB <- list(A = colnames(W)) # gblup model
-#' setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
-#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
-#'
-#' # Compute G
-#' G <- computeG(W = W)
-#' GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
-#' GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
-#' GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+#' # Compute GRM
+#' GRM <- computeGRM(W = W)
 #'
 #' # REML analyses and single marker association test
-#' fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
-#' maGB <- mlma(fit = fitGB, W = W)
+#' fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
+#' maMLM <- mlma(fit = fit, W = W)
+#' 
+#' # Linear model analyses and single marker association test
+#' maLM <- lma(y=y,X=X,W = W)
 #'
 #' @export
 #'
 
-mlma <- function( fit=NULL, W=NULL, m=NULL, statistic="mastor") {
+mlma <- function( y=NULL, X=NULL, fit=NULL, W=NULL, m=NULL, statistic="mastor") {
   
   if (is.null(m)) m <- ncol(W)
   n <- nrow(W)
@@ -131,6 +129,7 @@ plotma <- function(ma=NULL,chr=NULL,rsids=NULL,thresh=5) {
 lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
      if(is.vector(y)) y <- matrix(y,ncol=1, dimnames= list(names(y),"trait"))
      ids <- rownames(y)
+     nt <- ncol(y) 
      if(!is.null(W)) {
           if(any(!ids==rownames(W))) stop("Some names of y does not match rownames of W")
           if(!is.null(X)) y <- residuals(lm(y~X))
@@ -138,6 +137,7 @@ lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize
           #if(is.null(colnames(y))) colnames(y) <- paste("t",1:ncol(y),sep="")
           #lapply(res, function(x){colnames(x) <- colnames(y)})
           #lapply(res, function(x){rownames(x) <- colnames(W)})
+          if (nt==1) res <- as.data.frame(res)
      }
      if(!is.null(Glist)) {
           if(any(!ids%in%Glist$ids)) stop("Some names of y does not match names in Glist$ids")

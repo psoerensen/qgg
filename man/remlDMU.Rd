@@ -4,13 +4,13 @@
 \alias{remlDMU}
 \title{Genomic Feature Model analyses implemented using Restriced Likelihood Methods in DMU}
 \usage{
-remlDMU(fm = NULL, vfm = NULL, GRMlist = NULL, restrict = NULL,
+remlDMU(fm = NULL, vfm = NULL, GRM = NULL, restrict = NULL,
   data = NULL, validate = NULL, bin = NULL)
 }
 \arguments{
 \item{fm}{a formula with model statement for the linear mixed model}
 
-\item{GRMlist}{a list of relationship / correlation matrices corresponding to random effects specified in vfm}
+\item{GRM}{a list of relationship / correlation matrices corresponding to random effects specified in vfm}
 
 \item{data}{a data frame containing the phenotypic observations and fixed factors specified in the model statements}
 
@@ -38,9 +38,7 @@ This is an interface to be used for DMU.
 }
 \examples{
 
-library(qgg)
-
-setwd("C:/Users/sor/Dropbox/GFBLUP DGRP/scripts used in the analyses/work")
+ 
 #bin <- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"
 
 # Simulate data
@@ -48,23 +46,22 @@ W <- matrix(rnorm(4000000), ncol = 10000)
   colnames(W) <- as.character(1:ncol(W))
   rownames(W) <- as.character(1:nrow(W))
 
-G <- W \%*\% t(W) / ncol(W)
+G <- computeGRM(W=W)
 
 y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + 10 * rnorm(nrow(W))
 
 data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
 
 fm <- y ~ f + (1 | g~G) 
-GRMlist <- list(G = G)
 
 
-fit <- remlDMU(fm = fm, GRMlist = GRMlist, data = data)
+fit <- remlDMU(fm = fm, GRM = lits(G=G), data = data)
   str(fit)
 
 }
 \references{
-Edwards, S. M., Sørensen, I. F., Sarup, P., Mackay, T. F., & Sørensen, P. (2016). Genomic prediction for quantitative traits is improved by mapping variants to gene ontology categories in Drosophila melanogaster. Genetics, 203(4), 1871-1883.
+Edwards, S. M., Soerensen, I. F., Sarup, P., Mackay, T. F., & Soerensen, P. (2016). Genomic prediction for quantitative traits is improved by mapping variants to gene ontology categories in Drosophila melanogaster. Genetics, 203(4), 1871-1883.
 }
 \author{
-Peter Sørensen
+Peter Soerensen
 }

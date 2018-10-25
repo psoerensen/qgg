@@ -2,11 +2,17 @@
 #    Module 2: Marker set tests
 ####################################################################################################################
 #' 
-#' Genetic marker set tests
+#' Multi marker association analysis based on marker set tests
 #'
 #' @description
 #' Genetic marker set tests based on summing the single genetic marker test statistics.
+#' The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS. 
+
+#' @details 
 #' The sum test is powerful if the genomic feature harbors many genetic markers having small to moderate effects. 
+#' The distribution of this test statistic under the null hypothesis (associated markers are picked at random from the total 
+#' number of tested genetic markers) is difficult to describe in terms of exact or approximate 
+#' distributions, and an empirical distribution is required.
 #' Genetic marker set tests based on the covariance statistics for a set of genetic markers.
 #' The covariance test statistic is derived from a GBLUP (or GFBLUP) model fit. It is a measure of covariance between the total genomic effect for all markers 
 #' and the genomic effect for the genetic markers in the genomic feature. It also relates to the explained sums of
@@ -14,12 +20,6 @@
 #' The distribution of these test statistics under the null hypothesis is difficult to describe in terms of exact or approximate 
 #' distributions, and an empirical distribution is required.
 #' Genetic marker set tests based on the hyperG test statistics for a set of genetic markers.
-#'                       
-#' @details
-#' The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS. 
-#' The distribution of this test statistic under the null hypothesis (associated markers are picked at random from the total 
-#' number of tested genetic markers) is difficult to describe in terms of exact or approximate 
-#' distributions, and an empirical distribution is required.
 #' The hyperG marker set test tests a predefined set of markers (i.e. those within a particular genomic feature)
 #' for an association with the trait phenotype.
 #' Under the null hypothesis (associated markers are picked at random from the total number of tested 
@@ -44,67 +44,40 @@
 #' \item{setT}{marker set test statistics} 
 #' \item{nset}{number of markers in the set}
 #' \item{p}{p-value for marker set}
-#' @author Peter Sørensen
-#' @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Børglum, A. D., & Sørensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
-#' @references Rohde, P. D., Edwards S. M., Sarup P., Sørensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
+#' @author Peter Soerensen
+#' @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Boerglum, A. D., & Soerensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
+#' @references Rohde, P. D., Edwards S. M., Sarup P., Soerensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
 #' @examples
-#' 
-#' # Simulate data
-#' W <- matrix(rnorm(2000000), ncol = 10000)
-#'   colnames(W) <- as.character(1:ncol(W))
-#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
-#' 
-#' # REML analyses 
-#' data <- data.frame(y = y, mu = 1)
-#' fm <- y ~ mu
-#' fit <- gfm(fm = fm, W = W, sets = list(colnames(W)), data = data)
-#' fit$df <- 10
-#' fit$p <- pt(fit$s / sqrt(fit$vs), df = fit$df, lower.tail = FALSE) 
-#' 
-#' sets <- list(A = as.character(1:100), B = as.character(101:1000), C = as.character(1001:5000), D = as.character(5001:10000))
+#'
+#'  
+#'  # Simulate data
+#'  W <- matrix(rnorm(20000000), ncol = 10000)
+#'  colnames(W) <- as.character(1:ncol(W))
+#'  rownames(W) <- as.character(1:nrow(W))
+#'  y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
+#'  
+#'  # Create model
+#'  data <- data.frame(y = y, mu = 1)
+#'  fm <- y ~ 0 + mu
+#'  X <- model.matrix(fm, data = data)
+#'  
+#'  # Compute GRM
+#'  GB <- computeGRM(W = W)
+#'  
+#'  # REML analyses and single marker association test
+#'  fit <- greml(y = y, X = X, GRM = list(GB), verbose = TRUE)
+#'  ma <- mlma(fit = fit, W = W)
+#'  ma <- as.matrix(ma)
+#'  
+#'  f <- factor(rep(1:100,each=100), levels=1:100) 
+#'  sets <- split(as.character(1:10000),f=f) 
 #'
 #' # Set test based on sums 
-#' res <- mma(stat = fit$s**2, sets = sets, method = "sum", nperm = 100)
+#' res <- mma(stat = ma[,3]**2, sets = sets, method = "sum", nperm = 10000)
 #' 
-#' # Set test based on cvat 
-#' res <- mma(stat = fit$s, W = W, sets = sets, method = "cvat", nperm = 100)
 #' 
 #' # Set test based on hyperG 
-#' res <- mma(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
-#' 
-#' #' # Simulate data
-#' W <- matrix(rnorm(20000000), ncol = 10000)
-#' 	colnames(W) <- as.character(1:ncol(W))
-#' 	rownames(W) <- as.character(1:nrow(W))
-#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
-#'
-#' # Create model
-#' data <- data.frame(y = y, mu = 1)
-#' fm <- y ~ 0 + mu
-#' X <- model.matrix(fm, data = data)
-#'
-#' # Create framework for lists
-#' setsGB <- list(A = colnames(W)) # gblup model
-#' setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
-#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
-#'
-#' # Compute G
-#' G <- computeGRM(W = W)
-#' GB <- lapply(setsGB, function(x) {computeGRM(W = W[, x])})
-#' GF <- lapply(setsGF, function(x) {computeGRM(W = W[, x])})
-#' GT <- lapply(setsGT, function(x) {computeGRM(W = W[, x])})
-#'
-#' # REML analyses and multi marker association (set) test
-#' fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
-#'
-#' # Use fit object as input
-#' cvat(fit = fitGB, W = W, sets = setsGF, nperm = 1000)
-#' cvat(fit = fitGB, W = W, sets = setsGT, nperm = 1000)
-#'
-#' # Use single coefficients as input 
-#' s <- crossprod(W / ncol(W), fitGB$Py) * fitGB$theta[1]
-#' cvat(s = s, W = W, sets = setsGF, nperm = 1000)
-#' cvat(s = s, W = W, sets = setsGT, nperm = 1000)
+#' res <- mma(stat = ma[,4], sets = sets, method = "hyperG", threshold = 0.05)
 #' 
 
 

@@ -5,27 +5,23 @@
 #' Genomic REML analysis
 #'
 #' @description
-#' Genomic restricted maximum likelihood estimation (REML) is an analysis used to estimate genomic and residual variance.
-#' Genomic variance is the variance associated with the genomic relationship matrix.
-#'
-#' @details
-#' Linear mixed model (LMM) that models covariance among individuals using realized relationships at genotyped loci.
-#' This modeling scheme is achieved through the genomic relationship matrix (G).
-#' This matrix can be inputted 'as is' or with a more efficient list structure, GRMlist, that contains information about G.
-#' The model can accomodate fixed effects.
-#' Individuals may be subsetted for additional analyses such as cross validation.
+#' Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML)
+#' These parameters can be estimated based on a genomic relationship matrix (GRM) constructed using genome-wide genetic markers.
+#' Multiple random effects can be fitted in the models in addition to other factors modeled as fixed effects
+#' The GRM's can be accessed from the R environment or from binary files stored on disk fascilitating analyses of large data sets.
 #' 
+#' First and second derivatives of log-likehood can be obtained in addition to asymtotic standard deviation of parameter estimates. 
+#' Predicted random effects and single marker effects and statistics can be obtained. Covariance decomposition procedures. 
+#' Cross validation procedures for assessment of prediction accuracy and model selection. 
+
 #' @param y vector of phenotypes
-#' @param X design matrix of fixed effects
-#' @param GRMlist list of information about G matrix
-#' @param G genomic relationship matrix
-#' @param ids vector of subsetted individuals to retain for analysis, e.g. cross validation
-#' @param theta initial values for reml estimation
+#' @param X design matrix of factors modeled as fixed effects
+#' @param GRM list of one or more genomic relationship matrices 
+#' @param GRMlist list providing information about GRM matrix stored in binary files on disk
+#' @param theta vector of initial values for REML estimation 
 #' @param maxit maximum number of iterations of reml analysis
 #' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
-#' @param bin executable file in fortran
-#' @param ncores number of cores
-#' @param wkdir working directory
+#' @param ncores number of cores used for the analysis
 #' 
 #' @return Returns a list structure, fit, including
 #' \item{llik}{log-likelihood at convergence}
@@ -33,7 +29,7 @@
 #' \item{asd}{asymptotic standard deviation}
 #' \item{b}{vector of fixed effect estimates}
 #' \item{varb}{vector of variances of fixed effect estimates}
-#' \item{u}{vector of random effect estimates}
+#' \item{g}{vector of random effect estimates}
 #' \item{e}{vector of residual effects}
 #' \item{Vy}{product of variance-covariance matrix of y at convergence and y}
 #' \item{Py}{product of projection matrix of y and y}
@@ -41,13 +37,13 @@
 #' \item{trVG}{trace of product of variance-covariance matrix of y at convergence and G}
 #' \item{y}{vector of phenotypes}
 #' \item{X}{design matrix of fixed effects}
-#' \item{ids}{vector of subsetted individuals retained for analysis}
+#' \item{ids}{vector of individuals used for the analysis}
 #' \item{yVy}{product of y, variance-covariance matrix of y at convergence, and y}
-#' \item{fnamesG}{filename(s) and locations of of G}
-#' \item{wd}{working directory}
-#' \item{GRMlist}{list of information about G matrix}
-#' @author Peter Sørensen
+
+#' @author Peter Soerensen
+
 #' @references Lee, S. H., & van Der Werf, J. H. (2006). An efficient variance component approach implementing an average information REML suitable for combined LD and linkage mapping with a general complex pedigree. Genetics Selection Evolution, 38(1), 25.
+
 #' @examples
 #'
 #' # Simulate data
@@ -67,15 +63,15 @@
 #' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
 #'
 #' # Compute G
-#' G <- computeG(W = W)
-#' GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
-#' GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
-#' GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+#' G <- computeGRM(W = W)
+#' GB <- lapply(setsGB, function(x) {computeGRM(W = W[, x])})
+#' GF <- lapply(setsGF, function(x) {computeGRM(W = W[, x])})
+#' GT <- lapply(setsGT, function(x) {computeGRM(W = W[, x])})
 #'
 #' # REML analyses
-#' fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
-#' fitGF <- greml(y = y, X = X, G = GF, verbose = TRUE)
-#' fitGT <- greml(y = y, X = X, G = GT, verbose = TRUE)
+#' fitGB <- greml(y = y, X = X, GRM = GB)
+#' fitGF <- greml(y = y, X = X, GRM = GF)
+#' fitGT <- greml(y = y, X = X, GRM = GT)
 #'
 #' # REML analyses and cross validation
 #' n <- length(y)
@@ -84,32 +80,31 @@
 #' 
 #' validate <- replicate(nsets, sample(1:n, as.integer(n / fold)))
 #' 
-#' cvGB <- greml(y = y, X = X, G = GB, validate = validate)
-#' cvGF <- greml(y = y, X = X, G = GF, validate = validate)
-#' cvGT <- greml(y = y, X = X, G = GT, validate = validate)
+#' cvGB <- greml(y = y, X = X, GRM = GB, validate = validate)
+#' cvGF <- greml(y = y, X = X, GRM = GF, validate = validate)
+#' cvGT <- greml(y = y, X = X, GRM = GT, validate = validate)
 #'
-#' cvGB
-#' cvGF
-#' cvGT
+#' cvGB$accuracy
+#' cvGF$accuracy
+#' cvGT$accuracy
 #' 
-#' boxplot(cbind(cvGB[,1:4],cvGF[,1:4],cvGT[,1:4]))
 #' 
 #' @export
 #'
 
-greml <- function(y = NULL, X = NULL, GRMlist=NULL, G=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE,interface="R")
+greml <- function(y = NULL, X = NULL, GRMlist=NULL, GRM=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE,interface="R")
 {
   #if(interface=="R") {
   if(!is.null(G)) {
-    if (is.null(validate)) fit <- remlR(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
-    if (!is.null(validate)) fit <- cvreml(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir, makeplots=makeplots)
+    if (is.null(validate)) fit <- remlR(y=y, X=X, GRMlist=GRMlist, G=GRM, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
+    if (!is.null(validate)) fit <- cvreml(y=y, X=X, GRMlist=GRMlist, G=GRM, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir, makeplots=makeplots)
   }
   if(!is.null(bin)) { 
-    fit <- remlF(y=y, X=X, GRMlist=GRMlist, G=G, ids=ids, theta=theta, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
+    fit <- remlF(y=y, X=X, GRMlist=GRMlist, G=GRM, ids=ids, theta=theta, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
   }
   #if(interface=="fortran") {
   if(!is.null(GRMlist)) {
-    fit <- freml(y=y, X=X, GRMlist=GRMlist, G=G, theta=theta, ids=ids, maxit=maxit, tol=tol, ncores=ncores, verbose=verbose) 
+    fit <- freml(y=y, X=X, GRMlist=GRMlist, G=GRM, theta=theta, ids=ids, maxit=maxit, tol=tol, ncores=ncores, verbose=verbose) 
   }        
   return(fit)  
 }  

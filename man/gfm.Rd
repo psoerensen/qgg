@@ -2,10 +2,10 @@
 % Please edit documentation in R/gfm.R
 \name{gfm}
 \alias{gfm}
-\title{Genomic Feature Model analyses implemented using Likelihood Methods}
+\title{Genomic Feature Model analyses implemented using Likelihood Methods (small data)}
 \usage{
 gfm(fm = NULL, weights = NULL, W = NULL, sets = NULL, G = NULL,
-  data = NULL, validate = NULL, mkplots = TRUE)
+  data = NULL, validate = NULL, mkplots = FALSE)
 }
 \arguments{
 \item{fm}{formula with model statement for the fixed factors in the linear mixed model}
