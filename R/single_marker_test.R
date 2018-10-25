@@ -92,7 +92,7 @@ mlma <- function( y=NULL, X=NULL, fit=NULL, W=NULL, m=NULL, statistic="mastor") 
   mma <- data.frame(coef=coef,se=se,stat=stat,p=p)
   rownames(mma) <- colnames(W)
   
-  return(mma)
+  return(as.matrix(mma))
   
 }
 
