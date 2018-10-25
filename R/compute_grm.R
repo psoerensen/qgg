@@ -28,10 +28,8 @@
 #' @param miss missing value code used in genotype matrix
 #' 
 #' 
-
 #' 
 #' @return Returns GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
-
 #' @export
 #'
 
