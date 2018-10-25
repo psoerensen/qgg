@@ -1,8 +1,8 @@
 ####################################################################################################################
-#    Module 2: SetTests
+#    Module 2: Marker set tests
 ####################################################################################################################
 #' 
-#' Genetic marker set tests based on sum statistics
+#' Genetic marker set tests
 #'
 #' @description
 #' Genetic marker set tests based on summing the single genetic marker test statistics.
@@ -44,7 +44,7 @@
 #' \item{setT}{marker set test statistics} 
 #' \item{nset}{number of markers in the set}
 #' \item{p}{p-value for marker set}
-#' @author Peter SÃ¸rensen
+#' @author Peter Sørensen
 #' @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Børglum, A. D., & Sørensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
 #' @references Rohde, P. D., Edwards S. M., Sarup P., Sørensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
 #' @examples
@@ -105,10 +105,8 @@
 #' s <- crossprod(W / ncol(W), fitGB$Py) * fitGB$theta[1]
 #' cvat(s = s, W = W, sets = setsGF, nperm = 1000)
 #' cvat(s = s, W = W, sets = setsGT, nperm = 1000)
-
 #' 
-#' @export
-#'
+
 
 #' @export
 

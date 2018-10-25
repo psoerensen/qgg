@@ -1,88 +1,54 @@
 ###############################################################################################
 #  Prepare (processed genotypes) for target population
 ###############################################################################################
-#
-# Description:
-#
-# The processed genotypes for a particular target population are stored in a matrix W. This 
-# matrix is used for computing genomic relationship matrices used for estimation of variance 
-# components using REML methods (GREML), linear (mixed) model marker association analyses (LMMA)
-# and prediction of polygenic risk scores (PRS).
-#   
-# By default genotypes are allele counts of alternative allele which are centered and scaled. 
-# Below are functions to compute and access the processed genotypes in W as implemented 
-# in the qgg package
-#
-# The genotype matrix is computed using the computeRAW function based on the raw genotypes. 
-# Currently the raw genotype format supported is plink bed/bim/fam files. Other formats such as
-# bgen will be supported later. To fascilitate a simple and common interface for using raw genotypes 
-# we prepare a Glist structure which contains information about the raw and processed genotypes. 
-# Glist is obtained using the prepG function based on plink bed/bim/fam files. 
-#
-# The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
-# By default the W matrix is stored in a binary file which is compressed by a ratio
-# of 25-30 such that the resulting file size is approximately n*m*8/25 bytes. 
-#
-# Information about the processed genotype matrix W is provided in a Glist structure. 
-# The W matrix can be accessed using the getW function. 
-#
-# Examples of simple usage:
-#
-# 	Glist <- prepG( bedfiles, bimfiles, study, path, additional arguments...)
-# 	Glist <- computeRAW( Glist, chr, additional arguments...)
-# 	Glist <- computeRAW( bedfiles, bimfiles, study, path,  additional arguments...)
-# 	W <- getW( Glist, ids, rsids, additional arguments...)
-#
-#
-# Required input:
-#
-# study: the study name
-# path: the name of the path where the binary genotype files are stored
-# bedfiles: a vector of BED file names
-# bimfiles: a vector of BIM file names
-#
-# Optional input:
-#
-# ids: a vector of subject IDs used in W (row IDS) 
-# rsids: a vector of genetic variant IDs used in W (column IDs) 
-# msize: the number of genetic markers used in each chunk
-#
-# Output:
-#
-# The output of the prepG and computeRAW functions is a Glist structure containing information 
-# about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
-# for downstream analyses. Most users do not use this directly. Furthermore this structure 
-# also allow us to change the underlying data structures without apparent changes in 
-# the Glist interface.  
-# 
-# The Glist structure contains the following slots (which are likely to change in future releases):
-#
-#   Glist$fnW vector of file names 
-#   Glist$rsids vector of rsids
-#   Glist$alleles vector of allele used as alternative  
-#   Glist$chr vector chromosome
-#   Glist$ids vector of subject ids used in W
-#   Glist$nb number of chunks
-#   Glist$m total number of markers in W
-#   Glist$n total number if subjects
-#   Glist$msize number of markers in each chunk
-#   Glist$study study name
-#   Glist$bedfiles vector bedfile names
-#   Glist$bimfiles vector bimfile names
-#
-###############################################################################################
 
-
-#######################################################################################
-# compute W functions
-#######################################################################################
-
-#' @export
+#' Prepare information on genotypes stored in a binary file
 #'
+#' @description
+#' The processed genotypes are stored in a matrix W. 
+#' By default genotypes are allele counts of alternative allele which are centered and scaled. 
+#' 
+#' Currently the raw genotype format supported is plink bed/bim/fam files. 
+#' To fascilitate a simple and common interface for using raw genotypes we prepare a Glist structure 
+#' which contains information about the raw and processed genotypes. 
+#' Glist is obtained using the prepG function based on plink bed/bim/fam files.
+#' The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
+#' By default the W matrix is stored in a binary file (n*m*4 bytes).
+#' Information about the processed genotype matrix W is provided in a Glist structure. 
+#' 
+#' The output of the prepG functions is a Glist structure containing information 
+#' about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
+#' for downstream analyses. Most users do not use this directly. Furthermore this structure 
+#' also allow us to change the underlying data structures without apparent changes in 
+#' the Glist interface.  
 
-computeRAW <- function(Glist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
-  bed2raw( fnRAW=Glist$fnRAW, bedfiles=Glist$bedfiles, bimfiles=Glist$bimfiles, famfiles=Glist$famfiles, ids=ids, rsids=rsids, overwrite=overwrite)
-}
+
+#' 
+#' @param study name of the study
+#' @param fnRAW name of binary file used for storing genotypes on disk
+#' @param bedfiles a vector names for the bed files
+#' @param famfiles a vector names for the fam files
+#' @param bimfiles a vector names for the bim files
+#' @param ids individual IDs used in study
+#' @param rsids marker rsids used in study
+#' @param overwrite overwite binary genotype file
+#' @param ncores used to process genotypes
+
+
+
+#' 
+#' @return Returns a list structure with information about genotypes
+#' 
+
+#' @author Peter Sørensen
+
+#' @examples
+#
+
+#' Glist <- prepG( bedfiles, bimfiles, study, path, additional arguments...)
+#' W <- getW( Glist, ids, rsids, additional arguments...)
+
+
 
 
 #' @export
@@ -239,6 +205,14 @@ prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
      }
      return(Glist)
 }
+
+#' @export
+#'
+
+computeRAW <- function(Glist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
+     bed2raw( fnRAW=Glist$fnRAW, bedfiles=Glist$bedfiles, bimfiles=Glist$bimfiles, famfiles=Glist$famfiles, ids=ids, rsids=rsids, overwrite=overwrite)
+}
+
 
 
 #' @export
