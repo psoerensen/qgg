@@ -2,18 +2,23 @@
 % Please edit documentation in R/single_marker_test.R
 \name{mlma}
 \alias{mlma}
+<<<<<<< HEAD
+\title{Single marker association analyses using mixed linear models}
+=======
 \title{Mixed linear model marker association test}
+>>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 \usage{
-mlma(fit = NULL, W = NULL, m = NULL, statistic = "mastor")
+mlma(y = NULL, X = NULL, fit = NULL, W = NULL, m = NULL,
+  statistic = "mastor")
 }
 \arguments{
-\item{fit}{list of information about linear model fit (output from greml)}
+\item{fit}{list of information about linear mixed model fit (output from greml)}
 
 \item{W}{matrix of centered and scaled genotypes (n x m)}
 
 \item{m}{is the total number of markers in W}
 
-\item{statistic}{is the single marker test statistic used. Default is the "mastor", alternatives include "gblup", "bolt-lmm" and "grammar-gamma"}
+\item{statistic}{is the single marker test statistic used. Currently it is base don the "mastor" statistics.}
 }
 \value{
 Returns a dataframe including 
@@ -23,12 +28,11 @@ Returns a dataframe including
 \item{p}{p-value}
 }
 \description{
-Marker test using linear mixed model (LMM) to test for an association of single markers with a phenotype.
-}
-\details{
-Linear mixed model single marker association (LMMA) statistics are based on either exact or approximate methods.
-Exact methods estimate variance components and effects of single markers jointly.
-Approximate methods estimate single marker effects conditionally.
+Marker test using mixed linear model analyses (mlma) are used to test for an association of single markers with a phenotype.
+
+Linear mixed model single marker association (LMMA) statistics are based on an approximate method.
+It is a two step procedure. In the first step variance components are estimated and in the second step single marker effects are estimated
+conditionally on the estimated variance components.
 }
 \examples{
 
@@ -43,20 +47,20 @@ data <- data.frame(y = y, mu = 1)
 fm <- y ~ 0 + mu
 X <- model.matrix(fm, data = data)
 
-# Create framework for lists
-setsGB <- list(A = colnames(W)) # gblup model
-setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
-setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
-
-# Compute G
-G <- computeG(W = W)
-GB <- lapply(setsGB, function(x) {computeG(W = W[, x])})
-GF <- lapply(setsGF, function(x) {computeG(W = W[, x])})
-GT <- lapply(setsGT, function(x) {computeG(W = W[, x])})
+# Compute GRM
+GRM <- computeGRM(W = W)
 
 # REML analyses and single marker association test
+<<<<<<< HEAD
+fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
+maMLM <- mlma(fit = fit, W = W)
+
+# Linear model analyses and single marker association test
+maLM <- lma(y=y,X=X,W = W)
+=======
 fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
 maGB <- mlma(fit = fitGB, W = W)
+>>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 
 }
 \references{
@@ -83,5 +87,9 @@ Yang, J., Zaitlen, N. A., Goddard, M. E., Visscher, P. M., & Price, A. L. (2014)
 Bulik-Sullivan, B. K., Loh, P. R., Finucane, H. K., Ripke, S., Yang, J., Patterson, N., ... & Schizophrenia Working Group of the Psychiatric Genomics Consortium. (2015). LD Score regression distinguishes confounding from polygenicity in genome-wide association studies. Nature genetics, 47(3), 291-295.
 }
 \author{
+<<<<<<< HEAD
+Peter Soerensen
+=======
 Peter S?rensen
+>>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 }

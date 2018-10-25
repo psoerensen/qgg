@@ -2,7 +2,7 @@
 #    Module 1: LMM, REML, BLUP
 ####################################################################################################################
 #' 
-#' Genomic Feature Model analyses implemented using Likelihood Methods
+#' Genomic Feature Model analyses implemented using Likelihood Methods (small data)
 #'
 #' @description
 #' Genomic Feature Best Linear Unbiased Prediction models implemented using REML. 
@@ -98,7 +98,7 @@
 #' @export
 #' 
 
-gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, G = NULL, data = NULL, validate = NULL, mkplots = TRUE) {
+gfm <- function(fm = NULL, weights = NULL, W = NULL, sets = NULL, G = NULL, data = NULL, validate = NULL, mkplots = FALSE) {
      
      mf <- model.frame(fm, data = data, na.action = na.pass)
      mf <- eval(mf, parent.frame())

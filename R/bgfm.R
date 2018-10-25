@@ -2,7 +2,7 @@
 #    Module 3: LMM, Bayesian
 ####################################################################################################################
 #' 
-#' Genomic Feature Model analyses implemented using Bayesian Methods
+#' Genomic Feature Model analyses implemented using Bayesian Methods (small data)
 #'
 #' @description
 #' Bayesian Genomic Feature models implemented using Bayesian Methods. 

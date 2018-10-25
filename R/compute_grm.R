@@ -7,26 +7,37 @@
 #' @description
 #' A function for computing a genomic relationship matrix. 
 #'
-#' The output of the prepG and computeRAW functions is a Glist structure containing information 
-# about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
-
-#' @details
-#' Individuals may be subsetted for additional analyses such as cross validation.
+#' The output of the computeGRM function is a GRMlist structure containing information 
+#' about the genotypes stored in a binary file on disk. The Glist structure (created
+#' only once) is used in GREML and eigen value analyses and should be saved in Rdata file
 #' 
-#' @param Glist information about genotypes 
+#' 
+#' @param Glist a list providing information about genotypes stored on disk 
 #' @param ids individual ids used for computing GRM
 #' @param rsids marker rsids used for computing GRM
 #' @param rws rows in genotype matrix used for computing GRM
 #' @param cls columns in genotype matrix used for computing GRM
 #' @param W matrix of centered and scaled genotypes 
-#' @param scaled should genotypes be scaled (default: scaled=TRUE) 
 #' @param method used for computing GRM including additive, dominance or epistasis
+<<<<<<< HEAD
+#' @param msize number of markers used for block processing of genotypes for large data
+#' @param fnG name of the binary file used for storing the GRM on disk
+#' @param overwrite logical if TRUE the binary file fnG will be overwritten
+#' @param returnGRM logical if TRUE function returns the GRM matrix  
+#' @param miss is the missing code used for missing values in the genotype data
+#' 
+#' 
+#' 
+#' @return Returns a GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
+
+
 #' @param msize number of markers used for block updates
 #' @param fnG name of file for storing GRM on disk
 #' @param overwrite logical should the file fnG be overwritten
 #' @param returnGRM should the function return the GRM matrix  
 #' @param miss missing value code used in genotype matrix
 #' @return Returns GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
+
 #' @export
 #'
 
@@ -172,12 +183,39 @@ getGRM <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rw
      GRMlist
    }
 
+
+   #'
+   #' Eigen value decompostion of a genomic relationship matrix
+   #'
+   #' @description
+   #' A function for obtaining eigen values and vectors of a GRM. Supports GRM stored in a 
+   #' binary file on disk
+   #'
+
+   #' 
+   #' @param GRMlist list of information about GRM matrix stored on disk
+   #' @param GRM genomic relationship matrix
+   #' @param method used for decompositon
+   #' @param ncores the number of cores used
+   
+   #' @examples
+   #'
+   #' # Simulate data
+   #' W <- matrix(rnorm(20000000), ncol = 10000)
+   #' 	colnames(W) <- as.character(1:ncol(W))
+   #' 	rownames(W) <- as.character(1:nrow(W))
+   #'
+   #' # Compute G
+   #' GRM <- computeGRM(W = W)
+   #' 
+   #' eig <- eigGRM(GRM=GRM)
+    
    
    #' @export
    #'
    
    
-   eigGRM <- function( GRM=NULL, GRMlist=NULL, ncores=1) {
+   eigGRM <- function( GRM=NULL, GRMlist=NULL,method="default", ncores=1) {
         #subroutine eiggrm(n,nev,ev,U,fnG,fnU,ncores)	
         #subroutine eiggrm(n,grm,eig,ncores)
           n <- ncol(GRM)
@@ -189,7 +227,7 @@ getGRM <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rw
                          ncores = as.integer(ncores),
                          PACKAGE = 'qgg'
           )
-          list(evals=res$evals,U=res$GRM)
+          list(values=res$evals,U=res$GRM)
    }
    
    

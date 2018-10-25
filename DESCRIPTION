@@ -18,8 +18,9 @@ Imports:
     regress,
     data.table,
     MASS
-RoxygenNote: 6.1.0
-Suggests: knitr,
+RoxygenNote: 6.0.1
+Suggests:
+    knitr,
     rmarkdown
 VignetteBuilder: knitr
 URL: https://github.com/psoerensen/qgg

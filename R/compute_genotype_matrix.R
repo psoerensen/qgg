@@ -2,7 +2,7 @@
 #  Prepare (processed genotypes) for target population
 ###############################################################################################
 
-#' Prepare information on genotypes stored in a binary file
+#' Prepare genotype data for all statistical analyses (initial step) 
 #'
 #' @description
 #' The processed genotypes are stored in a matrix W. 
@@ -29,12 +29,26 @@
 #' @param bimfiles a vector names for the bim files
 #' @param ids individual IDs used in study
 #' @param rsids marker rsids used in study
-#' @param overwrite overwite binary genotype file
+#' @param overwrite logical if TRUE overwite binary genotype file
 #' @param ncores used to process genotypes
 #' 
 #' @return Returns a list structure with information about genotypes
 #' 
+
+
+#' @author Peter Soerensen
+
+#' @examples
+#
+
+#' #Glist <- prepG( bedfiles, bimfiles, study, path, additional arguments...)
+#' #W <- getW( Glist, ids, rsids, additional arguments...)
+
+
+
+
 #' @author Peter S?rensen
+
 
 #' @export
 #'
