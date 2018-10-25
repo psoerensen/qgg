@@ -97,7 +97,7 @@
 greml <- function(y = NULL, X = NULL, GRMlist=NULL, GRM=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE,interface="R")
 {
   #if(interface=="R") {
-  if(!is.null(G)) {
+  if(!is.null(GRM)) {
     if (is.null(validate)) fit <- remlR(y=y, X=X, GRMlist=GRMlist, G=GRM, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
     if (!is.null(validate)) fit <- cvreml(y=y, X=X, GRMlist=GRMlist, G=GRM, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir, makeplots=makeplots)
   }
