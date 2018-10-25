@@ -40,11 +40,14 @@
 #' @param s vector (or list) of single marker effects obtained from a linear mixed model fit (GBLUP of GFBLUP)
 #' @param method including sum, cvat, hyperG, score
 #' @param threshold used if method = hyperG
+
 #' @return Returns a dataframe including 
 #' \item{setT}{marker set test statistics} 
 #' \item{nset}{number of markers in the set}
 #' \item{p}{p-value for marker set}
+
 #' @author Peter Soerensen
+
 #' @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Boerglum, A. D., & Soerensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
 #' @references Rohde, P. D., Edwards S. M., Sarup P., Soerensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
 #' @examples
@@ -77,11 +80,8 @@
 #' 
 #' 
 #' # Set test based on hyperG 
-
 #' res <- mma(stat = ma[,4], sets = sets, method = "hyperG", threshold = 0.05)
-
 #' res <- mma(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
-
 #' 
 
 

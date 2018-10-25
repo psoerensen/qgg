@@ -18,6 +18,7 @@
 #' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
 #' @param ncores number of cores
 
+#' @author Peter Soerensen
 
 
 #' @export

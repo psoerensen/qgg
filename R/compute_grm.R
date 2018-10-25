@@ -29,13 +29,7 @@
 #' 
 #' @return Returns a GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
 
-
-#' @param msize number of markers used for block updates
-#' @param fnG name of file for storing GRM on disk
-#' @param overwrite logical should the file fnG be overwritten
-#' @param returnGRM should the function return the GRM matrix  
-#' @param miss missing value code used in genotype matrix
-#' @return Returns GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
+#' @author Peter Soerensen
 
 #' @export
 #'

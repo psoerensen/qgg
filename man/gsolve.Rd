@@ -30,3 +30,6 @@ gsolve(y = NULL, X = NULL, Glist = NULL, ids = NULL, rsids = NULL,
 \description{
 Function for genomic predictions based on solving linear mixed model equations
 }
+\author{
+Peter Soerensen
+}

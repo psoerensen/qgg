@@ -33,21 +33,9 @@ computeGRM(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL,
 \item{returnGRM}{logical if TRUE function returns the GRM matrix}
 
 \item{miss}{is the missing code used for missing values in the genotype data}
-
-\item{msize}{number of markers used for block updates}
-
-\item{fnG}{name of file for storing GRM on disk}
-
-\item{overwrite}{logical should the file fnG be overwritten}
-
-\item{returnGRM}{should the function return the GRM matrix}
-
-\item{miss}{missing value code used in genotype matrix}
 }
 \value{
 Returns a GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
-
-Returns GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
 }
 \description{
 A function for computing a genomic relationship matrix. 
@@ -55,4 +43,7 @@ A function for computing a genomic relationship matrix.
 The output of the computeGRM function is a GRMlist structure containing information 
 about the genotypes stored in a binary file on disk. The Glist structure (created
 only once) is used in GREML and eigen value analyses and should be saved in Rdata file
+}
+\author{
+Peter Soerensen
 }

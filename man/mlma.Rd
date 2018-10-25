@@ -79,6 +79,4 @@ Bulik-Sullivan, B. K., Loh, P. R., Finucane, H. K., Ripke, S., Yang, J., Patters
 }
 \author{
 Peter Soerensen
-
-Peter S?rensen
 }
