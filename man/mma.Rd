@@ -75,10 +75,10 @@ feature harbours genetic markers with large effects.
  X <- model.matrix(fm, data = data)
  
  # Compute GRM
- GB <- computeGRM(W = W)
+ GRM <- computeGRM(W = W)
  
  # REML analyses and single marker association test
- fit <- greml(y = y, X = X, GRM = list(GB), verbose = TRUE)
+ fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
  ma <- mlma(fit = fit, W = W)
  ma <- as.matrix(ma)
  
@@ -91,7 +91,6 @@ res <- mma(stat = ma[,3]**2, sets = sets, method = "sum", nperm = 10000)
 
 # Set test based on hyperG 
 res <- mma(stat = ma[,4], sets = sets, method = "hyperG", threshold = 0.05)
-res <- mma(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
 
 }
 \references{
