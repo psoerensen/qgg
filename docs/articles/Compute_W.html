@@ -123,15 +123,15 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Compute Centered and Scaled Genotype Matrix: W</h1>
 <h4 class="author"><em>Izel Fourie Sørensen</em></h4>
-<h4 class="date"><em>20 October, 2018</em></h4>
+<h4 class="date"><em>25 October, 2018</em></h4>
 
 </div>
 
 
-<p>Here we present two approaches for preparing the centered and scaled genotype matrix, <span class="math inline">\({W}\)</span>. The genotype data prepared earlier <span class="math inline">\(\bm{W}\)</span> is computed based on the genotype data prepared earlier in the qgg user guide.</p>
+<p>Here we present two approaches for preparing the centered and scaled genotype matrix, <span class="math inline">\(\mathbf{W}\)</span>. The genotype data prepared earlier <span class="math inline">\(\mathbf{W}\)</span> is computed based on the genotype data prepared earlier in the qgg user guide.</p>
 <div id="approach-1" class="section level3">
 <h3>Approach 1</h3>
-<p>The additive genomic relationship matrix <span class="math inline">\(\bm{G}\)</span> (VanRaden PM. 2008. J Dairy Sci. 91:4414-4423) is constructed using all genetic markers as follows: <span class="math inline">\(\bm{G=WW}'/m\)</span>, where <span class="math inline">\(\bm{W}\)</span> is the centered and scaled genotype matrix, and <span class="math inline">\(m\)</span> is the total number of markers. Each column vector of <span class="math inline">\(\bm{W}\)</span> was calculated as follows: <span class="math inline">\(w_i=(m_i- 2p_i)/ \sqrt{(2p_i(1-p_i)}\)</span>, where <span class="math inline">\(p_i\)</span> is the minor allele frequency of the i<sup>th</sup> genetic marker and <span class="math inline">\(m_i\)</span> is the i<sup>th</sup> column vector of the allele count matrix, <span class="math inline">\(\bm{M}\)</span>, which contains the genotypes coded as 0, 1 or 2 counting the number of minor allele. (For the nearly homozygous DGRP lines the genotypes are coded as 0 or 2.)</p>
+<p>The additive genomic relationship matrix <span class="math inline">\(\mathbf{G}\)</span> (VanRaden PM. 2008. J Dairy Sci. 91:4414-4423) is constructed using all genetic markers as follows: <span class="math inline">\(\mathbf{G=WW}'/m\)</span>, where <span class="math inline">\(\mathbf{W}\)</span> is the centered and scaled genotype matrix, and <span class="math inline">\(m\)</span> is the total number of markers. Each column vector of <span class="math inline">\(\mathbf{W}\)</span> was calculated as follows: <span class="math inline">\(\mathbf{w}_i=(m_i- 2p_i)/ \sqrt{(2p_i(1-p_i)}\)</span>, where <span class="math inline">\(p_i\)</span> is the minor allele frequency of the i<sup>th</sup> genetic marker and <span class="math inline">\(\mathbf{m}_i\)</span> is the i<sup>th</sup> column vector of the allele count matrix, <span class="math inline">\(\mathbf{M}\)</span>, which contains the genotypes coded as 0, 1 or 2 counting the number of minor allele. (For the nearly homozygous DGRP lines the genotypes are coded as 0 or 2.)</p>
 <p>Load the edited SNP genotype data file, <code>snpGE.Rdata</code>, created previously in the qgg user guide. The genotype data frame, <code>snpG</code>, is loaded directly into the object <code>W</code> by the <code>readRDS()</code> function.</p>
 <pre class="r"><code>W &lt;- readRDS(file=&quot;./genotypes/snpGE.rds&quot;)</code></pre>
 <p>Count the number of minor alleleles (<code>nMinor</code>) and total number of alleles (<code>nAlleles</code>) for each SNP. Actually for <code>nAlleles</code> we count the number of genotypes that were measured per row/SNP (thus not “NA’s”). This corresponds to counting one allele per genotype. Therefore the total number of alleles are 2 times <code>nAlleles</code>.</p>
@@ -141,23 +141,23 @@ nAlleles &lt;- rowSums(!is.na(W))</code></pre>
 <pre class="r"><code>p&lt;-nMinor/(2*nAlleles)
   min(p)
   max(p)</code></pre>
-<p>Center and scale <span class="math inline">\(\bm{W}\)</span> using the observed allele frequencies:</p>
+<p>Center and scale <span class="math inline">\(\mathbf{W}\)</span> using the observed allele frequencies:</p>
 <pre class="r"><code>for ( i in 1:205) {
   W[,i] &lt;- (W[,i]-2*p)/sqrt(2*p*(1-p)) 
   isNA &lt;- is.na(W[,i])
   W[isNA,i] &lt;- 0
 }
 W &lt;- t(W)</code></pre>
-<p>Save centered and scaled <span class="math inline">\(\bm{W}\)</span> calculated with approach 1 as <code>dgrp2_W1.Rdata</code>.</p>
+<p>Save centered and scaled <span class="math inline">\(\mathbf{W}\)</span> calculated with approach 1 as <code>dgrp2_W1.Rdata</code>.</p>
 <pre class="r"><code>save(W, file=&quot;./genotypes/dgrp2_W1.Rdata&quot;)</code></pre>
 </div>
 <div id="approach-2" class="section level3">
 <h3>Approach 2</h3>
-<p>In this approach the columns in <span class="math inline">\(W\)</span> is scaled using the <code>scale()</code> function whose default method centers and/or scales the columns of a numeric matrix.</p>
+<p>In this approach the columns in <span class="math inline">\(\mathbf{W}\)</span> is scaled using the <code>scale()</code> function whose default method centers and/or scales the columns of a numeric matrix.</p>
 <pre class="r"><code>rm(list=ls(all=TRUE))</code></pre>
 <p>Load the edited SNP genotype data file:</p>
 <pre class="r"><code>W &lt;- readRDS(file=&quot;./genotypes/snpGE.rds&quot;)</code></pre>
-<p><span class="math inline">\(\bm{W}\)</span> is transposed because the <code>scale()</code> function by default scales the <em>columns</em> of a numeric matrix.</p>
+<p><span class="math inline">\(\mathbf{W}\)</span> is transposed because the <code>scale()</code> function by default scales the <em>columns</em> of a numeric matrix.</p>
 <pre class="r"><code>W &lt;- t(W)
 W &lt;- scale(W)
 dim(W)</code></pre>
@@ -166,7 +166,7 @@ dim(W)</code></pre>
   isNA &lt;- is.na(W[i,])
   W[i, isNA] &lt;- 0
 }</code></pre>
-<p>Save centered and scaled <span class="math inline">\(\bm{W}\)</span> calculated with approach 2 as <code>dgrp2_W2.Rdata</code>.</p>
+<p>Save centered and scaled <span class="math inline">\(\mathbf{W}\)</span> calculated with approach 2 as <code>dgrp2_W2.Rdata</code>.</p>
 <pre class="r"><code>save(W, file=&quot;./genotypes/dgrp2_W2.Rdata&quot;)</code></pre>
 </div>
 
