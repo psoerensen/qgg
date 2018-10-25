@@ -2,11 +2,7 @@
 % Please edit documentation in R/multiple_marker_set_test.R
 \name{mma}
 \alias{mma}
-<<<<<<< HEAD
 \title{Multi marker association analysis based on marker set tests}
-=======
-\title{Genetic marker set tests}
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 \usage{
 mma(stat = NULL, sets = NULL, ncores = 1, nperm = 1000,
   method = "sum")
@@ -40,7 +36,6 @@ Returns a dataframe including
 }
 \description{
 Genetic marker set tests based on summing the single genetic marker test statistics.
-<<<<<<< HEAD
 The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS.
 }
 \details{
@@ -48,9 +43,6 @@ The sum test is powerful if the genomic feature harbors many genetic markers hav
 The distribution of this test statistic under the null hypothesis (associated markers are picked at random from the total 
 number of tested genetic markers) is difficult to describe in terms of exact or approximate 
 distributions, and an empirical distribution is required.
-=======
-The sum test is powerful if the genomic feature harbors many genetic markers having small to moderate effects. 
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 Genetic marker set tests based on the covariance statistics for a set of genetic markers.
 The covariance test statistic is derived from a GBLUP (or GFBLUP) model fit. It is a measure of covariance between the total genomic effect for all markers 
 and the genomic effect for the genetic markers in the genomic feature. It also relates to the explained sums of
@@ -58,15 +50,6 @@ squares for the genetic markers.
 The distribution of these test statistics under the null hypothesis is difficult to describe in terms of exact or approximate 
 distributions, and an empirical distribution is required.
 Genetic marker set tests based on the hyperG test statistics for a set of genetic markers.
-<<<<<<< HEAD
-=======
-}
-\details{
-The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS. 
-The distribution of this test statistic under the null hypothesis (associated markers are picked at random from the total 
-number of tested genetic markers) is difficult to describe in terms of exact or approximate 
-distributions, and an empirical distribution is required.
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 The hyperG marker set test tests a predefined set of markers (i.e. those within a particular genomic feature)
 for an association with the trait phenotype.
 Under the null hypothesis (associated markers are picked at random from the total number of tested 
@@ -79,7 +62,6 @@ feature harbours genetic markers with large effects.
 }
 \examples{
 
-<<<<<<< HEAD
  
  # Simulate data
  W <- matrix(rnorm(20000000), ncol = 10000)
@@ -93,10 +75,10 @@ feature harbours genetic markers with large effects.
  X <- model.matrix(fm, data = data)
  
  # Compute GRM
- GB <- computeGRM(W = W)
+ GRM <- computeGRM(W = W)
  
  # REML analyses and single marker association test
- fit <- greml(y = y, X = X, GRM = list(GB), verbose = TRUE)
+ fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
  ma <- mlma(fit = fit, W = W)
  ma <- as.matrix(ma)
  
@@ -104,35 +86,11 @@ feature harbours genetic markers with large effects.
  sets <- split(as.character(1:10000),f=f) 
 
 # Set test based on sums 
-res <- mma(stat = ma[,3]**2, sets = sets, method = "sum", nperm = 10000)
+res <- mma(stat = ma[,"stat"]**2, sets = sets, method = "sum", nperm = 10000)
 
 
 # Set test based on hyperG 
-res <- mma(stat = ma[,4], sets = sets, method = "hyperG", threshold = 0.05)
-=======
-# Simulate data
-W <- matrix(rnorm(2000000), ncol = 10000)
-  colnames(W) <- as.character(1:ncol(W))
-y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
-
-# REML analyses 
-data <- data.frame(y = y, mu = 1)
-fm <- y ~ mu
-fit <- gfm(fm = fm, W = W, sets = list(colnames(W)), data = data)
-fit$df <- 10
-fit$p <- pt(fit$s / sqrt(fit$vs), df = fit$df, lower.tail = FALSE) 
-
-sets <- list(A = as.character(1:100), B = as.character(101:1000), C = as.character(1001:5000), D = as.character(5001:10000))
-
-# Set test based on sums 
-res <- mma(stat = fit$s**2, sets = sets, method = "sum", nperm = 100)
-
-# Set test based on cvat 
-res <- mma(stat = fit$s, W = W, sets = sets, method = "cvat", nperm = 100)
-
-# Set test based on hyperG 
-res <- mma(stat = fit$p, sets = sets, method = "hyperG", threshold = 0.05)
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
+res <- mma(stat = ma[,"p"], sets = sets, method = "hyperG", threshold = 0.05)
 
 }
 \references{

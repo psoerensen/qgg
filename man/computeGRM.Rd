@@ -5,21 +5,12 @@
 \title{Compute genomic relationship matrix (GRM)}
 \usage{
 computeGRM(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL,
-<<<<<<< HEAD
   cls = NULL, W = NULL, method = "add", scaled = TRUE, msize = 100,
   ncores = 1, fnG = NULL, overwrite = FALSE, returnGRM = FALSE,
   miss = 0)
 }
 \arguments{
 \item{Glist}{a list providing information about genotypes stored on disk}
-=======
-  cls = NULL, W = NULL, method = "add", scaled = TRUE,
-  msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE,
-  returnGRM = FALSE, miss = 0)
-}
-\arguments{
-\item{Glist}{information about genotypes}
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 
 \item{ids}{individual ids used for computing GRM}
 
@@ -33,7 +24,6 @@ computeGRM(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL,
 
 \item{method}{used for computing GRM including additive, dominance or epistasis}
 
-<<<<<<< HEAD
 \item{msize}{number of markers used for block processing of genotypes for large data}
 
 \item{fnG}{name of the binary file used for storing the GRM on disk}
@@ -46,34 +36,14 @@ computeGRM(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL,
 }
 \value{
 Returns a GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
-=======
-\item{scaled}{should genotypes be scaled (default: scaled=TRUE)}
-
-\item{msize}{number of markers used for block updates}
-
-\item{fnG}{name of file for storing GRM on disk}
-
-\item{overwrite}{logical should the file fnG be overwritten}
-
-\item{returnGRM}{should the function return the GRM matrix}
-
-\item{miss}{missing value code used in genotype matrix}
-}
-\value{
-Returns GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 }
 \description{
 A function for computing a genomic relationship matrix. 
 
-<<<<<<< HEAD
 The output of the computeGRM function is a GRMlist structure containing information 
 about the genotypes stored in a binary file on disk. The Glist structure (created
 only once) is used in GREML and eigen value analyses and should be saved in Rdata file
-=======
-The output of the prepG and computeRAW functions is a Glist structure containing information
 }
-\details{
-Individuals may be subsetted for additional analyses such as cross validation.
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
+\author{
+Peter Soerensen
 }

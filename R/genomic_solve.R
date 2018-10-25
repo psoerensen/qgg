@@ -18,6 +18,7 @@
 #' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
 #' @param ncores number of cores
 
+#' @author Peter Soerensen
 
 
 #' @export
@@ -376,7 +377,7 @@ gsqr <- function( y=NULL, X=NULL, W=NULL, sets=NULL, msets=100, lambda=NULL, wei
 fsolve <- function(n=NULL,nr=NULL,rws=NULL,nc=NULL,cls=NULL,scaled=TRUE,nbytes=NULL,fnRAW=NULL,ncores=1,nit=NULL,lambda=NULL,tol=NULL,y=NULL,g=NULL,e=NULL,s=NULL,meanw=NULL,sdw=NULL) { 
 
      OS <- .Platform$OS.type
-     #if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
+     if(OS=="windows") fnRAW <- tolower(gsub( "/", "\\" , fnRAW, fixed=T ))    
      fit <- .Fortran("solvebed", 
            n = as.integer(n),
            nr = as.integer(nr),

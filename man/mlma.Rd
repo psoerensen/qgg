@@ -2,11 +2,7 @@
 % Please edit documentation in R/single_marker_test.R
 \name{mlma}
 \alias{mlma}
-<<<<<<< HEAD
 \title{Single marker association analyses using mixed linear models}
-=======
-\title{Mixed linear model marker association test}
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 \usage{
 mlma(y = NULL, X = NULL, fit = NULL, W = NULL, m = NULL,
   statistic = "mastor")
@@ -51,16 +47,11 @@ X <- model.matrix(fm, data = data)
 GRM <- computeGRM(W = W)
 
 # REML analyses and single marker association test
-<<<<<<< HEAD
 fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
 maMLM <- mlma(fit = fit, W = W)
 
 # Linear model analyses and single marker association test
 maLM <- lma(y=y,X=X,W = W)
-=======
-fitGB <- greml(y = y, X = X, G = GB, verbose = TRUE)
-maGB <- mlma(fit = fitGB, W = W)
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 
 }
 \references{
@@ -87,9 +78,5 @@ Yang, J., Zaitlen, N. A., Goddard, M. E., Visscher, P. M., & Price, A. L. (2014)
 Bulik-Sullivan, B. K., Loh, P. R., Finucane, H. K., Ripke, S., Yang, J., Patterson, N., ... & Schizophrenia Working Group of the Psychiatric Genomics Consortium. (2015). LD Score regression distinguishes confounding from polygenicity in genome-wide association studies. Nature genetics, 47(3), 291-295.
 }
 \author{
-<<<<<<< HEAD
 Peter Soerensen
-=======
-Peter S?rensen
->>>>>>> febff9e91bf4b8884ae8f92613c681129770bedd
 }
