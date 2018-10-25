@@ -54,6 +54,4 @@ the Glist interface.
 }
 \author{
 Peter Soerensen
-
-Peter S?rensen
 }

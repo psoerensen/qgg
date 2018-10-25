@@ -45,11 +45,6 @@
 #' #W <- getW( Glist, ids, rsids, additional arguments...)
 
 
-
-
-#' @author Peter S?rensen
-
-
 #' @export
 #'
 
