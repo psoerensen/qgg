@@ -19,7 +19,6 @@
 #' @param cls columns in genotype matrix used for computing GRM
 #' @param W matrix of centered and scaled genotypes 
 #' @param method used for computing GRM including additive, dominance or epistasis
-<<<<<<< HEAD
 #' @param msize number of markers used for block processing of genotypes for large data
 #' @param fnG name of the binary file used for storing the GRM on disk
 #' @param overwrite logical if TRUE the binary file fnG will be overwritten
