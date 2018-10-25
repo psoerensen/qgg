@@ -86,11 +86,11 @@ feature harbours genetic markers with large effects.
  sets <- split(as.character(1:10000),f=f) 
 
 # Set test based on sums 
-res <- mma(stat = ma[,3]**2, sets = sets, method = "sum", nperm = 10000)
+res <- mma(stat = ma[,"stat"]**2, sets = sets, method = "sum", nperm = 10000)
 
 
 # Set test based on hyperG 
-res <- mma(stat = ma[,4], sets = sets, method = "hyperG", threshold = 0.05)
+res <- mma(stat = ma[,"p"], sets = sets, method = "hyperG", threshold = 0.05)
 
 }
 \references{
