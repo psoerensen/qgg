@@ -1,6 +1,36 @@
 #######################################################################################
 # compute GRM functions
 #######################################################################################
+#'
+#' Compute genomic relationship matrix (GRM)
+#'
+#' @description
+#' A function for computing a genomic relationship matrix. 
+#'
+#' The output of the prepG and computeRAW functions is a Glist structure containing information 
+# about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
+
+#' @details
+#' Individuals may be subsetted for additional analyses such as cross validation.
+#' 
+#' @param Glist information about genotypes 
+#' @param ids individual ids used for computing GRM
+#' @param rsids marker rsids used for computing GRM
+#' @param rws rows in genotype matrix used for computing GRM
+#' @param cls columns in genotype matrix used for computing GRM
+#' @param W matrix of centered and scaled genotypes 
+#' @param scaled should genotypes be scaled (default: scaled=TRUE) 
+#' @param method used for computing GRM including additive, dominance or epistasis
+#' @param msize number of markers used for block updates
+#' @param fnG name of file for storing GRM on disk
+#' @param overwrite logical should the file fnG be overwritten
+#' @param returnGRM should the function return the GRM matrix  
+#' @param miss missing value code used in genotype matrix
+#' 
+#' 
+
+#' 
+#' @return Returns GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
 
 #' @export
 #'
