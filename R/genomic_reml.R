@@ -22,6 +22,11 @@
 #' @param maxit maximum number of iterations of reml analysis
 #' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
 #' @param ncores number of cores used for the analysis
+#' @param fm a formula with model statement for the linear mixed model 
+#' @param data a data frame containing the phenotypic observations and fixed factors specified in the model statements
+#' @param GRM a list of relationship / correlation matrices corresponding to random effects specified in vfm
+#' @param bin is the directory for DMU binaries (dmu1 and dmuai1)
+
 #' 
 #' @return Returns a list structure, fit, including
 #' \item{llik}{log-likelihood at convergence}
@@ -39,6 +44,9 @@
 #' \item{X}{design matrix of fixed effects}
 #' \item{ids}{vector of individuals used for the analysis}
 #' \item{yVy}{product of y, variance-covariance matrix of y at convergence, and y}
+#' \item{f}{list of predicted random effects} 
+#' \item{fitted}{fitted values from linear mixed model fit} 
+#' \item{residuals}{residuals from linear mixed model fit} 
 
 
 #' @author Peter Soerensen
@@ -66,9 +74,9 @@
 #'
 #' # Compute G
 #' G <- computeGRM(W = W)
-#' GB <- lapply(setsGB, function(x) {computeGRM(W = W[, x])})
-#' GF <- lapply(setsGF, function(x) {computeGRM(W = W[, x])})
-#' GT <- lapply(setsGT, function(x) {computeGRM(W = W[, x])})
+#' GB <- lapply(setsGB, function(x) {grm(W = W[, x])})
+#' GF <- lapply(setsGF, function(x) {grm(W = W[, x])})
+#' GT <- lapply(setsGT, function(x) {grm(W = W[, x])})
 #'
 #' # REML analyses
 #' fitGB <- greml(y = y, X = X, GRM = GB)
@@ -91,12 +99,28 @@
 #' cvGT$accuracy
 #' 
 #' 
+#' # bin <- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"
+#' # data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
+#' # fm <- y ~ f + (1 | g~G) 
+#' # fit <- greml(fm = fm, GRM = list(G=G), data = data, interface="DMU")
+#' # str(fit)
+
+#' 
 #' @export
 #'
 
-greml <- function(y = NULL, X = NULL, GRMlist=NULL, GRM=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE,interface="R")
-{
-  #if(interface=="R") {
+  greml <- function(y = NULL, X = NULL, GRMlist=NULL, GRM=NULL, theta=NULL, ids=NULL, validate=NULL, maxit=100, tol=0.00001,bin=NULL,ncores=1,wkdir=getwd(), verbose=FALSE, makeplots=FALSE,interface="R", fm=NULL,data=NULL) {
+
+      if(interface=="DMU") {
+        fit <- remlDMU(fm = fm, GRM = GRM, data = data)
+        remlDMU(fm = fm, GRM = GRM, restrict = restrict, data = data, validate = validate, bin = bin) 
+          
+      return(fit)
+     }
+     
+  if(!interface=="DMU") {
+          
+ #if(interface=="R") {
   if(!is.null(GRM)) {
     if (is.null(validate)) fit <- remlR(y=y, X=X, GRMlist=GRMlist, G=GRM, theta=theta, ids=ids, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir)
     if (!is.null(validate)) fit <- cvreml(y=y, X=X, GRMlist=GRMlist, G=GRM, theta=theta, ids=ids, validate=validate, maxit=maxit, tol=tol, bin=bin, ncores=ncores, verbose=verbose, wkdir=wkdir, makeplots=makeplots)
@@ -108,7 +132,8 @@ greml <- function(y = NULL, X = NULL, GRMlist=NULL, GRM=NULL, theta=NULL, ids=NU
   if(!is.null(GRMlist)) {
     fit <- freml(y=y, X=X, GRMlist=GRMlist, G=GRM, theta=theta, ids=ids, maxit=maxit, tol=tol, ncores=ncores, verbose=verbose) 
   }        
-  return(fit)  
+  return(fit)
+  }
 }  
 
 

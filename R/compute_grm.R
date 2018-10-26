@@ -2,10 +2,10 @@
 # compute GRM functions
 #######################################################################################
 #'
-#' Compute genomic relationship matrix (GRM)
+#' Computation or eigen value decompostion of a genomic relationship matrix (GRM)
 #'
 #' @description
-#' A function for computing a genomic relationship matrix. 
+#' A function for computing or eigen value decompostion of a genomic relationship matrix 
 #'
 #' The output of the computeGRM function is a GRMlist structure containing information 
 #' about the genotypes stored in a binary file on disk. The Glist structure (created
@@ -24,16 +24,44 @@
 #' @param overwrite logical if TRUE the binary file fnG will be overwritten
 #' @param returnGRM logical if TRUE function returns the GRM matrix  
 #' @param miss is the missing code used for missing values in the genotype data
-#' 
+#' @param task computation (task="grm") or eigen value decompostion (task="eigen")
 #' 
 #' 
 #' @return Returns a GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
 
 #' @author Peter Soerensen
 
+#' @examples
+#'
+#' # Simulate data
+#' W <- matrix(rnorm(20000000), ncol = 10000)
+#' 	colnames(W) <- as.character(1:ncol(W))
+#' 	rownames(W) <- as.character(1:nrow(W))
+#'
+#' # Compute GRM
+#' GRM <- grm(W = W)
+#' 
+#' # Eigen value decompostion GRM
+#' eig <- grm(GRM=GRM, task="eigen")
+
 #' @export
 #'
 
+grm <- function(Glist=NULL,GRMlist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE, returnGRM=FALSE, miss=0, task="grm") {
+
+     if(task=="grm") {
+          GRM <- computeGRM(Glist=Glist,ids=ids,rsids=rsids,rws=rws,cls=cls, W=W, method=method, scaled=scaled, msize=msize, ncores=ncores, fnG=fnG, overwrite=overwrite, returnGRM=returnGRM, miss=miss)
+          return(GRM)
+     }
+     if(task=="eigen") {
+        eig <- eigengrm( GRM=GRM, GRMlist=GRMlist,method="default", ncores=ncores)
+        return(eig)
+     }
+          
+     }
+
+#' @export
+#'
 
 computeGRM <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, W=NULL, method="add", scaled=TRUE, msize=100, ncores=1, fnG=NULL, overwrite=FALSE, returnGRM=FALSE, miss=0) {
 
@@ -177,38 +205,12 @@ getGRM <- function( GRMlist=NULL,ids=NULL, idsCLS=NULL, idsRWS=NULL, cls=NULL,rw
    }
 
 
-   #'
-   #' Eigen value decompostion of a genomic relationship matrix
-   #'
-   #' @description
-   #' A function for obtaining eigen values and vectors of a GRM. Supports GRM stored in a 
-   #' binary file on disk
-   #'
 
-   #' 
-   #' @param GRMlist list of information about GRM matrix stored on disk
-   #' @param GRM genomic relationship matrix
-   #' @param method used for decompositon
-   #' @param ncores the number of cores used
-   
-   #' @examples
-   #'
-   #' # Simulate data
-   #' W <- matrix(rnorm(20000000), ncol = 10000)
-   #' 	colnames(W) <- as.character(1:ncol(W))
-   #' 	rownames(W) <- as.character(1:nrow(W))
-   #'
-   #' # Compute G
-   #' GRM <- computeGRM(W = W)
-   #' 
-   #' eig <- eigGRM(GRM=GRM)
-    
-   
    #' @export
    #'
    
    
-   eigGRM <- function( GRM=NULL, GRMlist=NULL,method="default", ncores=1) {
+   eigengrm <- function( GRM=NULL, GRMlist=NULL,method="default", ncores=1) {
         #subroutine eiggrm(n,nev,ev,U,fnG,fnU,ncores)	
         #subroutine eiggrm(n,grm,eig,ncores)
           n <- ncol(GRM)

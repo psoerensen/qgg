@@ -41,14 +41,14 @@
 #' @examples
 #
 
-#' #Glist <- prepG( bedfiles, bimfiles, study, path, additional arguments...)
+#' #Glist <- gprep( bedfiles, bimfiles, study, path, additional arguments...)
 #' #W <- getW( Glist, ids, rsids, additional arguments...)
 
 
 #' @export
 #'
 
-prepG <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=TRUE, ncores=1){
+gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=TRUE, ncores=1){
      
      nfiles <- length(bedfiles)
       

@@ -2,13 +2,14 @@
 #    Module 2: Marker set tests
 ####################################################################################################################
 #' 
-#' Multi marker association analysis based on marker set tests
+#' Gene set enrichment analysis
 #'
 #' @description
-#' Genetic marker set tests based on summing the single genetic marker test statistics.
-#' The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS. 
+#' Function for different gene set enrichment analyses (genetic marker set tests) can be specified. 
 
 #' @details 
+#' The sum test is based on summing the single genetic marker test statistics.
+#' The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS. 
 #' The sum test is powerful if the genomic feature harbors many genetic markers having small to moderate effects. 
 #' The distribution of this test statistic under the null hypothesis (associated markers are picked at random from the total 
 #' number of tested genetic markers) is difficult to describe in terms of exact or approximate 
@@ -65,28 +66,27 @@
 #'  fm <- y ~ 0 + mu
 #'  X <- model.matrix(fm, data = data)
 #'  
-#'  # Compute GRM
-#'  GRM <- computeGRM(W = W)
+#'  # Single marker association analyses
+#'  ma <- lma(y=y,X=X,W=W)
 #'  
-#'  # REML analyses and single marker association test
-#'  fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
-#'  ma <- mlma(fit = fit, W = W)
-#'  ma <- as.matrix(ma)
-#'  
+#'  # Create marker sets
 #'  f <- factor(rep(1:100,each=100), levels=1:100) 
 #'  sets <- split(as.character(1:10000),f=f) 
 #'
-#' # Set test based on sums 
-#' res <- mma(stat = ma[,"stat"]**2, sets = sets, method = "sum", nperm = 10000)
-#' 
-#' 
-#' # Set test based on hyperG 
-#' res <- mma(stat = ma[,"p"], sets = sets, method = "hyperG", threshold = 0.05)
-#' 
+#'  # Set test based on sums 
+#'  mma <- gsea(stat = ma[,"stat"]**2, sets = sets, method = "sum", nperm = 10000)
+#'  head(mma)
+#'  
+#'  # Set test based on hyperG 
+#'  mma <- gsea(stat = ma[,"p"], sets = sets, method = "hyperg", threshold = 0.05)
+#'  head(mma)
+#'  
+#'  
 
 
 #' @export
-mma <- function(stat=NULL,sets=NULL,ncores=1,nperm=1000,method="sum"){
+ gsea <- function(stat=NULL,sets=NULL,threshold=0.05,method="sum",nperm=1000,ncores=1){
+     if(method=="sum") { 
      m <- length(stat)
      if (is.matrix(stat)) sets <- mapSets(sets=sets,rsids=rownames(stat),index=TRUE)
      if (is.vector(stat)) sets <- mapSets(sets=sets,rsids=names(stat),index=TRUE)
@@ -104,7 +104,12 @@ mma <- function(stat=NULL,sets=NULL,ncores=1,nperm=1000,method="sum"){
           res <- cbind(m=msets,stat=setstat,p=p)
           rownames(res) <- names(sets)  
      }     
-     res
+     return(res)
+     }
+     if (method=="hyperg") {
+        res <- hgTest(p = stat, sets = sets, threshold = threshold)
+        return(res)
+     } 
 }
 
 #' @export

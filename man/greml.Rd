@@ -4,10 +4,10 @@
 \alias{greml}
 \title{Genomic REML analysis}
 \usage{
-greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
-  theta = NULL, ids = NULL, validate = NULL, maxit = 100,
-  tol = 1e-05, bin = NULL, ncores = 1, wkdir = getwd(),
-  verbose = FALSE, makeplots = FALSE, interface = "R")
+greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL,
+  ids = NULL, validate = NULL, maxit = 100, tol = 1e-05, bin = NULL,
+  ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE,
+  interface = "R", fm = NULL, data = NULL)
 }
 \arguments{
 \item{y}{vector of phenotypes}
@@ -24,7 +24,15 @@ greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
 
 \item{tol}{tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence}
 
+\item{bin}{is the directory for DMU binaries (dmu1 and dmuai1)}
+
 \item{ncores}{number of cores used for the analysis}
+
+\item{fm}{a formula with model statement for the linear mixed model}
+
+\item{data}{a data frame containing the phenotypic observations and fixed factors specified in the model statements}
+
+\item{GRM}{a list of relationship / correlation matrices corresponding to random effects specified in vfm}
 }
 \value{
 Returns a list structure, fit, including
@@ -43,6 +51,9 @@ Returns a list structure, fit, including
 \item{X}{design matrix of fixed effects}
 \item{ids}{vector of individuals used for the analysis}
 \item{yVy}{product of y, variance-covariance matrix of y at convergence, and y}
+\item{f}{list of predicted random effects} 
+\item{fitted}{fitted values from linear mixed model fit} 
+\item{residuals}{residuals from linear mixed model fit}
 }
 \description{
 Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML)
@@ -74,9 +85,9 @@ setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colname
 
 # Compute G
 G <- computeGRM(W = W)
-GB <- lapply(setsGB, function(x) {computeGRM(W = W[, x])})
-GF <- lapply(setsGF, function(x) {computeGRM(W = W[, x])})
-GT <- lapply(setsGT, function(x) {computeGRM(W = W[, x])})
+GB <- lapply(setsGB, function(x) {grm(W = W[, x])})
+GF <- lapply(setsGF, function(x) {grm(W = W[, x])})
+GT <- lapply(setsGT, function(x) {grm(W = W[, x])})
 
 # REML analyses
 fitGB <- greml(y = y, X = X, GRM = GB)
@@ -98,6 +109,12 @@ cvGB$accuracy
 cvGF$accuracy
 cvGT$accuracy
 
+
+# bin <- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"
+# data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
+# fm <- y ~ f + (1 | g~G) 
+# fit <- greml(fm = fm, GRM = list(G=G), data = data, interface="DMU")
+# str(fit)
 
 }
 \references{

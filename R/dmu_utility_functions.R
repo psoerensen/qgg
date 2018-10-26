@@ -1,63 +1,6 @@
 #############################################################################################
 # utility function for using DMU 
 #############################################################################################
-#' 
-#' Genomic Feature Model analyses implemented using Restriced Likelihood Methods in DMU
-#'
-#' @description
-#' Genomic Feature Best Linear Unbiased Prediction models implemented using REML. 
-#'
-#' @details 
-#' The models are implemented using restricted maximum likelihood methods. 
-#' Variance components estimated using REML and predictions are based on MME. 
-#' Predicted random effects and single marker effects and statistics can be obtained.
-#' Cross validation procedures for assessment of prediction accuracy and model selection. 
-#' This is an interface to be used for DMU. 
-#' 
-#' @param fm a formula with model statement for the linear mixed model 
-#' @param data a data frame containing the phenotypic observations and fixed factors specified in the model statements
-#' @param GRM a list of relationship / correlation matrices corresponding to random effects specified in vfm
-#' @param validate a matrix or a list with the ids of validation sets corresponding to the rows in data
-#' @param bin is the directory for DMU binaries (dmu1 and dmuai1)
-
-#' @return Returns results in a list structure including 
-#' \item{f}{list of predicted random effects} 
-#' \item{sigma}{estimated variance components} 
-#' \item{asd}{asymptotic standard deviation for the estimated variance components} 
-#' \item{fitted}{fitted values from linear mixed model fit} 
-#' \item{residuals}{residuals from linear mixed model fit} 
-
-#' @author Peter Soerensen
-
-#' @references Edwards, S. M., Soerensen, I. F., Sarup, P., Mackay, T. F., & Soerensen, P. (2016). Genomic prediction for quantitative traits is improved by mapping variants to gene ontology categories in Drosophila melanogaster. Genetics, 203(4), 1871-1883.
-#’ @references Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Børglum, A. D., & Soerensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
-#’ @references Edwards, S. M., Thomsen, B., Madsen, P., & Soerensen, P. (2015). Partitioning of genomic variance reveals biological pathways associated with udder health and milk production traits in dairy cattle. Genetics Selection Evolution, 47(1), 60.
-#’ @references Sarup, P., Jensen, J., Ostersen, T., Henryon, M., & Soerensen, P. (2016). Increased prediction accuracy using a genomic feature model including prior information on quantitative trait locus regions in purebred Danish Duroc pigs. BMC genetics, 17(1), 11.
-
-#' @examples
-#'
-#'  
-#' #bin <- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"
-#' 
-#' # Simulate data
-#' W <- matrix(rnorm(4000000), ncol = 10000)
-#'   colnames(W) <- as.character(1:ncol(W))
-#'   rownames(W) <- as.character(1:nrow(W))
-#' 
-#' G <- computeGRM(W=W)
-#'
-#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + 10 * rnorm(nrow(W))
-#' 
-#' data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
-#' 
-#' fm <- y ~ f + (1 | g~G) 
-#' 
-#' 
-#' #fit <- remlDMU(fm = fm, GRM = list(G=G), data = data)
-#' #str(fit)
-#' 
-#' @export
-#'
 
 # Main function for reml analyses suing DMU
 remlDMU <- function(fm = NULL, vfm = NULL, GRM = NULL, restrict = NULL, data = NULL, validate = NULL, bin = NULL) {

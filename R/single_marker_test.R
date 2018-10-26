@@ -2,7 +2,7 @@
 #    Module 5: LMM marker association test
 ####################################################################################################################
 #'
-#' Single marker association analyses using mixed linear models 
+#' Single marker association analyses using linear models or linear mixed models 
 #'
 #' @description
 #' Marker test using mixed linear model analyses (mlma) are used to test for an association of single markers with a phenotype.
@@ -52,18 +52,37 @@
 #' X <- model.matrix(fm, data = data)
 #'
 #' # Compute GRM
-#' GRM <- computeGRM(W = W)
+#' GRM <- grm(W = W)
 #'
 #' # REML analyses and single marker association test
 #' fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
-#' maMLM <- mlma(fit = fit, W = W)
+#' maMLM <- lma(fit = fit, W = W)
 #' 
 #' # Linear model analyses and single marker association test
 #' maLM <- lma(y=y,X=X,W = W)
 #'
+#'head(maMLM)
+#'head(maLM)
+#'
 #' @export
 #'
 
+lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, fit=NULL, statistic="mastor", ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
+ 
+     if (is.null(fit)) {
+          ma <- sma( y=y, X=X, W=W, Glist=Glist, ids=ids, rsids=rsids, msize=msize, scaled=scale) 
+          return(ma) 
+     }    
+     if (!is.null(fit)) {
+          ma <- mlma( y=y, X=X, fit=fit, W=W, statistic=statistic)
+          return(ma) 
+     }    
+}
+     
+
+#' @export
+#'
+     
 mlma <- function( y=NULL, X=NULL, fit=NULL, W=NULL, m=NULL, statistic="mastor") {
   
   if (is.null(m)) m <- ncol(W)
@@ -128,7 +147,7 @@ plotma <- function(ma=NULL,chr=NULL,rsids=NULL,thresh=5) {
 
 #' @export
 
-lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
+sma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
      if(is.vector(y)) y <- matrix(y,ncol=1, dimnames= list(names(y),"trait"))
      ids <- rownames(y)
      nt <- ncol(y) 
@@ -139,7 +158,7 @@ lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize
           #if(is.null(colnames(y))) colnames(y) <- paste("t",1:ncol(y),sep="")
           #lapply(res, function(x){colnames(x) <- colnames(y)})
           #lapply(res, function(x){rownames(x) <- colnames(W)})
-          if (nt==1) res <- as.data.frame(res)
+          if (nt==1) res <- as.matrix(as.data.frame(res))
      }
      if(!is.null(Glist)) {
           if(any(!ids%in%Glist$ids)) stop("Some names of y does not match names in Glist$ids")
