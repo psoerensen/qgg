@@ -78,7 +78,7 @@
   <a href="../articles/qgg.html">Get started</a>
 </li>
 <li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">Functions</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -88,20 +88,20 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
-    </li>
-    <li>
       <a href="../articles/Small_data_set_tutorial.html">Small data set tutorial</a>
     </li>
+    <li>
+      <a href="../articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
+    </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+<li>
   <a href="https://github.com/psoerensen/qgg">
     <span class="fa fa-github fa-lg"></span>
      
@@ -218,7 +218,7 @@ feature harbours genetic markers with large effects.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
+    <pre class="examples"><span class='co'># NOT RUN {</span>
 
  <span class='co'># Simulate data</span>
  <span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
@@ -239,13 +239,15 @@ feature harbours genetic markers with large effects.</p>
  <span class='no'>sets</span> <span class='kw'>&lt;-</span> <span class='fu'>split</span>(<span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fl'>10000</span>),<span class='kw'>f</span><span class='kw'>=</span><span class='no'>f</span>)
 
  <span class='co'># Set test based on sums </span>
- <span class='no'>mma</span> <span class='kw'>&lt;-</span> <span class='fu'>gsea</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='no'>ma</span>[,<span class='st'>"stat"</span>]**<span class='fl'>2</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>sets</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"sum"</span>, <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>10000</span>)</div><div class='output co'>#&gt; <span class='error'>Error in .Fortran("psets", m = as.integer(m), stat = as.double(stat),     nsets = as.integer(nsets), setstat = as.double(setstat),     msets = as.integer(msets), p = as.integer(rep(0, nsets)),     np = as.integer(np), ncores = as.integer(ncores), PACKAGE = "qgg"): "psets" not available for .Fortran() for package "qgg"</span></div><div class='input'> <span class='fu'>head</span>(<span class='no'>mma</span>)</div><div class='output co'>#&gt; <span class='error'>Error in head(mma): object 'mma' not found</span></div><div class='input'>
+ <span class='no'>mma</span> <span class='kw'>&lt;-</span> <span class='fu'>gsea</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='no'>ma</span>[,<span class='st'>"stat"</span>]**<span class='fl'>2</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>sets</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"sum"</span>, <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
+ <span class='fu'>head</span>(<span class='no'>mma</span>)
+
  <span class='co'># Set test based on hyperG </span>
  <span class='no'>mma</span> <span class='kw'>&lt;-</span> <span class='fu'>gsea</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='no'>ma</span>[,<span class='st'>"p"</span>], <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>sets</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"hyperg"</span>, <span class='kw'>threshold</span> <span class='kw'>=</span> <span class='fl'>0.05</span>)
- <span class='fu'>head</span>(<span class='no'>mma</span>)</div><div class='output co'>#&gt;            1            2            3            4            5            6 
-#&gt; 0.0001342391 0.3911919130 0.9648218792 0.7492161503 0.3911919130 0.5720788493 </div><div class='input'> 
- 
-</div></pre>
+ <span class='fu'>head</span>(<span class='no'>mma</span>)
+
+
+<span class='co'># }</span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

@@ -84,7 +84,7 @@ Cross validation procedures for assessment of prediction accuracy and model sele
   <a href="../articles/qgg.html">Get started</a>
 </li>
 <li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">Functions</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -94,20 +94,20 @@ Cross validation procedures for assessment of prediction accuracy and model sele
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
-    </li>
-    <li>
       <a href="../articles/Small_data_set_tutorial.html">Small data set tutorial</a>
     </li>
+    <li>
+      <a href="../articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
+    </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+<li>
   <a href="https://github.com/psoerensen/qgg">
     <span class="fa fa-github fa-lg"></span>
      
@@ -230,7 +230,7 @@ Cross validation procedures for assessment of prediction accuracy and model sele
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
+    <pre class="examples"><span class='co'># NOT RUN {</span>
 <span class='co'># Simulate data</span>
 <span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
         <span class='fu'>colnames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>))
@@ -269,30 +269,18 @@ Cross validation procedures for assessment of prediction accuracy and model sele
 <span class='no'>cvGF</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GF</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='no'>validate</span>)
 <span class='no'>cvGT</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GT</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='no'>validate</span>)
 
-<span class='no'>cvGB</span>$<span class='no'>accuracy</span></div><div class='output co'>#&gt;    Corr    R2 Nagel R2 AUC intercept slope   MSPE
-#&gt; 1 0.409 0.167       NA  NA     0.046 0.144 18.117
-#&gt; 2 0.337 0.113       NA  NA    -0.047 0.111 21.056
-#&gt; 3 0.373 0.139       NA  NA     0.167 0.144 14.400
-#&gt; 4 0.373 0.139       NA  NA    -0.082 0.134 19.219
-#&gt; 5 0.430 0.185       NA  NA    -0.145 0.147 18.428</div><div class='input'><span class='no'>cvGF</span>$<span class='no'>accuracy</span></div><div class='output co'>#&gt;    Corr    R2 Nagel R2 AUC intercept slope  MSPE
-#&gt; 1 0.855 0.731       NA  NA    -0.071 0.754 5.778
-#&gt; 2 0.882 0.777       NA  NA     0.176 0.737 5.394
-#&gt; 3 0.837 0.701       NA  NA    -0.137 0.707 4.974
-#&gt; 4 0.839 0.704       NA  NA    -0.056 0.694 6.612
-#&gt; 5 0.886 0.785       NA  NA    -0.136 0.784 4.804</div><div class='input'><span class='no'>cvGT</span>$<span class='no'>accuracy</span></div><div class='output co'>#&gt;    Corr    R2 Nagel R2 AUC intercept slope  MSPE
-#&gt; 1 0.976 0.953       NA  NA    -0.060 0.946 1.015
-#&gt; 2 0.976 0.953       NA  NA     0.083 0.948 1.115
-#&gt; 3 0.974 0.949       NA  NA    -0.110 0.963 0.859
-#&gt; 4 0.981 0.963       NA  NA    -0.064 0.965 0.835
-#&gt; 5 0.982 0.965       NA  NA    -0.086 0.974 0.787</div><div class='input'>
+<span class='no'>cvGB</span>$<span class='no'>accuracy</span>
+<span class='no'>cvGF</span>$<span class='no'>accuracy</span>
+<span class='no'>cvGT</span>$<span class='no'>accuracy</span>
 
-# bin <- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"
-# data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
-# fm <- y ~ f + (1 | g~G) 
-# fit <- greml(fm = fm, GRM = list(G=G), data = data, interface="DMU")
-# str(fit)
 
-</div></pre>
+<span class='co'># bin &lt;- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"</span>
+<span class='co'># data &lt;- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)</span>
+<span class='co'># fm &lt;- y ~ f + (1 | g~G) </span>
+<span class='co'># fit &lt;- greml(fm = fm, GRM = list(G=G), data = data, interface="DMU")</span>
+<span class='co'># str(fit)</span>
+
+<span class='co'># }</span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

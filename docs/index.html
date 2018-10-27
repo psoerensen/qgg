@@ -46,7 +46,7 @@
   <a href="articles/qgg.html">Get started</a>
 </li>
 <li>
-  <a href="reference/index.html">Reference</a>
+  <a href="reference/index.html">Functions</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -56,18 +56,18 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
+      <a href="articles/Small_data_set_tutorial.html">Small data set tutorial</a>
     </li>
     <li>
-      <a href="articles/Small_data_set_tutorial.html">Small data set tutorial</a>
+      <a href="articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
     </li>
   </ul>
 </li>
+      </ul>
+<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="news/index.html">Changelog</a>
 </li>
-      </ul>
-<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/psoerensen/qgg">
     <span class="fa fa-github fa-lg"></span>
@@ -102,7 +102,7 @@
 <ul>
 <li>fitting linear mixed models<br>
 </li>
-<li>construction and eigen-value decomposition of marker-based genomic relationship matrices<br>
+<li>construction and eigen-value decomposition of genomic relationship matrices<br>
 </li>
 <li>estimating genetic parameters (heritability and correlation)<br>
 </li>
@@ -110,10 +110,49 @@
 </li>
 <li>single or multi-marker association analyses</li>
 </ul>
+<p><strong>qgg</strong> handles large-scale data by taking advantage of:</p>
+<ul>
+<li>multi-core processing using openMP<br>
+</li>
+<li>multithreaded matrix operations implemented in BLAS libraries (e.g. OpenBLAS, ATLAS or MKL)<br>
+</li>
+<li>fast and memory-efficient batch processing of genotype data stored in binary files (e.g. PLINK bedfiles)</li>
+</ul>
 <p>The <strong>qgg</strong> package provides a range of genomic feature modeling approaches, including genomic feature best linear unbiased prediction (GFBLUP) models, implemented using likelihood or Bayesian methods. Multiple features and multiple traits can be included in these models and different genetic models (e.g. additive, dominance, gene by gene and gene by environment interactions) can be used. Further extensions include a weighted GFBLUP model using differential weighting of the individual genetic marker relationships. Marker set tests, which are computationally very fast, can be performed. These marker set tests allow the rapid analyses of different layers of genomic feature classes to discover genomic features potentially enriched for causal variants. Marker set tests can thus facilitate more accurate prediction models.</p>
 <div id="references" class="section level4">
 <h4 class="hasAnchor">
 <a href="#references" class="anchor"></a>References</h4>
+<ol style="list-style-type: decimal">
+<li>Edwards SM, Thomsen B, Madsen P, Sørensen P. 2015. Partitioning of genomic variance reveals biological pathways associated with udder health and milk production traits in dairy cattle. <em>Genet Sel Evol</em> 47:60. <a href="doi:10.1186/s12711-015-0132-6" class="uri">doi:10.1186/s12711-015-0132-6</a><br>
+</li>
+<li>Edwards SM, Sørensen IF, Sarup P, Mackay TFC, Sørensen P. 2016. Genomic prediction for quantitative traits is improved by mapping variants to gene ontology categories in Drosophila melanogaster. <em>Genetics</em> 203:1871–1883. <a href="doi:10.1534/genetics.116.187161" class="uri">doi:10.1534/genetics.116.187161</a>
+</li>
+<li>Ehsani A, Janss L, Pomp D, Sørensen P. 2015. Decomposing genomic variance using information from GWA, GWE and eQTL analysis. <em>Anim Genet</em> 47:165–173. <a href="doi:10.1111/age.12396" class="uri">doi:10.1111/age.12396</a>
+</li>
+<li>Fang L, Sahana G, Ma P, Su G, Yu Y, Zhang S, Lund MS, Sørensen P. 2017. Exploring the genetic architecture and improving genomic prediction accuracy for mastitis and milk production traits in dairy cattle by mapping variants to hepatic transcriptomic regions responsive to intra-mammary infection. <em>Genet Sel Evol</em> 49:1–18. <a href="doi:10.1093/bioinformatics/btp448" class="uri">doi:10.1093/bioinformatics/btp448</a>
+</li>
+<li>Fang L, Sahana G, Su G, Yu Y, Zhang S, Lund MS, Sørensen P. 2017. Integrating sequence-based GWAS and RNA-seq provides novel insights into the genetic basis of mastitis and milk production in dairy cattle. <em>Sci Rep</em> 7:45560. <a href="doi:10.1038/srep45560" class="uri">doi:10.1038/srep45560</a>
+</li>
+<li>Fang L, Sørensen P, Sahana G, Panitz F, Su G, Zhang S, Yu Y, Li B, Ma L, Liu G, Lund MS, Thomsen B. 2018. MicroRNA-guided prioritization of genome-wide association signals reveals the importance of microRNA-target gene networks for complex traits in cattle. <em>Sci Rep</em> 8:1–14. <a href="doi:10.1038/s41598-018-27729-y" class="uri">doi:10.1038/s41598-018-27729-y</a>
+</li>
+<li>Ørsted M, Rohde PD, Hoffmann AA, Sørensen P, Kristensen TN. 2017. Environmental variation partitioned into separate heritable components. <em>Evolution</em> (N Y) 72:136–152. <a href="doi:10.1111/evo.13391" class="uri">doi:10.1111/evo.13391</a>
+</li>
+<li>Ørsted M, Hoffmann AA, Rohde PD, Sørensen P, Kristensen TN. 2018. Strong impact of thermal environment on the quantitative genetic basis of a key stress tolerance trait. <em>Heredity</em> (Edinb). <a href="doi:10.1038/s41437-018-0117-7" class="uri">doi:10.1038/s41437-018-0117-7</a>
+</li>
+<li>Rohde PD, Krag K, Loeschcke V, Overgaard J, Sørensen P, Kristensen TN. 2016. A quantitative genomic approach for analysis of fitness and stress related traits in a Drosophila melanogaster model population. <em>Int J Genomics</em> 2016:1–11.</li>
+<li>Rohde PD, Demontis D, Cuyabano BCD, The GEMS Group, Børglum AD, Sørensen P. 2016. Covariance Association Test (CVAT) identify genetic markers associated with schizophrenia in functionally associated biological processes. <em>Genetics</em> 203:1901–1913. <a href="doi:10.1534/genetics.116.189498" class="uri">doi:10.1534/genetics.116.189498</a>
+</li>
+<li>Rohde PD, Gaertner B, Ward K, Sørensen P, Mackay TFC. 2017. Genomic analysis of genotype-by-social environment interaction for Drosophila melanogaster. <em>Genetics</em> 206:1969–1984. <a href="doi:10.1534/genetics.117.200642/-/DC1.1" class="uri">doi:10.1534/genetics.117.200642/-/DC1.1</a>
+</li>
+<li>Rohde PD, Østergaard S, Kristensen TN, Sørensen P, Loeschcke V, Mackay TFC, Sarup P. 2018. Functional validation of candidate genes detected by genomic feature models. <em>G3 Genes, Genomes, Genet</em> 8:1659–1668. <a href="doi:10.1534/g3.118.200082" class="uri">doi:10.1534/g3.118.200082</a>
+</li>
+<li>Sarup P, Jensen J, Ostersen T, Henryon M, Sørensen P. 2016. Increased prediction accuracy using a genomic feature model including prior information on quantitative trait locus regions in purebred Danish Duroc pigs. <em>BMC Genet</em> 17:11. <a href="doi:10.1186/s12863-015-0322-9" class="uri">doi:10.1186/s12863-015-0322-9</a>
+</li>
+<li>Sørensen P, de los Campos G, Morgante F, Mackay TFC, Sorensen D. 2015. Genetic control of environmental variation of two quantitative traits of drosophila melanogaster revealed by whole-genome sequencing. <em>Genetics</em> 201:487–497. <a href="doi:10.1534/genetics.115.180273" class="uri">doi:10.1534/genetics.115.180273</a>
+</li>
+<li>Sørensen IF, Edwards SM, Rohde PD, Sørensen P. 2017. Multiple trait covariance association test identifies gene ontology categories associated with chill coma recovery time in Drosophila melanogaster. <em>Sci Rep</em> 7:2413. <a href="doi:10.1038/s41598-017-02281-3" class="uri">doi:10.1038/s41598-017-02281-3</a>
+</li>
+</ol>
 </div>
 </div>
 </div>

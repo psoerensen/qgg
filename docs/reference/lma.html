@@ -81,7 +81,7 @@ conditionally on the estimated variance components." />
   <a href="../articles/qgg.html">Get started</a>
 </li>
 <li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">Functions</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -91,20 +91,20 @@ conditionally on the estimated variance components." />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
-    </li>
-    <li>
       <a href="../articles/Small_data_set_tutorial.html">Small data set tutorial</a>
     </li>
+    <li>
+      <a href="../articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
+    </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+<li>
   <a href="https://github.com/psoerensen/qgg">
     <span class="fa fa-github fa-lg"></span>
      
@@ -186,7 +186,7 @@ conditionally on the estimated variance components.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
+    <pre class="examples"><span class='co'># NOT RUN {</span>
 <span class='co'># Simulate data</span>
 <span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
         <span class='fu'>colnames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>))
@@ -202,36 +202,16 @@ conditionally on the estimated variance components.</p>
 <span class='no'>GRM</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
 
 <span class='co'># REML analyses and single marker association test</span>
-<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='fu'>list</span>(<span class='no'>GRM</span>), <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; [1] "Iteration:" "1"          "Theta:"     "2.32"       "2.06"      
-#&gt; [1] "Iteration:" "2"          "Theta:"     "4.58"       "3.26"      
-#&gt; [1] "Iteration:" "3"          "Theta:"     "8.62"       "4.11"      
-#&gt; [1] "Iteration:" "4"          "Theta:"     "14.29"      "3.51"      
-#&gt; [1] "Iteration:" "5"          "Theta:"     "18.77"      "2.01"      
-#&gt; [1] "Iteration:" "6"          "Theta:"     "19.92"      "1.51"      
-#&gt; [1] "Iteration:" "7"          "Theta:"     "19.95"      "1.49"      
-#&gt; [1] "Iteration:" "8"          "Theta:"     "19.95"      "1.49"      
-#&gt; [1] "Iteration:" "9"          "Theta:"     "19.95"      "1.49"      
-#&gt; [1] "Converged at Iteration:" "9"                      
-#&gt; [3] "Theta:"                  "19.95"                  
-#&gt; [5] "1.49"                   </div><div class='input'><span class='no'>maMLM</span> <span class='kw'>&lt;-</span> <span class='fu'>lma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fit</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
+<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='fu'>list</span>(<span class='no'>GRM</span>), <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
+<span class='no'>maMLM</span> <span class='kw'>&lt;-</span> <span class='fu'>lma</span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fit</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
 
 <span class='co'># Linear model analyses and single marker association test</span>
 <span class='no'>maLM</span> <span class='kw'>&lt;-</span> <span class='fu'>lma</span>(<span class='kw'>y</span><span class='kw'>=</span><span class='no'>y</span>,<span class='kw'>X</span><span class='kw'>=</span><span class='no'>X</span>,<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
 
-<span class='fu'>head</span>(<span class='no'>maMLM</span>)</div><div class='output co'>#&gt;        coef         se      stat            p
-#&gt; 1 0.8445505 0.01089616  53.49642 2.590646e-13
-#&gt; 2 1.1147945 0.01089616  93.21013 4.702692e-22
-#&gt; 3 1.1481673 0.01089616  98.87439 2.690363e-23
-#&gt; 4 1.1576590 0.01089616 100.51590 1.174501e-23
-#&gt; 5 0.9531069 0.01089616  68.13287 1.528413e-16
-#&gt; 6 0.9415806 0.01089616  66.49492 3.507963e-16</div><div class='input'><span class='fu'>head</span>(<span class='no'>maLM</span>)</div><div class='output co'>#&gt;           s        se      stat            p
-#&gt; 1 0.8044451 0.1049889  7.662191 2.830724e-14
-#&gt; 2 1.0958126 0.1013631 10.810764 1.631912e-26
-#&gt; 3 1.1258051 0.1005250 11.199255 2.804574e-28
-#&gt; 4 1.1703440 0.1002022 11.679818 1.549988e-30
-#&gt; 5 0.9553624 0.1022368  9.344605 2.381171e-20
-#&gt; 6 0.9332739 0.1025980  9.096417 2.192922e-19</div><div class='input'>
-</div></pre>
+<span class='fu'>head</span>(<span class='no'>maMLM</span>)
+<span class='fu'>head</span>(<span class='no'>maLM</span>)
+
+<span class='co'># }</span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

@@ -81,7 +81,7 @@ only once) is used in GREML and eigen value analyses and should be saved in Rdat
   <a href="../articles/qgg.html">Get started</a>
 </li>
 <li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">Functions</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -91,20 +91,20 @@ only once) is used in GREML and eigen value analyses and should be saved in Rdat
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
-    </li>
-    <li>
       <a href="../articles/Small_data_set_tutorial.html">Small data set tutorial</a>
     </li>
+    <li>
+      <a href="../articles/Prepare_Phenotype_Data_Starvation.html">Prepare Phenotype and Covariate Data</a>
+    </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="../news/index.html">Changelog</a>
+</li>
+<li>
   <a href="https://github.com/psoerensen/qgg">
     <span class="fa fa-github fa-lg"></span>
      
@@ -204,7 +204,7 @@ only once) is used in GREML and eigen value analyses and should be saved in Rdat
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
+    <pre class="examples"><span class='co'># NOT RUN {</span>
 <span class='co'># Simulate data</span>
 <span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
         <span class='fu'>colnames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>))
@@ -214,7 +214,8 @@ only once) is used in GREML and eigen value analyses and should be saved in Rdat
 <span class='no'>GRM</span> <span class='kw'>&lt;-</span> <span class='fu'>grm</span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
 
 <span class='co'># Eigen value decompostion GRM</span>
-<span class='no'>eig</span> <span class='kw'>&lt;-</span> <span class='fu'>grm</span>(<span class='kw'>GRM</span><span class='kw'>=</span><span class='no'>GRM</span>, <span class='kw'>task</span><span class='kw'>=</span><span class='st'>"eigen"</span>)</div><div class='output co'>#&gt; <span class='error'>Error in ncol(GRM): object 'GRM' not found</span></div></pre>
+<span class='no'>eig</span> <span class='kw'>&lt;-</span> <span class='fu'>grm</span>(<span class='kw'>GRM</span><span class='kw'>=</span><span class='no'>GRM</span>, <span class='kw'>task</span><span class='kw'>=</span><span class='st'>"eigen"</span>)
+<span class='co'># }</span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
