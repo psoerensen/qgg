@@ -25,6 +25,28 @@ The **qgg** package was developed based on the hypothesis that certain regions o
 * genomic prediction and genetic risk profiling  
 * single or multi-marker association analyses  
   
+**qgg** handles large-scale data by taking advantage of:  
+
+* fast and memory-efficient batch processing of genotype data stored in binary files (e.g. PLINK bedfiles)  
+* multi-core processing using openMP  
+* multithreaded matrix operations implemented in several BLAS libraries (e.g. OpenBLAS, ATLAS or MKL).  
+  
 The **qgg** package provides a range of genomic feature modeling approaches, including genomic feature best linear unbiased prediction (GFBLUP) models, implemented using likelihood or Bayesian methods. Multiple features and multiple traits can be included in these models and different genetic models (e.g. additive, dominance, gene by gene and gene by environment interactions) can be used. Further extensions include a weighted GFBLUP model using differential weighting of the individual genetic marker relationships. Marker set tests, which are computationally very fast, can be performed. These marker set tests allow the rapid analyses of different layers of genomic feature classes to discover genomic features potentially enriched for causal variants. Marker set tests can thus facilitate more accurate prediction models.
 
-#### References
+#### References  
+  
+Edwards, S. M., B. Thomsen, P. Madsen, and P. Sørensen, 2015 Partitioning of genomic variance reveals biological pathways associated with udder health and milk production traits in dairy cattle. Genet. Sel. Evol. 47: 60.  
+Edwards, S. M., B. Thomsen, P. Madsen, and P. Sørensen, 2015 Partitioning of genomic variance reveals biological pathways associated with udder health and milk production traits in dairy cattle. Genet. Sel. Evol. 47: 60.  
+Ehsani, A., L. Janss, D. Pomp, and P. Sørensen, 2015 Decomposing genomic variance using information from GWA, GWE and eQTL analysis. Anim. Genet. 47: 165–173.  
+Fang, L., G. Sahana, P. Ma, G. Su, Y. Yu et al., 2017 Exploring the genetic architecture and improving genomic prediction accuracy for mastitis and milk production traits in dairy cattle by mapping variants to hepatic transcriptomic regions responsive to intra-mammary infection. Genet. Sel. Evol. 49: 1–18.  
+Fang, L., G. Sahana, G. Su, Y. Yu, S. Zhang et al., 2017 Integrating sequence-based GWAS and RNA-seq provides novel insights into the genetic basis of mastitis and milk production in dairy cattle. Sci. Rep. 7: 45560.  
+Fang, L., P. Sørensen, G. Sahana, F. Panitz, G. Su et al., 2018 MicroRNA-guided prioritization of genome-wide association signals reveals the importance of microRNA-target gene networks for complex traits in cattle. Sci. Rep. 8: 1–14.  
+Ørsted, M., P. D. Rohde, A. A. Hoffmann, P. Sørensen, and T. N. Kristensen, 2017 Environmental variation partitioned into separate heritable components. Evolution (N. Y). 72: 136–152.  
+Ørsted, M., A. A. Hoffmann, P. D. Rohde, P. Sørensen, and T. N. Kristensen, 2018 Strong impact of thermal environment on the quantitative genetic basis of a key stress tolerance trait. Heredity (Edinb).  
+Rohde, P. D., K. Krag, V. Loeschcke, J. Overgaard, P. Sørensen et al., 2016 A quantitative genomic approach for analysis of fitness and stress related traits in a Drosophila melanogaster model population. Int. J. Genomics 2016: 1–11.  
+Rohde, P. D., D. Demontis, B. C. D. Cuyabano, The GEMS Group, A. D. Børglum et al., 2016 Covariance Association Test (CVAT) identify genetic markers associated with schizophrenia in functionally associated biological processes. Genetics 203: 1901–1913.  
+Rohde, P. D., B. Gaertner, K. Ward, P. Sørensen, and T. F. C. Mackay, 2017 Genomic analysis of genotype-by-social environment interaction for Drosophila melanogaster. Genetics 206: 1969–1984.  
+Rohde, P. D., S. Østergaard, T. N. Kristensen, P. Sørensen, V. Loeschcke et al., 2018 Functional validation of candidate genes detected by genomic feature models. G3 Genes, Genomes, Genet. 8: 1659–1668.  
+Sarup, P., J. Jensen, T. Ostersen, M. Henryon, and P. Sørensen, 2016 Increased prediction accuracy using a genomic feature model including prior information on quantitative trait locus regions in purebred Danish Duroc pigs. BMC Genet. 17: 11.  
+Sørensen, P., G. de los Campos, F. Morgante, T. F. C. Mackay, and D. Sorensen, 2015 Genetic control of environmental variation of two quantitative traits of drosophila melanogaster revealed by whole-genome sequencing. Genetics 201: 487–497.  
+Sørensen, I. F., S. M. Edwards, P. D. Rohde, and P. Sørensen, 2017 Multiple trait covariance association test identifies gene ontology categories associated with chill coma recovery time in Drosophila melanogaster. Sci. Rep. 7: 2413.  
