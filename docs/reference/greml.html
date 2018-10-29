@@ -145,7 +145,8 @@ Cross validation procedures for assessment of prediction accuracy and model sele
     <pre class="usage"><span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRMlist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>maxit</span> <span class='kw'>=</span> <span class='fl'>100</span>,
   <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>bin</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>wkdir</span> <span class='kw'>=</span> <span class='fu'>getwd</span>(),
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>makeplots</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>interface</span> <span class='kw'>=</span> <span class='st'>"R"</span>)</pre>
+  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>makeplots</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>interface</span> <span class='kw'>=</span> <span class='st'>"R"</span>, <span class='kw'>fm</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>data</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -179,8 +180,24 @@ Cross validation procedures for assessment of prediction accuracy and model sele
       <td><p>tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence</p></td>
     </tr>
     <tr>
+      <th>bin</th>
+      <td><p>is the directory for DMU binaries (dmu1 and dmuai1)</p></td>
+    </tr>
+    <tr>
       <th>ncores</th>
       <td><p>number of cores used for the analysis</p></td>
+    </tr>
+    <tr>
+      <th>fm</th>
+      <td><p>a formula with model statement for the linear mixed model</p></td>
+    </tr>
+    <tr>
+      <th>data</th>
+      <td><p>a data frame containing the phenotypic observations and fixed factors specified in the model statements</p></td>
+    </tr>
+    <tr>
+      <th>GRM</th>
+      <td><p>a list of relationship / correlation matrices corresponding to random effects specified in vfm</p></td>
     </tr>
     </table>
     
@@ -202,6 +219,9 @@ Cross validation procedures for assessment of prediction accuracy and model sele
 <dt>X</dt><dd><p>design matrix of fixed effects</p></dd>
 <dt>ids</dt><dd><p>vector of individuals used for the analysis</p></dd>
 <dt>yVy</dt><dd><p>product of y, variance-covariance matrix of y at convergence, and y</p></dd>
+<dt>f</dt><dd><p>list of predicted random effects</p></dd> 
+<dt>fitted</dt><dd><p>fitted values from linear mixed model fit</p></dd> 
+<dt>residuals</dt><dd><p>residuals from linear mixed model fit</p></dd>
 
     
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
@@ -210,7 +230,7 @@ Cross validation procedures for assessment of prediction accuracy and model sele
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
+    <pre class="examples"><span class='co'># NOT RUN {</span>
 <span class='co'># Simulate data</span>
 <span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
         <span class='fu'>colnames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>))
@@ -228,10 +248,10 @@ Cross validation procedures for assessment of prediction accuracy and model sele
 <span class='no'>setsGT</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>C1</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>10</span>], <span class='kw'>C2</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1001</span>:<span class='fl'>1010</span>], <span class='kw'>C3</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>10000</span>]) <span class='co'># true model</span>
 
 <span class='co'># Compute G</span>
-<span class='no'>G</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
-<span class='no'>GB</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGB</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
-<span class='no'>GF</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGF</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
-<span class='no'>GT</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGT</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
+<span class='no'>G</span> <span class='kw'>&lt;-</span> <span class='fu'>computeGRM</span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
+<span class='no'>GB</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGB</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
+<span class='no'>GF</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGF</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
+<span class='no'>GT</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGT</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
 
 <span class='co'># REML analyses</span>
 <span class='no'>fitGB</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GB</span>)
@@ -249,24 +269,18 @@ Cross validation procedures for assessment of prediction accuracy and model sele
 <span class='no'>cvGF</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GF</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='no'>validate</span>)
 <span class='no'>cvGT</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GT</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='no'>validate</span>)
 
-<span class='no'>cvGB</span>$<span class='no'>accuracy</span></div><div class='output co'>#&gt;    Corr    R2 Nagel R2 AUC intercept slope   MSPE
-#&gt; 1 0.315 0.099       NA  NA    -0.201 0.100 20.626
-#&gt; 2 0.359 0.129       NA  NA     0.039 0.135 18.964
-#&gt; 3 0.376 0.141       NA  NA    -0.183 0.144 17.888
-#&gt; 4 0.344 0.118       NA  NA     0.069 0.126 16.032
-#&gt; 5 0.376 0.141       NA  NA     0.045 0.133 16.630</div><div class='input'><span class='no'>cvGF</span>$<span class='no'>accuracy</span></div><div class='output co'>#&gt;    Corr    R2 Nagel R2 AUC intercept slope  MSPE
-#&gt; 1 0.886 0.784       NA  NA     0.157 0.727 5.043
-#&gt; 2 0.857 0.735       NA  NA     0.191 0.659 5.924
-#&gt; 3 0.837 0.700       NA  NA    -0.125 0.715 6.253
-#&gt; 4 0.832 0.693       NA  NA    -0.031 0.710 5.590
-#&gt; 5 0.840 0.705       NA  NA     0.008 0.672 5.738</div><div class='input'><span class='no'>cvGT</span>$<span class='no'>accuracy</span></div><div class='output co'>#&gt;    Corr    R2 Nagel R2 AUC intercept slope  MSPE
-#&gt; 1 0.978 0.957       NA  NA    -0.027 0.920 1.008
-#&gt; 2 0.980 0.961       NA  NA     0.005 0.943 0.861
-#&gt; 3 0.973 0.948       NA  NA    -0.136 0.939 1.108
-#&gt; 4 0.971 0.943       NA  NA    -0.129 0.958 1.054
-#&gt; 5 0.974 0.948       NA  NA     0.039 0.946 1.004</div><div class='input'>
+<span class='no'>cvGB</span>$<span class='no'>accuracy</span>
+<span class='no'>cvGF</span>$<span class='no'>accuracy</span>
+<span class='no'>cvGT</span>$<span class='no'>accuracy</span>
 
-</div></pre>
+
+<span class='co'># bin &lt;- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"</span>
+<span class='co'># data &lt;- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)</span>
+<span class='co'># fm &lt;- y ~ f + (1 | g~G) </span>
+<span class='co'># fit &lt;- greml(fm = fm, GRM = list(G=G), data = data, interface="DMU")</span>
+<span class='co'># str(fit)</span>
+
+<span class='co'># }</span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -289,7 +303,7 @@ Peter Soerensen
 
       <footer>
       <div class="copyright">
-  <p>Developed by Peter Soerensen.</p>
+  <p>Developed by Peter Soerensen, Palle Duun Rohde, Izel Fourie Soerensen.</p>
 </div>
 
 <div class="pkgdown">

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Multi marker association analysis based on marker set tests — mma • qgg</title>
+<title>Gene set enrichment analysis — gsea • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,10 +30,9 @@
 
 
 
-<meta property="og:title" content="Multi marker association analysis based on marker set tests — mma" />
+<meta property="og:title" content="Gene set enrichment analysis — gsea" />
 
-<meta property="og:description" content="Genetic marker set tests based on summing the single genetic marker test statistics.
-The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS." />
+<meta property="og:description" content="Function for different gene set enrichment analyses (genetic marker set tests) can be specified." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -120,20 +119,19 @@ The single marker test statistics can be obtained from GBLUP and GFBLUP model fi
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Multi marker association analysis based on marker set tests</h1>
+    <h1>Gene set enrichment analysis</h1>
     <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/multiple_marker_set_test.R'><code>R/multiple_marker_set_test.R</code></a></small>
-    <div class="hidden name"><code>mma.Rd</code></div>
+    <div class="hidden name"><code>gsea.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Genetic marker set tests based on summing the single genetic marker test statistics.
-The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS.</p>
+    <p>Function for different gene set enrichment analyses (genetic marker set tests) can be specified.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>mma</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
-  <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"sum"</span>)</pre>
+    <pre class="usage"><span class='fu'>gsea</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>threshold</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"sum"</span>,
+  <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -147,16 +145,20 @@ The single marker test statistics can be obtained from GBLUP and GFBLUP model fi
       <td><p>list of marker sets - names corresponds to rownames in stat</p></td>
     </tr>
     <tr>
-      <th>ncores</th>
-      <td><p>number of cores</p></td>
+      <th>threshold</th>
+      <td><p>used if method = hyperG</p></td>
+    </tr>
+    <tr>
+      <th>method</th>
+      <td><p>including sum, cvat, hyperG, score</p></td>
     </tr>
     <tr>
       <th>nperm</th>
       <td><p>number of permutations</p></td>
     </tr>
     <tr>
-      <th>method</th>
-      <td><p>including sum, cvat, hyperG, score</p></td>
+      <th>ncores</th>
+      <td><p>number of cores</p></td>
     </tr>
     <tr>
       <th>W</th>
@@ -174,10 +176,6 @@ The single marker test statistics can be obtained from GBLUP and GFBLUP model fi
       <th>s</th>
       <td><p>vector (or list) of single marker effects obtained from a linear mixed model fit (GBLUP of GFBLUP)</p></td>
     </tr>
-    <tr>
-      <th>threshold</th>
-      <td><p>used if method = hyperG</p></td>
-    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
@@ -190,7 +188,9 @@ The single marker test statistics can be obtained from GBLUP and GFBLUP model fi
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>The sum test is powerful if the genomic feature harbors many genetic markers having small to moderate effects. 
+    <p>The sum test is based on summing the single genetic marker test statistics.
+The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS. 
+The sum test is powerful if the genomic feature harbors many genetic markers having small to moderate effects. 
 The distribution of this test statistic under the null hypothesis (associated markers are picked at random from the total 
 number of tested genetic markers) is difficult to describe in terms of exact or approximate 
 distributions, and an empirical distribution is required.
@@ -218,7 +218,7 @@ feature harbours genetic markers with large effects.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
+    <pre class="examples"><span class='co'># NOT RUN {</span>
 
  <span class='co'># Simulate data</span>
  <span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
@@ -231,34 +231,23 @@ feature harbours genetic markers with large effects.</p>
  <span class='no'>fm</span> <span class='kw'>&lt;-</span> <span class='no'>y</span> ~ <span class='fl'>0</span> + <span class='no'>mu</span>
  <span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'>model.matrix</span>(<span class='no'>fm</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>data</span>)
 
- <span class='co'># Compute GRM</span>
- <span class='no'>GRM</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='computeGRM.html'>computeGRM</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
+ <span class='co'># Single marker association analyses</span>
+ <span class='no'>ma</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='lma.html'>lma</a></span>(<span class='kw'>y</span><span class='kw'>=</span><span class='no'>y</span>,<span class='kw'>X</span><span class='kw'>=</span><span class='no'>X</span>,<span class='kw'>W</span><span class='kw'>=</span><span class='no'>W</span>)
 
- <span class='co'># REML analyses and single marker association test</span>
- <span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='greml.html'>greml</a></span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='fu'>list</span>(<span class='no'>GRM</span>), <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</div><div class='output co'>#&gt; [1] "Iteration:" "1"          "Theta:"     "2.25"       "2.01"      
-#&gt; [1] "Iteration:" "2"          "Theta:"     "4.4"        "3.2"       
-#&gt; [1] "Iteration:" "3"          "Theta:"     "8.2"        "4.12"      
-#&gt; [1] "Iteration:" "4"          "Theta:"     "13.45"      "3.69"      
-#&gt; [1] "Iteration:" "5"          "Theta:"     "17.53"      "2.36"      
-#&gt; [1] "Iteration:" "6"          "Theta:"     "18.59"      "1.87"      
-#&gt; [1] "Iteration:" "7"          "Theta:"     "18.64"      "1.84"      
-#&gt; [1] "Iteration:" "8"          "Theta:"     "18.64"      "1.84"      
-#&gt; [1] "Iteration:" "9"          "Theta:"     "18.64"      "1.84"      
-#&gt; [1] "Iteration:" "10"         "Theta:"     "18.64"      "1.84"      
-#&gt; [1] "Converged at Iteration:" "10"                     
-#&gt; [3] "Theta:"                  "18.64"                  
-#&gt; [5] "1.84"                   </div><div class='input'> <span class='no'>ma</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='mlma.html'>mlma</a></span>(<span class='kw'>fit</span> <span class='kw'>=</span> <span class='no'>fit</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
- <span class='no'>ma</span> <span class='kw'>&lt;-</span> <span class='fu'>as.matrix</span>(<span class='no'>ma</span>)
-
+ <span class='co'># Create marker sets</span>
  <span class='no'>f</span> <span class='kw'>&lt;-</span> <span class='fu'>factor</span>(<span class='fu'>rep</span>(<span class='fl'>1</span>:<span class='fl'>100</span>,<span class='kw'>each</span><span class='kw'>=</span><span class='fl'>100</span>), <span class='kw'>levels</span><span class='kw'>=</span><span class='fl'>1</span>:<span class='fl'>100</span>)
  <span class='no'>sets</span> <span class='kw'>&lt;-</span> <span class='fu'>split</span>(<span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fl'>10000</span>),<span class='kw'>f</span><span class='kw'>=</span><span class='no'>f</span>)
 
-<span class='co'># Set test based on sums </span>
-<span class='no'>res</span> <span class='kw'>&lt;-</span> <span class='fu'>mma</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='no'>ma</span>[,<span class='st'>"stat"</span>]**<span class='fl'>2</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>sets</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"sum"</span>, <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>10000</span>)</div><div class='output co'>#&gt; <span class='error'>Error in .Fortran("psets", m = as.integer(m), stat = as.double(stat),     nsets = as.integer(nsets), setstat = as.double(setstat),     msets = as.integer(msets), p = as.integer(rep(0, nsets)),     np = as.integer(np), ncores = as.integer(ncores), PACKAGE = "qgg"): "psets" not available for .Fortran() for package "qgg"</span></div><div class='input'>
+ <span class='co'># Set test based on sums </span>
+ <span class='no'>mma</span> <span class='kw'>&lt;-</span> <span class='fu'>gsea</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='no'>ma</span>[,<span class='st'>"stat"</span>]**<span class='fl'>2</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>sets</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"sum"</span>, <span class='kw'>nperm</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
+ <span class='fu'>head</span>(<span class='no'>mma</span>)
 
-<span class='co'># Set test based on hyperG </span>
-<span class='no'>res</span> <span class='kw'>&lt;-</span> <span class='fu'>mma</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='no'>ma</span>[,<span class='st'>"p"</span>], <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>sets</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"hyperG"</span>, <span class='kw'>threshold</span> <span class='kw'>=</span> <span class='fl'>0.05</span>)</div><div class='output co'>#&gt; <span class='error'>Error in mma(stat = ma[, "p"], sets = sets, method = "hyperG", threshold = 0.05): unused argument (threshold = 0.05)</span></div><div class='input'>
-</div></pre>
+ <span class='co'># Set test based on hyperG </span>
+ <span class='no'>mma</span> <span class='kw'>&lt;-</span> <span class='fu'>gsea</span>(<span class='kw'>stat</span> <span class='kw'>=</span> <span class='no'>ma</span>[,<span class='st'>"p"</span>], <span class='kw'>sets</span> <span class='kw'>=</span> <span class='no'>sets</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"hyperg"</span>, <span class='kw'>threshold</span> <span class='kw'>=</span> <span class='fl'>0.05</span>)
+ <span class='fu'>head</span>(<span class='no'>mma</span>)
+
+
+<span class='co'># }</span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -283,7 +272,7 @@ Peter Soerensen
 
       <footer>
       <div class="copyright">
-  <p>Developed by Peter Soerensen.</p>
+  <p>Developed by Peter Soerensen, Palle Duun Rohde, Izel Fourie Soerensen.</p>
 </div>
 
 <div class="pkgdown">

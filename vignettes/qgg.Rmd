@@ -15,6 +15,7 @@ You can install qgg from github with:
 ```{r gh-installation, eval = FALSE}
 # install.packages("devtools")
 library(devtools)
+options(devtools.install.args=" --no-multiargs")
 devtools::install_github("psoerensen/qgg")
 ```
 

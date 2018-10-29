@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Prepare genotype data for all statistical analyses (initial step) — prepG • qgg</title>
+<title>Prepare genotype data for all statistical analyses (initial step) — gprep • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,7 +30,7 @@
 
 
 
-<meta property="og:title" content="Prepare genotype data for all statistical analyses (initial step) — prepG" />
+<meta property="og:title" content="Prepare genotype data for all statistical analyses (initial step) — gprep" />
 
 <meta property="og:description" content="The processed genotypes are stored in a matrix W. 
 By default genotypes are allele counts of alternative allele which are centered and scaled.
@@ -134,7 +134,7 @@ the Glist interface." />
     <div class="page-header">
     <h1>Prepare genotype data for all statistical analyses (initial step)</h1>
     <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/compute_genotype_matrix.R'><code>R/compute_genotype_matrix.R</code></a></small>
-    <div class="hidden name"><code>prepG.Rd</code></div>
+    <div class="hidden name"><code>gprep.Rd</code></div>
     </div>
 
     <div class="ref-description">
@@ -156,7 +156,7 @@ the Glist interface.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>prepG</span>(<span class='kw'>study</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>fnRAW</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bedfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bimfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+    <pre class="usage"><span class='fu'>gprep</span>(<span class='kw'>study</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>fnRAW</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bedfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bimfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>famfiles</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
     
@@ -207,9 +207,11 @@ the Glist interface.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>#Glist <- prepG( bedfiles, bimfiles, study, path, additional arguments...)
+    <pre class="examples"># NOT RUN {
+#Glist <- gprep( bedfiles, bimfiles, study, path, additional arguments...)
 #W <- getW( Glist, ids, rsids, additional arguments...)
-</div></pre>
+# }
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -230,7 +232,7 @@ Peter Soerensen
 
       <footer>
       <div class="copyright">
-  <p>Developed by Peter Soerensen.</p>
+  <p>Developed by Peter Soerensen, Palle Duun Rohde, Izel Fourie Soerensen.</p>
 </div>
 
 <div class="pkgdown">

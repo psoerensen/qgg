@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute genomic relationship matrix (GRM) — computeGRM • qgg</title>
+<title>Computation or eigen value decompostion of a genomic relationship matrix (GRM) — grm • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Compute genomic relationship matrix (GRM) — computeGRM" />
+<meta property="og:title" content="Computation or eigen value decompostion of a genomic relationship matrix (GRM) — grm" />
 
-<meta property="og:description" content="A function for computing a genomic relationship matrix.
+<meta property="og:description" content="A function for computing or eigen value decompostion of a genomic relationship matrix
 The output of the computeGRM function is a GRMlist structure containing information 
 about the genotypes stored in a binary file on disk. The Glist structure (created
 only once) is used in GREML and eigen value analyses and should be saved in Rdata file" />
@@ -122,24 +122,24 @@ only once) is used in GREML and eigen value analyses and should be saved in Rdat
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute genomic relationship matrix (GRM)</h1>
+    <h1>Computation or eigen value decompostion of a genomic relationship matrix (GRM)</h1>
     <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/compute_grm.R'><code>R/compute_grm.R</code></a></small>
-    <div class="hidden name"><code>computeGRM.Rd</code></div>
+    <div class="hidden name"><code>grm.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>A function for computing a genomic relationship matrix.</p>
+    <p>A function for computing or eigen value decompostion of a genomic relationship matrix</p>
 <p>The output of the computeGRM function is a GRMlist structure containing information 
 about the genotypes stored in a binary file on disk. The Glist structure (created
 only once) is used in GREML and eigen value analyses and should be saved in Rdata file</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>computeGRM</span>(<span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rws</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"add"</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>fnG</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>returnGRM</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>miss</span> <span class='kw'>=</span> <span class='fl'>0</span>)</pre>
+    <pre class="usage"><span class='fu'>grm</span>(<span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRMlist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>rws</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"add"</span>,
+  <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>fnG</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>returnGRM</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>miss</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>task</span> <span class='kw'>=</span> <span class='st'>"grm"</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -192,6 +192,10 @@ only once) is used in GREML and eigen value analyses and should be saved in Rdat
       <th>miss</th>
       <td><p>is the missing code used for missing values in the genotype data</p></td>
     </tr>
+    <tr>
+      <th>task</th>
+      <td><p>computation (task="grm") or eigen value decompostion (task="eigen")</p></td>
+    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
@@ -199,6 +203,19 @@ only once) is used in GREML and eigen value analyses and should be saved in Rdat
     <p>Returns a GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk</p>
     
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><span class='co'># NOT RUN {</span>
+<span class='co'># Simulate data</span>
+<span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
+        <span class='fu'>colnames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>))
+        <span class='fu'>rownames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>nrow</span>(<span class='no'>W</span>))
+
+<span class='co'># Compute GRM</span>
+<span class='no'>GRM</span> <span class='kw'>&lt;-</span> <span class='fu'>grm</span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
+
+<span class='co'># Eigen value decompostion GRM</span>
+<span class='no'>eig</span> <span class='kw'>&lt;-</span> <span class='fu'>grm</span>(<span class='kw'>GRM</span><span class='kw'>=</span><span class='no'>GRM</span>, <span class='kw'>task</span><span class='kw'>=</span><span class='st'>"eigen"</span>)
+<span class='co'># }</span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -206,7 +223,9 @@ only once) is used in GREML and eigen value analyses and should be saved in Rdat
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
-          </ul>
+      
+      <li><a href="#examples">Examples</a></li>
+    </ul>
 
     <h2>Author</h2>
     
@@ -217,7 +236,7 @@ Peter Soerensen
 
       <footer>
       <div class="copyright">
-  <p>Developed by Peter Soerensen.</p>
+  <p>Developed by Peter Soerensen, Palle Duun Rohde, Izel Fourie Soerensen.</p>
 </div>
 
 <div class="pkgdown">
