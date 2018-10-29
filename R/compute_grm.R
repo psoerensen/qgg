@@ -2,14 +2,14 @@
 # compute GRM functions
 #######################################################################################
 #'
-#' Computation or eigen value decompostion of a genomic relationship matrix (GRM)
+#' Computation of a genomic relationship matrix (GRM)
 #'
 #' @description
-#' A function for computing or eigen value decompostion of a genomic relationship matrix 
-#'
-#' The output of the computeGRM function is a GRMlist structure containing information 
-#' about the genotypes stored in a binary file on disk. The Glist structure (created
-#' only once) is used in GREML and eigen value analyses and should be saved in Rdata file
+#' Computation of a genomic relationship matrix (GRM). 
+#' The output of the grm function is a GRM or a GRMlist list structure containing information 
+#' about the genotypes stored in a binary file on disk. The Glist list structure (created
+#' only once) is used by the greml function for estimation of variance components 
+#' and should be saved in Rdata file.
 #' 
 #' 
 #' @param Glist a list providing information about genotypes stored on disk 
@@ -19,15 +19,15 @@
 #' @param cls columns in genotype matrix used for computing GRM
 #' @param W matrix of centered and scaled genotypes 
 #' @param method used for computing GRM including additive, dominance or epistasis
-#' @param msize number of markers used for block processing of genotypes for large data
+#' @param msize number of markers used for batch processing of genotypes for large data
 #' @param fnG name of the binary file used for storing the GRM on disk
 #' @param overwrite logical if TRUE the binary file fnG will be overwritten
-#' @param returnGRM logical if TRUE function returns the GRM matrix  
-#' @param miss is the missing code used for missing values in the genotype data
-#' @param task computation (task="grm") or eigen value decompostion (task="eigen")
+#' @param returnGRM logical if TRUE function returns the GRM matrix to the R environment  
+#' @param miss is the missing code (miss=0 is default) used for missing values in the genotype data
+#' @param task computation (task="grm" is default) or eigen value decompostion (task="eigen")
 #' 
 #' 
-#' @return Returns a GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
+#' @return Returns a genormic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
 
 #' @author Peter Soerensen
 

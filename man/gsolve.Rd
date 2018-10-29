@@ -26,9 +26,18 @@ gsolve(y = NULL, X = NULL, Glist = NULL, ids = NULL, rsids = NULL,
 \item{tol}{tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence}
 
 \item{ncores}{number of cores}
+
+\item{W}{matrix of centered and scaled genotypes}
 }
 \description{
-Function for genomic predictions based on solving linear mixed model equations
+Genomic predictions based on solving linear mixed model equations.
+
+The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
+Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
+genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
+Different genetic models (e.g. additive and non-additive) can be specified.
 }
 \author{
 Peter Soerensen

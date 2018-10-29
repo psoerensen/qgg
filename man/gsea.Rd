@@ -8,11 +8,11 @@ gsea(stat = NULL, sets = NULL, threshold = 0.05, method = "sum",
   nperm = 1000, ncores = 1)
 }
 \arguments{
-\item{stat}{vector of single marker statistics (e.g. marker effects, t-stat, p-values)}
+\item{stat}{vector or matrix of single marker statistics (e.g. marker effects, t-stat, p-values)}
 
 \item{sets}{list of marker sets - names corresponds to rownames in stat}
 
-\item{threshold}{used if method = hyperG}
+\item{threshold}{used if method='hyperG' (threshold=0.05 is deafult)}
 
 \item{method}{including sum, cvat, hyperG, score}
 
@@ -24,42 +24,43 @@ gsea(stat = NULL, sets = NULL, threshold = 0.05, method = "sum",
 
 \item{fit}{is the fit object obtained from a linear mixed model fit using the greml function}
 
-\item{g}{vector (or list) of genetic effects obtained from a linear mixed model fit (GBLUP of GFBLUP)}
+\item{g}{vector (or matrix) of genetic effects obtained from a linear mixed model fit (GBLUP of GFBLUP)}
 
 \item{s}{vector (or list) of single marker effects obtained from a linear mixed model fit (GBLUP of GFBLUP)}
 }
 \value{
-Returns a dataframe including 
-\item{setT}{marker set test statistics} 
-\item{nset}{number of markers in the set}
+Returns a dataframe or a list including 
+\item{stat}{marker set test statistics} 
+\item{m}{number of markers in the set}
 \item{p}{p-value for marker set}
 }
 \description{
-Function for different gene set enrichment analyses (genetic marker set tests) can be specified.
+Gene set enrichment analyses (i.e. genetic marker set tests) used a range of methods.
+
+The general procedure is to obtain single marker effects, from which it is possible to compute and 
+evaluate a test statistic for a set of genetic markers, measuring the degree of association 
+between the marker set and the phenotype. This includes the statistical model 
+and the underlying assumptions, test statistics for the set of genetic markers, 
+and statistical procedures for assessing the statistical significance of the observed 
+test statistic under a specific null hypothesis.
 }
 \details{
 The sum test is based on summing the single genetic marker test statistics.
-The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from standard GWAS. 
+The single marker test statistics can be obtained from GBLUP and GFBLUP model fits or from single marker association models such mlma or lma. 
 The sum test is powerful if the genomic feature harbors many genetic markers having small to moderate effects. 
-The distribution of this test statistic under the null hypothesis (associated markers are picked at random from the total 
-number of tested genetic markers) is difficult to describe in terms of exact or approximate 
 distributions, and an empirical distribution is required.
 Genetic marker set tests based on the covariance statistics for a set of genetic markers.
 The covariance test statistic is derived from a GBLUP (or GFBLUP) model fit. It is a measure of covariance between the total genomic effect for all markers 
 and the genomic effect for the genetic markers in the genomic feature. It also relates to the explained sums of
 squares for the genetic markers. 
-The distribution of these test statistics under the null hypothesis is difficult to describe in terms of exact or approximate 
-distributions, and an empirical distribution is required.
+The distribution of this test statistic under the null hypothesis (associated markers are picked at random from the total 
+number of tested genetic markers) is difficult to describe in terms of exact or approximate 
 Genetic marker set tests based on the hyperG test statistics for a set of genetic markers.
 The hyperG marker set test tests a predefined set of markers (i.e. those within a particular genomic feature)
 for an association with the trait phenotype.
 Under the null hypothesis (associated markers are picked at random from the total number of tested 
 genetic markers) it is assumed that the observed count statistic is a realization from a hypergeometric 
 distribution.
-This hypothesis can be formulated and tested in a number of ways. Here we consider a test statistic based 
-on counting the number of genetic markers in the feature that are associated to trait phenotype. 
-A test based on the count test statistic is likely to have high power to detect association if the genomic 
-feature harbours genetic markers with large effects.
 }
 \examples{
 
@@ -91,11 +92,6 @@ feature harbours genetic markers with large effects.
  head(mma)
  
  
-}
-\references{
-Rohde, P. D., Demontis, D., Cuyabano, B. C. D., Boerglum, A. D., & Soerensen, P. (2016). Covariance Association Test (CVAT) Identifies Genetic Markers Associated with Schizophrenia in Functionally Associated Biological Processes. Genetics, 203(4), 1901-1913.
-
-Rohde, P. D., Edwards S. M., Sarup P., Soerensen, P. (August, 2014). Gene-based Association Approach Identify Genes Across Stress Traits in Fruit Flies. Poster presented at the 10th World Congress of Genetics Applied to Livestock Production (WCGALP), Vancouver, Canada.
 }
 \author{
 Peter Soerensen

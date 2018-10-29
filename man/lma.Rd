@@ -9,27 +9,50 @@ lma(y = NULL, X = NULL, W = NULL, Glist = NULL, fit = NULL,
   scaled = TRUE)
 }
 \arguments{
+\item{y}{vector or matrix of phenotypes}
+
+\item{X}{design matrix for factors modeled as fixed effects}
+
 \item{W}{matrix of centered and scaled genotypes (n x m)}
+
+\item{Glist}{list of information about genotype matrix}
 
 \item{fit}{list of information about linear mixed model fit (output from greml)}
 
-\item{statistic}{is the single marker test statistic used. Currently it is base don the "mastor" statistics.}
+\item{statistic}{is the single marker test statistic used. Currently it is based on the "mastor" statistics.}
 
-\item{m}{is the total number of markers in W}
+\item{ids}{vector of individuals used in the analysis}
+
+\item{rsids}{vector marker rsids used in the analysis}
 }
 \value{
-Returns a dataframe including 
+Returns a dataframe (if number of traits = 1) else a list including 
 \item{coef}{single marker coefficients} 
 \item{se}{standard error of coefficients}
 \item{stat}{single marker test statistic}
 \item{p}{p-value}
 }
 \description{
-Marker test using mixed linear model analyses (mlma) are used to test for an association of single markers with a phenotype.
+Single marker association tests based on (mixed) linear model analyses (mlma) or a standard linear model analyses (lma).  
 
-Linear mixed model single marker association (LMMA) statistics are based on an approximate method.
-It is a two step procedure. In the first step variance components are estimated and in the second step single marker effects are estimated
-conditionally on the estimated variance components.
+The basic approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide sample structure, 
+2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
+(with or without additional fixed effects) and 3) computing association statistics that account for this component 
+of phenotypic variance.
+}
+\details{
+MLMA methods are the method of choice when conducting association mapping in the presence of sample structure, 
+including geographic population structure, family relatedness and/or cryptic relatedness. 
+MLMA methods prevent false positive associations and increase power. 
+General recommendation using MLMA: It is recommend to exclude candidate markers from the GRM in preference to 
+including them. This approach can be efficiently implemented via a leave-one-chromosome-out analysis. 
+It is recommend that analyses of randomly ascertained quantitative traits should generally include all markers 
+(except for the candidate marker and markers in LD with the candidate marker) in the GRM, except as follows. 
+First, the set of markers included in the GRM can be pruned by LD to reduce running time (with association statistics 
+still computed for all markers). Second, genome-wide significant markers of large effect should be conditioned 
+out as fixed effects or as an additional random effect (if a large number of associated markers). 
+Third, when population stratification is less of a concern, it may be useful using the top associated markers 
+selected on the basis of the global maximum from out-of sample prediction accuracy.
 }
 \examples{
 
@@ -47,8 +70,10 @@ X <- model.matrix(fm, data = data)
 # Compute GRM
 GRM <- grm(W = W)
 
-# REML analyses and single marker association test
+# Estimate variance components using REML analysis
 fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
+
+# Single marker association test
 maMLM <- lma(fit = fit, W = W)
 
 # Linear model analyses and single marker association test

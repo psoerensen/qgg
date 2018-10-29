@@ -2,7 +2,7 @@
 % Please edit documentation in R/compute_grm.R
 \name{grm}
 \alias{grm}
-\title{Computation or eigen value decompostion of a genomic relationship matrix (GRM)}
+\title{Computation of a genomic relationship matrix (GRM)}
 \usage{
 grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
   rws = NULL, cls = NULL, W = NULL, method = "add", scaled = TRUE,
@@ -24,27 +24,27 @@ grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
 
 \item{method}{used for computing GRM including additive, dominance or epistasis}
 
-\item{msize}{number of markers used for block processing of genotypes for large data}
+\item{msize}{number of markers used for batch processing of genotypes for large data}
 
 \item{fnG}{name of the binary file used for storing the GRM on disk}
 
 \item{overwrite}{logical if TRUE the binary file fnG will be overwritten}
 
-\item{returnGRM}{logical if TRUE function returns the GRM matrix}
+\item{returnGRM}{logical if TRUE function returns the GRM matrix to the R environment}
 
-\item{miss}{is the missing code used for missing values in the genotype data}
+\item{miss}{is the missing code (miss=0 is default) used for missing values in the genotype data}
 
-\item{task}{computation (task="grm") or eigen value decompostion (task="eigen")}
+\item{task}{computation (task="grm" is default) or eigen value decompostion (task="eigen")}
 }
 \value{
-Returns a GRM if returnGRM=TRUE or else a list structure (GRMlist) with information about the GRM  stored on disk
+Returns a genormic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
 }
 \description{
-A function for computing or eigen value decompostion of a genomic relationship matrix 
-
-The output of the computeGRM function is a GRMlist structure containing information 
-about the genotypes stored in a binary file on disk. The Glist structure (created
-only once) is used in GREML and eigen value analyses and should be saved in Rdata file
+Computation of a genomic relationship matrix (GRM). 
+The output of the grm function is a GRM or a GRMlist list structure containing information 
+about the genotypes stored in a binary file on disk. The Glist list structure (created
+only once) is used by the greml function for estimation of variance components 
+and should be saved in Rdata file.
 }
 \examples{
 
