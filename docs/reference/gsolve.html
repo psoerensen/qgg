@@ -32,7 +32,16 @@
 
 <meta property="og:title" content="Genomic prediction based on fitting a linear mixed model — gsolve" />
 
-<meta property="og:description" content="Function for genomic predictions based on solving linear mixed model equations" />
+<meta property="og:description" content="Solving linear mixed model equations.
+The algorithm used to solve the equation system is based on a matrix-free Gauss-Seidel (GS) method. 
+The implementation of GS used is a matrix-free version based on adjustment of the residuals, 
+where the cost of GS was less dependent on the number of equations (fixed and random effects) in 
+the system.  
+The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
+Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
+genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -126,7 +135,16 @@
 
     <div class="ref-description">
     
-    <p>Function for genomic predictions based on solving linear mixed model equations</p>
+    <p>Solving linear mixed model equations.</p>
+<p>The algorithm used to solve the equation system is based on a matrix-free Gauss-Seidel (GS) method. 
+The implementation of GS used is a matrix-free version based on adjustment of the residuals, 
+where the cost of GS was less dependent on the number of equations (fixed and random effects) in 
+the system.</p>  
+<p>The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
+Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
+genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights.</p>
     
     </div>
 
@@ -173,15 +191,42 @@
       <th>ncores</th>
       <td><p>number of cores</p></td>
     </tr>
+    <tr>
+      <th>W</th>
+      <td><p>matrix of centered and scaled genotypes</p></td>
+    </tr>
     </table>
     
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><span class='co'># NOT RUN {</span>
+<span class='co'># Simulate data</span>
+<span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
+        <span class='fu'>colnames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>))
+        <span class='fu'>rownames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>nrow</span>(<span class='no'>W</span>))
+<span class='no'>y</span> <span class='kw'>&lt;-</span> <span class='fu'>rowSums</span>(<span class='no'>W</span>[, <span class='fl'>1</span>:<span class='fl'>10</span>]) + <span class='fu'>rowSums</span>(<span class='no'>W</span>[, <span class='fl'>1001</span>:<span class='fl'>1010</span>]) + <span class='fu'>rnorm</span>(<span class='fu'>nrow</span>(<span class='no'>W</span>))
+
+<span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'>model.matrix</span>(<span class='no'>y</span>~<span class='fl'>1</span>)
+
+<span class='no'>Sg</span> <span class='kw'>&lt;-</span> <span class='fl'>50</span>
+<span class='no'>Se</span> <span class='kw'>&lt;-</span> <span class='fl'>50</span>
+<span class='no'>h2</span> <span class='kw'>&lt;-</span> <span class='no'>Sg</span>/(<span class='no'>Sg</span>+<span class='no'>Se</span>)
+<span class='no'>lambda</span> <span class='kw'>&lt;-</span> <span class='no'>Se</span>/(<span class='no'>Sg</span>/<span class='no'>m</span>)
+<span class='no'>lambda</span> <span class='kw'>&lt;-</span> <span class='no'>m</span>*(<span class='fl'>1</span>-<span class='no'>h2</span>)/<span class='no'>h2</span>
+
+<span class='co'># BLUP of single marker effects and total genomic effects based on Gauss-Seidel procedure</span>
+<span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>gsolve</span>( <span class='kw'>y</span><span class='kw'>=</span><span class='no'>y</span>, <span class='kw'>X</span><span class='kw'>=</span><span class='no'>X</span>, <span class='kw'>W</span><span class='kw'>=</span><span class='no'>W</span>, <span class='kw'>lambda</span><span class='kw'>=</span><span class='no'>lambda</span>)
+
+
+<span class='co'># }</span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-                </ul>
+            
+      <li><a href="#examples">Examples</a></li>
+    </ul>
 
     <h2>Author</h2>
     

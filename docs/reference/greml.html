@@ -32,13 +32,16 @@
 
 <meta property="og:title" content="Genomic REML analysis — greml" />
 
-<meta property="og:description" content="Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML)
-These parameters can be estimated based on a genomic relationship matrix (GRM) constructed using genome-wide genetic markers.
-Multiple random effects can be fitted in the models in addition to other factors modeled as fixed effects
-The GRM's can be accessed from the R environment or from binary files stored on disk fascilitating analyses of large data sets.
-First and second derivatives of log-likehood can be obtained in addition to asymtotic standard deviation of parameter estimates. 
-Predicted random effects and single marker effects and statistics can be obtained. Covariance decomposition procedures. 
-Cross validation procedures for assessment of prediction accuracy and model selection." />
+<meta property="og:description" content="Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML) 
+and prediction of genomic predisposition using BLUP.
+The steps involved in the linear mixed model analyses, 1) computation of genomic relationship matrices (GRM), 
+2) estimation of variance component parameters in the model, and 3) prediction of genetic predisposition or phenotypes.
+The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
+Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
+genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
+Different genetic models (e.g. additive and non-additive) can be specified." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -132,13 +135,16 @@ Cross validation procedures for assessment of prediction accuracy and model sele
 
     <div class="ref-description">
     
-    <p>Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML)
-These parameters can be estimated based on a genomic relationship matrix (GRM) constructed using genome-wide genetic markers.
-Multiple random effects can be fitted in the models in addition to other factors modeled as fixed effects
-The GRM's can be accessed from the R environment or from binary files stored on disk fascilitating analyses of large data sets.</p>
-<p>First and second derivatives of log-likehood can be obtained in addition to asymtotic standard deviation of parameter estimates. 
-Predicted random effects and single marker effects and statistics can be obtained. Covariance decomposition procedures. 
-Cross validation procedures for assessment of prediction accuracy and model selection.</p>
+    <p>Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML) 
+and prediction of genomic predisposition using BLUP.</p>
+<p>The steps involved in the linear mixed model analyses, 1) computation of genomic relationship matrices (GRM), 
+2) estimation of variance component parameters in the model, and 3) prediction of genetic predisposition or phenotypes.</p>
+<p>The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
+Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
+genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
+Different genetic models (e.g. additive and non-additive) can be specified.</p>
     
     </div>
 
@@ -153,11 +159,11 @@ Cross validation procedures for assessment of prediction accuracy and model sele
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>y</th>
-      <td><p>vector of phenotypes</p></td>
+      <td><p>vector or matrix of phenotypes</p></td>
     </tr>
     <tr>
       <th>X</th>
-      <td><p>design matrix of factors modeled as fixed effects</p></td>
+      <td><p>design matrix for factors modeled as fixed effects</p></td>
     </tr>
     <tr>
       <th>GRMlist</th>
@@ -181,11 +187,15 @@ Cross validation procedures for assessment of prediction accuracy and model sele
     </tr>
     <tr>
       <th>bin</th>
-      <td><p>is the directory for DMU binaries (dmu1 and dmuai1)</p></td>
+      <td><p>is the directory for fortrna binaries (dmu1 and dmuai1)</p></td>
     </tr>
     <tr>
       <th>ncores</th>
       <td><p>number of cores used for the analysis</p></td>
+    </tr>
+    <tr>
+      <th>interface</th>
+      <td><p>used linking to external executable fortran binaries (e.g. dmu1 and dmuai1)</p></td>
     </tr>
     <tr>
       <th>fm</th>
@@ -195,15 +205,11 @@ Cross validation procedures for assessment of prediction accuracy and model sele
       <th>data</th>
       <td><p>a data frame containing the phenotypic observations and fixed factors specified in the model statements</p></td>
     </tr>
-    <tr>
-      <th>GRM</th>
-      <td><p>a list of relationship / correlation matrices corresponding to random effects specified in vfm</p></td>
-    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Returns a list structure, fit, including</p>
+    <p>Returns a list structure including</p>
 <dt>llik</dt><dd><p>log-likelihood at convergence</p></dd>
 <dt>theta</dt><dd><p>initial values for reml estimation</p></dd>
 <dt>asd</dt><dd><p>asymptotic standard deviation</p></dd>
@@ -211,18 +217,14 @@ Cross validation procedures for assessment of prediction accuracy and model sele
 <dt>varb</dt><dd><p>vector of variances of fixed effect estimates</p></dd>
 <dt>g</dt><dd><p>vector of random effect estimates</p></dd>
 <dt>e</dt><dd><p>vector of residual effects</p></dd>
-<dt>Vy</dt><dd><p>product of variance-covariance matrix of y at convergence and y</p></dd>
-<dt>Py</dt><dd><p>product of projection matrix of y and y</p></dd>
-<dt>trPG</dt><dd><p>trace of product of projection matrix of y and G</p></dd>
-<dt>trVG</dt><dd><p>trace of product of variance-covariance matrix of y at convergence and G</p></dd>
-<dt>y</dt><dd><p>vector of phenotypes</p></dd>
-<dt>X</dt><dd><p>design matrix of fixed effects</p></dd>
-<dt>ids</dt><dd><p>vector of individuals used for the analysis</p></dd>
-<dt>yVy</dt><dd><p>product of y, variance-covariance matrix of y at convergence, and y</p></dd>
-<dt>f</dt><dd><p>list of predicted random effects</p></dd> 
-<dt>fitted</dt><dd><p>fitted values from linear mixed model fit</p></dd> 
-<dt>residuals</dt><dd><p>residuals from linear mixed model fit</p></dd>
 
+    
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>The GRM's can be accessed from the R environment or from binary files stored on disk fascilitating analyses of 
+large data sets. First and second derivatives of log-likehood can be obtained in addition to asymtotic standard 
+deviation of parameter estimates. Predicted random effects and single marker effects and statistics can be obtained. 
+Covariance decomposition procedures. Cross validation procedures for assessment of prediction accuracy and model selection.</p>
     
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
@@ -242,13 +244,13 @@ Cross validation procedures for assessment of prediction accuracy and model sele
 <span class='no'>fm</span> <span class='kw'>&lt;-</span> <span class='no'>y</span> ~ <span class='fl'>0</span> + <span class='no'>mu</span>
 <span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'>model.matrix</span>(<span class='no'>fm</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>data</span>)
 
-<span class='co'># Create framework for lists</span>
+<span class='co'># Create marker sets</span>
 <span class='no'>setsGB</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>A</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)) <span class='co'># gblup model</span>
 <span class='no'>setsGF</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>C1</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>1000</span>], <span class='kw'>C2</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1001</span>:<span class='fl'>2000</span>], <span class='kw'>C3</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>2000</span>:<span class='fl'>10000</span>]) <span class='co'># gfblup model</span>
 <span class='no'>setsGT</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>C1</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>10</span>], <span class='kw'>C2</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1001</span>:<span class='fl'>1010</span>], <span class='kw'>C3</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>10000</span>]) <span class='co'># true model</span>
 
-<span class='co'># Compute G</span>
-<span class='no'>G</span> <span class='kw'>&lt;-</span> <span class='fu'>computeGRM</span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
+<span class='co'># Compute GRM</span>
+<span class='no'>G</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
 <span class='no'>GB</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGB</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
 <span class='no'>GF</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGF</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
 <span class='no'>GT</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGT</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
@@ -277,7 +279,7 @@ Cross validation procedures for assessment of prediction accuracy and model sele
 <span class='co'># bin &lt;- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"</span>
 <span class='co'># data &lt;- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)</span>
 <span class='co'># fm &lt;- y ~ f + (1 | g~G) </span>
-<span class='co'># fit &lt;- greml(fm = fm, GRM = list(G=G), data = data, interface="DMU")</span>
+<span class='co'># fit &lt;- greml(fm = list(fm), GRM = list(G=G), data = data, interface="DMU")</span>
 <span class='co'># str(fit)</span>
 
 <span class='co'># }</span></pre>
@@ -288,6 +290,8 @@ Cross validation procedures for assessment of prediction accuracy and model sele
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
+
+      <li><a href="#details">Details</a></li>
 
       <li><a href="#references">References</a></li>
       
