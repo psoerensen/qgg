@@ -22,8 +22,8 @@ devtools::install_github("psoerensen/qgg")
 
 ## Small data set tutorial
 
-This is a very detailed tutorial taking you all the way from getting and cleaning the data to linear mixed model analysis. It shows how to use **qgg** for the construction of a genomic relationship matrix, genomic best linear unbiased prediction (GBLUP), genomic feature BLUP analyses, and set tests.
-
+This is a very detailed tutorial taking you all the way from getting and cleaning the data to linear mixed model analysis. It shows how to use **qgg** for the construction of a genomic relationship matrix, genomic best linear unbiased prediction (GBLUP), genomic feature BLUP analyses, and set tests.  
+  
 The analyses are performed on publicly available data on the [Drosophila genetics reference panel](http://dgrp2.gnets.ncsu.edu/).  Here are links to the different steps used for the analyses of this small scale data set.  
 
 * [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html)  
