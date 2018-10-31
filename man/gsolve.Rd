@@ -4,9 +4,10 @@
 \alias{gsolve}
 \title{Genomic prediction based on fitting a linear mixed model}
 \usage{
-gsolve(y = NULL, X = NULL, Glist = NULL, ids = NULL, rsids = NULL,
-  sets = NULL, scaled = TRUE, lambda = NULL, weights = FALSE,
-  maxit = 500, tol = 1e-05, ncores = 1)
+gsolve(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL,
+  rsids = NULL, sets = NULL, validate = NULL, scaled = TRUE,
+  lambda = NULL, weights = FALSE, maxit = 500, tol = 1e-05,
+  method = "gsru", ncores = 1)
 }
 \arguments{
 \item{y}{vector or matrix of phenotypes}
@@ -15,19 +16,19 @@ gsolve(y = NULL, X = NULL, Glist = NULL, ids = NULL, rsids = NULL,
 
 \item{Glist}{list of information about genotype matrix}
 
+\item{W}{matrix of centered and scaled genotypes}
+
 \item{ids}{vector of individuals used in the analysis}
 
 \item{rsids}{vector marker rsids used in the analysis}
 
 \item{lambda}{vector of single marker weights used in BLUP}
 
-\item{maxit}{maximum number of iterations of reml analysis}
+\item{maxit}{maximum number of iterations of in the Gauss-Seidel procedure}
 
 \item{tol}{tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence}
 
 \item{ncores}{number of cores}
-
-\item{W}{matrix of centered and scaled genotypes}
 }
 \description{
 Solving linear mixed model equations. 
@@ -49,7 +50,9 @@ genetic markers in different sets as fixed or random effects and by specifying i
 W <- matrix(rnorm(20000000), ncol = 10000)
 	colnames(W) <- as.character(1:ncol(W))
 	rownames(W) <- as.character(1:nrow(W))
-y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
+m <- ncol(W)
+causal <- sample(1:ncol(W),50)     
+y <- rowSums(W[,causal]) + rnorm(nrow(W),sd=sqrt(50)) 
 
 X <- model.matrix(y~1)
 
@@ -61,6 +64,7 @@ lambda <- m*(1-h2)/h2
 
 # BLUP of single marker effects and total genomic effects based on Gauss-Seidel procedure
 fit <- gsolve( y=y, X=X, W=W, lambda=lambda)
+plotgs(fit=fit,sets=causal)
 
 
 }
