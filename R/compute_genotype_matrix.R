@@ -5,22 +5,24 @@
 #' Prepare genotype data for all statistical analyses (initial step) 
 #'
 #' @description
-#' The processed genotypes are stored in a matrix W. 
-#' By default genotypes are allele counts of alternative allele which are centered and scaled. 
+#' The gprep function prepares a socalled Glist structure providing information about the 
+#' genotype data used in downstream analyses.
 #' 
-#' Currently the raw genotype format supported is plink bed/bim/fam files. 
-#' To fascilitate a simple and common interface for using raw genotypes we prepare a Glist structure 
-#' which contains information about the raw and processed genotypes. 
-#' Glist is obtained using the prepG function based on plink bed/bim/fam files.
-#' The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
-#' By default the W matrix is stored in a binary file (n*m*4 bytes).
-#' Information about the processed genotype matrix W is provided in a Glist structure. 
+#' The genotypes are allele counts of the alternative allele stored as a matrix in a 
+#' binary file (PLINK bedfile format, memory usage = (n x m)/4 bytes, where n is the number of 
+#' individuals and m is the number of genotypes markers). 
 #' 
-#' The output of the prepG functions is a Glist structure containing information 
-#' about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
-#' for downstream analyses. Most users do not use this directly. Furthermore this structure 
-#' also allow us to change the underlying data structures without apparent changes in 
-#' the Glist interface.  
+#' The Glist structure provides an infrastructure for efficient processing of large-scale genetic 
+#' data and is used as input parameter for a number of qgg core functions for 1) fitting linear 
+#' mixed models (gsolve), 2) construction and eigen-value decomposition of genomic relationship 
+#' matrices (grm), 3) estimating genetic parameters such heritability and correlation (greml), 
+#' 4) genomic prediction and genetic risk profiling (gsolve and gscore), and 5) single or 
+#' multi-marker association analyses (lma and gsea).
+#' 
+#' Glist is typically only prepared once and then saved in an Rdata file. It can then at a later 
+#' stage be loaded into R and used as input parameter in the qgg functions fascilitating 
+#' batch processing of genotypes without having to load all genotypes into memory.  
+#'  
 #' 
 #' @param study name of the study
 #' @param fnRAW name of binary file used for storing genotypes on disk
@@ -48,7 +50,7 @@
 #' @export
 #'
 
-gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=TRUE, ncores=1){
+gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=FALSE, ncores=1){
      
      nfiles <- length(bedfiles)
       
