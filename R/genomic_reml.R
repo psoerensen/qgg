@@ -103,7 +103,7 @@
 #' # bin <- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"
 #' # data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
 #' # fm <- y ~ f + (1 | g~G) 
-#' # fit <- greml(fm = fm, GRM = list(G=G), data = data, interface="DMU")
+#' # fit <- greml(fm = list(fm), GRM = list(G=G), data = data, interface="DMU")
 #' # str(fit)
 
 #' 

@@ -5,7 +5,7 @@
 #' Gene set enrichment analysis
 #'
 #' @description
-#' Gene set enrichment analyses (i.e. genetic marker set tests) used a range of methods.
+#' Gene set enrichment analyses (i.e. genetic marker set tests) using a range of methods.
 #' 
 #' The general procedure is to obtain single marker effects, from which it is possible to compute and 
 #' evaluate a test statistic for a set of genetic markers, measuring the degree of association 
