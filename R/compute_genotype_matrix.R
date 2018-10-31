@@ -5,22 +5,16 @@
 #' Prepare genotype data for all statistical analyses (initial step) 
 #'
 #' @description
-#' The processed genotypes are stored in a matrix W. 
-#' By default genotypes are allele counts of alternative allele which are centered and scaled. 
+#' To fascilitate a simple and common interface for using large-scale genotype data we prepare 
+#' a socalled Glist structure providing information about the raw and processed genotypes. 
+#' The Glist structure is obtained using the gpred function based on plink bed/bim/fam files. 
+#' The Glist should be saved in an Rdata file and is used as input to several functions 
+#' (e.g. greml,grm,gsea,gscore,gsolve,lma) used for the statistical analyses implemented in qgg.
 #' 
-#' Currently the raw genotype format supported is plink bed/bim/fam files. 
-#' To fascilitate a simple and common interface for using raw genotypes we prepare a Glist structure 
-#' which contains information about the raw and processed genotypes. 
-#' Glist is obtained using the prepG function based on plink bed/bim/fam files.
-#' The genotype matrix, W, is too big to fit into memory and is therefore stored in a binary file.
-#' By default the W matrix is stored in a binary file (n*m*4 bytes).
-#' Information about the processed genotype matrix W is provided in a Glist structure. 
+#' The genotypes are allele counts of the alternative allele based on the PLINK bed file format. 
+#' Genotype data (i.e. genotype matrix) are stored in a binary file (nxm/4 bytes, 
+#' n is the number of individuals and m is the number of genotypes markers).
 #' 
-#' The output of the prepG functions is a Glist structure containing information 
-#' about the genotype matrix W used in downstream analyses. This should be saved in Rdata file and used 
-#' for downstream analyses. Most users do not use this directly. Furthermore this structure 
-#' also allow us to change the underlying data structures without apparent changes in 
-#' the Glist interface.  
 #' 
 #' @param study name of the study
 #' @param fnRAW name of binary file used for storing genotypes on disk
@@ -48,7 +42,7 @@
 #' @export
 #'
 
-gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=TRUE, ncores=1){
+gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=FALSE, ncores=1){
      
      nfiles <- length(bedfiles)
       

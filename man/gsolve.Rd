@@ -30,14 +30,39 @@ gsolve(y = NULL, X = NULL, Glist = NULL, ids = NULL, rsids = NULL,
 \item{W}{matrix of centered and scaled genotypes}
 }
 \description{
-Genomic predictions based on solving linear mixed model equations.
+Solving linear mixed model equations. 
 
+The algorithm used to solve the equation system is based on a matrix-free Gauss-Seidel (GS) method. 
+The implementation of GS used is a matrix-free version based on adjustment of the residuals, 
+where the cost of GS was less dependent on the number of equations (fixed and random effects) in 
+the system.
+  
 The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
 adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
 including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
 Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
-genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
-Different genetic models (e.g. additive and non-additive) can be specified.
+genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights.
+}
+\examples{
+
+# Simulate data
+W <- matrix(rnorm(20000000), ncol = 10000)
+	colnames(W) <- as.character(1:ncol(W))
+	rownames(W) <- as.character(1:nrow(W))
+y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
+
+X <- model.matrix(y~1)
+
+Sg <- 50
+Se <- 50
+h2 <- Sg/(Sg+Se)
+lambda <- Se/(Sg/m)
+lambda <- m*(1-h2)/h2
+
+# BLUP of single marker effects and total genomic effects based on Gauss-Seidel procedure
+fit <- gsolve( y=y, X=X, W=W, lambda=lambda)
+
+
 }
 \author{
 Peter Soerensen
