@@ -31,15 +31,23 @@ gprep(study = NULL, fnRAW = NULL, bedfiles = NULL, bimfiles = NULL,
 Returns a list structure with information about genotypes
 }
 \description{
-To fascilitate a simple and common interface for using large-scale genotype data we prepare 
-a socalled Glist structure providing information about the raw and processed genotypes. 
-The Glist structure is obtained using the gpred function based on plink bed/bim/fam files. 
-The Glist should be saved in an Rdata file and is used as input to several functions 
-(e.g. greml,grm,gsea,gscore,gsolve,lma) used for the statistical analyses implemented in qgg.
+The gprep function prepares a socalled Glist structure providing information about the 
+genotype data used in downstream analyses.
 
-The genotypes are allele counts of the alternative allele based on the PLINK bed file format. 
-Genotype data (i.e. genotype matrix) are stored in a binary file (nxm/4 bytes, 
-n is the number of individuals and m is the number of genotypes markers).
+The genotypes are allele counts of the alternative allele stored as a matrix in a 
+binary file (PLINK bedfile format, memory usage = (n x m)/4 bytes, where n is the number of 
+individuals and m is the number of genotypes markers). 
+
+The Glist structure provides an infrastructure for efficient processing of large-scale genetic 
+data and is used as input parameter for a number of qgg core functions for 1) fitting linear 
+mixed models (gsolve), 2) construction and eigen-value decomposition of genomic relationship 
+matrices (grm), 3) estimating genetic parameters such heritability and correlation (greml), 
+4) genomic prediction and genetic risk profiling (gsolve and gscore), and 5) single or 
+multi-marker association analyses (lma and gsea).
+
+Glist is typically only prepared once and then saved in an Rdata file. It can then at a later 
+stage be loaded into R and used as input parameter in the qgg functions fascilitating 
+batch processing of genotypes without having to load all genotypes into memory.
 }
 \examples{
 #Glist <- gprep( bedfiles, bimfiles, study, path, additional arguments...)
