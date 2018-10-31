@@ -4,9 +4,9 @@
 \alias{gsolve}
 \title{Genomic prediction based on fitting a linear mixed model}
 \usage{
-gsolve(y = NULL, X = NULL, Glist = NULL, ids = NULL,
-  rsids = NULL, sets = NULL, scaled = TRUE, lambda = NULL,
-  weights = FALSE, maxit = 500, tol = 1e-05, ncores = 1)
+gsolve(y = NULL, X = NULL, Glist = NULL, ids = NULL, rsids = NULL,
+  sets = NULL, scaled = TRUE, lambda = NULL, weights = FALSE,
+  maxit = 500, tol = 1e-05, ncores = 1)
 }
 \arguments{
 \item{y}{vector or matrix of phenotypes}

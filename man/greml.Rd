@@ -4,11 +4,10 @@
 \alias{greml}
 \title{Genomic REML analysis}
 \usage{
-greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
-  theta = NULL, ids = NULL, validate = NULL, maxit = 100,
-  tol = 1e-05, bin = NULL, ncores = 1, wkdir = getwd(),
-  verbose = FALSE, makeplots = FALSE, interface = "R", fm = NULL,
-  data = NULL)
+greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL,
+  ids = NULL, validate = NULL, maxit = 100, tol = 1e-05, bin = NULL,
+  ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE,
+  interface = "R", fm = NULL, data = NULL)
 }
 \arguments{
 \item{y}{vector or matrix of phenotypes}
@@ -113,7 +112,7 @@ cvGT$accuracy
 # bin <- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"
 # data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
 # fm <- y ~ f + (1 | g~G) 
-# fit <- greml(fm = fm, GRM = list(G=G), data = data, interface="DMU")
+# fit <- greml(fm = list(fm), GRM = list(G=G), data = data, interface="DMU")
 # str(fit)
 
 }
