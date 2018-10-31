@@ -32,7 +32,13 @@
 
 <meta property="og:title" content="Genomic prediction based on fitting a linear mixed model — gsolve" />
 
-<meta property="og:description" content="Function for genomic predictions based on solving linear mixed model equations" />
+<meta property="og:description" content="Genomic predictions based on solving linear mixed model equations.
+The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
+Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
+genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
+Different genetic models (e.g. additive and non-additive) can be specified." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -126,13 +132,19 @@
 
     <div class="ref-description">
     
-    <p>Function for genomic predictions based on solving linear mixed model equations</p>
+    <p>Genomic predictions based on solving linear mixed model equations.</p>
+<p>The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
+Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
+genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
+Different genetic models (e.g. additive and non-additive) can be specified.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>gsolve</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>weights</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>maxit</span> <span class='kw'>=</span> <span class='fl'>500</span>, <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><span class='fu'>gsolve</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>sets</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>weights</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>maxit</span> <span class='kw'>=</span> <span class='fl'>500</span>, <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -172,6 +184,10 @@
     <tr>
       <th>ncores</th>
       <td><p>number of cores</p></td>
+    </tr>
+    <tr>
+      <th>W</th>
+      <td><p>matrix of centered and scaled genotypes</p></td>
     </tr>
     </table>
     
