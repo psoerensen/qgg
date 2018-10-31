@@ -6,10 +6,19 @@
 #' 
 #' 
 #' @description
-#' Function for genomic predictions based on solving linear mixed model equations
+#' Genomic predictions based on solving linear mixed model equations.
+#' 
+#' The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+#' adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
+#' including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
+#' Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
+#' genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
+#' Different genetic models (e.g. additive and non-additive) can be specified. 
+
 #' 
 #' @param y vector or matrix of phenotypes
 #' @param X design matrix of fixed effects
+#' @param W matrix of centered and scaled genotypes 
 #' @param Glist list of information about genotype matrix
 #' @param rsids vector marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis

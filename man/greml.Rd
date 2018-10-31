@@ -11,9 +11,9 @@ greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
   data = NULL)
 }
 \arguments{
-\item{y}{vector of phenotypes}
+\item{y}{vector or matrix of phenotypes}
 
-\item{X}{design matrix of factors modeled as fixed effects}
+\item{X}{design matrix for factors modeled as fixed effects}
 
 \item{GRMlist}{list providing information about GRM matrix stored in binary files on disk}
 
@@ -25,18 +25,18 @@ greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
 
 \item{tol}{tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence}
 
-\item{bin}{is the directory for DMU binaries (dmu1 and dmuai1)}
+\item{bin}{is the directory for fortrna binaries (dmu1 and dmuai1)}
 
 \item{ncores}{number of cores used for the analysis}
+
+\item{interface}{used linking to external executable fortran binaries (e.g. dmu1 and dmuai1)}
 
 \item{fm}{a formula with model statement for the linear mixed model}
 
 \item{data}{a data frame containing the phenotypic observations and fixed factors specified in the model statements}
-
-\item{GRM}{a list of relationship / correlation matrices corresponding to random effects specified in vfm}
 }
 \value{
-Returns a list structure, fit, including
+Returns a list structure including
 \item{llik}{log-likelihood at convergence}
 \item{theta}{initial values for reml estimation}
 \item{asd}{asymptotic standard deviation}
@@ -44,27 +44,26 @@ Returns a list structure, fit, including
 \item{varb}{vector of variances of fixed effect estimates}
 \item{g}{vector of random effect estimates}
 \item{e}{vector of residual effects}
-\item{Vy}{product of variance-covariance matrix of y at convergence and y}
-\item{Py}{product of projection matrix of y and y}
-\item{trPG}{trace of product of projection matrix of y and G}
-\item{trVG}{trace of product of variance-covariance matrix of y at convergence and G}
-\item{y}{vector of phenotypes}
-\item{X}{design matrix of fixed effects}
-\item{ids}{vector of individuals used for the analysis}
-\item{yVy}{product of y, variance-covariance matrix of y at convergence, and y}
-\item{f}{list of predicted random effects} 
-\item{fitted}{fitted values from linear mixed model fit} 
-\item{residuals}{residuals from linear mixed model fit}
 }
 \description{
-Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML)
-These parameters can be estimated based on a genomic relationship matrix (GRM) constructed using genome-wide genetic markers.
-Multiple random effects can be fitted in the models in addition to other factors modeled as fixed effects
-The GRM's can be accessed from the R environment or from binary files stored on disk fascilitating analyses of large data sets.
+Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML) 
+and prediction of genomic predisposition using BLUP. 
 
-First and second derivatives of log-likehood can be obtained in addition to asymtotic standard deviation of parameter estimates. 
-Predicted random effects and single marker effects and statistics can be obtained. Covariance decomposition procedures. 
-Cross validation procedures for assessment of prediction accuracy and model selection.
+The steps involved in the linear mixed model analyses, 1) computation of genomic relationship matrices (GRM), 
+2) estimation of variance component parameters in the model, and 3) prediction of genetic predisposition or phenotypes. 
+
+The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
+Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
+genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
+Different genetic models (e.g. additive and non-additive) can be specified.
+}
+\details{
+The GRM's can be accessed from the R environment or from binary files stored on disk fascilitating analyses of 
+large data sets. First and second derivatives of log-likehood can be obtained in addition to asymtotic standard 
+deviation of parameter estimates. Predicted random effects and single marker effects and statistics can be obtained. 
+Covariance decomposition procedures. Cross validation procedures for assessment of prediction accuracy and model selection.
 }
 \examples{
 
@@ -79,13 +78,13 @@ data <- data.frame(y = y, mu = 1)
 fm <- y ~ 0 + mu
 X <- model.matrix(fm, data = data)
 
-# Create framework for lists
+# Create marker sets
 setsGB <- list(A = colnames(W)) # gblup model
 setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
 setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
 
-# Compute G
-G <- computeGRM(W = W)
+# Compute GRM
+G <- grm(W = W)
 GB <- lapply(setsGB, function(x) {grm(W = W[, x])})
 GF <- lapply(setsGF, function(x) {grm(W = W[, x])})
 GT <- lapply(setsGT, function(x) {grm(W = W[, x])})
