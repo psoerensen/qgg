@@ -114,19 +114,19 @@
 <a href="#download-phenotype-and-covariate-data" class="anchor"></a>Download phenotype and covariate data</h4>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Female</span>
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/starvation.female.csv"</span>, 
-              <span class="dt">destfile =</span> <span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/starvation.female.csv"</span>)
+              <span class="dt">destfile =</span> <span class="st">"./data/starvation.female.csv"</span>)
 
 <span class="co"># Male</span>
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/starvation.male.csv"</span>, 
-              <span class="dt">destfile =</span> <span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/starvation.male.csv"</span>)
+              <span class="dt">destfile =</span> <span class="st">"./data/starvation.male.csv"</span>)
 
 <span class="co"># Inverstion status</span>
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/inversion.xlsx"</span>, <span class="dt">mode =</span> <span class="st">"wb"</span>, 
-              <span class="dt">destfile =</span> <span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/inversion.xlsx"</span>)
+              <span class="dt">destfile =</span> <span class="st">"./data/inversion.xlsx"</span>)
 
 <span class="co"># Wolbachia</span>
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/wolbachia.xlsx"</span>, <span class="dt">mode =</span> <span class="st">"wb"</span>, 
-              <span class="dt">destfile =</span> <span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/wolbachia.xlsx"</span>)</code></pre></div>
+              <span class="dt">destfile =</span> <span class="st">"./data/wolbachia.xlsx"</span>)</code></pre></div>
 </div>
 <div id="read-and-edit-phenotype-data" class="section level4">
 <h4 class="hasAnchor">
@@ -238,7 +238,7 @@ starMF</code></pre></div>
 <h4 class="hasAnchor">
 <a href="#read-and-edit-inversion-status" class="anchor"></a>Read and edit Inversion status</h4>
 <p>Abbreviations used are: INV = inversion karyotype (homozygous), INV / ST = heterozygote for the inversion and ST = standard configuration in a homozygous form.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inv &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/inversion.xlsx"</span>,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inv &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">"./data/inversion.xlsx"</span>,
                    <span class="dt">sheet =</span> <span class="dv">1</span>, <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
 
 <span class="kw">head</span>(inv)</code></pre></div>
@@ -296,7 +296,7 @@ inv</code></pre></div>
 <div id="read-and-edit-wolbachia-status" class="section level4">
 <h4 class="hasAnchor">
 <a href="#read-and-edit-wolbachia-status" class="anchor"></a>Read and edit <em>Wolbachia</em> status</h4>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">wo &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/wolbachia.xlsx"</span>,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">wo &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">"./data/wolbachia.xlsx"</span>,
                    <span class="dt">sheet =</span> <span class="dv">1</span>, <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
 wo</code></pre></div>
 <pre><code>## # A tibble: 205 x 2

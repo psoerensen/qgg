@@ -148,9 +148,16 @@ genetic markers in different sets as fixed or random effects and by specifying i
     
     </div>
 
-    <pre class="usage"><span class='fu'>gsolve</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sets</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>weights</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>maxit</span> <span class='kw'>=</span> <span class='fl'>500</span>, <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><<<<<<< HEAD
+gsolve(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL,
+  rsids = NULL, sets = NULL, validate = NULL, scaled = TRUE,
+  lambda = NULL, weights = FALSE, maxit = 500, tol = 1e-05,
+  method = "gsru", ncores = 1)
+=======
+gsolve(y = NULL, X = NULL, Glist = NULL, ids = NULL,
+  rsids = NULL, sets = NULL, scaled = TRUE, lambda = NULL,
+  weights = FALSE, maxit = 500, tol = 1e-05, ncores = 1)
+>>>>>>> 3c66f228b117574e5467a9054228807870d4e04a</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -168,6 +175,10 @@ genetic markers in different sets as fixed or random effects and by specifying i
       <td><p>list of information about genotype matrix</p></td>
     </tr>
     <tr>
+      <th>W</th>
+      <td><p>matrix of centered and scaled genotypes</p></td>
+    </tr>
+    <tr>
       <th>ids</th>
       <td><p>vector of individuals used in the analysis</p></td>
     </tr>
@@ -181,7 +192,7 @@ genetic markers in different sets as fixed or random effects and by specifying i
     </tr>
     <tr>
       <th>maxit</th>
-      <td><p>maximum number of iterations of reml analysis</p></td>
+      <td><p>maximum number of iterations of in the Gauss-Seidel procedure</p></td>
     </tr>
     <tr>
       <th>tol</th>
@@ -190,10 +201,6 @@ genetic markers in different sets as fixed or random effects and by specifying i
     <tr>
       <th>ncores</th>
       <td><p>number of cores</p></td>
-    </tr>
-    <tr>
-      <th>W</th>
-      <td><p>matrix of centered and scaled genotypes</p></td>
     </tr>
     </table>
     
@@ -204,7 +211,9 @@ genetic markers in different sets as fixed or random effects and by specifying i
 <span class='no'>W</span> <span class='kw'>&lt;-</span> <span class='fu'>matrix</span>(<span class='fu'>rnorm</span>(<span class='fl'>20000000</span>), <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='fl'>10000</span>)
         <span class='fu'>colnames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>))
         <span class='fu'>rownames</span>(<span class='no'>W</span>) <span class='kw'>&lt;-</span> <span class='fu'>as.character</span>(<span class='fl'>1</span>:<span class='fu'>nrow</span>(<span class='no'>W</span>))
-<span class='no'>y</span> <span class='kw'>&lt;-</span> <span class='fu'>rowSums</span>(<span class='no'>W</span>[, <span class='fl'>1</span>:<span class='fl'>10</span>]) + <span class='fu'>rowSums</span>(<span class='no'>W</span>[, <span class='fl'>1001</span>:<span class='fl'>1010</span>]) + <span class='fu'>rnorm</span>(<span class='fu'>nrow</span>(<span class='no'>W</span>))
+<span class='no'>m</span> <span class='kw'>&lt;-</span> <span class='fu'>ncol</span>(<span class='no'>W</span>)
+<span class='no'>causal</span> <span class='kw'>&lt;-</span> <span class='fu'>sample</span>(<span class='fl'>1</span>:<span class='fu'>ncol</span>(<span class='no'>W</span>),<span class='fl'>50</span>)
+<span class='no'>y</span> <span class='kw'>&lt;-</span> <span class='fu'>rowSums</span>(<span class='no'>W</span>[,<span class='no'>causal</span>]) + <span class='fu'>rnorm</span>(<span class='fu'>nrow</span>(<span class='no'>W</span>),<span class='kw'>sd</span><span class='kw'>=</span><span class='fu'>sqrt</span>(<span class='fl'>50</span>))
 
 <span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'>model.matrix</span>(<span class='no'>y</span>~<span class='fl'>1</span>)
 
@@ -216,6 +225,7 @@ genetic markers in different sets as fixed or random effects and by specifying i
 
 <span class='co'># BLUP of single marker effects and total genomic effects based on Gauss-Seidel procedure</span>
 <span class='no'>fit</span> <span class='kw'>&lt;-</span> <span class='fu'>gsolve</span>( <span class='kw'>y</span><span class='kw'>=</span><span class='no'>y</span>, <span class='kw'>X</span><span class='kw'>=</span><span class='no'>X</span>, <span class='kw'>W</span><span class='kw'>=</span><span class='no'>W</span>, <span class='kw'>lambda</span><span class='kw'>=</span><span class='no'>lambda</span>)
+<span class='fu'>plotgs</span>(<span class='kw'>fit</span><span class='kw'>=</span><span class='no'>fit</span>,<span class='kw'>sets</span><span class='kw'>=</span><span class='no'>causal</span>)
 
 
 <span class='co'># }</span></pre>
