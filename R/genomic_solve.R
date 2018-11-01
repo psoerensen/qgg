@@ -27,7 +27,7 @@
 #' @param rsids vector marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis
 #' @param lambda vector of single marker weights used in BLUP
-#' @param maxit maximum number of iterations of reml analysis
+#' @param maxit maximum number of iterations of in the Gauss-Seidel procedure
 #' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
 #' @param ncores number of cores
 
@@ -39,7 +39,9 @@
 #' W <- matrix(rnorm(20000000), ncol = 10000)
 #' 	colnames(W) <- as.character(1:ncol(W))
 #' 	rownames(W) <- as.character(1:nrow(W))
-#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
+#' m <- ncol(W)
+#' causal <- sample(1:ncol(W),50)     
+#' y <- rowSums(W[,causal]) + rnorm(nrow(W),sd=sqrt(50)) 
 #'
 #' X <- model.matrix(y~1)
 #' 
@@ -51,6 +53,7 @@
 #' 
 #' # BLUP of single marker effects and total genomic effects based on Gauss-Seidel procedure
 #' fit <- gsolve( y=y, X=X, W=W, lambda=lambda)
+#' plotgs(fit=fit,sets=causal)
 #' 
 #' 
 
@@ -60,8 +63,15 @@
 #' @export
 
 
-gsolve <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001, ncores=1) { 
-     
+
+gsolve <- function( y=NULL, X=NULL, Glist=NULL, W=NULL, ids=NULL, rsids=NULL, sets=NULL, validate=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001, method="gsru",ncores=1) { 
+
+     if(!is.null(W)) {
+        if(method=="gsru")  fit <- gsru(y=y, W=W, X=X, sets=sets, lambda=lambda, weights=weights, maxit=maxit, tol=tol)
+        if(method=="gsqr")  fit <- gsqr(y=y, W=W, X=X, sets=sets,msets=msets,lambda=lambda,weights=weights, maxit=maxit, tol=tol)
+        return(fit)
+     }
+     if(!is.null(Glist)) {
      ids <- names(y)
      fnRAW <- Glist$fnRAW
      n <- Glist$n
@@ -98,6 +108,7 @@ gsolve <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL,
      #e <- y - yhat
      delta <- NULL
      return(list(s=fit$s,b=b,nit=fit$nit,delta=delta, e=fit$e, yhat=yhat, g=fit$g))
+     }
 }
 
 
@@ -386,7 +397,7 @@ qrSets <- function( W=NULL, sets=NULL, msets=100, return.level="Q") {
 
 #' @export
 
-plotGS <- function( fit=NULL, s=NULL, sets=NULL ) {
+plotgs <- function( fit=NULL, s=NULL, sets=NULL ) {
      if(is.null(s)) s <- fit$s
      m <- length(s) 
      plot(y=s,x=1:m,ylab="Coefficients",xlab="Position",col=1,   
@@ -439,10 +450,9 @@ fsolve <- function(n=NULL,nr=NULL,rws=NULL,nc=NULL,cls=NULL,scaled=TRUE,nbytes=N
 }
 
 
-#' @export
 
 
-gsolve <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001, ncores=1) { 
+gsolve_oldy <- function( y=NULL, X=NULL, Glist=NULL, ids=NULL, rsids=NULL, sets=NULL, scaled=TRUE, lambda=NULL, weights=FALSE, maxit=500, tol=0.00001, ncores=1) { 
      
      ids <- names(y)
      fnRAW <- Glist$fnRAW
