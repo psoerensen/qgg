@@ -21,10 +21,10 @@ In this script we prepare a phenotype and covariate data frame to be used in dow
 
 We use the plyr, dplyr and tidyr packages for editing data. The readxl package is used for reading .xlsx files. Install these packages as follows:
 ```{r, eval=FALSE}
-install.packages("plyr")
-install.packages("dplyr")
-install.packages("tidyr")
-install.packages("readxl")
+#install.packages("plyr")
+#install.packages("dplyr")
+#install.packages("tidyr")
+#install.packages("readxl")
 ```
   
   
@@ -41,33 +41,33 @@ library(readxl)
 ```{r}
 # Female
 download.file("http://dgrp2.gnets.ncsu.edu/data/website/starvation.female.csv", 
-              destfile = "C:/Users/Izel/Dropbox/qgg-usersguide/data/starvation.female.csv")
+              destfile = "./data/starvation.female.csv")
 
 # Male
 download.file("http://dgrp2.gnets.ncsu.edu/data/website/starvation.male.csv", 
-              destfile = "C:/Users/Izel/Dropbox/qgg-usersguide/data/starvation.male.csv")
+              destfile = "./data/starvation.male.csv")
 
 # Inverstion status
 download.file("http://dgrp2.gnets.ncsu.edu/data/website/inversion.xlsx", mode = "wb", 
-              destfile = "C:/Users/Izel/Dropbox/qgg-usersguide/data/inversion.xlsx")
+              destfile = "./data/inversion.xlsx")
 
 # Wolbachia
 download.file("http://dgrp2.gnets.ncsu.edu/data/website/wolbachia.xlsx", mode = "wb", 
-              destfile = "C:/Users/Izel/Dropbox/qgg-usersguide/data/wolbachia.xlsx")
+              destfile = "./data/wolbachia.xlsx")
 ```
 
 #### Read and edit phenotype data
 
 Read female data.
 ```{r}
-starF <- read.csv(file="./data/starvation.female_2017.csv", header = FALSE)
+starF <- read.csv(file="./data/starvation.female.csv", header = FALSE)
 head(starF)
 dim(starF)
 ```
 \hfill\break  
 Read male data.
 ```{r}
-starM <- read.csv(file="./data/starvation.male_2017.csv", header = FALSE)
+starM <- read.csv(file="./data/starvation.male.csv", header = FALSE)
 head(starM)
 dim(starM)
 ```
@@ -114,7 +114,7 @@ head(starv$L)
   
 Abbreviations used are: INV = inversion karyotype (homozygous), INV / ST = heterozygote for the inversion and ST = standard configuration in a homozygous form.
 ```{r}
-inv <- read_excel("C:/Users/Izel/Dropbox/qgg-usersguide/data/inversion.xlsx",
+inv <- read_excel("./data/inversion.xlsx",
                    sheet = 1, col_names = TRUE)
 
 head(inv)
@@ -128,8 +128,8 @@ head(inv, 3)
 
 invcols <- colnames(inv)    
 invcols[1] <- "L"
-invcols[2:17] <- gsub("(", "_", invcols[2:17], fixed = TRUE)
-invcols[2:17] <- gsub(")", "_", invcols[2:17], fixed = TRUE)
+invcols[2:17] <- gsub("(", "", invcols[2:17], fixed = TRUE)
+invcols[2:17] <- gsub(")", "", invcols[2:17], fixed = TRUE)
 colnames(inv) <- invcols
 inv
 ```
@@ -138,7 +138,7 @@ inv
 #### Read and edit *Wolbachia* status
 
 ```{r}
-wo <- read_excel("C:/Users/Izel/Dropbox/qgg-usersguide/data/wolbachia.xlsx",
+wo <- read_excel("./data/wolbachia.xlsx",
                    sheet = 1, col_names = TRUE)
 wo
 dim(wo)

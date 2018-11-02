@@ -100,10 +100,10 @@
     
 <p>In this script we prepare a phenotype and covariate data frame to be used in downstream genomic analyses. As an example of phenotype data we are using the phenotype “resistance to starvation” from the <em>Drosophila melanogaster</em> Genetic Reference Panel (DGRP). The data is available at <a href="http://dgrp2.gnets.ncsu.edu/data.html" class="uri">http://dgrp2.gnets.ncsu.edu/data.html</a> under “Phenotype files”, “Mackay, et al., Nature, 2012”. Data for both males and females are used. Inversion status (chromosomal inversions) and Wolbachia (<em>Wolbachia</em> infection status) can be found under the heading “Other useful files” at the bottom of the page.</p>
 <p>We use the plyr, dplyr and tidyr packages for editing data. The readxl package is used for reading .xlsx files. Install these packages as follows:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">"plyr"</span>)
-<span class="kw">install.packages</span>(<span class="st">"dplyr"</span>)
-<span class="kw">install.packages</span>(<span class="st">"tidyr"</span>)
-<span class="kw">install.packages</span>(<span class="st">"readxl"</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#install.packages("plyr")</span>
+<span class="co">#install.packages("dplyr")</span>
+<span class="co">#install.packages("tidyr")</span>
+<span class="co">#install.packages("readxl")</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(plyr)
 <span class="kw">library</span>(dplyr)
 <span class="kw">library</span>(tidyr)
@@ -114,25 +114,25 @@
 <a href="#download-phenotype-and-covariate-data" class="anchor"></a>Download phenotype and covariate data</h4>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Female</span>
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/starvation.female.csv"</span>, 
-              <span class="dt">destfile =</span> <span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/starvation.female.csv"</span>)
+              <span class="dt">destfile =</span> <span class="st">"./data/starvation.female.csv"</span>)
 
 <span class="co"># Male</span>
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/starvation.male.csv"</span>, 
-              <span class="dt">destfile =</span> <span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/starvation.male.csv"</span>)
+              <span class="dt">destfile =</span> <span class="st">"./data/starvation.male.csv"</span>)
 
 <span class="co"># Inverstion status</span>
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/inversion.xlsx"</span>, <span class="dt">mode =</span> <span class="st">"wb"</span>, 
-              <span class="dt">destfile =</span> <span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/inversion.xlsx"</span>)
+              <span class="dt">destfile =</span> <span class="st">"./data/inversion.xlsx"</span>)
 
 <span class="co"># Wolbachia</span>
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/wolbachia.xlsx"</span>, <span class="dt">mode =</span> <span class="st">"wb"</span>, 
-              <span class="dt">destfile =</span> <span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/wolbachia.xlsx"</span>)</code></pre></div>
+              <span class="dt">destfile =</span> <span class="st">"./data/wolbachia.xlsx"</span>)</code></pre></div>
 </div>
 <div id="read-and-edit-phenotype-data" class="section level4">
 <h4 class="hasAnchor">
 <a href="#read-and-edit-phenotype-data" class="anchor"></a>Read and edit phenotype data</h4>
 <p>Read female data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starF &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">file=</span><span class="st">"./data/starvation.female_2017.csv"</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starF &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">file=</span><span class="st">"./data/starvation.female.csv"</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>)
 <span class="kw">head</span>(starF)</code></pre></div>
 <pre><code>##         V1        V2
 ## 1 line_100  77.92000
@@ -144,7 +144,7 @@
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(starF)</code></pre></div>
 <pre><code>## [1] 203   2</code></pre>
 <p> Read male data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starM &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">file=</span><span class="st">"./data/starvation.male_2017.csv"</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starM &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">file=</span><span class="st">"./data/starvation.male.csv"</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>)
 <span class="kw">head</span>(starM)</code></pre></div>
 <pre><code>##         V1       V2
 ## 1 line_100 49.28000
@@ -238,7 +238,7 @@ starMF</code></pre></div>
 <h4 class="hasAnchor">
 <a href="#read-and-edit-inversion-status" class="anchor"></a>Read and edit Inversion status</h4>
 <p>Abbreviations used are: INV = inversion karyotype (homozygous), INV / ST = heterozygote for the inversion and ST = standard configuration in a homozygous form.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inv &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/inversion.xlsx"</span>,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inv &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">"./data/inversion.xlsx"</span>,
                    <span class="dt">sheet =</span> <span class="dv">1</span>, <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
 
 <span class="kw">head</span>(inv)</code></pre></div>
@@ -272,31 +272,30 @@ starMF</code></pre></div>
 ## #   `In(3R)C` &lt;chr&gt;</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">invcols &lt;-<span class="st"> </span><span class="kw">colnames</span>(inv)    
 invcols[<span class="dv">1</span>] &lt;-<span class="st"> "L"</span>
-invcols[<span class="dv">2</span><span class="op">:</span><span class="dv">17</span>] &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">"("</span>, <span class="st">"_"</span>, invcols[<span class="dv">2</span><span class="op">:</span><span class="dv">17</span>], <span class="dt">fixed =</span> <span class="ot">TRUE</span>)
-invcols[<span class="dv">2</span><span class="op">:</span><span class="dv">17</span>] &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">")"</span>, <span class="st">"_"</span>, invcols[<span class="dv">2</span><span class="op">:</span><span class="dv">17</span>], <span class="dt">fixed =</span> <span class="ot">TRUE</span>)
+invcols[<span class="dv">2</span><span class="op">:</span><span class="dv">17</span>] &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">"("</span>, <span class="st">""</span>, invcols[<span class="dv">2</span><span class="op">:</span><span class="dv">17</span>], <span class="dt">fixed =</span> <span class="ot">TRUE</span>)
+invcols[<span class="dv">2</span><span class="op">:</span><span class="dv">17</span>] &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">")"</span>, <span class="st">""</span>, invcols[<span class="dv">2</span><span class="op">:</span><span class="dv">17</span>], <span class="dt">fixed =</span> <span class="ot">TRUE</span>)
 <span class="kw">colnames</span>(inv) &lt;-<span class="st"> </span>invcols
 inv</code></pre></div>
 <pre><code>## # A tibble: 205 x 17
-##    L     In_2L_t In_2R_NS In_2R_Y1 In_2R_Y2 In_2R_Y3 In_2R_Y4 In_2R_Y5
-##    &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;   
-##  1 21    ST      ST       ST       ST       ST       ST       ST      
-##  2 26    INV     ST       ST       ST       ST       ST       ST      
-##  3 28    ST      INV      ST       ST       ST       ST       ST      
-##  4 31    ST      ST       ST       ST       ST       ST       ST      
-##  5 32    INV     ST       ST       ST       ST       ST       ST      
-##  6 38    ST      ST       ST       ST       ST       ST       ST      
-##  7 40    ST      ST       ST       ST       ST       ST       ST      
-##  8 41    ST      ST       ST       ST       ST       ST       ST      
-##  9 42    ST      ST       ST       ST       ST       ST       ST      
-## 10 45    ST      ST       ST       ST       ST       ST       ST      
-## # ... with 195 more rows, and 9 more variables: In_2R_Y6 &lt;chr&gt;,
-## #   In_2R_Y7 &lt;chr&gt;, In_3L_P &lt;chr&gt;, In_3L_M &lt;chr&gt;, In_3L_Y &lt;chr&gt;,
-## #   In_3R_P &lt;chr&gt;, In_3R_K &lt;chr&gt;, In_3R_Mo &lt;chr&gt;, In_3R_C &lt;chr&gt;</code></pre>
+##    L     In2Lt In2RNS In2RY1 In2RY2 In2RY3 In2RY4 In2RY5 In2RY6 In2RY7
+##    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt; 
+##  1 21    ST    ST     ST     ST     ST     ST     ST     ST     ST    
+##  2 26    INV   ST     ST     ST     ST     ST     ST     ST     ST    
+##  3 28    ST    INV    ST     ST     ST     ST     ST     ST     ST    
+##  4 31    ST    ST     ST     ST     ST     ST     ST     ST     ST    
+##  5 32    INV   ST     ST     ST     ST     ST     ST     ST     ST    
+##  6 38    ST    ST     ST     ST     ST     ST     ST     ST     ST    
+##  7 40    ST    ST     ST     ST     ST     ST     ST     ST     ST    
+##  8 41    ST    ST     ST     ST     ST     ST     ST     ST     ST    
+##  9 42    ST    ST     ST     ST     ST     ST     ST     ST     ST    
+## 10 45    ST    ST     ST     ST     ST     ST     ST     ST     ST    
+## # ... with 195 more rows, and 7 more variables: In3LP &lt;chr&gt;, In3LM &lt;chr&gt;,
+## #   In3LY &lt;chr&gt;, In3RP &lt;chr&gt;, In3RK &lt;chr&gt;, In3RMo &lt;chr&gt;, In3RC &lt;chr&gt;</code></pre>
 </div>
 <div id="read-and-edit-wolbachia-status" class="section level4">
 <h4 class="hasAnchor">
 <a href="#read-and-edit-wolbachia-status" class="anchor"></a>Read and edit <em>Wolbachia</em> status</h4>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">wo &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">"C:/Users/Izel/Dropbox/qgg-usersguide/data/wolbachia.xlsx"</span>,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">wo &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">"./data/wolbachia.xlsx"</span>,
                    <span class="dt">sheet =</span> <span class="dv">1</span>, <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
 wo</code></pre></div>
 <pre><code>## # A tibble: 205 x 2
@@ -341,45 +340,44 @@ wo</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starvInv &lt;-<span class="st"> </span><span class="kw">left_join</span>(starv, inv, <span class="dt">by=</span> <span class="st">"L"</span>)
 starvInv</code></pre></div>
 <pre><code>## # A tibble: 406 x 19
-##    L     sex       y In_2L_t In_2R_NS In_2R_Y1 In_2R_Y2 In_2R_Y3 In_2R_Y4
-##    &lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;   
-##  1 100   M      49.3 INV/ST  ST       ST       ST       ST       ST      
-##  2 101   M      47.2 INV/ST  ST       ST       ST       ST       ST      
-##  3 105   M      51.0 ST      ST       ST       ST       ST       ST      
-##  4 109   M      45.0 INV/ST  ST       ST       ST       ST       ST      
-##  5 129   M      33.1 ST      ST       ST       ST       ST       ST      
-##  6 136   M      63.0 ST      ST       ST       ST       ST       ST      
-##  7 138   M      47.8 ST      ST       ST       ST       ST       ST      
-##  8 142   M      38.4 ST      ST       ST       ST       ST       ST      
-##  9 149   M      35.8 ST      ST       ST       ST       ST       ST      
-## 10 153   M      40.3 ST      ST       ST       ST       ST       ST      
-## # ... with 396 more rows, and 10 more variables: In_2R_Y5 &lt;chr&gt;,
-## #   In_2R_Y6 &lt;chr&gt;, In_2R_Y7 &lt;chr&gt;, In_3L_P &lt;chr&gt;, In_3L_M &lt;chr&gt;,
-## #   In_3L_Y &lt;chr&gt;, In_3R_P &lt;chr&gt;, In_3R_K &lt;chr&gt;, In_3R_Mo &lt;chr&gt;,
-## #   In_3R_C &lt;chr&gt;</code></pre>
+##    L     sex       y In2Lt  In2RNS In2RY1 In2RY2 In2RY3 In2RY4 In2RY5
+##    &lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt; 
+##  1 100   M      49.3 INV/ST ST     ST     ST     ST     ST     ST    
+##  2 101   M      47.2 INV/ST ST     ST     ST     ST     ST     ST    
+##  3 105   M      51.0 ST     ST     ST     ST     ST     ST     ST    
+##  4 109   M      45.0 INV/ST ST     ST     ST     ST     ST     ST    
+##  5 129   M      33.1 ST     ST     ST     ST     ST     ST     ST    
+##  6 136   M      63.0 ST     ST     ST     ST     ST     ST     ST    
+##  7 138   M      47.8 ST     ST     ST     ST     ST     ST     ST    
+##  8 142   M      38.4 ST     ST     ST     ST     ST     ST     ST    
+##  9 149   M      35.8 ST     ST     ST     ST     ST     ST     ST    
+## 10 153   M      40.3 ST     ST     ST     ST     ST     ST     ST    
+## # ... with 396 more rows, and 9 more variables: In2RY6 &lt;chr&gt;,
+## #   In2RY7 &lt;chr&gt;, In3LP &lt;chr&gt;, In3LM &lt;chr&gt;, In3LY &lt;chr&gt;, In3RP &lt;chr&gt;,
+## #   In3RK &lt;chr&gt;, In3RMo &lt;chr&gt;, In3RC &lt;chr&gt;</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starvIW &lt;-<span class="st"> </span><span class="kw">left_join</span>(starvInv, wo, <span class="dt">by=</span><span class="st">"L"</span>)
 starvIW[<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>,<span class="dv">15</span><span class="op">:</span><span class="dv">20</span>]</code></pre></div>
 <pre><code>## # A tibble: 5 x 6
-##   In_3L_Y In_3R_P In_3R_K In_3R_Mo In_3R_C wo   
-##   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;
-## 1 ST      ST      INV     ST       ST      y    
-## 2 ST      ST      ST      ST       ST      n    
-## 3 ST      ST      INV     ST       ST      n    
-## 4 ST      ST      ST      ST       ST      n    
-## 5 ST      ST      ST      ST       ST      n</code></pre>
+##   In3LY In3RP In3RK In3RMo In3RC wo   
+##   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;
+## 1 ST    ST    INV   ST     ST    y    
+## 2 ST    ST    ST    ST     ST    n    
+## 3 ST    ST    INV   ST     ST    n    
+## 4 ST    ST    ST    ST     ST    n    
+## 5 ST    ST    ST    ST     ST    n</code></pre>
 <p>An example of how one can look at the data. Here we show a summary (in table form) of the first three inversions.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">apply</span>(starvIW[,<span class="dv">4</span><span class="op">:</span><span class="dv">19</span>], <span class="dv">2</span>, table)[<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>]</code></pre></div>
-<pre><code>## $In_2L_t
+<pre><code>## $In2Lt
 ## 
 ##    INV INV/ST     ST 
 ##     38     50    318 
 ## 
-## $In_2R_NS
+## $In2RNS
 ## 
 ##    INV INV/ST     ST 
 ##     14     20    372 
 ## 
-## $In_2R_Y1
+## $In2RY1
 ## 
 ## INV/ST     ST 
 ##      2    404</code></pre>
