@@ -15,11 +15,9 @@ Description: Statistical tools for Quantitative Genetic Analyses
 License: GPL-3
 Encoding: UTF-8
 Depends:
-    regress,
     data.table,
     MASS
 Imports:
-    regress,
     data.table,
     MASS
 RoxygenNote: 6.1.0

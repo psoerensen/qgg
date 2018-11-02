@@ -185,6 +185,19 @@ gscore <- function(Glist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
 }
 
 
+#' @export
+#'
+
+gcov <- function(S=NULL,rsids=NULL, sets=NULL, ncores=1, method="default") { 
+     
+     if (is.vector(S)) S <- as.matrix(S)
+     if(method=="default") {
+          if(is.null(sets)) cor(S)
+          if(!is.null(sets)) sapply(sets,cor(S[x,]))
+     }
+
+}
+
 
 ##' @export
 #

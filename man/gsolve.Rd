@@ -4,16 +4,10 @@
 \alias{gsolve}
 \title{Genomic prediction based on fitting a linear mixed model}
 \usage{
-<<<<<<< HEAD
 gsolve(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL,
   rsids = NULL, sets = NULL, validate = NULL, scaled = TRUE,
   lambda = NULL, weights = FALSE, maxit = 500, tol = 1e-05,
   method = "gsru", ncores = 1)
-=======
-gsolve(y = NULL, X = NULL, Glist = NULL, ids = NULL,
-  rsids = NULL, sets = NULL, scaled = TRUE, lambda = NULL,
-  weights = FALSE, maxit = 500, tol = 1e-05, ncores = 1)
->>>>>>> 3c66f228b117574e5467a9054228807870d4e04a
 }
 \arguments{
 \item{y}{vector or matrix of phenotypes}

@@ -4,11 +4,10 @@
 \alias{greml}
 \title{Genomic REML analysis}
 \usage{
-greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
-  theta = NULL, ids = NULL, validate = NULL, maxit = 100,
-  tol = 1e-05, bin = NULL, ncores = 1, wkdir = getwd(),
-  verbose = FALSE, makeplots = FALSE, interface = "R", fm = NULL,
-  data = NULL)
+greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL,
+  ids = NULL, validate = NULL, maxit = 100, tol = 1e-05, bin = NULL,
+  ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE,
+  interface = "R", fm = NULL, data = NULL)
 }
 \arguments{
 \item{y}{vector or matrix of phenotypes}
@@ -78,29 +77,28 @@ data <- data.frame(y = y, mu = 1)
 fm <- y ~ 0 + mu
 X <- model.matrix(fm, data = data)
 
+# Compute GRM
+GRM <- grm(W = W)
+
+# REML analyses
+fitG <- greml(y = y, X = X, GRM = list(GRM))
+
+# REML analyses and cross validation
+
 # Create marker sets
 setsGB <- list(A = colnames(W)) # gblup model
 setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
 setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
 
-# Compute GRM
-G <- grm(W = W)
 GB <- lapply(setsGB, function(x) {grm(W = W[, x])})
 GF <- lapply(setsGF, function(x) {grm(W = W[, x])})
 GT <- lapply(setsGT, function(x) {grm(W = W[, x])})
 
-# REML analyses
-fitGB <- greml(y = y, X = X, GRM = GB)
-fitGF <- greml(y = y, X = X, GRM = GF)
-fitGT <- greml(y = y, X = X, GRM = GT)
-
-# REML analyses and cross validation
 n <- length(y)
 fold <- 10
-nsets <- 5
+nvalid <- 5
 
-validate <- replicate(nsets, sample(1:n, as.integer(n / fold)))
-
+validate <- replicate(nvalid, sample(1:n, as.integer(n / fold)))
 cvGB <- greml(y = y, X = X, GRM = GB, validate = validate)
 cvGF <- greml(y = y, X = X, GRM = GF, validate = validate)
 cvGT <- greml(y = y, X = X, GRM = GT, validate = validate)
