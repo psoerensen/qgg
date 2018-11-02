@@ -21,10 +21,10 @@ In this script we prepare a phenotype and covariate data frame to be used in dow
 
 We use the plyr, dplyr and tidyr packages for editing data. The readxl package is used for reading .xlsx files. Install these packages as follows:
 ```{r, eval=FALSE}
-install.packages("plyr")
-install.packages("dplyr")
-install.packages("tidyr")
-install.packages("readxl")
+#install.packages("plyr")
+#install.packages("dplyr")
+#install.packages("tidyr")
+#install.packages("readxl")
 ```
   
   
@@ -60,14 +60,14 @@ download.file("http://dgrp2.gnets.ncsu.edu/data/website/wolbachia.xlsx", mode = 
 
 Read female data.
 ```{r}
-starF <- read.csv(file="./data/starvation.female_2017.csv", header = FALSE)
+starF <- read.csv(file="./data/starvation.female.csv", header = FALSE)
 head(starF)
 dim(starF)
 ```
 \hfill\break  
 Read male data.
 ```{r}
-starM <- read.csv(file="./data/starvation.male_2017.csv", header = FALSE)
+starM <- read.csv(file="./data/starvation.male.csv", header = FALSE)
 head(starM)
 dim(starM)
 ```
@@ -128,8 +128,8 @@ head(inv, 3)
 
 invcols <- colnames(inv)    
 invcols[1] <- "L"
-invcols[2:17] <- gsub("(", "_", invcols[2:17], fixed = TRUE)
-invcols[2:17] <- gsub(")", "_", invcols[2:17], fixed = TRUE)
+invcols[2:17] <- gsub("(", "", invcols[2:17], fixed = TRUE)
+invcols[2:17] <- gsub(")", "", invcols[2:17], fixed = TRUE)
 colnames(inv) <- invcols
 inv
 ```

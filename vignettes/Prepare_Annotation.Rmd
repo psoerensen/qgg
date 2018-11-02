@@ -1,5 +1,5 @@
 ---
-title: "Prepare annotation of SNPs in W"
+title: "Annotation of markers in the genomic relationship matrix"
 author: "Izel Fourie Sørensen"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "C:/Users/Izel/Dropbox/qgg-usersguide")
 ```
 
-For this tutorial we define marker sets based on their gene ontology (GO) annotation. A GO annotation is a statement about the function of a particular gene. Each GO annotation consists of an association between a gene and a GO term.  
+Several critia can be used for defining marker sets, e.g., the gene ontology (GO) annotation of markers or the genes or chromosomes within which SNPs/markers occur. For this small data set tutorial we define marker sets based on the GO annotation of the markers. The GO of a gene is determined by the  function of a particular gene. Each GO annotation consists of an association between a gene and a GO term.  
 In this script we prepare a data frame of the *Drosophila melanogaster* GO annotations.
 
 #### Download and read the annotation data
