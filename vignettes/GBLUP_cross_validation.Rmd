@@ -1,0 +1,213 @@
+---
+title: "GBLUP and cross validation"
+author: "Izel Fourie Sørensen"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "C:/Users/Izel/Dropbox/qgg-usersguide")
+```
+      
+<br>  
+
+Here we show how to perform a GBLUP analysis and cross validation using the greml function in the qgg package. This involves estimating variance components with restricted maximum likelihood estimation (REML) in the training set and prediction using genomic best linear unbiased prediction (GBLUP) in the validation set. This will be illustrated on the "starvation resistance" phenotype available from the [Drosophila genetic reference panel](http://dgrp2.gnets.ncsu.edu/) (DGRP).  
+
+To perform a GBLUP analysis the following input data is essential.
+ 
+  1. $y$: vector of phenotype
+  2. $X$: design matrix for covariables
+  3. $W$: centered and scaled genotype matrix
+  4. $G$: genomic relationship matrix
+
+This script includes the following steps for performing a GBLUP analysis and cross validation: 1) load and prepare data for GBLUP analysis, 2) restricted maximum likelihood (REML) analyses for estimating variance components, and 3) REML analyses and cross validation.   
+
+<br>  
+
+##### **1. Load and prepare data for GBLUP analysis** 
+
+
+```{r, message=FALSE}
+#library(devtools)
+#install_github("psoerensen/qgg")
+library(qgg)
+```
+
+**Load phenotype and co-variable data**  
+
+
+```{r}
+load(file = "./phenotypes/starv_inv_wo.Rdata")
+dim(starv)
+head(starv)
+```
+
+
+
+Create a vector of the starvation resistance phenotype, $\mathbf{y}$.  
+```{r}
+data <- starv
+y <- data$y
+```
+
+
+Prepare the design matrix $\mathbf{X}$ for the covariables. `fm` is the formula used for including relevant variables in the model in order to construct a design matrix.
+ 
+```{r}
+fm <- y ~  wo +In2Lt + In2RNS + In3RP + In3RK + In3RMo
+X <- model.matrix(fm, data=data)
+dim(X)
+X[1:5,]
+```
+
+<br>  
+
+**Load centered and scaled genotype matrix** $\mathbf{W}$   
+ 
+```{r}
+load(file= "./genotypes/dgrp2_W2.Rdata")
+dim(W)
+W[1:5,1:5]
+```
+
+<br>  
+
+**Compute $G$ from $W$**
+ 
+The additive genomic relationship matrix $\mathbf{G}$ (VanRaden PM. 2008. J Dairy Sci. 91:4414-4423) is constructed using all genetic markers as follows: $\mathbf{G=WW}'/m$, where $\mathbf{W}$ is the centered and scaled genotype matrix, and $m$ is the total number of markers. 
+ 
+```{r}
+L <- data$L
+G <- grm(W=W)
+G <- G[L,L] # this ensures that row id's in G corresponds to row id's in data, there is male and female data for each line.
+```
+
+<br>  
+
+##### **2. Restricted maximum likelihood (REML) analyses** 
+ 
+**Behind the scenes of the greml function:**  
+REML analyses are used for estimating the variance components, $\sigma_{g}^2$ and $\sigma_{e}^2$ for the random effects in the linear mixed model:
+ $$\mathbf{y = {X}b + {Z}g + e}$$
+  
+where $\mathbf{y}$ is the vector of phenotypic observations, $\mathbf{X}$ and $\mathbf{Z}$ are design matrices for the fixed and random effects, $\mathbf{b}$ is a vector of fixed effects, $\mathbf{g}$ is the vector of genomic values captured by all genetic markers, and $\mathbf{e}$ is the vector of residuals. The random genomic values and the residuals were assumed to be independent normally distributed values described as follows: $\mathbf{g} \sim N(0,\mathbf{G}\sigma_g^2 )$  and $\mathbf{e} \sim N(0,\mathbf{I}\sigma_e^2)$. Thus, we assume that the observed phenotypes $\mathbf{y} \sim N(\mathbf{Xb,V})$ where $\mathbf{V}=\mathbf{ZGZ}'\sigma_g^2+\mathbf{I}\sigma_e^2$.
+
+Here we predict the genetic value based on the phenotype observed in the whole study population:
+
+$$\mathbf{\hat{g}} = \hat\sigma_g^2\mathbf{GZ}'{\hat{\mathbf{V}}}^{-1}(\mathbf{y-X\hat{b}}) $$
+
+The phenotype is predicted as:
+
+$$\mathbf{\hat{y} = X\hat{b} + Z\hat{g}}$$
+
+The `greml` function goes through a number of iterations before convergence (i.e., the change in parameters between consecutive rounds become smaller than a specified threshold, see "tol" argument in the greml help page). In this example each iteration returns values for the variance components $\sigma_{g}^2$ (third column) and $\sigma_{e}^2$ (fourth column).  
+
+The greml function returns a list structure that includes estimates of the fixed effects ($\mathbf{b}$), random effects ($\mathbf{g}$) and residual effects ($\mathbf{e}$). Other values in the list are described on the greml help page.
+ 
+```{r}
+fitG <- greml(y=y, X=X, GRM=list(G=G), verbose = TRUE)
+```
+    
+<br>  
+
+##### **3. REML analyses and cross validation** 
+
+The genetic value is predicted based on the genomic relationship between the training and validation population:
+
+$$ \mathbf{\hat{g}}^v = \hat\sigma_g^2\mathbf{G}^{vt}\mathbf{Z'{\hat{V}_t}}^{-1}(\mathbf{y}_t-\mathbf{X}_t\hat{\mathbf{b}_t}) $$
+Where the genomic relationship matrix
+$$ \mathbf{G} =
+\left(\begin{array}{cc} \mathbf{G}^{vv} & \mathbf{G}^{vt}\\
+\mathbf{G}^{vt} & \mathbf{G}^{tt} \end{array}
+\right)$$
+
+is partitioned according to relationships between the individuals in the training ($t$) data $\mathbf{G}^{tt}$, between the individuals in the validation ($v$) data $\mathbf{G}^{vv}$ and between the individuals in the training and validation data $\mathbf{G}^{vt}$. Thus the total genomic predisposition is predicted using the estimated variance components ($\sigma_g^2$ and $\sigma_e^2$) in the training data. The right-most term, $(\mathbf{y}_t-\mathbf{X}_t\hat{\mathbf{b}_t})$, constitutes the phenotypes corrected for fixed effects for the individuals in the training data. The inverse term  $\hat{\mathbf{V}}_t^{-1}$  is essentially the variance-covariance structure for the corrected phenotypes. These two terms multiplied together are the standardized and corrected phenotypes for the individuals in the training data, which are projected onto the total genetic covariance structure between the training and the validation data.
+
+
+Variance components for the phenotype observed in the *training set* are estimated. Based on the estimated variance components, the phenotype in the *validation set* is predicted as:
+$$\hat{\mathbf{y}_v} = \mathbf{X}_v\hat{\mathbf{b}_t} + \mathbf{Z\hat{g}}_v + \mathbf{e}$$
+
+
+    
+
+50 validation sets are created by randomly sampling 30 values from 1 - 406 (the length of $\mathbf{y}$), and repeating this sampling 50 times. The validation sets are saved in the `validate` matrix. This matrix specifies the rows of the data used in the GREML analyses. 
+
+```{r}
+n <- length(y)
+validate <- replicate(50, sample(1:n, 30))
+cvG <- greml(y = y, X = X, GRM = list(G=G), validate = validate)
+str(cvG)
+cvG$accuracy[1:5,]
+cvG$theta[1:5,]
+```
+
+<br>  
+
+**Output of the GREML cross validation analysis**  
+
+The output includes statistics that quantify the model's predictive ability as assessed by regressing the observed phenotype against the predicted phenotype for the validation data set: $y = intercept + \hat{y} slope + e$  
+
+Explanation of the values in `cvG$accuracy`:  
+
+| Value | | Description |
+|:------ | :------  | -------------------------------------------------------------- |
+| Corr | | Correlation between the predicted and observed phenotypic value. Averaging the list of 50 correlations yields the predictive ability |
+| R2 |  | $R^2$, proportion of the total variance that is explained by the GBLUP model |
+| Nagel R2 | | Nagelkerke's $R$ |
+|AUC | | Area Under the ROC Curve |
+| intercept | | The y-axis intercept for the regression of $\mathbf{y}$ unto $\hat{\mathbf{y}}$ |  
+| slope |  | Slope for the regression of $\mathbf{y}$ unto $\hat{\mathbf{y}}$ |
+| MSPE | | mean squared prediction error = $\frac{1}{n_v}\sum_{i=1}^{n_v}({\mathbf{y}_i - \hat{\mathbf{y}_i})^2}$, $n_v$ = number of observations in validation set |  
+  
+Explanation of the values in `cvG$theta`:  
+
+| Value | | Description |
+|:------ | :------  | -------------------------------------------------------------- |
+| G | | Estimated variance component, $\hat\sigma_{g}^2$ |
+| E | | Estimated variance component, $\hat\sigma_{e}^2$ |
+
+
+<br>  
+
+**Prepare data frame of results**
+
+```{r}
+accuMeans <- colMeans(cvG$accuracy)
+thetaMeans <- colMeans(cvG$theta)
+
+accuSEM <- apply(cvG$accuracy, 2, function(x){sd(x)/sqrt(50)})
+thetaSEM <- apply(cvG$theta, 2, function(x){sd(x)/sqrt(50)})
+
+stat <- c("mean","sem")
+results1 <- data.frame(stat, rbind(accuMeans, accuSEM))
+results2 <- data.frame(stat, rbind(thetaMeans, thetaSEM))
+results <- cbind(results1,results2)
+results
+```
+
+
+**Heritability ($\hat{h^2}$)**  
+
+```{r, fig.width=3, fig.height=3.5}
+h2fm <- cvG$theta$G/(cvG$theta$G+cvG$theta$E)
+boxplot(h2fm, main = "Genomic Heritability")
+```
+
+
+**Histogram of genetic values**
+```{r, fig.width=3.5, fig.height=3}
+hist(fitG$g, xlab = "genetic value", main = "REML")
+```
+
+
+
+
+**Histogram of phenotype**
+```{r, fig.width=3.5, fig.height=3}
+hist(y, xlab = "hours", main = "Starvation Resistance")
+```
+
+
+
