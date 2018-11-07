@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Single marker association analyses using linear models or linear mixed models — lma • qgg</title>
+<title>Single marker association analysis using linear models or linear mixed models — lma • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,13 +30,26 @@
 
 
 
-<meta property="og:title" content="Single marker association analyses using linear models or linear mixed models — lma" />
+<meta property="og:title" content="Single marker association analysis using linear models or linear mixed models — lma" />
 
-<meta property="og:description" content="Single marker association tests based on (mixed) linear model analyses (mlma) or a standard linear model analyses (lma).
-The basic approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide sample structure, 
-2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
+<meta property="og:description" content="The function lma performs approximations of single marker associations between genotype markers and the phenotype 
+either based on linear model analysis (LMA) or mixed linear model analysis (MLMA)." />
+
+<meta property="og:description" content="MLMA methods are the method of choice when conducting association mapping in the presence of sample structure, 
+including geographic population structure, family relatedness and/or cryptic relatedness. MLMA methods prevent 
+false positive associations and increase power. The general recommendation when using MLMA is to exclude candidate 
+markers from the GRM. This can be efficiently implemented via a leave-one-chromosome-out analysis. 
+Further, it is recommend that analyses of randomly ascertained quantitative traits should include all markers 
+(except for the candidate marker and markers in LD with the candidate marker) in the GRM, except as follows. 
+First, the set of markers included in the GRM can be pruned by LD to reduce running time (with association 
+statistics still computed for all markers). Second, genome-wide significant markers of large effect should be 
+conditioned out as fixed effects or as an additional random effect (if a large number of associated markers). 
+Third, when population stratification is less of a concern, it may be useful using the top associated markers 
+selected based on the global maximum from out-of sample predictive accuracy.
+The basic MLMA approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide 
+sample structure, 2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
 (with or without additional fixed effects) and 3) computing association statistics that account for this component 
-of phenotypic variance." />
+on phenotypic variance." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -123,18 +136,31 @@ of phenotypic variance." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Single marker association analyses using linear models or linear mixed models</h1>
+    <h1>Single marker association analysis using linear models or linear mixed models</h1>
     <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/single_marker_test.R'><code>R/single_marker_test.R</code></a></small>
     <div class="hidden name"><code>lma.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Single marker association tests based on (mixed) linear model analyses (mlma) or a standard linear model analyses (lma).</p>
-<p>The basic approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide sample structure, 
-2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
+    <p>The function lma performs approximations of single marker associations between genotype markers and the phenotype 
+either based on linear model analysis (LMA) or mixed linear model analysis (MLMA).</p>
+
+    <p>MLMA methods are the method of choice when conducting association mapping in the presence of sample structure, 
+including geographic population structure, family relatedness and/or cryptic relatedness. MLMA methods prevent 
+false positive associations and increase power. The general recommendation when using MLMA is to exclude candidate 
+markers from the GRM. This can be efficiently implemented via a leave-one-chromosome-out analysis. 
+Further, it is recommend that analyses of randomly ascertained quantitative traits should include all markers 
+(except for the candidate marker and markers in LD with the candidate marker) in the GRM, except as follows. 
+First, the set of markers included in the GRM can be pruned by LD to reduce running time (with association 
+statistics still computed for all markers). Second, genome-wide significant markers of large effect should be 
+conditioned out as fixed effects or as an additional random effect (if a large number of associated markers). 
+Third, when population stratification is less of a concern, it may be useful using the top associated markers 
+selected based on the global maximum from out-of sample predictive accuracy.</p>
+<p>The basic MLMA approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide 
+sample structure, 2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
 (with or without additional fixed effects) and 3) computing association statistics that account for this component 
-of phenotypic variance.</p>
+on phenotypic variance.</p>
     
     </div>
 
@@ -154,10 +180,6 @@ of phenotypic variance.</p>
       <td><p>design matrix for factors modeled as fixed effects</p></td>
     </tr>
     <tr>
-      <th>W</th>
-      <td><p>matrix of centered and scaled genotypes (n x m)</p></td>
-    </tr>
-    <tr>
       <th>Glist</th>
       <td><p>list of information about genotype matrix</p></td>
     </tr>
@@ -167,7 +189,7 @@ of phenotypic variance.</p>
     </tr>
     <tr>
       <th>statistic</th>
-      <td><p>is the single marker test statistic used. Currently it is based on the "mastor" statistics.</p></td>
+      <td><p>single marker test statistic used (currently based on the "mastor" statistics).</p></td>
     </tr>
     <tr>
       <th>ids</th>
@@ -176,6 +198,18 @@ of phenotypic variance.</p>
     <tr>
       <th>rsids</th>
       <td><p>vector marker rsids used in the analysis</p></td>
+    </tr>
+    <tr>
+      <th>msize</th>
+      <td><p>number of genotype markers used for batch processing</p></td>
+    </tr>
+    <tr>
+      <th>scaled</th>
+      <td><p>logical if TRUE the genotypes have been scaled to mean zero and variance one</p></td>
+    </tr>
+    <tr>
+      <th>G</th>
+      <td><p>matrix of centered and scaled genotypes (n x m)</p></td>
     </tr>
     </table>
     
@@ -187,21 +221,6 @@ of phenotypic variance.</p>
 <dt>stat</dt><dd><p>single marker test statistic</p></dd>
 <dt>p</dt><dd><p>p-value</p></dd>
 
-    
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>MLMA methods are the method of choice when conducting association mapping in the presence of sample structure, 
-including geographic population structure, family relatedness and/or cryptic relatedness. 
-MLMA methods prevent false positive associations and increase power. 
-General recommendation using MLMA: It is recommend to exclude candidate markers from the GRM in preference to 
-including them. This approach can be efficiently implemented via a leave-one-chromosome-out analysis. 
-It is recommend that analyses of randomly ascertained quantitative traits should generally include all markers 
-(except for the candidate marker and markers in LD with the candidate marker) in the GRM, except as follows. 
-First, the set of markers included in the GRM can be pruned by LD to reduce running time (with association statistics 
-still computed for all markers). Second, genome-wide significant markers of large effect should be conditioned 
-out as fixed effects or as an additional random effect (if a large number of associated markers). 
-Third, when population stratification is less of a concern, it may be useful using the top associated markers 
-selected on the basis of the global maximum from out-of sample prediction accuracy.</p>
     
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
@@ -254,8 +273,6 @@ selected on the basis of the global maximum from out-of sample prediction accura
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
-
-      <li><a href="#details">Details</a></li>
 
       <li><a href="#references">References</a></li>
       

@@ -89,7 +89,7 @@
       <h1>GBLUP and cross validation</h1>
                         <h4 class="author">Izel Fourie Sørensen</h4>
             
-            <h4 class="date">02 November, 2018</h4>
+            <h4 class="date">07 November, 2018</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/psoerensen/qgg/blob/master/vignettes/GBLUP_cross_validation.Rmd"><code>vignettes/GBLUP_cross_validation.Rmd</code></a></small>
       <div class="hidden name"><code>GBLUP_cross_validation.Rmd</code></div>
@@ -230,32 +230,32 @@ cvG &lt;-<span class="st"> </span><span class="kw"><a href="../reference/greml.h
 <span class="kw">str</span>(cvG)</code></pre></div>
 <pre><code>## List of 4
 ##  $ accuracy:'data.frame':    50 obs. of  7 variables:
-##   ..$ Corr     : num [1:50] 0.294 0.304 0.16 0.598 0.048 0.176 0.149 0.205 0.393 -0.066 ...
-##   ..$ R2       : num [1:50] 0.086 0.092 0.026 0.357 0.002 0.031 0.022 0.042 0.154 0.004 ...
+##   ..$ Corr     : num [1:50] 0.004 -0.047 0.207 0.055 0.315 0.465 0.293 0.016 -0.029 0.083 ...
+##   ..$ R2       : num [1:50] 0 0.002 0.043 0.003 0.099 0.216 0.086 0 0.001 0.007 ...
 ##   ..$ Nagel R2 : num [1:50] NA NA NA NA NA NA NA NA NA NA ...
 ##   ..$ AUC      : num [1:50] NA NA NA NA NA NA NA NA NA NA ...
-##   ..$ intercept: num [1:50] 49.1 49.4 50.6 47.5 53.5 ...
-##   ..$ slope    : num [1:50] 0.082 0.091 0.024 0.142 0.019 0.04 0.042 0.051 0.113 -0.016 ...
-##   ..$ MSPE     : num [1:50] 148 142 173 164 170 ...
+##   ..$ intercept: num [1:50] 52.1 53.9 51.5 52.7 48.2 ...
+##   ..$ slope    : num [1:50] 0.001 -0.017 0.041 0.013 0.107 0.112 0.07 0.004 -0.007 0.014 ...
+##   ..$ MSPE     : num [1:50] 189 166 219 269 200 ...
 ##  $ theta   :'data.frame':    50 obs. of  2 variables:
-##   ..$ G: num [1:50] 24.5 29.1 24.7 26.7 36.1 ...
-##   ..$ E: num [1:50] 154 151 152 151 144 ...
-##  $ yobs    : num [1:1500] 52.7 38.7 50 43.7 91.2 ...
-##  $ ypred   : num [1:1500] 53.7 48.3 49.7 51 58.8 ...</code></pre>
+##   ..$ G: num [1:50] 20.4 34.1 24.8 22.1 28.4 ...
+##   ..$ E: num [1:50] 155 146 148 147 147 ...
+##  $ yobs    : num [1:1500] 62.1 38.7 43 59.9 45.1 ...
+##  $ ypred   : num [1:1500] 51.3 46.8 55.3 55.4 49.1 ...</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cvG<span class="op">$</span>accuracy[<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>,]</code></pre></div>
-<pre><code>##    Corr    R2 Nagel R2 AUC intercept slope    MSPE
-## 1 0.294 0.086       NA  NA    49.057 0.082 148.003
-## 2 0.304 0.092       NA  NA    49.449 0.091 141.987
-## 3 0.160 0.026       NA  NA    50.588 0.024 173.350
-## 4 0.598 0.357       NA  NA    47.495 0.142 164.279
-## 5 0.048 0.002       NA  NA    53.529 0.019 170.110</code></pre>
+<pre><code>##     Corr    R2 Nagel R2 AUC intercept  slope    MSPE
+## 1  0.004 0.000       NA  NA    52.140  0.001 189.474
+## 2 -0.047 0.002       NA  NA    53.868 -0.017 165.925
+## 3  0.207 0.043       NA  NA    51.530  0.041 218.530
+## 4  0.055 0.003       NA  NA    52.653  0.013 268.763
+## 5  0.315 0.099       NA  NA    48.198  0.107 200.041</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cvG<span class="op">$</span>theta[<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>,]</code></pre></div>
 <pre><code>##        G       E
-## 1 24.549 154.421
-## 2 29.053 151.082
-## 3 24.712 152.325
-## 4 26.678 151.384
-## 5 36.097 144.242</code></pre>
+## 1 20.358 154.554
+## 2 34.135 145.587
+## 3 24.775 148.241
+## 4 22.144 146.823
+## 5 28.446 146.947</code></pre>
 <p><br></p>
 <p><strong>Output of the GREML cross validation analysis</strong></p>
 <p>The output includes statistics that quantify the model’s predictive ability as assessed by regressing the observed phenotype against the predicted phenotype for the validation data set: <span class="math inline">\(y = intercept + \hat{y} slope + e\)</span></p>
@@ -348,12 +348,12 @@ results1 &lt;-<span class="st"> </span><span class="kw">data.frame</span>(stat, 
 results2 &lt;-<span class="st"> </span><span class="kw">data.frame</span>(stat, <span class="kw">rbind</span>(thetaMeans, thetaSEM))
 results &lt;-<span class="st"> </span><span class="kw">cbind</span>(results1,results2)
 results</code></pre></div>
-<pre><code>##           stat       Corr         R2 Nagel.R2 AUC intercept       slope
-## accuMeans mean 0.19306000 0.07146000       NA  NA 50.403740 0.054440000
-## accuSEM    sem 0.02645399 0.01045399       NA  NA  0.436142 0.008085722
+<pre><code>##           stat       Corr          R2 Nagel.R2 AUC  intercept       slope
+## accuMeans mean 0.15248000 0.051300000       NA  NA 50.9706200 0.042000000
+## accuSEM    sem 0.02393746 0.008074159       NA  NA  0.3348432 0.006904007
 ##                 MSPE stat          G           E
-## accuMeans 171.455500 mean 27.3324200 150.3625000
-## accuSEM     6.491496  sem  0.6364689   0.6459845</code></pre>
+## accuMeans 178.661580 mean 27.7639800 149.3893800
+## accuSEM     5.619694  sem  0.5793821   0.5078509</code></pre>
 <p><strong>Heritability (<span class="math inline">\(\hat{h^2}\)</span>)</strong></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">h2fm &lt;-<span class="st"> </span>cvG<span class="op">$</span>theta<span class="op">$</span>G<span class="op">/</span>(cvG<span class="op">$</span>theta<span class="op">$</span>G<span class="op">+</span>cvG<span class="op">$</span>theta<span class="op">$</span>E)
 <span class="kw">boxplot</span>(h2fm, <span class="dt">main =</span> <span class="st">"Genomic Heritability"</span>)</code></pre></div>

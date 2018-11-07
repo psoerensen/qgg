@@ -32,16 +32,24 @@
 
 <meta property="og:title" content="Genomic REML analysis — greml" />
 
-<meta property="og:description" content="Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML) 
-and prediction of genomic predisposition using BLUP.
-The steps involved in the linear mixed model analyses, 1) computation of genomic relationship matrices (GRM), 
-2) estimation of variance component parameters in the model, and 3) prediction of genetic predisposition or phenotypes.
-The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+<meta property="og:description" content="The greml function is used for estimation of genomic parameters (variance components and heritability) for 
+linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using 
+best linear unbiased prediction (BLUP).
+The linear mixed model can account for multiple genetic factors (fixed and random genetic marker effects), 
 adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
-including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
-Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
-genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
-Different genetic models (e.g. additive and non-additive) can be specified." />
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated 
+phenotypes. Different genetic architectures (infinitesimal, few large and many small effects) is accounted for 
+by modeling genetic markers in different sets as fixed or random effects and by specifying individual genetic 
+marker weights. Different genetic models (e.g. additive and non-additive) can be specified by providing 
+additive and non-additive GRMs (constructed using grm) to greml. The GRMs can be accessed from the R environment 
+or from binary files stored on disk facilitating analyses of large-scale genetic data.
+The output contains the first and second derivatives of log-likelihood, and the asymptotic standard deviation 
+of parameter estimates. Predicted random effects and single marker effects and statistics can be obtained.
+Assessment of predictive accuracy (including correlation and R^2, and AUC for binary phenotypes) can be obtained 
+by providing greml a matrix containing sample IDs used in the validation, see examples for details.
+Variance components can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”. 
+This option requires DMU to be installed locally, and the path to the DMU binary files has to be specified 
+(see examples below for details)." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -135,24 +143,31 @@ Different genetic models (e.g. additive and non-additive) can be specified." />
 
     <div class="ref-description">
     
-    <p>Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML) 
-and prediction of genomic predisposition using BLUP.</p>
-<p>The steps involved in the linear mixed model analyses, 1) computation of genomic relationship matrices (GRM), 
-2) estimation of variance component parameters in the model, and 3) prediction of genetic predisposition or phenotypes.</p>
-<p>The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+    <p>The greml function is used for estimation of genomic parameters (variance components and heritability) for 
+linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using 
+best linear unbiased prediction (BLUP).</p>
+<p>The linear mixed model can account for multiple genetic factors (fixed and random genetic marker effects), 
 adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
-including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
-Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
-genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
-Different genetic models (e.g. additive and non-additive) can be specified.</p>
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated 
+phenotypes. Different genetic architectures (infinitesimal, few large and many small effects) is accounted for 
+by modeling genetic markers in different sets as fixed or random effects and by specifying individual genetic 
+marker weights. Different genetic models (e.g. additive and non-additive) can be specified by providing 
+additive and non-additive GRMs (constructed using grm) to greml. The GRMs can be accessed from the R environment 
+or from binary files stored on disk facilitating analyses of large-scale genetic data.</p>
+<p>The output contains the first and second derivatives of log-likelihood, and the asymptotic standard deviation 
+of parameter estimates. Predicted random effects and single marker effects and statistics can be obtained.</p>
+<p>Assessment of predictive accuracy (including correlation and R^2, and AUC for binary phenotypes) can be obtained 
+by providing greml a matrix containing sample IDs used in the validation, see examples for details.</p>
+<p>Variance components can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”. 
+This option requires DMU to be installed locally, and the path to the DMU binary files has to be specified 
+(see examples below for details).</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRMlist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>maxit</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>bin</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>wkdir</span> <span class='kw'>=</span> <span class='fu'>getwd</span>(),
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>makeplots</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>interface</span> <span class='kw'>=</span> <span class='st'>"R"</span>, <span class='kw'>fm</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>data</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRMlist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>maxit</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>bin</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>wkdir</span> <span class='kw'>=</span> <span class='fu'>getwd</span>(), <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>makeplots</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>interface</span> <span class='kw'>=</span> <span class='st'>"R"</span>, <span class='kw'>fm</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -175,11 +190,19 @@ Different genetic models (e.g. additive and non-additive) can be specified.</p>
     </tr>
     <tr>
       <th>theta</th>
-      <td><p>vector of initial values for REML estimation</p></td>
+      <td><p>vector of initial values of co-variance for REML estimation</p></td>
+    </tr>
+    <tr>
+      <th>ids</th>
+      <td><p>vector of validation individuals used in the analysis</p></td>
+    </tr>
+    <tr>
+      <th>validate</th>
+      <td><p>a dataframe or lits of validation individuals used in cross-validation (one column for each set)</p></td>
     </tr>
     <tr>
       <th>maxit</th>
-      <td><p>maximum number of iterations of reml analysis</p></td>
+      <td><p>maximum number of iterations of REML analysis</p></td>
     </tr>
     <tr>
       <th>tol</th>
@@ -187,7 +210,7 @@ Different genetic models (e.g. additive and non-additive) can be specified.</p>
     </tr>
     <tr>
       <th>bin</th>
-      <td><p>is the directory for fortrna binaries (dmu1 and dmuai1)</p></td>
+      <td><p>is the directory fortran binaries (e.g. DMU binaries dmu1 and dmuai)</p></td>
     </tr>
     <tr>
       <th>ncores</th>
@@ -195,7 +218,7 @@ Different genetic models (e.g. additive and non-additive) can be specified.</p>
     </tr>
     <tr>
       <th>interface</th>
-      <td><p>used linking to external executable fortran binaries (e.g. dmu1 and dmuai1)</p></td>
+      <td><p>used for specifying whether to use R or Fortran implementations of REML</p></td>
     </tr>
     <tr>
       <th>fm</th>
@@ -217,14 +240,8 @@ Different genetic models (e.g. additive and non-additive) can be specified.</p>
 <dt>varb</dt><dd><p>vector of variances of fixed effect estimates</p></dd>
 <dt>g</dt><dd><p>vector of random effect estimates</p></dd>
 <dt>e</dt><dd><p>vector of residual effects</p></dd>
+<dt>accuracy</dt><dd><p>matrix of prediction accuracies (only returned if validate is provided)</p></dd>
 
-    
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>The GRM's can be accessed from the R environment or from binary files stored on disk fascilitating analyses of 
-large data sets. First and second derivatives of log-likehood can be obtained in addition to asymtotic standard 
-deviation of parameter estimates. Predicted random effects and single marker effects and statistics can be obtained. 
-Covariance decomposition procedures. Cross validation procedures for assessment of prediction accuracy and model selection.</p>
     
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
@@ -244,29 +261,28 @@ Covariance decomposition procedures. Cross validation procedures for assessment 
 <span class='no'>fm</span> <span class='kw'>&lt;-</span> <span class='no'>y</span> ~ <span class='fl'>0</span> + <span class='no'>mu</span>
 <span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'>model.matrix</span>(<span class='no'>fm</span>, <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>data</span>)
 
+<span class='co'># Compute GRM</span>
+<span class='no'>GRM</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
+
+<span class='co'># REML analyses</span>
+<span class='no'>fitG</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='fu'>list</span>(<span class='no'>GRM</span>))
+
+<span class='co'># REML analyses and cross validation</span>
+
 <span class='co'># Create marker sets</span>
 <span class='no'>setsGB</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>A</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)) <span class='co'># gblup model</span>
 <span class='no'>setsGF</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>C1</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>1000</span>], <span class='kw'>C2</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1001</span>:<span class='fl'>2000</span>], <span class='kw'>C3</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>2000</span>:<span class='fl'>10000</span>]) <span class='co'># gfblup model</span>
 <span class='no'>setsGT</span> <span class='kw'>&lt;-</span> <span class='fu'>list</span>(<span class='kw'>C1</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>10</span>], <span class='kw'>C2</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1001</span>:<span class='fl'>1010</span>], <span class='kw'>C3</span> <span class='kw'>=</span> <span class='fu'>colnames</span>(<span class='no'>W</span>)[<span class='fl'>1</span>:<span class='fl'>10000</span>]) <span class='co'># true model</span>
 
-<span class='co'># Compute GRM</span>
-<span class='no'>G</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>)
 <span class='no'>GB</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGB</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
 <span class='no'>GF</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGF</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
 <span class='no'>GT</span> <span class='kw'>&lt;-</span> <span class='fu'>lapply</span>(<span class='no'>setsGT</span>, <span class='kw'>function</span>(<span class='no'>x</span>) {<span class='fu'><a href='grm.html'>grm</a></span>(<span class='kw'>W</span> <span class='kw'>=</span> <span class='no'>W</span>[, <span class='no'>x</span>])})
 
-<span class='co'># REML analyses</span>
-<span class='no'>fitGB</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GB</span>)
-<span class='no'>fitGF</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GF</span>)
-<span class='no'>fitGT</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GT</span>)
-
-<span class='co'># REML analyses and cross validation</span>
 <span class='no'>n</span> <span class='kw'>&lt;-</span> <span class='fu'>length</span>(<span class='no'>y</span>)
 <span class='no'>fold</span> <span class='kw'>&lt;-</span> <span class='fl'>10</span>
-<span class='no'>nsets</span> <span class='kw'>&lt;-</span> <span class='fl'>5</span>
+<span class='no'>nvalid</span> <span class='kw'>&lt;-</span> <span class='fl'>5</span>
 
-<span class='no'>validate</span> <span class='kw'>&lt;-</span> <span class='fu'>replicate</span>(<span class='no'>nsets</span>, <span class='fu'>sample</span>(<span class='fl'>1</span>:<span class='no'>n</span>, <span class='fu'>as.integer</span>(<span class='no'>n</span> / <span class='no'>fold</span>)))
-
+<span class='no'>validate</span> <span class='kw'>&lt;-</span> <span class='fu'>replicate</span>(<span class='no'>nvalid</span>, <span class='fu'>sample</span>(<span class='fl'>1</span>:<span class='no'>n</span>, <span class='fu'>as.integer</span>(<span class='no'>n</span> / <span class='no'>fold</span>)))
 <span class='no'>cvGB</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GB</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='no'>validate</span>)
 <span class='no'>cvGF</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GF</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='no'>validate</span>)
 <span class='no'>cvGT</span> <span class='kw'>&lt;-</span> <span class='fu'>greml</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>y</span>, <span class='kw'>X</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>GRM</span> <span class='kw'>=</span> <span class='no'>GT</span>, <span class='kw'>validate</span> <span class='kw'>=</span> <span class='no'>validate</span>)
@@ -290,8 +306,6 @@ Covariance decomposition procedures. Cross validation procedures for assessment 
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
-
-      <li><a href="#details">Details</a></li>
 
       <li><a href="#references">References</a></li>
       

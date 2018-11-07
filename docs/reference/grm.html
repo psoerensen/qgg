@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Computation of a genomic relationship matrix (GRM) — grm • qgg</title>
+<title>Computing the genomic relationship matrix (GRM) — grm • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,13 +30,12 @@
 
 
 
-<meta property="og:title" content="Computation of a genomic relationship matrix (GRM) — grm" />
+<meta property="og:title" content="Computing the genomic relationship matrix (GRM) — grm" />
 
-<meta property="og:description" content="Computation of a genomic relationship matrix (GRM). 
-The output of the grm function is a GRM or a GRMlist list structure containing information 
-about the genotypes stored in a binary file on disk. The Glist list structure (created
-only once) is used by the greml function for estimation of variance components 
-and should be saved in Rdata file." />
+<meta property="og:description" content="The grm function is used to compute a genomic relationship matrix (GRM) based on all, 
+or a subset of marker genotypes. The output of the grm function can either be a 
+within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that 
+contains information about the GRM stored in a binary file on the disk." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -123,25 +122,24 @@ and should be saved in Rdata file." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Computation of a genomic relationship matrix (GRM)</h1>
+    <h1>Computing the genomic relationship matrix (GRM)</h1>
     <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/compute_grm.R'><code>R/compute_grm.R</code></a></small>
     <div class="hidden name"><code>grm.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Computation of a genomic relationship matrix (GRM). 
-The output of the grm function is a GRM or a GRMlist list structure containing information 
-about the genotypes stored in a binary file on disk. The Glist list structure (created
-only once) is used by the greml function for estimation of variance components 
-and should be saved in Rdata file.</p>
+    <p>The grm function is used to compute a genomic relationship matrix (GRM) based on all, 
+or a subset of marker genotypes. The output of the grm function can either be a 
+within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that 
+contains information about the GRM stored in a binary file on the disk.</p>
     
     </div>
 
     <pre class="usage"><span class='fu'>grm</span>(<span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>GRMlist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>rws</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"add"</span>,
-  <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>fnG</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>returnGRM</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>miss</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>task</span> <span class='kw'>=</span> <span class='st'>"grm"</span>)</pre>
+  <span class='kw'>rws</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>W</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"add"</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>fnG</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>overwrite</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>returnGRM</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>miss</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>task</span> <span class='kw'>=</span> <span class='st'>"grm"</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -152,11 +150,11 @@ and should be saved in Rdata file.</p>
     </tr>
     <tr>
       <th>ids</th>
-      <td><p>individual ids used for computing GRM</p></td>
+      <td><p>a vector of individual ids used for computing GRM</p></td>
     </tr>
     <tr>
       <th>rsids</th>
-      <td><p>marker rsids used for computing GRM</p></td>
+      <td><p>a vector genotype marker rsids used for computing GRM</p></td>
     </tr>
     <tr>
       <th>rws</th>
@@ -172,11 +170,15 @@ and should be saved in Rdata file.</p>
     </tr>
     <tr>
       <th>method</th>
-      <td><p>used for computing GRM including additive, dominance or epistasis</p></td>
+      <td><p>indicator of method used for computing GRM; additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))</p></td>
     </tr>
     <tr>
       <th>msize</th>
-      <td><p>number of markers used for batch processing of genotypes for large data</p></td>
+      <td><p>number of genotype markers used for batch processing</p></td>
+    </tr>
+    <tr>
+      <th>ncores</th>
+      <td><p>number of cores used to compute the GRM</p></td>
     </tr>
     <tr>
       <th>fnG</th>
@@ -202,7 +204,7 @@ and should be saved in Rdata file.</p>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Returns a genormic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk</p>
+    <p>Returns a genomic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
