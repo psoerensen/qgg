@@ -4,8 +4,8 @@
 \alias{gscore}
 \title{Genomic prediction based on single marker summary statistics}
 \usage{
-gscore(Glist = NULL, S = NULL, ids = NULL, rsids = NULL,
-  rws = NULL, cls = NULL, scaled = TRUE, msize = 100, ncores = 1)
+gscore(Glist = NULL, S = NULL, ids = NULL, rsids = NULL, rws = NULL,
+  cls = NULL, scaled = TRUE, msize = 100, ncores = 1)
 }
 \arguments{
 \item{Glist}{list of information about genotype matrix}
@@ -16,8 +16,16 @@ gscore(Glist = NULL, S = NULL, ids = NULL, rsids = NULL,
 
 \item{rsids}{vector marker rsids used in the analysis}
 
-\item{ncores}{number of cores}
+\item{rws}{rows in genotype matrix used in the analysis}
+
+\item{cls}{columns in genotype matrix used in the analysis}
+
+\item{scaled}{logical if TRUE the genotype markers have been scaled to mean zero and variance one}
+
+\item{msize}{number of genotype markers used for batch processing}
+
+\item{ncores}{number of cores used in the analysis}
 }
 \description{
-Function for genomic predictions based on single marker summary statistics and observed phenotypes
+The gscore function is used for genomic predictions based on single marker summary statistics and observed phenotypes.
 }

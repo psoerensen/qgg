@@ -6,12 +6,10 @@
 #' 
 #' 
 #' @description
-#' Solving linear mixed model equations. 
-#' 
-#' The algorithm used to solve the equation system is based on a matrix-free Gauss-Seidel (GS) method. 
-#' The implementation of GS used is a matrix-free version based on adjustment of the residuals, 
-#' where the cost of GS was less dependent on the number of equations (fixed and random effects) in 
-#' the system.
+#' The gsolve function is used for efficient solving of linear mixed model equations. The algorithm used to solve 
+#' the equation system is based on a matrix-free Gauss-Seidel (GS) method. The implementation of GS used is a 
+#' matrix-free version based on adjustment of the residuals, where the cost of GS was less dependent on the number 
+#' of equations (fixed and random effects) in the system.
 #'   
 #' The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
 #' adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
@@ -29,7 +27,11 @@
 #' @param lambda vector of single marker weights used in BLUP
 #' @param maxit maximum number of iterations of in the Gauss-Seidel procedure
 #' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
-#' @param ncores number of cores
+#' @param sets	a list containing marker rsids
+#' @param validate	a matrix of validation individuals used in cross-validation (one column for each set)
+#' @param scaled logical if TRUE the genotypes in Glist has been scaled to mean zero and variance one
+#' @param ncores number of cores used in the analysis
+
 
 #' @author Peter Soerensen
 
@@ -117,14 +119,18 @@ gsolve <- function( y=NULL, X=NULL, Glist=NULL, W=NULL, ids=NULL, rsids=NULL, se
 #' 
 #' 
 #' @description
-#' Function for genomic predictions based on single marker summary statistics and observed phenotypes
+#' The gscore function is used for genomic predictions based on single marker summary statistics and observed genotypes.
 #' 
 
 #' @param S matrix of single marker effects
 #' @param Glist list of information about genotype matrix
 #' @param rsids vector marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis
-#' @param ncores number of cores
+#' @param rws rows in genotype matrix used in the analysis
+#' @param cls columns in genotype matrix used in the analysis
+#' @param scaled logical if TRUE the genotype markers have been scaled to mean zero and variance one
+#' @param msize number of genotype markers used for batch processing
+#' @param ncores number of cores used in the analysis
 
 
 
@@ -184,6 +190,19 @@ gscore <- function(Glist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, sca
      return(prs$prs)
 }
 
+
+#' @export
+#'
+
+gcov <- function(S=NULL,rsids=NULL, sets=NULL, ncores=1, method="default") { 
+     
+     if (is.vector(S)) S <- as.matrix(S)
+     if(method=="default") {
+          if(is.null(sets)) cor(S)
+          if(!is.null(sets)) sapply(sets,cor(S[x,]))
+     }
+
+}
 
 
 ##' @export

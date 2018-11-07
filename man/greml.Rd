@@ -4,11 +4,10 @@
 \alias{greml}
 \title{Genomic REML analysis}
 \usage{
-greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
-  theta = NULL, ids = NULL, validate = NULL, maxit = 100,
-  tol = 1e-05, bin = NULL, ncores = 1, wkdir = getwd(),
-  verbose = FALSE, makeplots = FALSE, interface = "R", fm = NULL,
-  data = NULL)
+greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL,
+  ids = NULL, validate = NULL, maxit = 100, tol = 1e-05, bin = NULL,
+  ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE,
+  interface = "R", fm = NULL, data = NULL)
 }
 \arguments{
 \item{y}{vector or matrix of phenotypes}
@@ -19,17 +18,21 @@ greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
 
 \item{GRM}{list of one or more genomic relationship matrices}
 
-\item{theta}{vector of initial values for REML estimation}
+\item{theta}{vector of initial values of co-variance for REML estimation}
 
-\item{maxit}{maximum number of iterations of reml analysis}
+\item{ids}{vector of validation individuals used in the analysis}
+
+\item{validate}{a dataframe or lits of validation individuals used in cross-validation (one column for each set)}
+
+\item{maxit}{maximum number of iterations of REML analysis}
 
 \item{tol}{tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence}
 
-\item{bin}{is the directory for fortrna binaries (dmu1 and dmuai1)}
+\item{bin}{is the directory fortran binaries (e.g. DMU binaries dmu1 and dmuai)}
 
 \item{ncores}{number of cores used for the analysis}
 
-\item{interface}{used linking to external executable fortran binaries (e.g. dmu1 and dmuai1)}
+\item{interface}{used for specifying whether to use R or Fortran implementations of REML}
 
 \item{fm}{a formula with model statement for the linear mixed model}
 
@@ -44,26 +47,31 @@ Returns a list structure including
 \item{varb}{vector of variances of fixed effect estimates}
 \item{g}{vector of random effect estimates}
 \item{e}{vector of residual effects}
+\item{accuracy}{matrix of prediction accuracies (only returned if validate is provided)}
 }
 \description{
-Estimation of genomic parameters (e.g. (co)variance and heritability) using restricted maximum likelihood estimation (REML) 
-and prediction of genomic predisposition using BLUP. 
+The greml function is used for estimation of genomic parameters (variance components and heritability) for 
+linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using 
+best linear unbiased prediction (BLUP).
 
-The steps involved in the linear mixed model analyses, 1) computation of genomic relationship matrices (GRM), 
-2) estimation of variance component parameters in the model, and 3) prediction of genetic predisposition or phenotypes. 
-
-The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
+The linear mixed model can account for multiple genetic factors (fixed and random genetic marker effects), 
 adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
-including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
-Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
-genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
-Different genetic models (e.g. additive and non-additive) can be specified.
-}
-\details{
-The GRM's can be accessed from the R environment or from binary files stored on disk fascilitating analyses of 
-large data sets. First and second derivatives of log-likehood can be obtained in addition to asymtotic standard 
-deviation of parameter estimates. Predicted random effects and single marker effects and statistics can be obtained. 
-Covariance decomposition procedures. Cross validation procedures for assessment of prediction accuracy and model selection.
+including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated 
+phenotypes. Different genetic architectures (infinitesimal, few large and many small effects) is accounted for 
+by modeling genetic markers in different sets as fixed or random effects and by specifying individual genetic 
+marker weights. Different genetic models (e.g. additive and non-additive) can be specified by providing 
+additive and non-additive GRMs (constructed using grm) to greml. The GRMs can be accessed from the R environment 
+or from binary files stored on disk facilitating analyses of large-scale genetic data.
+
+The output contains the first and second derivatives of log-likelihood, and the asymptotic standard deviation 
+of parameter estimates. Predicted random effects and single marker effects and statistics can be obtained. 
+
+Assessment of predictive accuracy (including correlation and R^2, and AUC for binary phenotypes) can be obtained 
+by providing greml a matrix containing sample IDs used in the validation, see examples for details.
+
+Variance components can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”. 
+This option requires DMU to be installed locally, and the path to the DMU binary files has to be specified 
+(see examples below for details).
 }
 \examples{
 
@@ -78,29 +86,28 @@ data <- data.frame(y = y, mu = 1)
 fm <- y ~ 0 + mu
 X <- model.matrix(fm, data = data)
 
+# Compute GRM
+GRM <- grm(W = W)
+
+# REML analyses
+fitG <- greml(y = y, X = X, GRM = list(GRM))
+
+# REML analyses and cross validation
+
 # Create marker sets
 setsGB <- list(A = colnames(W)) # gblup model
 setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
 setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
 
-# Compute GRM
-G <- grm(W = W)
 GB <- lapply(setsGB, function(x) {grm(W = W[, x])})
 GF <- lapply(setsGF, function(x) {grm(W = W[, x])})
 GT <- lapply(setsGT, function(x) {grm(W = W[, x])})
 
-# REML analyses
-fitGB <- greml(y = y, X = X, GRM = GB)
-fitGF <- greml(y = y, X = X, GRM = GF)
-fitGT <- greml(y = y, X = X, GRM = GT)
-
-# REML analyses and cross validation
 n <- length(y)
 fold <- 10
-nsets <- 5
+nvalid <- 5
 
-validate <- replicate(nsets, sample(1:n, as.integer(n / fold)))
-
+validate <- replicate(nvalid, sample(1:n, as.integer(n / fold)))
 cvGB <- greml(y = y, X = X, GRM = GB, validate = validate)
 cvGF <- greml(y = y, X = X, GRM = GF, validate = validate)
 cvGT <- greml(y = y, X = X, GRM = GT, validate = validate)

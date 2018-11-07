@@ -22,21 +22,25 @@ gsolve(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL,
 
 \item{rsids}{vector marker rsids used in the analysis}
 
+\item{sets}{a list containing marker rsids}
+
+\item{validate}{a matrix of validation individuals used in cross-validation (one column for each set)}
+
+\item{scaled}{logical if TRUE the genotypes in Glist has been scaled to mean zero and variance one}
+
 \item{lambda}{vector of single marker weights used in BLUP}
 
 \item{maxit}{maximum number of iterations of in the Gauss-Seidel procedure}
 
 \item{tol}{tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence}
 
-\item{ncores}{number of cores}
+\item{ncores}{number of cores used in the analysis}
 }
 \description{
-Solving linear mixed model equations. 
-
-The algorithm used to solve the equation system is based on a matrix-free Gauss-Seidel (GS) method. 
-The implementation of GS used is a matrix-free version based on adjustment of the residuals, 
-where the cost of GS was less dependent on the number of equations (fixed and random effects) in 
-the system.
+The gsolve function is used for efficient solving of linear mixed model equations. The algorithm used to solve 
+the equation system is based on a matrix-free Gauss-Seidel (GS) method. The implementation of GS used is a 
+matrix-free version based on adjustment of the residuals, where the cost of GS was less dependent on the number 
+of equations (fixed and random effects) in the system.
   
 The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
 adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
