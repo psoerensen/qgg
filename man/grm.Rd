@@ -2,7 +2,7 @@
 % Please edit documentation in R/compute_grm.R
 \name{grm}
 \alias{grm}
-\title{Computation of a genomic relationship matrix (GRM)}
+\title{Computing the genomic relationship matrix (GRM)}
 \usage{
 grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
   rws = NULL, cls = NULL, W = NULL, method = "add", scaled = TRUE,
@@ -12,9 +12,9 @@ grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
 \arguments{
 \item{Glist}{a list providing information about genotypes stored on disk}
 
-\item{ids}{individual ids used for computing GRM}
+\item{ids}{a vector of individual ids used for computing GRM}
 
-\item{rsids}{marker rsids used for computing GRM}
+\item{rsids}{a vector genotype marker rsids used for computing GRM}
 
 \item{rws}{rows in genotype matrix used for computing GRM}
 
@@ -22,9 +22,11 @@ grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
 
 \item{W}{matrix of centered and scaled genotypes}
 
-\item{method}{used for computing GRM including additive, dominance or epistasis}
+\item{method}{indicator of method used for computing GRM; additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))}
 
-\item{msize}{number of markers used for batch processing of genotypes for large data}
+\item{msize}{number of genotype markers used for batch processing}
+
+\item{ncores}{number of cores used to compute the GRM}
 
 \item{fnG}{name of the binary file used for storing the GRM on disk}
 
@@ -37,14 +39,13 @@ grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
 \item{task}{computation (task="grm" is default) or eigen value decompostion (task="eigen")}
 }
 \value{
-Returns a genormic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
+Returns a genomic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
 }
 \description{
-Computation of a genomic relationship matrix (GRM). 
-The output of the grm function is a GRM or a GRMlist list structure containing information 
-about the genotypes stored in a binary file on disk. The Glist list structure (created
-only once) is used by the greml function for estimation of variance components 
-and should be saved in Rdata file.
+The grm function is used to compute a genomic relationship matrix (GRM) based on all, 
+or a subset of marker genotypes. The output of the grm function can either be a 
+within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that 
+contains information about the GRM stored in a binary file on the disk.
 }
 \examples{
 

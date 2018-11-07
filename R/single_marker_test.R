@@ -2,39 +2,43 @@
 #    Module 5: LMM marker association test
 ####################################################################################################################
 #'
-#' Single marker association analyses using linear models or linear mixed models 
+#' Single marker association analysis using linear models or linear mixed models 
 #'
 #' @description
-#' Single marker association tests based on (mixed) linear model analyses (mlma) or a standard linear model analyses (lma).  
+#' The function lma performs approximations of single marker associations between genotype markers and the phenotype 
+#' either based on linear model analysis (LMA) or mixed linear model analysis (MLMA).
 #' 
-#' The basic approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide sample structure, 
-#' 2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
-#' (with or without additional fixed effects) and 3) computing association statistics that account for this component 
-#' of phenotypic variance.
 #' 
-#' @details 
 #' MLMA methods are the method of choice when conducting association mapping in the presence of sample structure, 
-#' including geographic population structure, family relatedness and/or cryptic relatedness. 
-#' MLMA methods prevent false positive associations and increase power. 
-#' General recommendation using MLMA: It is recommend to exclude candidate markers from the GRM in preference to 
-#' including them. This approach can be efficiently implemented via a leave-one-chromosome-out analysis. 
-#' It is recommend that analyses of randomly ascertained quantitative traits should generally include all markers 
+#' including geographic population structure, family relatedness and/or cryptic relatedness. MLMA methods prevent 
+#' false positive associations and increase power. The general recommendation when using MLMA is to exclude candidate 
+#' markers from the GRM. This can be efficiently implemented via a leave-one-chromosome-out analysis. 
+#' Further, it is recommend that analyses of randomly ascertained quantitative traits should include all markers 
 #' (except for the candidate marker and markers in LD with the candidate marker) in the GRM, except as follows. 
-#' First, the set of markers included in the GRM can be pruned by LD to reduce running time (with association statistics 
-#' still computed for all markers). Second, genome-wide significant markers of large effect should be conditioned 
-#' out as fixed effects or as an additional random effect (if a large number of associated markers). 
+#' First, the set of markers included in the GRM can be pruned by LD to reduce running time (with association 
+#' statistics still computed for all markers). Second, genome-wide significant markers of large effect should be 
+#' conditioned out as fixed effects or as an additional random effect (if a large number of associated markers). 
 #' Third, when population stratification is less of a concern, it may be useful using the top associated markers 
-#' selected on the basis of the global maximum from out-of sample prediction accuracy. 
+#' selected based on the global maximum from out-of sample predictive accuracy.
+#' 
+#' The basic MLMA approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide 
+#' sample structure, 2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
+#' (with or without additional fixed effects) and 3) computing association statistics that account for this component 
+#' on phenotypic variance.
+#' 
 
 #'
 #' @param y vector or matrix of phenotypes
 #' @param X design matrix for factors modeled as fixed effects
 #' @param fit list of information about linear mixed model fit (output from greml)
-#' @param W matrix of centered and scaled genotypes (n x m)
+#' @param G matrix of centered and scaled genotypes (n x m)
 #' @param Glist list of information about genotype matrix
 #' @param rsids vector marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis
-#' @param statistic is the single marker test statistic used. Currently it is based on the "mastor" statistics. 
+#' @param statistic single marker test statistic used (currently based on the "mastor" statistics).
+#' @param msize number of genotype markers used for batch processing
+#' @param scaled logical if TRUE the genotypes have been scaled to mean zero and variance one
+#'  
 
 #' @return Returns a dataframe (if number of traits = 1) else a list including 
 #' \item{coef}{single marker coefficients} 

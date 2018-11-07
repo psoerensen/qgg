@@ -2,24 +2,23 @@
 # compute GRM functions
 #######################################################################################
 #'
-#' Computation of a genomic relationship matrix (GRM)
+#' Computing the genomic relationship matrix (GRM)
 #'
 #' @description
-#' Computation of a genomic relationship matrix (GRM). 
-#' The output of the grm function is a GRM or a GRMlist list structure containing information 
-#' about the genotypes stored in a binary file on disk. The Glist list structure (created
-#' only once) is used by the greml function for estimation of variance components 
-#' and should be saved in Rdata file.
-#' 
+#' The grm function is used to compute a genomic relationship matrix (GRM) based on all, 
+#' or a subset of marker genotypes. The output of the grm function can either be a 
+#' within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that 
+#' contains information about the GRM stored in a binary file on the disk.
 #' 
 #' @param Glist a list providing information about genotypes stored on disk 
-#' @param ids individual ids used for computing GRM
-#' @param rsids marker rsids used for computing GRM
+#' @param ids a vector of individual ids used for computing GRM
+#' @param rsids a vector genotype marker rsids used for computing GRM
 #' @param rws rows in genotype matrix used for computing GRM
 #' @param cls columns in genotype matrix used for computing GRM
 #' @param W matrix of centered and scaled genotypes 
-#' @param method used for computing GRM including additive, dominance or epistasis
-#' @param msize number of markers used for batch processing of genotypes for large data
+#' @param method indicator of method used for computing GRM; additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))
+#' @param msize number of genotype markers used for batch processing
+#' @param ncores number of cores used to compute the GRM
 #' @param fnG name of the binary file used for storing the GRM on disk
 #' @param overwrite logical if TRUE the binary file fnG will be overwritten
 #' @param returnGRM logical if TRUE function returns the GRM matrix to the R environment  
@@ -27,7 +26,7 @@
 #' @param task computation (task="grm" is default) or eigen value decompostion (task="eigen")
 #' 
 #' 
-#' @return Returns a genormic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
+#' @return Returns a genomic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
 
 #' @author Peter Soerensen
 
