@@ -2,33 +2,31 @@
 #    Module 5: GSOLVE 
 ####################################################################################################################
 #'
-#' Genomic prediction based on fitting a linear mixed model
+#' Genomic prediction based linear mixed model
 #' 
 #' 
 #' @description
-#' The gsolve function is used for efficient solving of linear mixed model equations. The algorithm used to solve 
-#' the equation system is based on a matrix-free Gauss-Seidel (GS) method. The implementation of GS used is a 
-#' matrix-free version based on adjustment of the residuals, where the cost of GS was less dependent on the number 
-#' of equations (fixed and random effects) in the system.
+#' The gsolve function is used for solving of linear mixed model equations. The algorithm used to solve the equation 
+#' system is based on a Gauss-Seidel (GS) method (matrix-free with residual updates) that handles large data sets. 
 #'   
-#' The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
-#' adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
-#' including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
-#' Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
-#' genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights. 
+#' The linear mixed model fitted can account for multiple traits, multiple genetic factors (fixed or random genetic 
+#' marker effects), adjust for complex family relationships or population stratification, and adjust for other 
+#' non-genetic factors including lifestyle characteristics. Different genetic architectures (infinitesimal, 
+#' few large and many small effects) is accounted for by modeling genetic markers in different sets as fixed or 
+#' random effects and by specifying individual genetic marker weights. 
 
 #' 
 #' @param y vector or matrix of phenotypes
 #' @param X design matrix of fixed effects
 #' @param W matrix of centered and scaled genotypes 
-#' @param Glist list of information about genotype matrix
-#' @param rsids vector marker rsids used in the analysis
+#' @param Glist list of information about centered and scaled genotype matrix
+#' @param rsids vector of marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis
 #' @param lambda vector of single marker weights used in BLUP
-#' @param maxit maximum number of iterations of in the Gauss-Seidel procedure
+#' @param maxit maximum number of iterations used in the Gauss-Seidel procedure
 #' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
-#' @param sets	a list containing marker rsids
-#' @param validate	a matrix of validation individuals used in cross-validation (one column for each set)
+#' @param sets	list containing marker sets rsids
+#' @param validate	dataframe or list of individuals used in cross-validation (one column for each set)
 #' @param scaled logical if TRUE the genotypes in Glist has been scaled to mean zero and variance one
 #' @param ncores number of cores used in the analysis
 
@@ -119,7 +117,8 @@ gsolve <- function( y=NULL, X=NULL, Glist=NULL, W=NULL, ids=NULL, rsids=NULL, se
 #' 
 #' 
 #' @description
-#' The gscore function is used for genomic predictions based on single marker summary statistics and observed genotypes.
+#' The gscore function is used for genomic predictions based on single marker summary statistics 
+#' (coefficients, log-odds ratios, z-scores) and observed genotypes.
 #' 
 
 #' @param S matrix of single marker effects
