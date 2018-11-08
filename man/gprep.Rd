@@ -42,7 +42,8 @@ genetic data. Typically, the Glist is prepared once, and saved as an *.Rdata-fil
 structure is used as input parameter for a number of qgg core functions for; 1) construction 
 of genomic relationship matrices (grm), 2) estimating genetic parameters (greml), 
 3) single SNP association approximations (lma), 4) gene set enrichment analyses (gsea), 
-and 5) genomic prediction from genotypes (gsolve) or SNP summary statistics (gscore).
+and 5) genomic prediction from genotypes and phenotypes (gsolve) or geneotypes and single marker 
+summary statistics (gscore).
 
 The gprep function reads genotype information from binary PLINK files, and creates the Glist 
 object that contains general information about the genotypes such as reference alleles, 

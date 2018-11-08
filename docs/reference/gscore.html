@@ -32,7 +32,7 @@
 
 <meta property="og:title" content="Genomic prediction based on single marker summary statistics — gscore" />
 
-<meta property="og:description" content="Function for genomic predictions based on single marker summary statistics and observed phenotypes" />
+<meta property="og:description" content="The gscore function is used for genomic predictions based on single marker summary statistics and observed phenotypes." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -126,12 +126,12 @@
 
     <div class="ref-description">
     
-    <p>Function for genomic predictions based on single marker summary statistics and observed phenotypes</p>
+    <p>The gscore function is used for genomic predictions based on single marker summary statistics and observed phenotypes.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>gscore</span>(<span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>S</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>rws</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><span class='fu'>gscore</span>(<span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>S</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rws</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -153,8 +153,24 @@
       <td><p>vector marker rsids used in the analysis</p></td>
     </tr>
     <tr>
+      <th>rws</th>
+      <td><p>rows in genotype matrix used in the analysis</p></td>
+    </tr>
+    <tr>
+      <th>cls</th>
+      <td><p>columns in genotype matrix used in the analysis</p></td>
+    </tr>
+    <tr>
+      <th>scaled</th>
+      <td><p>logical if TRUE the genotype markers have been scaled to mean zero and variance one</p></td>
+    </tr>
+    <tr>
+      <th>msize</th>
+      <td><p>number of genotype markers used for batch processing</p></td>
+    </tr>
+    <tr>
       <th>ncores</th>
-      <td><p>number of cores</p></td>
+      <td><p>number of cores used in the analysis</p></td>
     </tr>
     </table>
     

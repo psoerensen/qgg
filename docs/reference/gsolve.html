@@ -32,11 +32,10 @@
 
 <meta property="og:title" content="Genomic prediction based on fitting a linear mixed model — gsolve" />
 
-<meta property="og:description" content="Solving linear mixed model equations.
-The algorithm used to solve the equation system is based on a matrix-free Gauss-Seidel (GS) method. 
-The implementation of GS used is a matrix-free version based on adjustment of the residuals, 
-where the cost of GS was less dependent on the number of equations (fixed and random effects) in 
-the system.  
+<meta property="og:description" content="The gsolve function is used for efficient solving of linear mixed model equations. The algorithm used to solve 
+the equation system is based on a matrix-free Gauss-Seidel (GS) method. The implementation of GS used is a 
+matrix-free version based on adjustment of the residuals, where the cost of GS was less dependent on the number 
+of equations (fixed and random effects) in the system.  
 The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
 adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
 including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
@@ -135,11 +134,10 @@ genetic markers in different sets as fixed or random effects and by specifying i
 
     <div class="ref-description">
     
-    <p>Solving linear mixed model equations.</p>
-<p>The algorithm used to solve the equation system is based on a matrix-free Gauss-Seidel (GS) method. 
-The implementation of GS used is a matrix-free version based on adjustment of the residuals, 
-where the cost of GS was less dependent on the number of equations (fixed and random effects) in 
-the system.</p>  
+    <p>The gsolve function is used for efficient solving of linear mixed model equations. The algorithm used to solve 
+the equation system is based on a matrix-free Gauss-Seidel (GS) method. The implementation of GS used is a 
+matrix-free version based on adjustment of the residuals, where the cost of GS was less dependent on the number 
+of equations (fixed and random effects) in the system.</p>  
 <p>The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
 adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
 including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
@@ -181,6 +179,18 @@ genetic markers in different sets as fixed or random effects and by specifying i
       <td><p>vector marker rsids used in the analysis</p></td>
     </tr>
     <tr>
+      <th>sets</th>
+      <td><p>a list containing marker rsids</p></td>
+    </tr>
+    <tr>
+      <th>validate</th>
+      <td><p>a matrix of validation individuals used in cross-validation (one column for each set)</p></td>
+    </tr>
+    <tr>
+      <th>scaled</th>
+      <td><p>logical if TRUE the genotypes in Glist has been scaled to mean zero and variance one</p></td>
+    </tr>
+    <tr>
       <th>lambda</th>
       <td><p>vector of single marker weights used in BLUP</p></td>
     </tr>
@@ -194,7 +204,7 @@ genetic markers in different sets as fixed or random effects and by specifying i
     </tr>
     <tr>
       <th>ncores</th>
-      <td><p>number of cores</p></td>
+      <td><p>number of cores used in the analysis</p></td>
     </tr>
     </table>
     

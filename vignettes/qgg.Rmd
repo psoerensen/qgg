@@ -27,7 +27,7 @@ This is a very detailed tutorial taking you all the way from getting and cleanin
 The analyses are performed on publicly available data on the [Drosophila genetic reference panel](http://dgrp2.gnets.ncsu.edu/) (DGRP).  Here are links to the different steps used for the analyses of this small scale data set.  
 
 * [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html)  
-  
+
 * [Compute a centered and scaled genotype matrix](http://psoerensen.github.io/qgg/articles/Compute_W.html) 
   
 * [Gene ontology annotation of markers](http://psoerensen.github.io/qgg/articles/Prepare_Annotation.html)  
