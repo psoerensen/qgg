@@ -20,7 +20,7 @@
 #' @param X design matrix of fixed effects
 #' @param W matrix of centered and scaled genotypes 
 #' @param Glist list of information about centered and scaled genotype matrix
-#' @param rsids vector of rsids used in the analysis
+#' @param rsids vector of marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis
 #' @param lambda vector of single marker weights used in BLUP
 #' @param maxit maximum number of iterations used in the Gauss-Seidel procedure

@@ -12,9 +12,9 @@ grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
 \arguments{
 \item{Glist}{list providing information about genotypes stored on disk}
 
-\item{ids}{vector of individual ids used for computing GRM}
+\item{ids}{vector of individuals used for computing GRM}
 
-\item{rsids}{vector genotype marker rsids used for computing GRM}
+\item{rsids}{vector marker rsids used for computing GRM}
 
 \item{rws}{rows in genotype matrix used for computing GRM}
 

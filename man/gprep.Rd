@@ -19,9 +19,9 @@ gprep(study = NULL, fnRAW = NULL, bedfiles = NULL, bimfiles = NULL,
 
 \item{famfiles}{vector of names for the PLINK fam-files}
 
-\item{ids}{vector of individual IDs used in the study}
+\item{ids}{vector of individuals used in the study}
 
-\item{rsids}{vector of genotype marker rsids used in the study}
+\item{rsids}{vector of marker rsids used in the study}
 
 \item{overwrite}{logical if TRUE overwite binary genotype file}
 
@@ -35,7 +35,7 @@ All functions in qgg relies on a simple data infrastructure that takes five main
 phenotype data (y), covariate data (X), genotype data (G or Glist), a genomic relationship 
 matrix (GRM or GRMlist) and genetic marker sets (sets).
 
-The genotypes are stored in a matrix (n x m (individuals x markers) in memory (G) or in a 
+The genotypes are stored in a matrix (n x m (individuals x markers)) in memory (G) or in a 
 binary file on disk (Glist). 
 
 It is only for small data sets that the genotype matrix (G) can stored in memory. For large data

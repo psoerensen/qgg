@@ -12,8 +12,8 @@
 #' contains information about the GRM stored in a binary file on the disk.
 #' 
 #' @param Glist list providing information about genotypes stored on disk 
-#' @param ids vector of individual ids used for computing GRM
-#' @param rsids vector genotype marker rsids used for computing GRM
+#' @param ids vector of individuals used for computing GRM
+#' @param rsids vector marker rsids used for computing GRM
 #' @param rws rows in genotype matrix used for computing GRM
 #' @param cls columns in genotype matrix used for computing GRM
 #' @param W matrix of centered and scaled genotypes 

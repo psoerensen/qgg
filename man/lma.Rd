@@ -13,6 +13,8 @@ lma(y = NULL, X = NULL, W = NULL, Glist = NULL, fit = NULL,
 
 \item{X}{design matrix for factors modeled as fixed effects}
 
+\item{W}{matrix of centered and scaled genotypes}
+
 \item{Glist}{list of information about genotype matrix stored on disk}
 
 \item{fit}{list of information about linear mixed model fit (output from greml)}
@@ -21,13 +23,11 @@ lma(y = NULL, X = NULL, W = NULL, Glist = NULL, fit = NULL,
 
 \item{ids}{vector of individuals used in the analysis}
 
-\item{rsids}{vector marker rsids used in the analysis}
+\item{rsids}{vector of marker rsids used in the analysis}
 
 \item{msize}{number of genotype markers used for batch processing}
 
 \item{scaled}{logical if TRUE the genotypes have been scaled to mean zero and variance one}
-
-\item{G}{matrix of centered and scaled genotypes (n x m)}
 }
 \value{
 Returns a dataframe (if number of traits = 1) else a list including 

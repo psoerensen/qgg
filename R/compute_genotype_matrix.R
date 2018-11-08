@@ -9,7 +9,7 @@
 #' phenotype data (y), covariate data (X), genotype data (G or Glist), a genomic relationship 
 #' matrix (GRM or GRMlist) and genetic marker sets (sets).
 #' 
-#' The genotypes are stored in a matrix (n x m (individuals x markers) in memory (G) or in a 
+#' The genotypes are stored in a matrix (n x m (individuals x markers)) in memory (G) or in a 
 #' binary file on disk (Glist). 
 #' 
 #' It is only for small data sets that the genotype matrix (G) can stored in memory. For large data
@@ -36,8 +36,8 @@
 #' @param bedfiles vector of names for the PLINK bed-files
 #' @param famfiles vector of names for the PLINK fam-files
 #' @param bimfiles vector of names for the PLINK bim-files
-#' @param ids vector of individual IDs used in the study
-#' @param rsids vector of genotype marker rsids used in the study
+#' @param ids vector of individuals used in the study
+#' @param rsids vector of marker rsids used in the study
 #' @param overwrite logical if TRUE overwite binary genotype file
 #' @param ncores number of cores used to process the genotypes
 #' 

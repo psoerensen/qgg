@@ -20,7 +20,7 @@ gsolve(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL,
 
 \item{ids}{vector of individuals used in the analysis}
 
-\item{rsids}{vector of rsids used in the analysis}
+\item{rsids}{vector of marker rsids used in the analysis}
 
 \item{sets}{list containing marker sets rsids}
 
