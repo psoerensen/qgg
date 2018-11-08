@@ -20,10 +20,11 @@ The **qgg** package was developed based on the hypothesis that certain regions o
 **qgg** provides an infrastructure for efficient processing of large-scale genetic and phenotypic data including core functions for:  
  
 * fitting linear mixed models  
-* construction and eigen-value decomposition of genomic relationship matrices  
+* construction of genomic relationship matrices  
 * estimating genetic parameters (heritability and correlation)  
 * genomic prediction and genetic risk profiling  
-* single or multi-marker association analyses  
+* single marker association analysis  
+* gene set enrichment analysis   
   
 **qgg** handles large-scale data by taking advantage of:  
   

@@ -10,7 +10,7 @@ vignette: >
 
 ## Installation
 
-You can install qgg from github with:
+You can install **qgg** from github with:
 
 ```{r gh-installation, eval = FALSE}
 # install.packages("devtools")
@@ -30,10 +30,10 @@ The tutorial is divided in the following steps:
   
 * **Data preparation**  
   
-     + [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html) $\mathbf{y, X}$  
-  
-     + [Prepare genotype data](http://psoerensen.github.io/qgg/articles/Prepare_Genotypes.html) $\mathbf{W}$  
-  
+     + [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html)  
+     
+     + [Prepare genotype data](http://psoerensen.github.io/qgg/articles/Prepare_Genotypes.html)  
+     
      + [Prepare marker annotation](http://psoerensen.github.io/qgg/articles/Prepare_Annotation.html)  
   
      + [Prepare marker sets](http://psoerensen.github.io/qgg/articles/Prepare_Marker_Sets.html)
