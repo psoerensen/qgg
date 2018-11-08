@@ -5,9 +5,13 @@
 #' Single marker association analysis using linear models or linear mixed models 
 #'
 #' @description
-#' The function lma performs approximations of single marker associations between genotype markers and the phenotype 
+#' The function lma performs single marker association analysis between genotype markers and the phenotype 
 #' either based on linear model analysis (LMA) or mixed linear model analysis (MLMA).
 #' 
+#' The basic MLMA approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide 
+#' sample structure, 2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
+#' (with or without additional fixed effects) and 3) computing association statistics that account for this component 
+#' on phenotypic variance.
 #' 
 #' MLMA methods are the method of choice when conducting association mapping in the presence of sample structure, 
 #' including geographic population structure, family relatedness and/or cryptic relatedness. MLMA methods prevent 
@@ -21,10 +25,6 @@
 #' Third, when population stratification is less of a concern, it may be useful using the top associated markers 
 #' selected based on the global maximum from out-of sample predictive accuracy.
 #' 
-#' The basic MLMA approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide 
-#' sample structure, 2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
-#' (with or without additional fixed effects) and 3) computing association statistics that account for this component 
-#' on phenotypic variance.
 #' 
 
 #'

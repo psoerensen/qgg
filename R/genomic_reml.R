@@ -5,26 +5,26 @@
 #' Genomic REML analysis
 #'
 #' @description
-#' The greml function is used for estimation of genomic parameters (variance components and heritability) for 
-#' linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using 
+#' The greml function is used for estimation of genomic parameters (co-variance, heritability and correlation) 
+#' for linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using 
 #' best linear unbiased prediction (BLUP).
 #' 
 #' The linear mixed model can account for multiple genetic factors (fixed and random genetic marker effects), 
 #' adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
-#' including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated 
-#' phenotypes. Different genetic architectures (infinitesimal, few large and many small effects) is accounted for 
-#' by modeling genetic markers in different sets as fixed or random effects and by specifying individual genetic 
-#' marker weights. Different genetic models (e.g. additive and non-additive) can be specified by providing 
-#' additive and non-additive GRMs (constructed using grm) to greml. The GRMs can be accessed from the R environment 
-#' or from binary files stored on disk facilitating analyses of large-scale genetic data.
+#' including lifestyle characteristics. Different genetic architectures (infinitesimal, few large and many 
+#' small effects) is accounted for by modeling genetic markers in different sets as fixed or random effects 
+#' and by specifying individual genetic marker weights. Different genetic models (e.g. additive and non-additive) 
+#' can be specified by providing additive and non-additive genomic relationship matrices (GRMs) (constructed using grm). 
+#' The GRMs can be accessed from the R environment or from binary files stored on disk facilitating analyses of 
+#' large-scale genetic data.
 #' 
-#' The output contains the first and second derivatives of log-likelihood, and the asymptotic standard deviation 
-#' of parameter estimates. Predicted random effects and single marker effects and statistics can be obtained. 
+#' The output contains estimates of variance components, fixed and random effects, first and second derivatives of 
+#' log-likelihood, and the asymptotic standard deviation of parameter estimates.
 #' 
-#' Assessment of predictive accuracy (including correlation and R^2, and AUC for binary phenotypes) can be obtained 
-#' by providing greml a matrix containing sample IDs used in the validation, see examples for details.
+#' Assessment of predictive accuracy (including correlation and R2, and AUC for binary phenotypes) can be obtained 
+#' by providing greml with a dataframe or list containing sample IDs used in the validation, see examples for details.
 #' 
-#' Variance components can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”. 
+#' Genomic parameters can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”. 
 #' This option requires DMU to be installed locally, and the path to the DMU binary files has to be specified 
 #' (see examples below for details).
 
@@ -33,15 +33,15 @@
 #' @param GRM list of one or more genomic relationship matrices 
 #' @param GRMlist list providing information about GRM matrix stored in binary files on disk
 #' @param theta vector of initial values of co-variance for REML estimation 
-#' @param ids vector of validation individuals used in the analysis 
-#' @param validate a dataframe or lits of validation individuals used in cross-validation (one column for each set)
-#' @param maxit maximum number of iterations of REML analysis
-#' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
+#' @param ids vector of individuals used in the analysis 
+#' @param validate a dataframe or list of individuals used in cross-validation (one column for each set)
+#' @param maxit maximum number of iterations used in REML analysis
+#' @param tol tolerance, i.e. convergence criteria used in REML
 #' @param ncores number of cores used for the analysis
 #' @param fm a formula with model statement for the linear mixed model 
 #' @param data a data frame containing the phenotypic observations and fixed factors specified in the model statements
 #' @param interface used for specifying whether to use R or Fortran implementations of REML
-#' @param bin is the directory fortran binaries (e.g. DMU binaries dmu1 and dmuai)
+#' @param bin directory for fortran binaries (e.g. DMU binaries dmu1 and dmuai)
 
 #' 
 #' @return Returns a list structure including
@@ -50,8 +50,8 @@
 #' \item{asd}{asymptotic standard deviation}
 #' \item{b}{vector of fixed effect estimates}
 #' \item{varb}{vector of variances of fixed effect estimates}
-#' \item{g}{vector of random effect estimates}
-#' \item{e}{vector of residual effects}
+#' \item{g}{vector or matrix of random effect estimates}
+#' \item{e}{vector or matrix of residual effects}
 #' \item{accuracy}{matrix of prediction accuracies (only returned if validate is provided)}
 
 

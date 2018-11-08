@@ -6,7 +6,8 @@
 #'
 #' @description
 #' The grm function is used to compute a genomic relationship matrix (GRM) based on all, 
-#' or a subset of marker genotypes. The output of the grm function can either be a 
+#' or a subset of marker genotypes. GRM for additive, and non-additive (dominance and 
+#' epistasis) genetic models can be constructed. The output of the grm function can either be a 
 #' within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that 
 #' contains information about the GRM stored in a binary file on the disk.
 #' 
@@ -16,14 +17,13 @@
 #' @param rws rows in genotype matrix used for computing GRM
 #' @param cls columns in genotype matrix used for computing GRM
 #' @param W matrix of centered and scaled genotypes 
-#' @param method indicator of method used for computing GRM; additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))
+#' @param method indicator of method used for computing GRM: additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))
 #' @param msize number of genotype markers used for batch processing
 #' @param ncores number of cores used to compute the GRM
 #' @param fnG name of the binary file used for storing the GRM on disk
 #' @param overwrite logical if TRUE the binary file fnG will be overwritten
 #' @param returnGRM logical if TRUE function returns the GRM matrix to the R environment  
 #' @param miss is the missing code (miss=0 is default) used for missing values in the genotype data
-#' @param task computation (task="grm" is default) or eigen value decompostion (task="eigen")
 #' 
 #' 
 #' @return Returns a genomic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
