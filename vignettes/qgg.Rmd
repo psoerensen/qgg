@@ -22,16 +22,25 @@ devtools::install_github("psoerensen/qgg")
 
 ## Small data set tutorial
 
-This is a very detailed tutorial taking you all the way from getting and cleaning the data to linear mixed model analysis. It shows how to use **qgg** for the construction of a genomic relationship matrix, genomic best linear unbiased prediction (GBLUP), genomic feature BLUP analyses, and set tests.  
+This detailed tutorial on a small data set, exemplifies some of the core features of **qgg**. It takes you all the way from getting and cleaning data to estimation of genomic parameters, gene set enrichment analysis and making predictions with genomic best linear unbiased prediction (GBLUP) and genomic feature BLUP (GFBLUP) models.  
   
-The analyses are performed on publicly available data on the [Drosophila genetic reference panel](http://dgrp2.gnets.ncsu.edu/) (DGRP).  Here are links to the different steps used for the analyses of this small scale data set.  
-
-* [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html)  
-
-* [Compute a centered and scaled genotype matrix](http://psoerensen.github.io/qgg/articles/Compute_W.html) 
+The phenotypic and genetic data is from the publicly available [*Drosophila* genetic reference panel](http://dgrp2.gnets.ncsu.edu/) (DGRP) - a system of 205 completely inbred *D. melanogaster* lines.  
   
-* [Gene ontology annotation of markers](http://psoerensen.github.io/qgg/articles/Prepare_Annotation.html)  
+The tutorial is divided in the following steps:
   
-* [Prediction with GBLUP and cross validation](http://psoerensen.github.io/qgg/articles/GBLUP_cross_validation.html)  
+* **Data preparation**  
+  
+     + [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html) $\mathbf{y, X}$  
+  
+     + [Prepare genotype data](http://psoerensen.github.io/qgg/articles/Prepare_Genotypes.html) $\mathbf{W}$  
+  
+     + [Prepare marker annotation](http://psoerensen.github.io/qgg/articles/Prepare_Annotation.html)  
+  
+     + [Prepare marker sets](http://psoerensen.github.io/qgg/articles/Prepare_Marker_Sets.html)
+  
+* **Data analysis**  
 
+     + [GBLUP and cross validation](http://psoerensen.github.io/qgg/articles/GBLUP_cross_validation.html)  
+  
+     + [GFBLUP and cross validation](http://psoerensen.github.io/qgg/articles/GFBLUP_cross_validation.html)  
   
