@@ -32,22 +32,22 @@
 
 <meta property="og:title" content="Genomic REML analysis — greml" />
 
-<meta property="og:description" content="The greml function is used for estimation of genomic parameters (variance components and heritability) for 
-linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using 
+<meta property="og:description" content="The greml function is used for estimation of genomic parameters (co-variance, heritability and correlation) 
+for linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using 
 best linear unbiased prediction (BLUP).
 The linear mixed model can account for multiple genetic factors (fixed and random genetic marker effects), 
 adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
-including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated 
-phenotypes. Different genetic architectures (infinitesimal, few large and many small effects) is accounted for 
-by modeling genetic markers in different sets as fixed or random effects and by specifying individual genetic 
-marker weights. Different genetic models (e.g. additive and non-additive) can be specified by providing 
-additive and non-additive GRMs (constructed using grm) to greml. The GRMs can be accessed from the R environment 
-or from binary files stored on disk facilitating analyses of large-scale genetic data.
-The output contains the first and second derivatives of log-likelihood, and the asymptotic standard deviation 
-of parameter estimates. Predicted random effects and single marker effects and statistics can be obtained.
-Assessment of predictive accuracy (including correlation and R^2, and AUC for binary phenotypes) can be obtained 
-by providing greml a matrix containing sample IDs used in the validation, see examples for details.
-Variance components can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”. 
+including lifestyle characteristics. Different genetic architectures (infinitesimal, few large and many 
+small effects) is accounted for by modeling genetic markers in different sets as fixed or random effects 
+and by specifying individual genetic marker weights. Different genetic models (e.g. additive and non-additive) 
+can be specified by providing additive and non-additive genomic relationship matrices (GRMs) (constructed using grm). 
+The GRMs can be accessed from the R environment or from binary files stored on disk facilitating analyses of 
+large-scale genetic data.
+The output contains estimates of variance components, fixed and random effects, first and second derivatives of 
+log-likelihood, and the asymptotic standard deviation of parameter estimates.
+Assessment of predictive accuracy (including correlation and R2, and AUC for binary phenotypes) can be obtained 
+by providing greml with a dataframe or list containing sample IDs used in the validation, see examples for details.
+Genomic parameters can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”. 
 This option requires DMU to be installed locally, and the path to the DMU binary files has to be specified 
 (see examples below for details)." />
 <meta name="twitter:card" content="summary" />
@@ -143,22 +143,22 @@ This option requires DMU to be installed locally, and the path to the DMU binary
 
     <div class="ref-description">
     
-    <p>The greml function is used for estimation of genomic parameters (variance components and heritability) for 
-linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using 
+    <p>The greml function is used for estimation of genomic parameters (co-variance, heritability and correlation) 
+for linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using 
 best linear unbiased prediction (BLUP).</p>
 <p>The linear mixed model can account for multiple genetic factors (fixed and random genetic marker effects), 
 adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
-including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated 
-phenotypes. Different genetic architectures (infinitesimal, few large and many small effects) is accounted for 
-by modeling genetic markers in different sets as fixed or random effects and by specifying individual genetic 
-marker weights. Different genetic models (e.g. additive and non-additive) can be specified by providing 
-additive and non-additive GRMs (constructed using grm) to greml. The GRMs can be accessed from the R environment 
-or from binary files stored on disk facilitating analyses of large-scale genetic data.</p>
-<p>The output contains the first and second derivatives of log-likelihood, and the asymptotic standard deviation 
-of parameter estimates. Predicted random effects and single marker effects and statistics can be obtained.</p>
-<p>Assessment of predictive accuracy (including correlation and R^2, and AUC for binary phenotypes) can be obtained 
-by providing greml a matrix containing sample IDs used in the validation, see examples for details.</p>
-<p>Variance components can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”. 
+including lifestyle characteristics. Different genetic architectures (infinitesimal, few large and many 
+small effects) is accounted for by modeling genetic markers in different sets as fixed or random effects 
+and by specifying individual genetic marker weights. Different genetic models (e.g. additive and non-additive) 
+can be specified by providing additive and non-additive genomic relationship matrices (GRMs) (constructed using grm). 
+The GRMs can be accessed from the R environment or from binary files stored on disk facilitating analyses of 
+large-scale genetic data.</p>
+<p>The output contains estimates of variance components, fixed and random effects, first and second derivatives of 
+log-likelihood, and the asymptotic standard deviation of parameter estimates.</p>
+<p>Assessment of predictive accuracy (including correlation and R2, and AUC for binary phenotypes) can be obtained 
+by providing greml with a dataframe or list containing sample IDs used in the validation, see examples for details.</p>
+<p>Genomic parameters can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”. 
 This option requires DMU to be installed locally, and the path to the DMU binary files has to be specified 
 (see examples below for details).</p>
     
@@ -194,23 +194,23 @@ This option requires DMU to be installed locally, and the path to the DMU binary
     </tr>
     <tr>
       <th>ids</th>
-      <td><p>vector of validation individuals used in the analysis</p></td>
+      <td><p>vector of individuals used in the analysis</p></td>
     </tr>
     <tr>
       <th>validate</th>
-      <td><p>a dataframe or lits of validation individuals used in cross-validation (one column for each set)</p></td>
+      <td><p>dataframe or list of individuals used in cross-validation (one column for each set)</p></td>
     </tr>
     <tr>
       <th>maxit</th>
-      <td><p>maximum number of iterations of REML analysis</p></td>
+      <td><p>maximum number of iterations used in REML analysis</p></td>
     </tr>
     <tr>
       <th>tol</th>
-      <td><p>tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence</p></td>
+      <td><p>tolerance, i.e. convergence criteria used in REML</p></td>
     </tr>
     <tr>
       <th>bin</th>
-      <td><p>is the directory fortran binaries (e.g. DMU binaries dmu1 and dmuai)</p></td>
+      <td><p>directory for fortran binaries (e.g. DMU binaries dmu1 and dmuai)</p></td>
     </tr>
     <tr>
       <th>ncores</th>
@@ -222,11 +222,11 @@ This option requires DMU to be installed locally, and the path to the DMU binary
     </tr>
     <tr>
       <th>fm</th>
-      <td><p>a formula with model statement for the linear mixed model</p></td>
+      <td><p>formula with model statement for the linear mixed model</p></td>
     </tr>
     <tr>
       <th>data</th>
-      <td><p>a data frame containing the phenotypic observations and fixed factors specified in the model statements</p></td>
+      <td><p>data frame containing the phenotypic observations and fixed factors specified in the model statements</p></td>
     </tr>
     </table>
     
@@ -234,12 +234,12 @@ This option requires DMU to be installed locally, and the path to the DMU binary
 
     <p>Returns a list structure including</p>
 <dt>llik</dt><dd><p>log-likelihood at convergence</p></dd>
-<dt>theta</dt><dd><p>initial values for reml estimation</p></dd>
+<dt>theta</dt><dd><p>covariance estimates from REML</p></dd>
 <dt>asd</dt><dd><p>asymptotic standard deviation</p></dd>
 <dt>b</dt><dd><p>vector of fixed effect estimates</p></dd>
 <dt>varb</dt><dd><p>vector of variances of fixed effect estimates</p></dd>
-<dt>g</dt><dd><p>vector of random effect estimates</p></dd>
-<dt>e</dt><dd><p>vector of residual effects</p></dd>
+<dt>g</dt><dd><p>vector or matrix of random effect estimates</p></dd>
+<dt>e</dt><dd><p>vector or matrix of residual effects</p></dd>
 <dt>accuracy</dt><dd><p>matrix of prediction accuracies (only returned if validate is provided)</p></dd>
 
     

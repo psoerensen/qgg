@@ -32,28 +32,29 @@
 
 <meta property="og:title" content="Gene set enrichment analysis — gsea" />
 
-<meta property="og:description" content="The function gsea can perform several different gene set enrichment analyses The general procedure is to obtain 
-single marker effects (summary statistics), from which it is possible to compute and evaluate a test statistic 
-for a set of genetic markers (a genomic feature) that measures the degree of association between the genomic feature 
-and the phenotype. Many different types of genomic features can be evaluated such as genes, biological pathways, 
-gene interactions, gene expression profiles etc.
+<meta property="og:description" content="The function gsea can perform several different gene set enrichment analyses. The general procedure is to obtain 
+single marker statistics (e.g. summary statistics), from which it is possible to compute and evaluate a test statistic 
+for a set of genetic markers that measures a joint degree of association between the marker set and the phenotype. 
+The marker set is defined by a genomic feature such as genes, biological pathways, gene interactions, 
+gene expression profiles etc.
 Currently, four types of gene set enrichment analyses can be conducted with gsea; sum-based, count-based, 
 score-based, and our own developed method, the covariance association test (CVAT). For details and comparisons of 
 test statistics consult doi:10.1534/genetics.116.189498.
 The sum test is based on the sum of all marker summary statistics located within the feature set. The single marker 
 summary statistics can be obtained from linear model analyses (from PLINK or using the qgg lma approximation), 
 or from single or multiple component REML analyses (GBLUP or GFBLUP) from the greml function. The sum test is powerful 
-if the genomic feature harbors many genetic markers that have small to moderate effects. The count-based method is 
-based on counting the number of markers within a genomic feature that show association (or have single marker p-value 
-below a certain threshold) with the phenotype. Under the null hypothesis (that the associated markers are picked 
-at random from the total number of markers, thus, no enrichment of markers in any genomic feature) it is assumed that 
-the observed count statistic is a realization from a hypergeometric distribution.
+if the genomic feature harbors many genetic markers that have small to moderate effects.
+The count-based method is based on counting the number of markers within a genomic feature that show association 
+(or have single marker p-value below a certain threshold) with the phenotype. Under the null hypothesis (that the 
+associated markers are picked at random from the total number of markers, thus, no enrichment of markers in any 
+genomic feature) it is assumed that the observed count statistic is a realization from a hypergeometric distribution.
 The score-based approach is based on the product between the scaled genotypes in a genomic feature and the residuals 
-from the liner mixed model (obtained from greml). The covariance association test (CVAT) is derived from the fit 
-object from greml (GBLUP or GFBLUP), and measures the covariance between the total genomic effects for all markers 
-and the genomic effects of the markers within the genomic feature. The distribution of the test statistics obtained 
-from the sum-based, score-based and CVAT is unknown, therefore a circular permutation approach is used to obtain an 
-empirical distribution of test statistics." />
+from the liner mixed model (obtained from greml).
+The covariance association test (CVAT) is derived from the fit object from greml (GBLUP or GFBLUP), and measures 
+the covariance between the total genomic effects for all markers and the genomic effects of the markers within the 
+genomic feature.
+The distribution of the test statistics obtained from the sum-based, score-based and CVAT is unknown, therefore 
+a circular permutation approach is used to obtain an empirical distribution of test statistics." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -147,28 +148,29 @@ empirical distribution of test statistics." />
 
     <div class="ref-description">
     
-    <p>The function gsea can perform several different gene set enrichment analyses The general procedure is to obtain 
-single marker effects (summary statistics), from which it is possible to compute and evaluate a test statistic 
-for a set of genetic markers (a genomic feature) that measures the degree of association between the genomic feature 
-and the phenotype. Many different types of genomic features can be evaluated such as genes, biological pathways, 
-gene interactions, gene expression profiles etc.</p>
+    <p>The function gsea can perform several different gene set enrichment analyses. The general procedure is to obtain 
+single marker statistics (e.g. summary statistics), from which it is possible to compute and evaluate a test statistic 
+for a set of genetic markers that measures a joint degree of association between the marker set and the phenotype. 
+The marker set is defined by a genomic feature such as genes, biological pathways, gene interactions, 
+gene expression profiles etc.</p>
 <p>Currently, four types of gene set enrichment analyses can be conducted with gsea; sum-based, count-based, 
 score-based, and our own developed method, the covariance association test (CVAT). For details and comparisons of 
 test statistics consult doi:10.1534/genetics.116.189498.</p>
 <p>The sum test is based on the sum of all marker summary statistics located within the feature set. The single marker 
 summary statistics can be obtained from linear model analyses (from PLINK or using the qgg lma approximation), 
 or from single or multiple component REML analyses (GBLUP or GFBLUP) from the greml function. The sum test is powerful 
-if the genomic feature harbors many genetic markers that have small to moderate effects. The count-based method is 
-based on counting the number of markers within a genomic feature that show association (or have single marker p-value 
-below a certain threshold) with the phenotype. Under the null hypothesis (that the associated markers are picked 
-at random from the total number of markers, thus, no enrichment of markers in any genomic feature) it is assumed that 
-the observed count statistic is a realization from a hypergeometric distribution.</p>
+if the genomic feature harbors many genetic markers that have small to moderate effects.</p>
+<p>The count-based method is based on counting the number of markers within a genomic feature that show association 
+(or have single marker p-value below a certain threshold) with the phenotype. Under the null hypothesis (that the 
+associated markers are picked at random from the total number of markers, thus, no enrichment of markers in any 
+genomic feature) it is assumed that the observed count statistic is a realization from a hypergeometric distribution.</p>
 <p>The score-based approach is based on the product between the scaled genotypes in a genomic feature and the residuals 
-from the liner mixed model (obtained from greml). The covariance association test (CVAT) is derived from the fit 
-object from greml (GBLUP or GFBLUP), and measures the covariance between the total genomic effects for all markers 
-and the genomic effects of the markers within the genomic feature. The distribution of the test statistics obtained 
-from the sum-based, score-based and CVAT is unknown, therefore a circular permutation approach is used to obtain an 
-empirical distribution of test statistics.</p>
+from the liner mixed model (obtained from greml).</p>
+<p>The covariance association test (CVAT) is derived from the fit object from greml (GBLUP or GFBLUP), and measures 
+the covariance between the total genomic effects for all markers and the genomic effects of the markers within the 
+genomic feature.</p>
+<p>The distribution of the test statistics obtained from the sum-based, score-based and CVAT is unknown, therefore 
+a circular permutation approach is used to obtain an empirical distribution of test statistics.</p>
     
     </div>
 
@@ -180,7 +182,7 @@ empirical distribution of test statistics.</p>
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>stat</th>
-      <td><p>vector or matrix of single marker statistics (e.g. marker effects, t-stat, p-values)</p></td>
+      <td><p>vector or matrix of single marker statistics (e.g. coefficients, t-statistics, p-values)</p></td>
     </tr>
     <tr>
       <th>sets</th>
@@ -188,19 +190,19 @@ empirical distribution of test statistics.</p>
     </tr>
     <tr>
       <th>threshold</th>
-      <td><p>used if method='hyperG' (threshold=0.05 is default)</p></td>
+      <td><p>used if method='hyperg' (threshold=0.05 is default)</p></td>
     </tr>
     <tr>
       <th>method</th>
-      <td><p>including sum, cvat, hyperG, score</p></td>
+      <td><p>including sum, cvat, hyperg, score</p></td>
     </tr>
     <tr>
       <th>nperm</th>
-      <td><p>number of permutations</p></td>
+      <td><p>number of permutations used for obtaining an empirical p-value</p></td>
     </tr>
     <tr>
       <th>ncores</th>
-      <td><p>number of cores</p></td>
+      <td><p>number of cores used in the analysis</p></td>
     </tr>
     <tr>
       <th>W</th>
@@ -208,7 +210,7 @@ empirical distribution of test statistics.</p>
     </tr>
     <tr>
       <th>fit</th>
-      <td><p>is the fit object obtained from a linear mixed model fit using the greml function</p></td>
+      <td><p>list object obtained from a linear mixed model fit using the greml function</p></td>
     </tr>
     <tr>
       <th>g</th>

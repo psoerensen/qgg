@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Genomic prediction based on fitting a linear mixed model — gsolve • qgg</title>
+<title>Genomic prediction based linear mixed model — gsolve • qgg</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,17 +30,15 @@
 
 
 
-<meta property="og:title" content="Genomic prediction based on fitting a linear mixed model — gsolve" />
+<meta property="og:title" content="Genomic prediction based linear mixed model — gsolve" />
 
-<meta property="og:description" content="The gsolve function is used for efficient solving of linear mixed model equations. The algorithm used to solve 
-the equation system is based on a matrix-free Gauss-Seidel (GS) method. The implementation of GS used is a 
-matrix-free version based on adjustment of the residuals, where the cost of GS was less dependent on the number 
-of equations (fixed and random effects) in the system.  
-The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
-adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
-including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
-Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
-genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights." />
+<meta property="og:description" content="The gsolve function is used for solving of linear mixed model equations. The algorithm used to solve the equation 
+system is based on a Gauss-Seidel (GS) method (matrix-free with residual updates) that handles large data sets.  
+The linear mixed model fitted can account for multiple traits, multiple genetic factors (fixed or random genetic 
+marker effects), adjust for complex family relationships or population stratification, and adjust for other 
+non-genetic factors including lifestyle characteristics. Different genetic architectures (infinitesimal, 
+few large and many small effects) is accounted for by modeling genetic markers in different sets as fixed or 
+random effects and by specifying individual genetic marker weights." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -127,22 +125,20 @@ genetic markers in different sets as fixed or random effects and by specifying i
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Genomic prediction based on fitting a linear mixed model</h1>
+    <h1>Genomic prediction based linear mixed model</h1>
     <small class="dont-index">Source: <a href='https://github.com/psoerensen/qgg/blob/master/R/genomic_solve.R'><code>R/genomic_solve.R</code></a></small>
     <div class="hidden name"><code>gsolve.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>The gsolve function is used for efficient solving of linear mixed model equations. The algorithm used to solve 
-the equation system is based on a matrix-free Gauss-Seidel (GS) method. The implementation of GS used is a 
-matrix-free version based on adjustment of the residuals, where the cost of GS was less dependent on the number 
-of equations (fixed and random effects) in the system.</p>  
-<p>The linear mixed model fitted can account for multiple genetic factors (fixed or random genetic marker effects), 
-adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
-including lifestyle characteristics. The linear mixed model can easily be extended to fit multiple correlated phenotypes. 
-Different genetic architectures (infinitesimal, few large and many small effects) is accounted for by modeling 
-genetic markers in different sets as fixed or random effects and by specifying individual genetic marker weights.</p>
+    <p>The gsolve function is used for solving of linear mixed model equations. The algorithm used to solve the equation 
+system is based on a Gauss-Seidel (GS) method (matrix-free with residual updates) that handles large data sets.</p>  
+<p>The linear mixed model fitted can account for multiple traits, multiple genetic factors (fixed or random genetic 
+marker effects), adjust for complex family relationships or population stratification, and adjust for other 
+non-genetic factors including lifestyle characteristics. Different genetic architectures (infinitesimal, 
+few large and many small effects) is accounted for by modeling genetic markers in different sets as fixed or 
+random effects and by specifying individual genetic marker weights.</p>
     
     </div>
 
@@ -164,7 +160,7 @@ genetic markers in different sets as fixed or random effects and by specifying i
     </tr>
     <tr>
       <th>Glist</th>
-      <td><p>list of information about genotype matrix</p></td>
+      <td><p>list of information about centered and scaled genotype matrix</p></td>
     </tr>
     <tr>
       <th>W</th>
@@ -176,15 +172,15 @@ genetic markers in different sets as fixed or random effects and by specifying i
     </tr>
     <tr>
       <th>rsids</th>
-      <td><p>vector marker rsids used in the analysis</p></td>
+      <td><p>vector of marker rsids used in the analysis</p></td>
     </tr>
     <tr>
       <th>sets</th>
-      <td><p>a list containing marker rsids</p></td>
+      <td><p>list containing marker sets rsids</p></td>
     </tr>
     <tr>
       <th>validate</th>
-      <td><p>a matrix of validation individuals used in cross-validation (one column for each set)</p></td>
+      <td><p>dataframe or list of individuals used in cross-validation (one column for each set)</p></td>
     </tr>
     <tr>
       <th>scaled</th>
@@ -196,7 +192,7 @@ genetic markers in different sets as fixed or random effects and by specifying i
     </tr>
     <tr>
       <th>maxit</th>
-      <td><p>maximum number of iterations of in the Gauss-Seidel procedure</p></td>
+      <td><p>maximum number of iterations used in the Gauss-Seidel procedure</p></td>
     </tr>
     <tr>
       <th>tol</th>

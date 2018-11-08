@@ -4,8 +4,8 @@
 \alias{gscore}
 \title{Genomic prediction based on single marker summary statistics}
 \usage{
-gscore(Glist = NULL, S = NULL, ids = NULL, rsids = NULL, rws = NULL,
-  cls = NULL, scaled = TRUE, msize = 100, ncores = 1)
+gscore(Glist = NULL, S = NULL, ids = NULL, rsids = NULL,
+  rws = NULL, cls = NULL, scaled = TRUE, msize = 100, ncores = 1)
 }
 \arguments{
 \item{Glist}{list of information about genotype matrix}

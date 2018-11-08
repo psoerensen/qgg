@@ -108,13 +108,26 @@ devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocument
 <div id="small-data-set-tutorial" class="section level2">
 <h2 class="hasAnchor">
 <a href="#small-data-set-tutorial" class="anchor"></a>Small data set tutorial</h2>
-<p>This is a very detailed tutorial taking you all the way from getting and cleaning the data to linear mixed model analysis. It shows how to use <strong>qgg</strong> for the construction of a genomic relationship matrix, genomic best linear unbiased prediction (GBLUP), genomic feature BLUP analyses, and set tests.</p>
-<p>The analyses are performed on publicly available data on the <a href="http://dgrp2.gnets.ncsu.edu/">Drosophila genetic reference panel</a> (DGRP). Here are links to the different steps used for the analyses of this small scale data set.</p>
+<p>This detailed tutorial on a small data set, exemplifies some of the core features of <strong>qgg</strong>. It takes you all the way from getting and cleaning data to estimation of genomic parameters, gene set enrichment analysis and making predictions with genomic best linear unbiased prediction (GBLUP) and genomic feature BLUP (GFBLUP) models.</p>
+<p>The phenotypic and genetic data is from the publicly available <a href="http://dgrp2.gnets.ncsu.edu/"><em>Drosophila</em> genetic reference panel</a> (DGRP) - a system of 205 completely inbred <em>D. melanogaster</em> lines.</p>
+<p>The tutorial is divided in the following steps:</p>
 <ul>
-<li><p><a href="http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html">Prepare phenotype and covariate data</a></p></li>
-<li><p><a href="http://psoerensen.github.io/qgg/articles/Compute_W.html">Compute a centered and scaled genotype matrix</a></p></li>
-<li><p><a href="http://psoerensen.github.io/qgg/articles/Prepare_Annotation.html">Gene ontology annotation of markers</a></p></li>
-<li><p><a href="http://psoerensen.github.io/qgg/articles/GBLUP_cross_validation.html">Prediction with GBLUP and cross validation</a></p></li>
+<li>
+<p><strong>Data preparation</strong></p>
+<ul>
+<li><p><a href="http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html">Prepare phenotype and covariate data</a> <span class="math inline">\(\mathbf{y, X}\)</span></p></li>
+<li><p><a href="http://psoerensen.github.io/qgg/articles/Prepare_Genotypes.html">Prepare genotype data</a> <span class="math inline">\(\mathbf{W}\)</span></p></li>
+<li><p><a href="http://psoerensen.github.io/qgg/articles/Prepare_Annotation.html">Prepare marker annotation</a></p></li>
+<li><p><a href="http://psoerensen.github.io/qgg/articles/Prepare_Marker_Sets.html">Prepare marker sets</a></p></li>
+</ul>
+</li>
+<li>
+<p><strong>Data analysis</strong></p>
+<ul>
+<li><p><a href="http://psoerensen.github.io/qgg/articles/GBLUP_cross_validation.html">GBLUP and cross validation</a></p></li>
+<li><p><a href="http://psoerensen.github.io/qgg/articles/GFBLUP_cross_validation.html">GFBLUP and cross validation</a></p></li>
+</ul>
+</li>
 </ul>
 </div>
   </div>

@@ -33,7 +33,8 @@
 <meta property="og:title" content="Computing the genomic relationship matrix (GRM) — grm" />
 
 <meta property="og:description" content="The grm function is used to compute a genomic relationship matrix (GRM) based on all, 
-or a subset of marker genotypes. The output of the grm function can either be a 
+or a subset of marker genotypes. GRM for additive, and non-additive (dominance and 
+epistasis) genetic models can be constructed. The output of the grm function can either be a 
 within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that 
 contains information about the GRM stored in a binary file on the disk." />
 <meta name="twitter:card" content="summary" />
@@ -130,7 +131,8 @@ contains information about the GRM stored in a binary file on the disk." />
     <div class="ref-description">
     
     <p>The grm function is used to compute a genomic relationship matrix (GRM) based on all, 
-or a subset of marker genotypes. The output of the grm function can either be a 
+or a subset of marker genotypes. GRM for additive, and non-additive (dominance and 
+epistasis) genetic models can be constructed. The output of the grm function can either be a 
 within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that 
 contains information about the GRM stored in a binary file on the disk.</p>
     
@@ -146,15 +148,15 @@ contains information about the GRM stored in a binary file on the disk.</p>
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>Glist</th>
-      <td><p>a list providing information about genotypes stored on disk</p></td>
+      <td><p>list providing information about genotypes stored on disk</p></td>
     </tr>
     <tr>
       <th>ids</th>
-      <td><p>a vector of individual ids used for computing GRM</p></td>
+      <td><p>vector of individuals used for computing GRM</p></td>
     </tr>
     <tr>
       <th>rsids</th>
-      <td><p>a vector genotype marker rsids used for computing GRM</p></td>
+      <td><p>vector marker rsids used for computing GRM</p></td>
     </tr>
     <tr>
       <th>rws</th>
@@ -170,7 +172,7 @@ contains information about the GRM stored in a binary file on the disk.</p>
     </tr>
     <tr>
       <th>method</th>
-      <td><p>indicator of method used for computing GRM; additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))</p></td>
+      <td><p>indicator of method used for computing GRM: additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))</p></td>
     </tr>
     <tr>
       <th>msize</th>
@@ -194,11 +196,7 @@ contains information about the GRM stored in a binary file on the disk.</p>
     </tr>
     <tr>
       <th>miss</th>
-      <td><p>is the missing code (miss=0 is default) used for missing values in the genotype data</p></td>
-    </tr>
-    <tr>
-      <th>task</th>
-      <td><p>computation (task="grm" is default) or eigen value decompostion (task="eigen")</p></td>
+      <td><p>the missing code (miss=0 is default) used for missing values in the genotype data</p></td>
     </tr>
     </table>
     
