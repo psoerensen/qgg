@@ -9,8 +9,8 @@
 #' phenotype data (y), covariate data (X), genotype data (G or Glist), a genomic relationship 
 #' matrix (GRM or GRMlist) and genetic marker sets (sets).
 #' 
-#' The genotypes are stored in matrix (n x m (individuals x markers) in memory (G) or in a 
-#' binary file on disk (Glist).
+#' The genotypes are stored in a matrix (n x m (individuals x markers) in memory (G) or in a 
+#' binary file on disk (Glist). 
 #' 
 #' It is only for small data sets that the genotype matrix (G) can stored in memory. For large data
 #' sets the genotype matrix has to stored in a binary file on disk (Glist). Glist is as a list 

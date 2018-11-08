@@ -5,16 +5,16 @@
 \title{Computing the genomic relationship matrix (GRM)}
 \usage{
 grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
-  rws = NULL, cls = NULL, W = NULL, method = "add",
-  scaled = TRUE, msize = 100, ncores = 1, fnG = NULL,
-  overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm")
+  rws = NULL, cls = NULL, W = NULL, method = "add", scaled = TRUE,
+  msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE,
+  returnGRM = FALSE, miss = 0, task = "grm")
 }
 \arguments{
-\item{Glist}{a list providing information about genotypes stored on disk}
+\item{Glist}{list providing information about genotypes stored on disk}
 
-\item{ids}{a vector of individual ids used for computing GRM}
+\item{ids}{vector of individual ids used for computing GRM}
 
-\item{rsids}{a vector genotype marker rsids used for computing GRM}
+\item{rsids}{vector genotype marker rsids used for computing GRM}
 
 \item{rws}{rows in genotype matrix used for computing GRM}
 
@@ -22,7 +22,7 @@ grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
 
 \item{W}{matrix of centered and scaled genotypes}
 
-\item{method}{indicator of method used for computing GRM; additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))}
+\item{method}{indicator of method used for computing GRM: additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))}
 
 \item{msize}{number of genotype markers used for batch processing}
 
@@ -34,16 +34,15 @@ grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
 
 \item{returnGRM}{logical if TRUE function returns the GRM matrix to the R environment}
 
-\item{miss}{is the missing code (miss=0 is default) used for missing values in the genotype data}
-
-\item{task}{computation (task="grm" is default) or eigen value decompostion (task="eigen")}
+\item{miss}{the missing code (miss=0 is default) used for missing values in the genotype data}
 }
 \value{
 Returns a genomic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
 }
 \description{
 The grm function is used to compute a genomic relationship matrix (GRM) based on all, 
-or a subset of marker genotypes. The output of the grm function can either be a 
+or a subset of marker genotypes. GRM for additive, and non-additive (dominance and 
+epistasis) genetic models can be constructed. The output of the grm function can either be a 
 within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that 
 contains information about the GRM stored in a binary file on the disk.
 }

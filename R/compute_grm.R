@@ -11,9 +11,9 @@
 #' within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that 
 #' contains information about the GRM stored in a binary file on the disk.
 #' 
-#' @param Glist a list providing information about genotypes stored on disk 
-#' @param ids a vector of individual ids used for computing GRM
-#' @param rsids a vector genotype marker rsids used for computing GRM
+#' @param Glist list providing information about genotypes stored on disk 
+#' @param ids vector of individual ids used for computing GRM
+#' @param rsids vector genotype marker rsids used for computing GRM
 #' @param rws rows in genotype matrix used for computing GRM
 #' @param cls columns in genotype matrix used for computing GRM
 #' @param W matrix of centered and scaled genotypes 
@@ -23,7 +23,7 @@
 #' @param fnG name of the binary file used for storing the GRM on disk
 #' @param overwrite logical if TRUE the binary file fnG will be overwritten
 #' @param returnGRM logical if TRUE function returns the GRM matrix to the R environment  
-#' @param miss is the missing code (miss=0 is default) used for missing values in the genotype data
+#' @param miss the missing code (miss=0 is default) used for missing values in the genotype data
 #' 
 #' 
 #' @return Returns a genomic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk

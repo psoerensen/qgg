@@ -34,12 +34,12 @@
 #' @param GRMlist list providing information about GRM matrix stored in binary files on disk
 #' @param theta vector of initial values of co-variance for REML estimation 
 #' @param ids vector of individuals used in the analysis 
-#' @param validate a dataframe or list of individuals used in cross-validation (one column for each set)
+#' @param validate dataframe or list of individuals used in cross-validation (one column for each set)
 #' @param maxit maximum number of iterations used in REML analysis
 #' @param tol tolerance, i.e. convergence criteria used in REML
 #' @param ncores number of cores used for the analysis
-#' @param fm a formula with model statement for the linear mixed model 
-#' @param data a data frame containing the phenotypic observations and fixed factors specified in the model statements
+#' @param fm formula with model statement for the linear mixed model 
+#' @param data data frame containing the phenotypic observations and fixed factors specified in the model statements
 #' @param interface used for specifying whether to use R or Fortran implementations of REML
 #' @param bin directory for fortran binaries (e.g. DMU binaries dmu1 and dmuai)
 

@@ -32,7 +32,7 @@
 #' @param X design matrix for factors modeled as fixed effects
 #' @param fit list of information about linear mixed model fit (output from greml)
 #' @param G matrix of centered and scaled genotypes (n x m)
-#' @param Glist list of information about genotype matrix
+#' @param Glist list of information about genotype matrix stored on disk
 #' @param rsids vector marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis
 #' @param statistic single marker test statistic used (currently based on the "mastor" statistics).

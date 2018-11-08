@@ -13,15 +13,15 @@ gprep(study = NULL, fnRAW = NULL, bedfiles = NULL, bimfiles = NULL,
 
 \item{fnRAW}{path and .raw filename of the binary file used for storing genotypes on the disk}
 
-\item{bedfiles}{a vector of names for the PLINK bed-files}
+\item{bedfiles}{vector of names for the PLINK bed-files}
 
-\item{bimfiles}{a vector of names for the PLINK bim-files}
+\item{bimfiles}{vector of names for the PLINK bim-files}
 
-\item{famfiles}{a vector of names for the PLINK fam-files}
+\item{famfiles}{vector of names for the PLINK fam-files}
 
-\item{ids}{a vector of individual IDs used in the study}
+\item{ids}{vector of individual IDs used in the study}
 
-\item{rsids}{a vector of genotype marker rsids used in the study}
+\item{rsids}{vector of genotype marker rsids used in the study}
 
 \item{overwrite}{logical if TRUE overwite binary genotype file}
 
@@ -31,24 +31,29 @@ gprep(study = NULL, fnRAW = NULL, bedfiles = NULL, bimfiles = NULL,
 Returns a list structure with information about genotypes
 }
 \description{
-All functions in qgg relies on a simple infrastructure that takes four main input sources; 
-phenotype data (y), covariate data (X), a Glist object that contains information about the 
-genotype data (for smaller data sets that can be in memory, the Glist object is not required, 
-and genotypes can be stored in a n(individuals) x m(SNP markers) matrix of centered and scaled 
-genotypes (G), and a genomic relationship matrix (GRM).
+All functions in qgg relies on a simple data infrastructure that takes five main input sources; 
+phenotype data (y), covariate data (X), genotype data (G or Glist), a genomic relationship 
+matrix (GRM or GRMlist) and genetic marker sets (sets).
+
+The genotypes are stored in a matrix (n x m (individuals x markers) in memory (G) or in a 
+binary file on disk (Glist). 
+
+It is only for small data sets that the genotype matrix (G) can stored in memory. For large data
+sets the genotype matrix has to stored in a binary file on disk (Glist). Glist is as a list 
+structure that contains information about the genotypes in the binary file.
 
 The gprep function prepares the Glist, and is required for downstream analyses of large-scale 
-genetic data. Typically, the Glist is prepared once, and saved as an *.Rdata-file. The Glist 
-structure is used as input parameter for a number of qgg core functions for; 1) construction 
-of genomic relationship matrices (grm), 2) estimating genetic parameters (greml), 
-3) single SNP association approximations (lma), 4) gene set enrichment analyses (gsea), 
-and 5) genomic prediction from genotypes and phenotypes (gsolve) or geneotypes and single marker 
-summary statistics (gscore).
+genetic data. Typically, the Glist is prepared once, and saved as an *.Rdata-file. 
 
 The gprep function reads genotype information from binary PLINK files, and creates the Glist 
 object that contains general information about the genotypes such as reference alleles, 
 allele frequencies and missing genotypes, and construct a binary file on the disk that contains 
 the genotypes as allele counts of the alternative allele (memory usage = (n x m)/4 bytes).
+
+The Glist structure is used as input parameter for a number of qgg core functions including: 
+1) construction of genomic relationship matrices (grm), 2) estimating genomic parameters (greml), 
+3) single marker association analyses (lma or mlma), 4) gene set enrichment analyses (gsea), 
+and 5) genomic prediction from genotypes and phenotypes (gsolve) or genotypes and summary statistics (gscore).
 }
 \examples{
 #Glist <- gprep( bedfiles, bimfiles, study, path, additional arguments...)
