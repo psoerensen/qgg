@@ -26,7 +26,7 @@ This detailed tutorial on a small data set, exemplifies some of the core feature
   
 The phenotypic and genetic data is from the publicly available [*Drosophila* genetic reference panel](http://dgrp2.gnets.ncsu.edu/) (DGRP) - a system of 205 completely inbred *D. melanogaster* lines.  
   
-The tutorial is divided in the following steps:
+The tutorial is divided into the following steps:
   
 * **Data preparation**  
   
@@ -34,7 +34,7 @@ The tutorial is divided in the following steps:
      
      + [Prepare genotype data](http://psoerensen.github.io/qgg/articles/Prepare_Genotypes.html)  
      
-     + [Prepare marker annotation](http://psoerensen.github.io/qgg/articles/Prepare_Annotation.html)  
+     + [Prepare marker annotation data](http://psoerensen.github.io/qgg/articles/Prepare_Annotation.html)  
   
      + [Prepare marker sets](http://psoerensen.github.io/qgg/articles/Prepare_Marker_Sets.html)
   

@@ -36,8 +36,8 @@ library(readxl)
 ```
 <br/> 
   
-#### Download phenotype and covariate data
-
+#### **Download phenotype and covariate data**  
+  
 ```{r}
 # Female
 download.file("http://dgrp2.gnets.ncsu.edu/data/website/starvation.female.csv", 
@@ -56,7 +56,7 @@ download.file("http://dgrp2.gnets.ncsu.edu/data/website/wolbachia.xlsx", mode = 
               destfile = "./data/wolbachia.xlsx")
 ```
 
-#### Read and edit phenotype data
+#### **Read and edit phenotype data**
 
 Read female data.
 ```{r}
@@ -64,14 +64,14 @@ starF <- read.csv(file="./data/starvation.female.csv", header = FALSE)
 head(starF)
 dim(starF)
 ```
-\hfill\break  
+  
 Read male data.
 ```{r}
 starM <- read.csv(file="./data/starvation.male.csv", header = FALSE)
 head(starM)
 dim(starM)
 ```
-\hfill\break  
+  
 Give column names. "L" = lines, "F" = female, "M" = male.
 ```{r}
 colnames(starF) <- c("L", "F")
@@ -89,20 +89,20 @@ Look at the tibbles
 starF
 starM
 ```
-\hfill\break  
+  
 Join the tibbles for males and females.
 ```{r}
 starMF <- left_join(starM, starF, by= "L")
 starMF
 ```
-\hfill\break  
+  
 Create a column for sex information and a column for the phenotype (y), in this case resistance to starvation.
 ```{r}
 starv <- gather(starMF, sex, y, -L)
 head(starv)
 head(starv, 3)
 ```
-\hfill\break  
+  
 Remove prefix "line_" from the contents of the "L" column.
 ```{r}
 starv$L <- gsub("line_", "", starv$L, fixed = TRUE)
@@ -110,7 +110,7 @@ head(starv$L)
 ```
 <br>
   
-#### Read and edit Inversion status
+#### **Read and edit inversion status**  
   
 Abbreviations used are: INV = inversion karyotype (homozygous), INV / ST = heterozygote for the inversion and ST = standard configuration in a homozygous form.
 ```{r}
@@ -120,7 +120,7 @@ inv <- read_excel("./data/inversion.xlsx",
 head(inv)
 dim(inv)
 ```
-\hfill\break  
+  
 Remove the "DGRP_" prefix from the contents of the "DGRP Line" column. Save column names of `Inv` as a vector `Invcols`. Then edit the column names in the `Invcols` vector: "DGRP Line" becomes "L" and the brackets "()" in the inversion names are changed to underscores.
 ```{r}
 inv$`DGRP Line` <- gsub("DGRP_", "", inv$`DGRP Line`, fixed=TRUE)
@@ -135,8 +135,8 @@ inv
 ```
 
   
-#### Read and edit *Wolbachia* status
-
+#### **Read and edit *Wolbachia* status**  
+  
 ```{r}
 wo <- read_excel("./data/wolbachia.xlsx",
                    sheet = 1, col_names = TRUE)
@@ -151,7 +151,8 @@ wo$L <- gsub("DGRP__", "", wo$L, fixed=TRUE)
 wo
 ```
  
-#### Create final data frame 
+#### **Create final data frame**  
+  
 Merge phenotype data with inversion status and *Wolbachia* infection status.
 ```{r}
 starvInv <- left_join(starv, inv, by= "L")
