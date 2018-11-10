@@ -36,7 +36,6 @@ The tutorial is divided into the following steps:
      
      + [Prepare annotation data and marker sets](http://psoerensen.github.io/qgg/articles/annotation_and_marker_sets.html)  
   
-     + [Prepare marker sets](http://psoerensen.github.io/qgg/articles/Prepare_Marker_Sets.html)
   
 * **Data analysis**  
 
