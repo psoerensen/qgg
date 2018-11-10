@@ -34,7 +34,7 @@ The tutorial is divided into the following steps:
      
      + [Prepare genotype data](http://psoerensen.github.io/qgg/articles/Prepare_Genotypes.html)  
      
-     + [Prepare marker annotation data](http://psoerensen.github.io/qgg/articles/Prepare_Annotation.html)  
+     + [Prepare annotation data and marker sets](http://psoerensen.github.io/qgg/articles/Prepare_Annotation.html)  
   
      + [Prepare marker sets](http://psoerensen.github.io/qgg/articles/Prepare_Marker_Sets.html)
   
