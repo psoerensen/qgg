@@ -34,7 +34,7 @@
 #' @param GRMlist list providing information about GRM matrix stored in binary files on disk
 #' @param theta vector of initial values of co-variance for REML estimation 
 #' @param ids vector of individuals used in the analysis 
-#' @param validate dataframe or list of individuals used in cross-validation (one column for each set)
+#' @param validate dataframe or list of individuals used in cross-validation (one column/row for each validation set)
 #' @param maxit maximum number of iterations used in REML analysis
 #' @param tol tolerance, i.e. convergence criteria used in REML
 #' @param ncores number of cores used for the analysis
