@@ -32,7 +32,8 @@
 
 <meta property="og:title" content="Genomic prediction based on single marker summary statistics — gscore" />
 
-<meta property="og:description" content="The gscore function is used for genomic predictions based on single marker summary statistics and observed phenotypes." />
+<meta property="og:description" content="The gscore function is used for genomic predictions based on single marker summary statistics 
+(coefficients, log-odds ratios, z-scores) and observed genotypes." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -126,12 +127,13 @@
 
     <div class="ref-description">
     
-    <p>The gscore function is used for genomic predictions based on single marker summary statistics and observed phenotypes.</p>
+    <p>The gscore function is used for genomic predictions based on single marker summary statistics 
+(coefficients, log-odds ratios, z-scores) and observed genotypes.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>gscore</span>(<span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>S</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rws</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><span class='fu'>gscore</span>(<span class='kw'>Glist</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>S</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rsids</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>rws</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>cls</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scaled</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>msize</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">

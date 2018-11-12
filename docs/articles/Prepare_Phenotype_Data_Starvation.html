@@ -111,7 +111,8 @@
 <p><br></p>
 <div id="download-phenotype-and-covariate-data" class="section level4">
 <h4 class="hasAnchor">
-<a href="#download-phenotype-and-covariate-data" class="anchor"></a>Download phenotype and covariate data</h4>
+<a href="#download-phenotype-and-covariate-data" class="anchor"></a><strong>Download phenotype and covariate data</strong>
+</h4>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Female</span>
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/starvation.female.csv"</span>, 
               <span class="dt">destfile =</span> <span class="st">"./data/starvation.female.csv"</span>)
@@ -130,7 +131,8 @@
 </div>
 <div id="read-and-edit-phenotype-data" class="section level4">
 <h4 class="hasAnchor">
-<a href="#read-and-edit-phenotype-data" class="anchor"></a>Read and edit phenotype data</h4>
+<a href="#read-and-edit-phenotype-data" class="anchor"></a><strong>Read and edit phenotype data</strong>
+</h4>
 <p>Read female data.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starF &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">file=</span><span class="st">"./data/starvation.female.csv"</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>)
 <span class="kw">head</span>(starF)</code></pre></div>
@@ -143,7 +145,7 @@
 ## 6 line_136 104.32000</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(starF)</code></pre></div>
 <pre><code>## [1] 203   2</code></pre>
-<p> Read male data.</p>
+<p>Read male data.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starM &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">file=</span><span class="st">"./data/starvation.male.csv"</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>)
 <span class="kw">head</span>(starM)</code></pre></div>
 <pre><code>##         V1       V2
@@ -155,7 +157,7 @@
 ## 6 line_136 63.04000</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(starM)</code></pre></div>
 <pre><code>## [1] 203   2</code></pre>
-<p> Give column names. “L” = lines, “F” = female, “M” = male.</p>
+<p>Give column names. “L” = lines, “F” = female, “M” = male.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">colnames</span>(starF) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"L"</span>, <span class="st">"F"</span>)
 <span class="kw">colnames</span>(starM) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"L"</span>, <span class="st">"M"</span>)</code></pre></div>
 <p>In dplyr a data frame has to be converted to a tibble (<code>tbl</code>). Convert <code>starF</code> and <code>starM</code> to tibbles.</p>
@@ -192,7 +194,7 @@ starM &lt;-<span class="st"> </span><span class="kw">tbl_df</span>(starM)</code>
 ##  9 line_149  35.8
 ## 10 line_153  40.3
 ## # ... with 193 more rows</code></pre>
-<p> Join the tibbles for males and females.</p>
+<p>Join the tibbles for males and females.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starMF &lt;-<span class="st"> </span><span class="kw">left_join</span>(starM, starF, <span class="dt">by=</span> <span class="st">"L"</span>)
 starMF</code></pre></div>
 <pre><code>## # A tibble: 203 x 3
@@ -209,7 +211,7 @@ starMF</code></pre></div>
 ##  9 line_149  35.8  47  
 ## 10 line_153  40.3  59.0
 ## # ... with 193 more rows</code></pre>
-<p> Create a column for sex information and a column for the phenotype (y), in this case resistance to starvation.</p>
+<p>Create a column for sex information and a column for the phenotype (y), in this case resistance to starvation.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starv &lt;-<span class="st"> </span><span class="kw">gather</span>(starMF, sex, y, <span class="op">-</span>L)
 <span class="kw">head</span>(starv)</code></pre></div>
 <pre><code>## # A tibble: 6 x 3
@@ -228,7 +230,7 @@ starMF</code></pre></div>
 ## 1 line_100 M      49.3
 ## 2 line_101 M      47.2
 ## 3 line_105 M      51.0</code></pre>
-<p> Remove prefix “line_” from the contents of the “L” column.</p>
+<p>Remove prefix “line_” from the contents of the “L” column.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starv<span class="op">$</span>L &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">"line_"</span>, <span class="st">""</span>, starv<span class="op">$</span>L, <span class="dt">fixed =</span> <span class="ot">TRUE</span>)
 <span class="kw">head</span>(starv<span class="op">$</span>L)</code></pre></div>
 <pre><code>## [1] "100" "101" "105" "109" "129" "136"</code></pre>
@@ -236,7 +238,8 @@ starMF</code></pre></div>
 </div>
 <div id="read-and-edit-inversion-status" class="section level4">
 <h4 class="hasAnchor">
-<a href="#read-and-edit-inversion-status" class="anchor"></a>Read and edit Inversion status</h4>
+<a href="#read-and-edit-inversion-status" class="anchor"></a><strong>Read and edit inversion status</strong>
+</h4>
 <p>Abbreviations used are: INV = inversion karyotype (homozygous), INV / ST = heterozygote for the inversion and ST = standard configuration in a homozygous form.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inv &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">"./data/inversion.xlsx"</span>,
                    <span class="dt">sheet =</span> <span class="dv">1</span>, <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
@@ -257,7 +260,7 @@ starMF</code></pre></div>
 ## #   `In(3R)C` &lt;chr&gt;</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(inv)</code></pre></div>
 <pre><code>## [1] 205  17</code></pre>
-<p> Remove the “DGRP_” prefix from the contents of the “DGRP Line” column. Save column names of <code>Inv</code> as a vector <code>Invcols</code>. Then edit the column names in the <code>Invcols</code> vector: “DGRP Line” becomes “L” and the brackets “()” in the inversion names are changed to underscores.</p>
+<p>Remove the “DGRP_” prefix from the contents of the “DGRP Line” column. Save column names of <code>Inv</code> as a vector <code>Invcols</code>. Then edit the column names in the <code>Invcols</code> vector: “DGRP Line” becomes “L” and the brackets “()” in the inversion names are changed to underscores.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inv<span class="op">$</span><span class="st">`</span><span class="dt">DGRP Line</span><span class="st">`</span> &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">"DGRP_"</span>, <span class="st">""</span>, inv<span class="op">$</span><span class="st">`</span><span class="dt">DGRP Line</span><span class="st">`</span>, <span class="dt">fixed=</span><span class="ot">TRUE</span>)
 <span class="kw">head</span>(inv, <span class="dv">3</span>)</code></pre></div>
 <pre><code>## # A tibble: 3 x 17
@@ -294,7 +297,8 @@ inv</code></pre></div>
 </div>
 <div id="read-and-edit-wolbachia-status" class="section level4">
 <h4 class="hasAnchor">
-<a href="#read-and-edit-wolbachia-status" class="anchor"></a>Read and edit <em>Wolbachia</em> status</h4>
+<a href="#read-and-edit-wolbachia-status" class="anchor"></a><strong>Read and edit <em>Wolbachia</em> status</strong>
+</h4>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">wo &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">"./data/wolbachia.xlsx"</span>,
                    <span class="dt">sheet =</span> <span class="dv">1</span>, <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
 wo</code></pre></div>
@@ -335,7 +339,8 @@ wo</code></pre></div>
 </div>
 <div id="create-final-data-frame" class="section level4">
 <h4 class="hasAnchor">
-<a href="#create-final-data-frame" class="anchor"></a>Create final data frame</h4>
+<a href="#create-final-data-frame" class="anchor"></a><strong>Create final data frame</strong>
+</h4>
 <p>Merge phenotype data with inversion status and <em>Wolbachia</em> infection status.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starvInv &lt;-<span class="st"> </span><span class="kw">left_join</span>(starv, inv, <span class="dt">by=</span> <span class="st">"L"</span>)
 starvInv</code></pre></div>

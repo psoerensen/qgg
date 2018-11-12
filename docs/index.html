@@ -102,21 +102,23 @@
 <ul>
 <li>fitting linear mixed models<br>
 </li>
-<li>construction and eigen-value decomposition of genomic relationship matrices<br>
+<li>construction of genomic relationship matrices<br>
 </li>
 <li>estimating genetic parameters (heritability and correlation)<br>
 </li>
 <li>genomic prediction and genetic risk profiling<br>
 </li>
-<li>single or multi-marker association analyses</li>
+<li>single marker association analysis<br>
+</li>
+<li>gene set enrichment analysis</li>
 </ul>
 <p><strong>qgg</strong> handles large-scale data by taking advantage of:</p>
 <ul>
 <li>multi-core processing using openMP<br>
 </li>
-<li>multithreaded matrix operations implemented in BLAS libraries (e.g. OpenBLAS, ATLAS or MKL)<br>
+<li>multithreaded matrix operations implemented in BLAS libraries (e.g. <a href="https://www.openblas.net/">OpenBLAS</a>, <a href="http://math-atlas.sourceforge.net/">ATLAS</a> or <a href="https://software.intel.com/en-us/mkl">MKL</a>)<br>
 </li>
-<li>fast and memory-efficient batch processing of genotype data stored in binary files (e.g. PLINK bedfiles)</li>
+<li>fast and memory-efficient batch processing of genotype data stored in binary files (e.g. <a href="https://www.cog-genomics.org/plink2">PLINK</a> bedfiles)</li>
 </ul>
 <p>The <strong>qgg</strong> package provides a range of genomic feature modeling approaches, including genomic feature best linear unbiased prediction (GFBLUP) models, implemented using likelihood or Bayesian methods. Multiple features and multiple traits can be included in these models and different genetic models (e.g. additive, dominance, gene by gene and gene by environment interactions) can be used. Further extensions include a weighted GFBLUP model using differential weighting of the individual genetic marker relationships. Marker set tests, which are computationally very fast, can be performed. These marker set tests allow the rapid analyses of different layers of genomic feature classes to discover genomic features potentially enriched for causal variants. Marker set tests can thus facilitate more accurate prediction models.</p>
 <div id="references" class="section level4">
