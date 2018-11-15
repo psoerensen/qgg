@@ -30,16 +30,16 @@ The tutorial is divided into the following steps:
   
 * **Data preparation**  
   
-     + [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/Prepare_Phenotype_Data_Starvation.html)  
+     + [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/prepare_phenotype_covariate.html)  
      
-     + [Prepare genotype data](http://psoerensen.github.io/qgg/articles/Prepare_Genotypes.html)  
+     + [Prepare genotype data](http://psoerensen.github.io/qgg/articles/prepare_genotype_data.html)  
      
      + [Prepare annotation data and marker sets](http://psoerensen.github.io/qgg/articles/annotation_and_marker_sets.html)  
   
   
 * **Data analysis**  
 
-     + [GBLUP and cross validation](http://psoerensen.github.io/qgg/articles/GBLUP_cross_validation.html)  
+     + [Prediction using GBLUP and cross validation](http://psoerensen.github.io/qgg/articles/GBLUP_cross_validation.html)  
   
-     + [GFBLUP and cross validation](http://psoerensen.github.io/qgg/articles/GFBLUP_cross_validation.html)  
+     + [Prediction using GFBLUP and cross validation](http://psoerensen.github.io/qgg/articles/GFBLUP_cross_validation.html)  
   
