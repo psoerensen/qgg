@@ -2,7 +2,7 @@
 #    Module 5: GSOLVE 
 ####################################################################################################################
 #'
-#' Genomic prediction based linear mixed model
+#' Genomic prediction based on a linear mixed model
 #' 
 #' 
 #' @description
