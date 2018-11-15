@@ -30,7 +30,7 @@ The tutorial is divided into the following steps:
   
 * **Data preparation**  
   
-     + [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/prepare_phenotype_covariate.html)  
+     + [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/prepare_phenotype_covariate_data.html)  
      
      + [Prepare genotype data](http://psoerensen.github.io/qgg/articles/prepare_genotype_data.html)  
      

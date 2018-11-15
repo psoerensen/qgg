@@ -23,7 +23,7 @@ greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
 
 \item{ids}{vector of individuals used in the analysis}
 
-\item{validate}{dataframe or list of individuals used in cross-validation (one column for each set)}
+\item{validate}{dataframe or list of individuals used in cross-validation (one column/row for each validation set)}
 
 \item{maxit}{maximum number of iterations used in REML analysis}
 

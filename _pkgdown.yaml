@@ -11,7 +11,7 @@ navbar:
         - text: Small data set tutorial
           href: articles/Small_data_set_tutorial.html
         - text: Prepare phenotype and covariate data
-          href: articles/prepare_phenotype_covariate.html
+          href: articles/prepare_phenotype_covariate_data.html
     right:
       - news:
         text: "Changelog"
