@@ -10,8 +10,8 @@ navbar:
         menu:
         - text: Small data set tutorial
           href: articles/Small_data_set_tutorial.html
-        - text: Prepare Phenotype and Covariate Data
-          href: articles/Prepare_Phenotype_Data_Starvation.html
+        - text: Prepare phenotype and covariate data
+          href: articles/prepare_phenotype_covariate.html
     right:
       - news:
         text: "Changelog"

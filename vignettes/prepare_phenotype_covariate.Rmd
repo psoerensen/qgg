@@ -1,5 +1,5 @@
 ---
-title: "Prepare Phenotype and Covariate Data"
+title: "Prepare phenotype and covariate data"
 author: "Izel Fourie Sorensen"
 date: "April 3, 2018"
 output: html_document
