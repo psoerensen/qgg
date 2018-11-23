@@ -43,3 +43,4 @@ The tutorial is divided into the following steps:
   
      + [Prediction using GFBLUP and cross validation](http://psoerensen.github.io/qgg/articles/GFBLUP_cross_validation.html)  
   
+     + [Gene set enrichment analysis](http://psoerensen.github.io/qgg/articles/gsea.html)
