@@ -44,3 +44,14 @@ The tutorial is divided into the following steps:
      + [Prediction using GFBLUP and cross validation](http://psoerensen.github.io/qgg/articles/GFBLUP_cross_validation.html)  
   
      + [Gene set enrichment analysis](http://psoerensen.github.io/qgg/articles/gsea.html)
+     
+## Large data set example
+
+This condensed tutorial on a large data set, exemplifies some of the core features of **qgg**. It takes you all the way from getting and cleaning data to estimation of genomic parameters, gene set enrichment analysis and making predictions with genomic best linear unbiased prediction (GBLUP) and genomic feature BLUP (GFBLUP) models.  
+  
+The genetic data is from the publicly available [International Genome Sample Resource - 1000 Genomes Project](www.internationalgenome.org).  
+  
+* **Data preparation and analysis**  
+  
+     + [Prepare phenotype and covariate data](http://psoerensen.github.io/qgg/articles/1000genome_examples.html)  
+     
