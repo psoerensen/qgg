@@ -51,5 +51,5 @@ This condensed tutorial on a large data set, exemplifies some of the core featur
   
 The genetic data is from the publicly available [International Genome Sample Resource - 1000 Genomes Project](www.internationalgenome.org).  
   
-* [Example using 1000 Genomes Project data](http://psoerensen.github.io/qgg/articles/1000genome_examples.html)  
+* [Examples using 1000 Genomes Project data](http://psoerensen.github.io/qgg/articles/1000genome_examples.html)  
      
