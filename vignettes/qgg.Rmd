@@ -47,9 +47,10 @@ The tutorial is divided into the following steps:
      
 ## Large data set tutorial
 
-This condensed tutorial on a large data set, exemplifies some of the core features of **qgg**. It takes you all the way from getting and cleaning data to estimation of genomic parameters, gene set enrichment analysis and making predictions with genomic best linear unbiased prediction (GBLUP) and genomic feature BLUP (GFBLUP) models.  
+These condensed tutorials on two large data sets, exemplify some of the core features of **qgg**. It takes you all the way from getting and cleaning data to estimation of genomic parameters, gene set enrichment analysis and making predictions with genomic best linear unbiased prediction (GBLUP) and genomic feature BLUP (GFBLUP) models.  
   
-The genetic data is from the publicly available [International Genome Sample Resource - 1000 Genomes Project](www.internationalgenome.org).  
-  
-* [Examples using 1000 Genomes Project data](http://psoerensen.github.io/qgg/articles/1000genome_examples.html)  
+* [Tutorial on using 1000 Genomes Project data](http://psoerensen.github.io/qgg/articles/1000genome_tutorial.html)  
+
+* [Tutorial on using UK Biobank data](http://psoerensen.github.io/qgg/articles/ukb_tutorial.html)  
+
      

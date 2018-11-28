@@ -10,3 +10,6 @@ knitr::opts_chunk$set(echo = TRUE)
 Here we want to have links to our tutorials for the DGRP data set.
 
 Here I want to link to [compute W](http://psoerensen.github.io/qgg/articles/Compute_W.html)
+
+## heading 1
+## heading 2
