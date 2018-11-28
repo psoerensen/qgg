@@ -6,11 +6,7 @@ navbar:
         href: articles/qgg.html
       - text: "Functions"
         href: reference/index.html
-<<<<<<< HEAD
-     right:
-=======
-      right:
->>>>>>> 2f9ff4fcc5f6ed5d994dd0d7b6ae80d91e43b0b6
+    right:
       - news:
         text: "Changelog"
         href: news/index.html
