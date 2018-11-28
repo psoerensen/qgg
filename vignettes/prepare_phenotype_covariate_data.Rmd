@@ -3,6 +3,9 @@ title: "Prepare phenotype and covariate data"
 author: "Izel Fourie Sorensen"
 date: "April 3, 2018"
 output: html_document
+toc: true
+    toc_float: true
+    toc_depth: 4
 ---
 
 

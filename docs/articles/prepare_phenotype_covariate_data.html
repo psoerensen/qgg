@@ -109,10 +109,10 @@
 <span class="kw">library</span>(tidyr)
 <span class="kw">library</span>(readxl)</code></pre></div>
 <p><br></p>
-<div id="download-phenotype-and-covariate-data" class="section level4">
-<h4 class="hasAnchor">
+<div id="download-phenotype-and-covariate-data" class="section level2">
+<h2 class="hasAnchor">
 <a href="#download-phenotype-and-covariate-data" class="anchor"></a><strong>Download phenotype and covariate data</strong>
-</h4>
+</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Female</span>
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/starvation.female.csv"</span>, 
               <span class="dt">destfile =</span> <span class="st">"./data/starvation.female.csv"</span>)
@@ -129,10 +129,10 @@
 <span class="kw">download.file</span>(<span class="st">"http://dgrp2.gnets.ncsu.edu/data/website/wolbachia.xlsx"</span>, <span class="dt">mode =</span> <span class="st">"wb"</span>, 
               <span class="dt">destfile =</span> <span class="st">"./data/wolbachia.xlsx"</span>)</code></pre></div>
 </div>
-<div id="read-and-edit-phenotype-data" class="section level4">
-<h4 class="hasAnchor">
+<div id="read-and-edit-phenotype-data" class="section level2">
+<h2 class="hasAnchor">
 <a href="#read-and-edit-phenotype-data" class="anchor"></a><strong>Read and edit phenotype data</strong>
-</h4>
+</h2>
 <p>Read female data.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starF &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">file=</span><span class="st">"./data/starvation.female.csv"</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>)
 <span class="kw">head</span>(starF)</code></pre></div>
@@ -235,7 +235,6 @@ starMF</code></pre></div>
 <span class="kw">head</span>(starv<span class="op">$</span>L)</code></pre></div>
 <pre><code>## [1] "100" "101" "105" "109" "129" "136"</code></pre>
 <p><br></p>
-</div>
 <div id="read-and-edit-inversion-status" class="section level4">
 <h4 class="hasAnchor">
 <a href="#read-and-edit-inversion-status" class="anchor"></a><strong>Read and edit inversion status</strong>
@@ -390,9 +389,18 @@ starvIW[<span class="dv">1</span><span class="op">:</span><span class="dv">5</sp
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starv &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(starvIW)
 <span class="kw">save</span>(starv, <span class="dt">file=</span><span class="st">"./phenotypes/starv_inv_wo.Rdata"</span>)</code></pre></div>
 </div>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+        <div id="tocnav">
+      <h2 class="hasAnchor">
+<a href="#tocnav" class="anchor"></a>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+<li><a href="#download-phenotype-and-covariate-data"><strong>Download phenotype and covariate data</strong></a></li>
+      <li><a href="#read-and-edit-phenotype-data"><strong>Read and edit phenotype data</strong></a></li>
+      </ul>
+</div>
       </div>
 
 </div>
