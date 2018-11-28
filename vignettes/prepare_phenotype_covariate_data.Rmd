@@ -40,7 +40,7 @@ library(readxl)
 ```
 <br/> 
   
-## **Download phenotype and covariate data**  
+## Download phenotype and covariate data  
   
 ```{r}
 # Female
