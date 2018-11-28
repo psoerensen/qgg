@@ -36,7 +36,7 @@ library(readxl)
 ```
 <br/> 
   
-#### **Download phenotype and covariate data**  
+## **Download phenotype and covariate data**  
   
 ```{r}
 # Female
@@ -56,7 +56,7 @@ download.file("http://dgrp2.gnets.ncsu.edu/data/website/wolbachia.xlsx", mode = 
               destfile = "./data/wolbachia.xlsx")
 ```
 
-#### **Read and edit phenotype data**
+## **Read and edit phenotype data**
 
 Read female data.
 ```{r}
