@@ -1,5 +1,7 @@
 ^docs$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^_pkgdown\.yaml$
+^_pkgdown\.yml$
 ^README\.Rmd$
 ^README-.*\.png$
