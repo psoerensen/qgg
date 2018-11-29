@@ -45,11 +45,13 @@ The tutorial is divided into the following steps:
   
      + [Gene set enrichment analysis](http://psoerensen.github.io/qgg/articles/gsea.html)
      
-## Large data set tutorial
+## Large data set tutorials
 
 These condensed tutorials on two large data sets, exemplify some of the core features of **qgg**. It takes you all the way from getting and cleaning data to estimation of genomic parameters, gene set enrichment analysis and making predictions with genomic best linear unbiased prediction (GBLUP) and genomic feature BLUP (GFBLUP) models.  
   
-* [Tutorial on using 1000 Genomes Project data](http://psoerensen.github.io/qgg/articles/1000genome_tutorial.html)  
+* [Tutorial on using 1000 Genomes Project data](http://psoerensen.github.io/qgg/articles/1000genome_tutorial.html) 
+
+* [Prepare UK Biobank phenotype data](http://psoerensen.github.io/qgg/articles/prepare_ukb_phenotypes.html)
 
 * [Tutorial on using UK Biobank data](http://psoerensen.github.io/qgg/articles/ukb_tutorial.html)  
 
