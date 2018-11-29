@@ -22,7 +22,7 @@ The **qgg** package was developed based on the hypothesis that certain regions o
 * fitting linear mixed models  
 * construction of genomic relationship matrices  
 * estimating genetic parameters (heritability and correlation)  
-* genomic prediction and genetic risk profiling  
+* genomic prediction  
 * single marker association analysis  
 * gene set enrichment analysis   
   
