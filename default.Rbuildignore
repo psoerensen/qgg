@@ -1,4 +1,3 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^_pkgdown\.yaml$
-^_pkgdown\.yml$
