@@ -1,3 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+<<<<<<< HEAD
 ^_pkgdown\.yaml$
+=======
+^_pkgdown\.yml$
+>>>>>>> b831a2581854fa5e99e59b0da45a8172e9c845be
