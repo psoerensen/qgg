@@ -3,12 +3,6 @@ Type: Package
 Title: Statistical tools for Quantitative Genetic Analyses
 Version: 1.0
 Date: 2017-10-21
-Authors@R: c(person("Peter", "Soerensen", email = "pso@mbg.au.dk",
-                  role = c("aut", "cre")),
-                  person("Palle", "Duun Rohde", email = "palle.d.rohde@mbg.au.dk",
-                  role = "aut"),
-                  person("Izel", "Fourie Soerensen", email = "izel.sorensen@gmail.com",
-                  role = "aut"))
 Author: Peter Soerensen <pso@mbg.au.dk>
 Maintainer: Peter Soerensen <pso@mbg.au.dk>
 Description: Statistical tools for Quantitative Genetic Analyses
