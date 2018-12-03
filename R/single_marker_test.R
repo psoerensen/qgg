@@ -96,7 +96,7 @@
 lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, fit=NULL, statistic="mastor", ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
  
      if (is.null(fit)) {
-          ma <- sma( y=y, X=X, W=W, Glist=Glist, ids=ids, rsids=rsids, msize=msize, scaled=scale) 
+          ma <- sma( y=y, X=X, W=W, Glist=Glist, ids=ids, rsids=rsids, msize=msize, scaled=scaled) 
           return(ma) 
      }    
      if (!is.null(fit)) {
@@ -214,7 +214,7 @@ sma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize
           }
           cls <- unlist(sets)
           res <- list(s=s[cls,],se=se[cls,],stat=stat[cls,],p=p[cls,])
-          if (nt==1) res <- as.data.frame(res)
+          if (nt==1) res <- as.matrix(as.data.frame(res))
      }
      return(res)
 }
