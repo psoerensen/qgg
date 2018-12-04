@@ -9,15 +9,15 @@ Description: Statistical tools for Quantitative Genetic Analyses
 License: GPL-3
 Encoding: UTF-8
 Depends:
-    data.table,
-    MASS
+     data.table,
+     MASS
 Imports:
-    data.table,
-    MASS
+     data.table,
+     MASS
 RoxygenNote: 6.1.0
 Suggests:
-    knitr,
-    rmarkdown
+     knitr,
+     rmarkdown
 VignetteBuilder: knitr
 URL: https://github.com/psoerensen/qgg
 BugReports: https://github.com/psoerensen/qgg/issues
