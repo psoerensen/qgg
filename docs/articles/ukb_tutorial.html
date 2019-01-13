@@ -123,7 +123,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Tutorial on using UK Biobank data</h1>
 <h4 class="author"><em>Peter Sørensen, Izel Fourie Sørensen</em></h4>
-<h4 class="date"><em>29 November, 2018</em></h4>
+<h4 class="date"><em>11 January, 2019</em></h4>
 
 </div>
 
@@ -147,7 +147,7 @@ famfiles &lt;- paste(&quot;./data/genotypes/ukb31269_cal_chr&quot;,1:22,&quot;_v
 <p>Specify name of genotype file used in all qgg analyses (extension “.raw” is now required)</p>
 <pre class="r"><code>fnRAW &lt;- &quot;./data/genotypes/wbu_ukb.raw&quot;</code></pre>
 <p>Prepare Glist structure with genotype information</p>
-<pre class="r"><code>Glist &lt;- Gprep(study=&quot;WBU_UKB&quot;, fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, ids=ids)
+<pre class="r"><code>Glist &lt;- gprep(study=&quot;WBU_UKB&quot;, fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, ids=ids)
   
 save(Glist, file=&quot;./data/genotypes/Glist_WBU_UKB.Rdata&quot;, compress=FALSE)</code></pre>
 <p><br></p>
