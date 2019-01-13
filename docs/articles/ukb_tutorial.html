@@ -123,7 +123,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Tutorial on using UK Biobank data</h1>
 <h4 class="author"><em>Peter Sørensen, Izel Fourie Sørensen</em></h4>
-<h4 class="date"><em>11 January, 2019</em></h4>
+<h4 class="date"><em>13 January, 2019</em></h4>
 
 </div>
 
@@ -270,6 +270,27 @@ for ( i in 1:nt) {
            save(s, file=fnS)
       }
     } </code></pre>
+<p>Summarize prediction accuracies</p>
+<pre class="r"><code>res &lt;- NULL
+for ( top in c(&quot;10000&quot;,&quot;30000&quot;,&quot;50000&quot;,&quot;80000&quot;)) { 
+     fnG &lt;- paste(&quot;./results/ghat_top&quot;,top,&quot;_wbu_ukb.Rdata&quot;,sep=&quot;&quot;)
+     load(file=fnG)
+     accuracy &lt;- NULL
+     
+     for ( i in 1:25) {
+          yt &lt;- na.omit(ytrain[,i])
+          idsT &lt;- names(yt)
+          idsV &lt;- rownames(y)[!rownames(y)%in%idsT]
+          yobs &lt;- y[idsV,&quot;standing_height&quot;]
+          ypred &lt;- g[idsV,i]
+          accuracy &lt;- rbind(accuracy,acc(yobs=yobs,ypred=ypred))
+     }
+     
+     accuracy &lt;- matrix(accuracy[,2],ncol=5)
+     colnames(accuracy) &lt;- c(&quot;100K&quot;,&quot;150K&quot;,&quot;200K&quot;,&quot;250K&quot;,&quot;300K&quot;)
+     res[[as.character(top)]] &lt;- accuracy
+}
+r2 &lt;- sapply(res,colMeans)</code></pre>
 <p><br></p>
 </div>
 <div id="gene-set-enrichment-analysis" class="section level4">
