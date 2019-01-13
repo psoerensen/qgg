@@ -21,7 +21,7 @@ devtools::install_github("psoerensen/qgg")
 
 Windows users may encounter a problem during installation using devtools (error message: "Error in read.dcf(path) :"). 
 Until the devtools issue is resolved you should be able to install using the following lines:
-```{r gh-installation, eval = FALSE}
+```{r, eval = FALSE}
 library(remotes)
 install_url(url="https://github.com/psoerensen/qgg/archive/master.zip", INSTALL_opt= "--no-multiarch")
 ```

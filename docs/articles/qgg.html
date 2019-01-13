@@ -46,13 +46,13 @@
   <a href="../articles/qgg.html">Get started</a>
 </li>
 <li>
-  <a href="../reference/index.html">Functions</a>
+  <a href="../reference/index.html">Reference</a>
 </li>
-      </ul>
-<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
+      </ul>
+<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/psoerensen/qgg">
     <span class="fa fa-github fa-lg"></span>
@@ -89,6 +89,10 @@
 <span class="kw">library</span>(devtools)
 <span class="kw">options</span>(<span class="dt">devtools.install.args=</span><span class="st">" --no-multiargs"</span>)
 devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/devtools/topics/install_github">install_github</a></span>(<span class="st">"psoerensen/qgg"</span>)</code></pre></div>
+<p>Windows users may encounter a problem during installation using devtools (error message: “Error in read.dcf(path) :”). Until the devtools issue is resolved you should be able to install using the following lines:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(remotes)
+<span class="kw">install_url</span>(<span class="dt">url=</span><span class="st">"https://github.com/psoerensen/qgg/archive/master.zip"</span>, <span class="dt">INSTALL_opt=</span> <span class="st">"--no-multiarch"</span>)</code></pre></div>
+<p><br></p>
 </div>
 <div id="small-data-set-tutorial" class="section level2">
 <h2 class="hasAnchor">
