@@ -2,7 +2,5 @@ pandoc: 1.19.2.1
 pkgdown: 1.1.0.9000
 pkgdown_sha: 77ceb8cc8bc815020a24f1f690e91d590d3a52e2
 articles:
-  Prepare_Phenotype_Data_Starvation: Prepare_Phenotype_Data_Starvation.html
   qgg: qgg.html
-  Small_data_set_tutorial: Small_data_set_tutorial.html
 
