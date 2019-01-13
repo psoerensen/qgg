@@ -141,7 +141,7 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           #bim <- read.table(file=bimfiles[1], header=FALSE)
           #fam <- read.table(file=famfiles[1], header=FALSE)
           bim <- fread(input=bimfiles[1], header=FALSE, data.table = FALSE)
-          fam <- fread(input=bimfiles[1], header=FALSE, data.table = FALSE)
+          fam <- fread(input=famfiles[1], header=FALSE, data.table = FALSE)
           
           Glist <- NULL
           
@@ -167,7 +167,7 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           
           Glist$study_ids <- NULL
           #fam <- read.table(file=famfiles[1], header=FALSE)
-          fam <- fread(input=bimfiles[1], header=FALSE, data.table = FALSE)
+          fam <- fread(input=famfiles[1], header=FALSE, data.table = FALSE)
           #Glist$ids <- as.character(fam[,2])
           #Glist$study_ids <- Glist$ids
           #if(!is.null(ids)) Glist$study_ids <- as.character(ids) 
