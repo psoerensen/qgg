@@ -196,7 +196,7 @@
     endif
     if (scaled==2) then
       af=0.0D0
-      nmiss=dble(count(gr==3.0D0))
+      nmiss=dble(count(gr(rws)==3.0D0))
       n0=dble(count(gr(rws)==0.0D0))
       n1=dble(count(gr(rws)==1.0D0)) 
       n2=dble(count(gr(rws)==2.0D0))
