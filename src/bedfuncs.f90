@@ -231,11 +231,13 @@
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs  
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs!,ncores,seed(ncores),maxm,thread,multicore 
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   real*8 :: prs(nr,nprs),s(nc,nprs),w(nr)
   !real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=1000) :: fnRAW
+  integer, external :: omp_get_thread_num
+
 
   integer*4, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
@@ -263,6 +265,7 @@
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos14) raw
+    gr = raw2real(n,nbytes,raw)
     if (scaled==2) then
       af=0.0D0
       gsc=gr(rws)
@@ -277,6 +280,7 @@
       prs(1:nr,1) = prs(1:nr,1) + w*s(i,1)  
     endif
   enddo 
+
 
   close(unit=13)
 
