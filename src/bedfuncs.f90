@@ -177,14 +177,23 @@
   if(nchar>0) offset=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
 
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  nbytes14 = nbytes
+  offset14 = offset
+
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', action='read')
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
   
   ntotal=dble(nr)  
 
   W=0.0D0  
 
   do i=1,nc
-    read(13, iostat=stat, rec=cls(i)) raw
+    !read(13, iostat=stat, rec=cls(i)) raw
+
+    i14=cls(i)
+    pos14 = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos14) raw
+
     gr = raw2real(n,nbytes,raw)
     if (scaled==0) then
       where(gr==3.0D0) gr=0.0D0
