@@ -180,7 +180,7 @@
   nbytes14 = nbytes
   offset14 = offset
 
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', action='read')
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
   !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
   
   ntotal=dble(nr)  
