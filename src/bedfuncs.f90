@@ -282,7 +282,7 @@
       !w(1:nr) = gsc
       where(gsc==3.0D0) gsc=2.0D0*af
       if ( nmiss==ntotal ) gsc=0.0D0
-      !prsmp(1:nr,thread) = prsmp(1:nr,thread) + w*s(i,1)  
+      prsmp(1:nr,thread) = prsmp(1:nr,thread) + gsc*s(i,1)  
       !print*,i,thread,i14,pos14,gr(1:2) 
     endif
   enddo 
