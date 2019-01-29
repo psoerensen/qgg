@@ -259,6 +259,8 @@
   
   ntotal=dble(nr)  
 
+  call omp_set_num_threads(ncores)
+
   w=0.0D0  
   prs=0.0d0
   prsmp=0.0d0
