@@ -206,6 +206,8 @@
       !n1=dble(count(gr(rws)==1.0D0)) 
       !n2=dble(count(gr(rws)==2.0D0))
       if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+      print*,'some numbers',i,n1,n2,ntotal,nmiss,af
+
       W(1:nr,i) = gr(rws)
       !where(W(1:nr,i)==0.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
       !where(W(1:nr,i)==1.0D0) W(1:nr,i)=1.0D0 - 2.0D0*(af)*(1.0D0-af)
