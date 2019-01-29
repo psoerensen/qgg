@@ -223,7 +223,8 @@
 !==============================================================================================================
 
 !==============================================================================================================
-  subroutine readbedstream(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
+  !subroutine readbedstream(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
+  subroutine readbedstream(n,nr,rws,nc,cls,scaled,nbytes,fnRAW)	
 !==============================================================================================================
 
   use bedfuncs 
@@ -231,7 +232,8 @@
   implicit none
   
   integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes  
-  real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  !real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=1000) :: fnRAW
 
   integer*4, parameter :: byte = selected_int_kind(1) 
@@ -250,16 +252,25 @@
   offset14 = offset
 
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  
   ntotal=dble(nr)  
 
-  W=0.0D0  
+  !W=0.0D0  
 
   do i=1,nc
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos14) raw
-    print(i)
+    if (scaled==2) then
+      af=0.0D0
+      gsc=gr(rws)
+      nmiss=dble(count(gsc==3.0D0))
+      n0=dble(count(gsc==0.0D0))
+      n1=dble(count(gsc==1.0D0)) 
+      n2=dble(count(gsc==2.0D0))
+      if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+    endif
   enddo 
 
   close(unit=13)
