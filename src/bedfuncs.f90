@@ -269,7 +269,6 @@
     thread=omp_get_thread_num()+1
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
-    print*,i,thread,i14,pos14 
     read(13, pos=pos14) raw
     gr = raw2real(n,nbytes,raw)
     if (scaled==2) then
@@ -284,6 +283,7 @@
       where(w(1:nr)==3.0D0) w(1:nr)=2.0D0*af
       if ( nmiss==ntotal ) w(1:nr)=0.0D0
       prsmp(1:nr,thread) = prsmp(1:nr,thread) + w*s(i,1)  
+      print*,i,thread,i14,pos14,w[1:2] 
     endif
   enddo 
   !$omp end parallel do
