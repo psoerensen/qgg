@@ -279,10 +279,10 @@
       n1=dble(count(gsc==1.0D0)) 
       n2=dble(count(gsc==2.0D0))
       if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
-      w(1:nr) = gr(rws)
+      w(1:nr) = gsc
       where(w(1:nr)==3.0D0) w(1:nr)=2.0D0*af
       if ( nmiss==ntotal ) w(1:nr)=0.0D0
-      prsmp(1:nr,thread) = prsmp(1:nr,thread) + w*s(i,1)  
+      !prsmp(1:nr,thread) = prsmp(1:nr,thread) + w*s(i,1)  
       !print*,i,thread,i14,pos14,gr(1:2) 
     endif
   enddo 
