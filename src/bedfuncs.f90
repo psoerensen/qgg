@@ -274,7 +274,7 @@
       w(1:nr) = gr(rws)
       where(w(1:nr)==3.0D0) w(1:nr)=2.0D0*af
       if ( nmiss==ntotal ) w(1:nr)=0.0D0
-      prs = prs + w*s[i,1]  
+      prs = prs + w*s(i,1)  
     endif
   enddo 
 
