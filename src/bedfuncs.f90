@@ -270,7 +270,7 @@
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos14) raw
-    gr = raw2real(n,nbytes,raw)
+    !gr = raw2real(n,nbytes,raw)
     if (scaled==2) then
       !af=0.0D0
       !gsc=gr(rws)
