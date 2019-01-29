@@ -210,18 +210,8 @@
       n0=dble(count(gsc==0.0D0))
       n1=dble(count(gsc==1.0D0)) 
       n2=dble(count(gsc==2.0D0))
-      !nmiss=dble(count(gr(rws)==3.0D0))
-      !n0=dble(count(gr(rws)==0.0D0))
-      !n1=dble(count(gr(rws)==1.0D0)) 
-      !n2=dble(count(gr(rws)==2.0D0))
       if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
-      !print*,'some numbers',i,n1,n2,ntotal,nmiss,af
-
       W(1:nr,i) = gr(rws)
-      !where(W(1:nr,i)==0.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
-      !where(W(1:nr,i)==1.0D0) W(1:nr,i)=1.0D0 - 2.0D0*(af)*(1.0D0-af)
-      !where(W(1:nr,i)==2.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
-      !where(W(1:nr,i)==3.0D0) W(1:nr,i)=0.0D0
       where(W(1:nr,i)==3.0D0) W(1:nr,i)=2.0D0*af
       if ( nmiss==ntotal ) W(1:nr,i)=0.0D0
     endif
@@ -230,6 +220,51 @@
   close(unit=13)
 
   end subroutine readbed
+!==============================================================================================================
+
+!==============================================================================================================
+  subroutine readbedstream(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
+!==============================================================================================================
+
+  use bedfuncs 
+  
+  implicit none
+  
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes  
+  real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  character(len=1000) :: fnRAW
+
+  integer*4, parameter :: byte = selected_int_kind(1) 
+  integer(byte) :: raw(nbytes)
+  integer*4 :: i, stat,nchar,offset
+
+  integer, parameter :: k14 = selected_int_kind(14) 
+  integer (kind=k14) :: pos14, nbytes14, offset14, i14
+
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+
+  nbytes14 = nbytes
+  offset14 = offset
+
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+
+  ntotal=dble(nr)  
+
+  W=0.0D0  
+
+  do i=1,nc
+    i14=cls(i)
+    pos14 = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos14) raw
+    print(i)
+  enddo 
+
+  close(unit=13)
+
+  end subroutine readbedstream
 !==============================================================================================================
 
 
