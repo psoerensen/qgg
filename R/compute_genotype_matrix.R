@@ -291,7 +291,7 @@ readbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE
      if(is.null(cls)) cls <- 1:m
      if(!is.null(rsids)) cls <- match(rsids,Glist$rsids)
      nc <- length(cls)
-     if (is.null(rws)) 1:n
+     if (is.null(rws)) rws <- 1:n
      if(!is.null(ids)) rws <- match(ids,Glist$ids)
      #if (is.null(rws)) {
      #     rws <- 1:n
