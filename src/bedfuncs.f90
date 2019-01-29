@@ -231,7 +231,7 @@
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs!,ncores,seed(ncores),maxm,thread,multicore 
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,seed(ncores),maxm,thread,multicore 
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   real*8 :: prs(nr,nprs),s(nc,nprs),w(nr),prsmp(nr,ncores)
   !real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
