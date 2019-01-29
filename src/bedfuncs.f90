@@ -196,10 +196,15 @@
     endif
     if (scaled==2) then
       af=0.0D0
-      nmiss=dble(count(gr(rws)==3.0D0))
-      n0=dble(count(gr(rws)==0.0D0))
-      n1=dble(count(gr(rws)==1.0D0)) 
-      n2=dble(count(gr(rws)==2.0D0))
+      gsc=gr(rws)
+      nmiss=dble(count(gsc==3.0D0))
+      n0=dble(count(gsc==0.0D0))
+      n1=dble(count(gsc==1.0D0)) 
+      n2=dble(count(gsc==2.0D0))
+      !nmiss=dble(count(gr(rws)==3.0D0))
+      !n0=dble(count(gr(rws)==0.0D0))
+      !n1=dble(count(gr(rws)==1.0D0)) 
+      !n2=dble(count(gr(rws)==2.0D0))
       if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
       W(1:nr,i) = gr(rws)
       !where(W(1:nr,i)==0.0D0) W(1:nr,i)=-2.0D0*(af)*(1.0D0-af)
