@@ -224,15 +224,16 @@
 
 !==============================================================================================================
   !subroutine readbedstream(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
-  subroutine readbedstream(n,nr,rws,nc,cls,scaled,nbytes,fnRAW)	
+  subroutine readbedstream(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,nprs,s,prs)	
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes  
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs  
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  real*8 :: prs(nr,nprs),s(nc,nprs),w(nr)
   !real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=1000) :: fnRAW
 
@@ -256,8 +257,8 @@
   
   ntotal=dble(nr)  
 
-  !W=0.0D0  
-
+  w=0.0D0  
+  prs=0.0d0
   do i=1,nc
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
@@ -270,6 +271,10 @@
       n1=dble(count(gsc==1.0D0)) 
       n2=dble(count(gsc==2.0D0))
       if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+      w(1:nr) = gr(rws)
+      where(w(1:nr)==3.0D0) w(1:nr)=2.0D0*af
+      if ( nmiss==ntotal ) w(1:nr)=0.0D0
+      prs = prs + w*s[i,1]  
     endif
   enddo 
 
