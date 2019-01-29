@@ -224,7 +224,7 @@
 
 !==============================================================================================================
   !subroutine readbedstream(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
-  subroutine readbedstream(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,nprs,s,prs)	
+  subroutine readbedstream(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,nprs,s,prs,ncores)	
 !==============================================================================================================
 
   use bedfuncs 
@@ -233,7 +233,7 @@
   
   integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs!,ncores,seed(ncores),maxm,thread,multicore 
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
-  real*8 :: prs(nr,nprs),s(nc,nprs),w(nr)
+  real*8 :: prs(nr,nprs),s(nc,nprs),w(nr),prs(nr,ncores)
   !real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=1000) :: fnRAW
   integer, external :: omp_get_thread_num
@@ -261,7 +261,10 @@
 
   w=0.0D0  
   prs=0.0d0
+  prsmp=0.0d0
+  !$omp parallel do private(i,i14,pos14,raw,gr,af,gsc,nmiss,n0,n1,n2,w)
   do i=1,nc
+    thread=omp_get_thread_num()+1 
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos14) raw
@@ -277,10 +280,15 @@
       w(1:nr) = gr(rws)
       where(w(1:nr)==3.0D0) w(1:nr)=2.0D0*af
       if ( nmiss==ntotal ) w(1:nr)=0.0D0
-      prs(1:nr,1) = prs(1:nr,1) + w*s(i,1)  
+      prsmp(1:nr,i) = prsmp(1:nr,i) + w*s(i,1)  
     endif
   enddo 
+  !$omp end parallel do
 
+  do i=1,ncores
+  prs(1:nr,1) = prs(1:nr,1) + prsmp(1:nr,i)
+  enddo  
+  
 
   close(unit=13)
 
