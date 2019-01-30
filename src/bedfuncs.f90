@@ -223,14 +223,14 @@
 
 !==============================================================================================================
   !subroutine readbedstream(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
-  subroutine readbedstream(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,nprs,s,prs,ncores)	
+  subroutine readbedstream(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,nprs,s,prs,ncores,readmethod)	
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread,readmethod
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   real*8 :: prs(nr,nprs),s(nc,nprs),w(nr),prsmp(nr,ncores)
   !real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
@@ -253,9 +253,9 @@
   nbytes14 = nbytes
   offset14 = offset
 
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
-  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='sequential', form='unformatted')
+  if(readmethod==1) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  if(readmethod==2) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  if(readmethod==3) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='sequential', form='unformatted')
   
   ntotal=dble(nr)  
 
@@ -267,10 +267,12 @@
   !!$omp parallel do private(i,i14,pos14,raw,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
   do i=1,nc
     !thread=omp_get_thread_num()+1
-    i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw
-    !read(13) raw
+    if (readmethod==1) then
+      i14=cls(i)
+      pos14 = 1 + offset14 + (i14-1)*nbytes14
+      read(13, pos=pos14) raw
+    endif
+    if (readmethod>1) read(13) raw
     !gr = raw2real(n,nbytes,raw)
     if (scaled==2) then
       af=0.0D0
