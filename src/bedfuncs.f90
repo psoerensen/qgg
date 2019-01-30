@@ -264,7 +264,7 @@
   w=0.0D0  
   prs=0.0d0
   prsmp=0.0d0
-  !!$omp parallel do private(i,i14,pos14,raw,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
+  !$omp parallel do private(i,i14,pos14,raw,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
   do i=1,nc
     !thread=omp_get_thread_num()+1
     i14=cls(i)
@@ -288,7 +288,7 @@
       !print*,i!,thread,i14,pos14,gr(1:2) 
     endif
   enddo 
-  !!$omp end parallel do
+  !$omp end parallel do
 
   !do i=1,ncores
   !prs(1:nr,1) = prs(1:nr,1) + prsmp(1:nr,i)
