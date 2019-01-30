@@ -254,8 +254,9 @@
   nbytes14 = nbytes
   offset14 = offset
 
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
   !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='sequential', form='unformatted')
   
   ntotal=dble(nr)  
 
@@ -264,12 +265,13 @@
   w=0.0D0  
   prs=0.0d0
   prsmp=0.0d0
-  !$omp parallel do private(i,i14,pos14,raw,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
+  !!$omp parallel do private(i,i14,pos14,raw,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
   do i=1,nc
-    thread=omp_get_thread_num()+1
-    i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw
+    !thread=omp_get_thread_num()+1
+    !i14=cls(i)
+    !pos14 = 1 + offset14 + (i14-1)*nbytes14
+    !read(13, pos=pos14) raw
+    read(13) raw
     gr = raw2real(n,nbytes,raw)
     if (scaled==2) then
       af=0.0D0
@@ -282,15 +284,16 @@
       !w(1:nr) = gsc
       where(gsc==3.0D0) gsc=2.0D0*af
       if ( nmiss==ntotal ) gsc=0.0D0
-      prsmp(1:nr,thread) = prsmp(1:nr,thread) + gsc*s(i,1)  
+      prs(1:nr,1) = prs(1:nr,1) + + gsc*s(i,1)
+      !prsmp(1:nr,thread) = prsmp(1:nr,thread) + gsc*s(i,1)  
       !print*,i,thread,i14,pos14,gr(1:2) 
     endif
   enddo 
-  !$omp end parallel do
+  !!$omp end parallel do
 
-  do i=1,ncores
-  prs(1:nr,1) = prs(1:nr,1) + prsmp(1:nr,i)
-  enddo  
+  !do i=1,ncores
+  !prs(1:nr,1) = prs(1:nr,1) + prsmp(1:nr,i)
+  !enddo  
   
 
   close(unit=13)
