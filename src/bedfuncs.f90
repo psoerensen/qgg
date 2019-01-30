@@ -268,9 +268,10 @@
   do i=1,nc
     !thread=omp_get_thread_num()+1
     if (readmethod==1) then
-      i14=cls(i)
-      pos14 = 1 + offset14 + (i14-1)*nbytes14
-      read(13, pos=pos14) raw
+      !i14=cls(i)
+      !pos14 = 1 + offset14 + (i14-1)*nbytes14
+      !read(13, pos=pos14) raw
+      read(13) raw
     endif
     if (readmethod>1) read(13) raw
     !gr = raw2real(n,nbytes,raw)
