@@ -166,7 +166,7 @@
   character(len=1000) :: fnRAW
 
   integer*4, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes), magic(3)
+  integer(byte) :: raw(nbytes,nc), magic(3)
   integer*4 :: i, stat,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -185,15 +185,20 @@
   
   ntotal=dble(nr)  
 
+  do i=1,nc
+    !read(13, iostat=stat, rec=cls(i)) raw
+    i14=cls(i)
+    pos14 = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos14) raw(1:nbytes,i)
+  enddo
+
   W=0.0D0  
   do i=1,nc
     !read(13, iostat=stat, rec=cls(i)) raw
-
-    i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw
-
-    gr = raw2real(n,nbytes,raw)
+    !i14=cls(i)
+    !pos14 = 1 + offset14 + (i14-1)*nbytes14
+    !read(13, pos=pos14) raw
+    gr = raw2real(n,nbytes,raw(1:nbytes,i))
     if (scaled==0) then
       where(gr==3.0D0) gr=0.0D0
       W(1:nr,i) = gr(rws)
