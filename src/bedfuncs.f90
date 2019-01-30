@@ -239,7 +239,7 @@
 
 
   integer*4, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
+  integer(byte) :: raw(nbytes), magic(3)
   integer*4 :: i, stat,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -260,6 +260,8 @@
   ntotal=dble(nr)  
 
   call omp_set_num_threads(ncores)
+
+  if(readmethod==1) read(13) magic
 
   w=0.0D0  
   prs=0.0d0
