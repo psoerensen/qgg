@@ -186,8 +186,6 @@
   ntotal=dble(nr)  
 
   W=0.0D0  
-  if(offset==3) read(13) magic
-
   do i=1,nc
     !read(13, iostat=stat, rec=cls(i)) raw
 
@@ -269,11 +267,11 @@
   !!$omp parallel do private(i,i14,pos14,raw,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
   do i=1,nc
     !thread=omp_get_thread_num()+1
-    !i14=cls(i)
-    !pos14 = 1 + offset14 + (i14-1)*nbytes14
-    !read(13, pos=pos14) raw
-    read(13) raw
-    gr = raw2real(n,nbytes,raw)
+    i14=cls(i)
+    pos14 = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos14) raw
+    !read(13) raw
+    !gr = raw2real(n,nbytes,raw)
     if (scaled==2) then
       af=0.0D0
       gsc=gr(rws)
