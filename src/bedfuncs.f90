@@ -255,7 +255,6 @@
 
   if(readmethod==1) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
   if(readmethod==2) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
-  if(readmethod==3) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='sequential', form='unformatted')
   
   ntotal=dble(nr)  
 
@@ -270,12 +269,15 @@
   do i=1,nc
     !thread=omp_get_thread_num()+1
     if (readmethod==1) then
-      !i14=cls(i)
-      !pos14 = 1 + offset14 + (i14-1)*nbytes14
-      !read(13, pos=pos14) raw
       read(13) raw
     endif
-    if (readmethod>1) read(13) raw
+    if (readmethod==1) then
+      i14=cls(i)
+      pos14 = 1 + offset14 + (i14-1)*nbytes14
+      read(13, pos=pos14) raw
+      !read(13) raw
+    endif
+    if (readmethod==2) read(13, iostat=stat, rec=cls(i)) raw
     !gr = raw2real(n,nbytes,raw)
     if (scaled==2) then
       af=0.0D0
