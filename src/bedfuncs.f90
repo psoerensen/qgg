@@ -166,7 +166,7 @@
   character(len=1000) :: fnRAW
 
   integer*4, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
+  integer(byte) :: raw(nbytes), magic(3)
   integer*4 :: i, stat,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -186,6 +186,7 @@
   ntotal=dble(nr)  
 
   W=0.0D0  
+  if(offset==3) read(13) magic
 
   do i=1,nc
     !read(13, iostat=stat, rec=cls(i)) raw
