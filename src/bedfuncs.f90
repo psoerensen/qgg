@@ -260,14 +260,16 @@
   offset14 = offset
 
   if(readmethod==1) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  if(readmethod==2) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  !if(readmethod==2) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
 
+  read(13) magic
   do i=1,nc
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw(1:nbytes,i)
+    if(readmethod==1) read(13, pos=pos14) raw(1:nbytes,i)
+    if(readmethod==2) read(13) raw(1:nbytes,i)
   enddo
-  
+
   ntotal=dble(nr)  
 
   call omp_set_num_threads(ncores)
