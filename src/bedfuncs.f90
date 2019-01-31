@@ -238,14 +238,14 @@
   
   integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread,readmethod
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
-  real*8 :: prs(nr,nprs),s(nc,nprs),w(nr),prsmp(nr,ncores)
+  real*8 :: prs(nr,nprs),s(nc,nprs),w(nr),prsmp(nr,nprs,ncores)
   !real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=1000) :: fnRAW
   integer, external :: omp_get_thread_num
 
 
   integer*4, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes), magic(3)
+  integer(byte) :: raw(nbytes,nc), magic(3)
   integer*4 :: i, stat,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -261,30 +261,24 @@
 
   if(readmethod==1) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
   if(readmethod==2) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+
+  do i=1,nc
+    i14=cls(i)
+    pos14 = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos14) raw(1:nbytes,i)
+  enddo
   
   ntotal=dble(nr)  
 
   call omp_set_num_threads(ncores)
 
-  if(readmethod==1) read(13) magic
-
   w=0.0D0  
   prs=0.0d0
   prsmp=0.0d0
-  !!$omp parallel do private(i,i14,pos14,raw,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
+  !$omp parallel do private(i,j,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
   do i=1,nc
-    !thread=omp_get_thread_num()+1
-    if (readmethod==1) then
-      read(13) raw
-    endif
-    if (readmethod==1) then
-      i14=cls(i)
-      pos14 = 1 + offset14 + (i14-1)*nbytes14
-      read(13, pos=pos14) raw
-      !read(13) raw
-    endif
-    if (readmethod==2) read(13, iostat=stat, rec=cls(i)) raw
-    !gr = raw2real(n,nbytes,raw)
+    thread=omp_get_thread_num()+1
+    gr = raw2real(n,nbytes,raw(1:nbytes,i))
     if (scaled==2) then
       af=0.0D0
       gsc=gr(rws)
@@ -293,19 +287,20 @@
       n1=dble(count(gsc==1.0D0)) 
       n2=dble(count(gsc==2.0D0))
       if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
-      !w(1:nr) = gsc
       where(gsc==3.0D0) gsc=2.0D0*af
       if ( nmiss==ntotal ) gsc=0.0D0
-      prs(1:nr,1) = prs(1:nr,1) + gsc*s(i,1)
-      !prsmp(1:nr,thread) = prsmp(1:nr,thread) + gsc*s(i,1)  
-      !print*,i!,thread,i14,pos14,gr(1:2) 
+      do j=1,nprs
+        prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
+      enddo  
     endif
   enddo 
-  !!$omp end parallel do
+  !$omp end parallel do
 
-  !do i=1,ncores
-  !prs(1:nr,1) = prs(1:nr,1) + prsmp(1:nr,i)
-  !enddo  
+  do i=1,nprs
+    do j=1,ncores
+      prs(1:nr,i) = prs(1:nr,i) + prsmp(1:nr,i,j)
+    enddo
+  enddo  
   
 
   close(unit=13)
