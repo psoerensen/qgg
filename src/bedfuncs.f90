@@ -185,13 +185,14 @@
   
   ntotal=dble(nr)  
 
-  do i=1,nc
+  !do i=1,nc
     !read(13, iostat=stat, rec=cls(i)) raw
-    i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw(1:nbytes,i)
+    !i14=cls(i)
+    !pos14 = 1 + offset14 + (i14-1)*nbytes14
+    !read(13, pos=pos14) raw(1:nbytes,i)
     !read(13) raw(1:nbytes,i)
-  enddo
+  !enddo
+  read(13) raw(1:nbytes,1:nc)
 
   W=0.0D0  
   do i=1,nc
@@ -263,6 +264,7 @@
   !if(readmethod==2) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
 
   read(13) magic
+
   do i=1,nc
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
