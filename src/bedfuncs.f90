@@ -265,12 +265,14 @@
 
   read(13) magic
 
-  do i=1,nc
-    i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    if(readmethod==1) read(13, pos=pos14) raw(1:nbytes,i)
-    if(readmethod==2) read(13) raw(1:nbytes,i)
-  enddo
+  !do i=1,nc
+  !  i14=cls(i)
+  !  pos14 = 1 + offset14 + (i14-1)*nbytes14
+  !  if(readmethod==1) read(13, pos=pos14) raw(1:nbytes,i)
+  !  if(readmethod==2) read(13) raw(1:nbytes,i)
+  !enddo
+
+  read(13) raw
 
   ntotal=dble(nr)  
 
