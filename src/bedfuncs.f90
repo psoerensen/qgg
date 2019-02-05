@@ -185,14 +185,14 @@
   
   ntotal=dble(nr)  
 
-  !do i=1,nc
+  do i=1,nc
     !read(13, iostat=stat, rec=cls(i)) raw
-  !  i14=cls(i)
-  !  pos14 = 1 + offset14 + (i14-1)*nbytes14
-  !  read(13, pos=pos14) raw(1:nbytes,i)
+    i14=cls(i)
+    pos14 = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos14) raw(1:nbytes,i)
     !read(13) raw(1:nbytes,i)
-  !enddo
-  read(13) raw
+  enddo
+  !read(13) raw
 
   W=0.0D0  
   do i=1,nc
