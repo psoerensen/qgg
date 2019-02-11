@@ -247,7 +247,7 @@
 
   integer*4, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes,nc), magic(3)
-  integer*4 :: i,j, stat,nchar,offset
+  integer*4 :: i,j, k,stat,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos14, nbytes14, offset14, i14
@@ -281,7 +281,7 @@
   w=0.0D0  
   prs=0.0d0
   prsmp=0.0d0
-  !$omp parallel do private(i,j,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
+  !$omp parallel do private(i,j,k,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
   do i=1,nc
     thread=omp_get_thread_num()+1
     gr = raw2real(n,nbytes,raw(1:nbytes,i))
