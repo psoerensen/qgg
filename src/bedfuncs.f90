@@ -296,7 +296,7 @@
       !where(gsc==3.0D0) gsc=2.0D0*af
       !if ( nmiss==ntotal ) gsc=0.0D0
       do j=1,nprs
-        prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
+        if(s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
       enddo  
     endif
   enddo 
