@@ -288,13 +288,13 @@
     if (scaled==2) then
       af=0.0D0
       gsc=gr(rws)
-      !nmiss=dble(count(gsc==3.0D0))
-      !n0=dble(count(gsc==0.0D0))
-      !n1=dble(count(gsc==1.0D0)) 
-      !n2=dble(count(gsc==2.0D0))
-      !if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
-      !where(gsc==3.0D0) gsc=2.0D0*af
-      !if ( nmiss==ntotal ) gsc=0.0D0
+      nmiss=dble(count(gsc==3.0D0))
+      n0=dble(count(gsc==0.0D0))
+      n1=dble(count(gsc==1.0D0)) 
+      n2=dble(count(gsc==2.0D0))
+      if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+      where(gsc==3.0D0) gsc=2.0D0*af
+      if ( nmiss==ntotal ) gsc=0.0D0
       do j=1,nprs
         if(s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
       enddo  
