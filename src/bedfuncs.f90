@@ -261,7 +261,6 @@
   offset14 = offset
 
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-
   do i=1,nc
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
@@ -283,8 +282,8 @@
     gr = raw2real(n,nbytes,raw(1:nbytes,i))
     gsc=gr(rws)
     if (scaled==2) then
+      nmiss=dble(count(gsc==3.0D0))  
       if(af(i)==0.0D0) then 
-        nmiss=dble(count(gsc==3.0D0))
         n0=dble(count(gsc==0.0D0))
         n1=dble(count(gsc==1.0D0)) 
         n2=dble(count(gsc==2.0D0))
