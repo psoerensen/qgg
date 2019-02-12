@@ -230,7 +230,7 @@
 
 !==============================================================================================================
   !subroutine readbedstream(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
-  subroutine readbedstream(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,nprs,s,prs,ncores,readmethod)	
+  subroutine mpgrs(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,nprs,s,prs,ncores,af)	
 !==============================================================================================================
 
   use bedfuncs 
@@ -238,7 +238,7 @@
   implicit none
   
   integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread,readmethod
-  real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
   real*8 :: prs(nr,nprs),s(nc,nprs),w(nr),prsmp(nr,nprs,ncores)
   !real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=1000) :: fnRAW
@@ -261,20 +261,16 @@
   offset14 = offset
 
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  !if(readmethod==2) open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
-
-  read(13) magic
 
   do i=1,nc
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
     if(readmethod==1) read(13, pos=pos14) raw(1:nbytes,i)
-  !  if(readmethod==2) read(13) raw(1:nbytes,i)
   enddo
 
-  !read(13) raw
-
   ntotal=dble(nr)  
+
+  !af=0.0D0
 
   call omp_set_num_threads(ncores)
 
@@ -285,23 +281,19 @@
   do i=1,nc
     thread=omp_get_thread_num()+1
     gr = raw2real(n,nbytes,raw(1:nbytes,i))
+    gsc=gr(rws)
     if (scaled==2) then
-      af=0.0D0
-      gsc=gr(rws)
-      nmiss=dble(count(gsc==3.0D0))
-      n0=dble(count(gsc==0.0D0))
-      n1=dble(count(gsc==1.0D0)) 
-      n2=dble(count(gsc==2.0D0))
-      if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+      if(af(i)==0.0D0) then 
+        nmiss=dble(count(gsc==3.0D0))
+        n0=dble(count(gsc==0.0D0))
+        n1=dble(count(gsc==1.0D0)) 
+        n2=dble(count(gsc==2.0D0))
+        if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+      endif
       where(gsc==3.0D0) gsc=2.0D0*af
       if ( nmiss==ntotal ) gsc=0.0D0
       do j=1,nprs
         if (s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
-        !if (s(i,j)/=0.0d0) then
-        !  do k=1,nr
-        !    if (gsc(k)/=0.0D0) prsmp(k,j,thread) = prsmp(k,j,thread) + gsc(k)*s(i,j)
-        !  enddo
-        !endif
       enddo  
     endif
   enddo 
@@ -313,10 +305,9 @@
     enddo
   enddo  
   
-
   close(unit=13)
 
-  end subroutine readbedstream
+  end subroutine mpgrs
 !==============================================================================================================
 
 
