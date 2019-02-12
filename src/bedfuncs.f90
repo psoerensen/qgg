@@ -239,7 +239,6 @@
   integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread,readmethod
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
   real*8 :: prs(nr,nprs),s(nc,nprs),w(nr),prsmp(nr,nprs,ncores)
-  !real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=1000) :: fnRAW
   integer, external :: omp_get_thread_num
 
@@ -263,7 +262,7 @@
   do i=1,nc
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
-    if(readmethod==1) read(13, pos=pos14) raw(1:nbytes,i)
+    read(13, pos=pos14) raw(1:nbytes,i)
   enddo
 
   ntotal=dble(nr)  
@@ -291,8 +290,8 @@
       where(gsc==3.0D0) gsc=2.0D0*af(i)
       if ( nmiss==ntotal ) gsc=0.0D0
       do j=1,nprs
-        if (s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
-        !prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
+        !if (s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
+        prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
       enddo  
     endif
   enddo 
