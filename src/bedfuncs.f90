@@ -271,10 +271,10 @@
 
   call omp_set_num_threads(ncores)
 
-  w=0.0D0  
+
   prs=0.0d0
   prsmp=0.0d0
-  !$omp parallel do private(i,j,k,gr,af,gsc,nmiss,n0,n1,n2,w,thread)
+  !$omp parallel do private(i,j,k,gr,gsc,nmiss,n0,n1,n2,thread)
   do i=1,nc
     thread=omp_get_thread_num()+1
     gr = raw2real(n,nbytes,raw(1:nbytes,i))
@@ -291,7 +291,6 @@
       if ( nmiss==ntotal ) gsc=0.0D0
       do j=1,nprs
         if (s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
-        !prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
       enddo  
     endif
   enddo 
