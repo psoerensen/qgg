@@ -281,6 +281,63 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
      
 }
 
+bed2bed <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL,overwrite=FALSE,filetype="bed") {
+     
+     if(file.exists(fnRAW)) {
+          warning(paste("fnRAW file allready exist"))
+          if(!overwrite) stop(paste("fnRAW file allready exist"))
+     }
+     bim0 <- NULL
+     for ( chr in 1:length(bedfiles)) {
+          print(paste("Processing bedfile:",bedfiles[chr]))
+          bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE)
+          fam <- fread(input=famfiles[chr], header=FALSE, data.table = FALSE)
+          n <- nrow(fam)
+          m <- nrow(bim)
+          rsidsBIM <- as.character(bim[,2])
+          keep <- rep(TRUE,m)
+          if(!is.null(rsids)) keep <- rsidsBIM%in%rsids
+          nbytes <- ceiling(n/4)
+          printmarker <- rep(F,m)
+          printmarker[seq(1,m,10000)] <- T
+          fnBED <- bedfiles[chr]  
+          bfBED <- file(fnBED,"rb")
+          magic <- readBin(bfBED, "raw", n=3)
+          if (!all(magic[1] == "6c", magic[2] == "1b", magic[3] == "01"))
+               stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
+          close(bfBED)
+          append <- 1 
+          if(chr==1) {
+               append <- 0
+               if(filetype=="bed") {
+                    bfRAW <- file(fnRAW,"wb")
+                    writeBin( as.raw(magic), bfRAW, size = 1, endian = "little")
+                    close(bfRAW)
+                    append <- 1
+               }
+          }
+          res <- .Fortran("bed2raw", 
+                          n = as.integer(n),
+                          m = as.integer(m),
+                          cls = as.integer(keep),
+                          nbytes = as.integer(nbytes),
+                          append = as.integer(append),
+                          fnBED = as.character(fnBED),
+                          fnRAW = as.character(fnRAW),
+                          PACKAGE = 'qgg'
+                          
+          )
+          print(paste("Finished processing bedfile:",bedfiles[chr]))
+          bim0 <- rbind(bim0,bim) 
+     }
+     fnBIM <- gsub(".raw",".bim",fnRAW)
+     fnFAM <- gsub(".raw",".fam",fnRAW)
+     write.table(bim0, file="fnBIM", col.names=FALSE,row.names=FALSE,quote=FALSE,sep="\t")
+     write.table(fam, file="fnFAM", col.names=FALSE,row.names=FALSE,quote=FALSE,sep="\t")
+     
+}
+
+
 #' @export
 #'
  
