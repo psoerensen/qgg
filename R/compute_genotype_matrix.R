@@ -93,7 +93,8 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           if(any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
           for ( chr in 1:length(bedfiles) ) {
                #bim <- read.table(file=bimfiles[chr], header=FALSE)
-               bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE)
+               bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE, 
+                            colClasses="character")
 
                rsidsBIM <- as.character(bim[,2])
                if(!is.null(rsids)) bim <- droplevels(bim[rsidsBIM%in%rsids,])
@@ -140,7 +141,7 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
 
           #bim <- read.table(file=bimfiles[1], header=FALSE)
           #fam <- read.table(file=famfiles[1], header=FALSE)
-          bim <- fread(input=bimfiles[1], header=FALSE, data.table = FALSE)
+          bim <- fread(input=bimfiles[1], header=FALSE, data.table = FALSE, colClasses="character")
           fam <- fread(input=famfiles[1], header=FALSE, data.table = FALSE)
           
           Glist <- NULL
@@ -232,7 +233,7 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
           print(paste("Processing bedfile:",bedfiles[chr]))
           #bim <- read.table(file=bimfiles[chr], header=FALSE)
           #fam <- read.table(file=famfiles[chr], header=FALSE)
-          bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE)
+          bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE, colClasses="character")
           fam <- fread(input=famfiles[chr], header=FALSE, data.table = FALSE)
 
           n <- nrow(fam)
@@ -290,7 +291,7 @@ bed2bed <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
      bim0 <- NULL
      for ( chr in 1:length(bedfiles)) {
           print(paste("Processing bedfile:",bedfiles[chr]))
-          bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE)
+          bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE, colClasses="character")
           fam <- fread(input=famfiles[chr], header=FALSE, data.table = FALSE)
           n <- nrow(fam)
           m <- nrow(bim)
