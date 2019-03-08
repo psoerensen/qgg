@@ -139,8 +139,6 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
 
      if(nfiles==1) {
 
-          #bim <- read.table(file=bimfiles[1], header=FALSE)
-          #fam <- read.table(file=famfiles[1], header=FALSE)
           bim <- fread(input=bimfiles[1], header=FALSE, data.table = FALSE, colClasses="character")
           fam <- fread(input=famfiles[1], header=FALSE, data.table = FALSE)
           
@@ -160,15 +158,15 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
           Glist$fnRAW <- fnRAW
           
-          Glist$af <- vector(mode="list",length=nchr)
-          Glist$maf <- vector(mode="list",length=nchr)
-          Glist$nmiss <- vector(mode="list",length=nchr)
-          Glist$nhet <- vector(mode="list",length=nchr)
-          Glist$n0 <- vector(mode="list",length=nchr)
-          Glist$n1 <- vector(mode="list",length=nchr)
-          Glist$n2 <- vector(mode="list",length=nchr)
-          Glist$chr <- 1:nchr
-          Glist$chrnames <- 1:nchr
+          #Glist$af <- vector(mode="list",length=nchr)
+          #Glist$maf <- vector(mode="list",length=nchr)
+          #Glist$nmiss <- vector(mode="list",length=nchr)
+          #Glist$nhet <- vector(mode="list",length=nchr)
+          #Glist$n0 <- vector(mode="list",length=nchr)
+          #Glist$n1 <- vector(mode="list",length=nchr)
+          #Glist$n2 <- vector(mode="list",length=nchr)
+          #Glist$chr <- 1:nchr
+          #Glist$chrnames <- 1:nchr
           
           Glist$study_ids <- NULL
           #fam <- read.table(file=famfiles[1], header=FALSE)
@@ -191,13 +189,14 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           if(!is.null(rsids)) if( any(!rsids%in%unlist(Glist$rsids)) ) warning(paste("some rsids not found in bimfiles"))
           if (!is.null(rsids)) Glist$study_rsids <- unlist(Glist$rsids)[unlist(Glist$rsids)%in%rsids]
           
-          Glist$mchr <- sapply(Glist$rsids,length)
-          Glist$chr <- rep(1:nchr,times=Glist$mchr)
-          Glist$rsids <- unlist(Glist$rsids)
+          #Glist$mchr <- sapply(Glist$rsids,length)
+          #Glist$chr <- rep(1:nchr,times=Glist$mchr)
+          #Glist$rsids <- unlist(Glist$rsids)
           Glist$alleles <- unlist(Glist$alleles)
           Glist$position <- unlist(Glist$position)
           
-          Glist$m <- sum(Glist$mchr)
+          #Glist$m <- sum(Glist$mchr)
+          Glist$m <- lengt(Glist$rsids)
           Glist$n <- length(Glist$ids)
           Glist$study <- study
           Glist$bedfiles <- bedfiles
