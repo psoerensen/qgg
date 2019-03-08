@@ -196,7 +196,7 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$position <- unlist(Glist$position)
           
           #Glist$m <- sum(Glist$mchr)
-          Glist$m <- lengt(Glist$rsids)
+          Glist$m <- length(Glist$rsids)
           Glist$n <- length(Glist$ids)
           Glist$study <- study
           Glist$bedfiles <- bedfiles
