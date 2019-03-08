@@ -158,6 +158,7 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
           Glist$fnRAW <- fnRAW
           
+          
           #Glist$af <- vector(mode="list",length=nchr)
           #Glist$maf <- vector(mode="list",length=nchr)
           #Glist$nmiss <- vector(mode="list",length=nchr)
