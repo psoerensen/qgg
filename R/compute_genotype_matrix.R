@@ -149,9 +149,13 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           Glist$chr <- bim[!duplicated(bim[,1]),1]
           nchr <- length(Glist$chr)
           Glist$nchr <- length(Glist$chr)
-          Glist$rsids <- split(as.character(bim[,2]),f=as.factor(bim[,1]))
-          Glist$alleles <- split(as.character(bim[,6]),f=as.factor(bim[,1]))
-          Glist$position <- split(bim[,4],f=as.factor(bim[,1]))
+          #Glist$rsids <- split(as.character(bim[,2]),f=as.factor(bim[,1]))
+          #Glist$alleles <- split(as.character(bim[,6]),f=as.factor(bim[,1]))
+          #Glist$position <- split(bim[,4],f=as.factor(bim[,1]))
+
+          Glist$rsids <-as.character(bim[,2])
+          Glist$alleles <- as.character(bim[,6])
+          Glist$position <- as.numeric(bim[,4])
           
           if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
           Glist$fnRAW <- fnRAW
