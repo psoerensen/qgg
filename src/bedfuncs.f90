@@ -228,15 +228,16 @@
   end subroutine readbed
 !==============================================================================================================
 
+
 !==============================================================================================================
-  subroutine mpgrs(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,nprs,s,prs,ncores,af)	
+  subroutine mpgrs(n,nr,rws,nc,cls,miss,nbytes,fnRAW,nprs,s,prs,ncores,af)	
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread,readmethod
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread,readmethod,miss
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
   real*8 :: prs(nr,nprs),s(nc,nprs),w(nr),prsmp(nr,nprs,ncores)
   character(len=1000) :: fnRAW
@@ -279,8 +280,11 @@
     thread=omp_get_thread_num()+1
     gr = raw2real(n,nbytes,raw(1:nbytes,i))
     gsc=gr(rws)
-    if (scaled==2) then
-      nmiss=dble(count(gsc==3.0D0))  
+    nmiss=dble(count(gsc==3.0D0))  
+    if (miss==0) then
+      where(gsc==3.0D0) gsc=0.0D0
+    endif
+    if (miss==1) then
       if(af(i)==0.0D0) then 
         n0=dble(count(gsc==0.0D0))
         n1=dble(count(gsc==1.0D0)) 
@@ -288,11 +292,11 @@
         if ( nmiss<ntotal ) af(i)=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
       endif
       where(gsc==3.0D0) gsc=2.0D0*af(i)
-      if ( nmiss==ntotal ) gsc=0.0D0
-      do j=1,nprs
-        if (s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
-      enddo  
     endif
+    if ( nmiss==ntotal ) gsc=0.0D0
+    do j=1,nprs
+       if (s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
+    enddo  
   enddo 
   !$omp end parallel do
 
