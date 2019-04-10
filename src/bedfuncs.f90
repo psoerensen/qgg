@@ -237,7 +237,7 @@
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread,readmethod,impute,direction
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread,readmethod,impute,direction(nc)
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
   real*8 :: prs(nr,nprs),s(nc,nprs),w(nr),prsmp(nr,nprs,ncores)
   character(len=1000) :: fnRAW
