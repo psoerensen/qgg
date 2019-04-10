@@ -136,58 +136,79 @@ gsolve <- function( y=NULL, X=NULL, Glist=NULL, W=NULL, ids=NULL, rsids=NULL, se
 #' @export
 #'
 
-gscore <- function(Glist=NULL,S=NULL,ids=NULL,rsids=NULL,rws=NULL, cls=NULL, scaled=TRUE, msize=100, ncores=1) { 
+
+gscore <- function(Glist=NULL,stat=NULL,ids=NULL,impute=TRUE, msize=100, ncores=1) { 
      
-     if (is.vector(S)) S <- as.matrix(S)
-     rsids <- rownames(S)
-     #if(any( !rsids%in%Glist$rsids )) stop("rsids not found in Glist")
-     rsidsinWlist <- rsids%in%Glist$rsids
-     if(any( !rsidsinWlist )) {
-          warning("Some rsids not found in Glist")
-          print(paste("Number of rsids missing;",sum(!rsidsinWlist)))
-          print(paste("Number of rsids used;",sum(rsidsinWlist)))
-          S <- S[rsidsinWlist,]
-          rsids <- rownames(S)
+     # Prepase summary stat  
+     if( !sum(colnames(stat)[1:3]==c("rsids","alleles","af"))==3 ) {
+          stop("First three columns in data frame stat should be: rsids, alleles, af ")
      }
+     rsidsOK <- stat$rsids%in%Glist$rsids
+     if(any(!rsidsOK)) {
+          warning("Some variants not found in genotype files")
+          print(paste("Number of variants missing;",sum(!rsidsOK)))
+          print(paste("Number of variants used;",sum(!rsidsOK)))
+          stat <- stat[rsidsOK,]
+          stat$rsids <- as.character(stat$rsids)
+          stat$alleles <- as.character(stat$alleles)
+     }
+     S <- stat[,-c(1:3)]
+     if (is.vector(S)) S <- as.matrix(S)
+     S <- apply(S,2,as.numeric)
+     colnames(S) <- colnames(stat)[-c(1:3)]
+     rsids <- as.character(stat$rsids)
+     af <- stat$af
      
-     nprs <- ncol(S)
-     
+     # Prepare input data for mpgrs
      n <- Glist$n
-     m <- Glist$m
      nbytes <- ceiling(n/4)
+     rws <- 1:n
+     if(!is.null(ids)) rws <- match(ids,Glist$ids)
+     nr <- length(rws)
+     
      cls <- match(rsids,Glist$rsids)
      nc <- length(cls)
      
-     rws <- 1:n
-     if(!is.null(ids)) rws <- match(ids,Glist$ids)
-     if(!is.null(Glist$study_ids)) rws <- match(Glist$study_ids,Glist$ids)
-     nr <- length(rws)
+     direction <- as.integer(stat$alleles==Glist$alleles[cls])
+     S[direction==0,] <- -S[direction==0,]
      
+     fnRAW = as.character(Glist$fnRAW) 
      
-     fnRAW <- Glist$fnRAW
-     # prsbed(n,nr,rws,nc,cls,scaled,nprs,s,prs,nbytes,fnRAW)
-     # prsbed(n,nr,rws,nc,cls,scaled,nbytes,fnRAW,msize,ncores,nprs,s,prs)	
-     prs <- .Fortran("mmbed", 
-                     n = as.integer(n),
-                     nr = as.integer(nr),
-                     rws = as.integer(rws),
-                     nc = as.integer(nc),
-                     cls = as.integer(cls),
-                     scaled = as.integer(scaled),
-                     nbytes = as.integer(nbytes),
-                     fnRAW = as.character(fnRAW),
-                     msize = as.integer(msize),
-                     ncores = as.integer(ncores),
-                     nprs = as.integer(nprs),
-                     s = matrix(as.double(S),nrow=nc,ncol=nprs),
-                     prs = matrix(as.double(0),nrow=nr,ncol=nprs),
-                     PACKAGE = 'qgg'
-                     
-     )
-     colnames(prs$prs) <- colnames(S)
-     rownames(prs$prs) <- Glist$ids[rws]
-     return(prs$prs)
+     nprs <- ncol(S)
+     prs <- matrix(0,nrow=nr,ncol=nprs)
+     rownames(prs) <- Glist$ids[rws]
+     colnames(prs) <- colnames(S)
+     
+     m <- nrow(S)
+     sets <- split(1:m, ceiling(seq_along(1:m)/msize))
+     nsets <- length(sets)
+     
+     for ( i in 1:nsets) {
+          
+          nc = length(sets[[i]]) 
+          prsSet <- .Fortran("mpgrs", 
+                             n = as.integer(n), 
+                             nr = as.integer(nr),
+                             rws = as.integer(rws), 
+                             nc = as.integer(nc), 
+                             cls = as.integer(cls[ sets[[i]] ]),
+                             nbytes = as.integer(nbytes),
+                             fnRAW = as.character(fnRAW), 
+                             nprs = as.integer(nprs), 
+                             s = matrix(as.double(S[ sets[[i]],]),nrow=nc,ncol=nprs),
+                             prs = matrix(as.double(0),nrow=nr,ncol=nprs), 
+                             af=as.double(af[ sets[[i]] ]), 
+                             impute = as.integer(impute),
+                             direction = as.integer(direction[ sets[[i]] ]),
+                             ncores=as.integer(ncores),
+                             PACKAGE = "qgg")$prs
+          
+          prs <- prs + prsSet
+          
+     }
+     return(prs)
 }
+
 
 
 #' @export
