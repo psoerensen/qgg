@@ -230,14 +230,14 @@
 
 
 !==============================================================================================================
-  subroutine mpgrs(n,nr,rws,nc,cls,miss,nbytes,fnRAW,nprs,s,prs,ncores,af)	
+  subroutine mpgrs(n,nr,rws,nc,cls,nbytes,fnRAW,nprs,s,prs,af,impute,direction,ncores)	
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread,readmethod,miss
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,nprs,ncores,thread,readmethod,impute,direction
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
   real*8 :: prs(nr,nprs),s(nc,nprs),w(nr),prsmp(nr,nprs,ncores)
   character(len=1000) :: fnRAW
@@ -268,10 +268,7 @@
 
   ntotal=dble(nr)  
 
-  !af=0.0D0
-
   call omp_set_num_threads(ncores)
-
 
   prs=0.0d0
   prsmp=0.0d0
@@ -281,16 +278,17 @@
     gr = raw2real(n,nbytes,raw(1:nbytes,i))
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
-    if (miss==0) then
+    if (impute==0) then
       where(gsc==3.0D0) gsc=0.0D0
     endif
-    if (miss==1) then
+    if (impute==1) then
       if(af(i)==0.0D0) then 
         n0=dble(count(gsc==0.0D0))
         n1=dble(count(gsc==1.0D0)) 
         n2=dble(count(gsc==2.0D0))
         if ( nmiss<ntotal ) af(i)=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
       endif
+      if(direction(i)==0) af(i)=1.0D0-af(i)
       where(gsc==3.0D0) gsc=2.0D0*af(i)
     endif
     if ( nmiss==ntotal ) gsc=0.0D0
