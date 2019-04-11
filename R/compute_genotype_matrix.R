@@ -346,60 +346,66 @@ bed2bed <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
 #' @export
 #'
  
-readbed <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,scaled=TRUE, method="direct", ncores=1) { 
-     n <- Glist$n
-     m <- Glist$m
-     nbytes <- ceiling(n/4)
-     if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,Glist$rsids)
-     nc <- length(cls)
-     if (is.null(rws)) rws <- 1:n
-     if(!is.null(ids)) rws <- match(ids,Glist$ids)
-     #if (is.null(rws)) {
-     #     rws <- 1:n
-     #     if(!is.null(ids)) rws <- match(ids,Glist$ids)
-     #     if(!is.null(Glist$study_ids)) rws <- match(Glist$study_ids,Glist$ids)
-     #}
-     nr <- length(rws)
-     fnRAW <- Glist$fnRAW
-     OS <- .Platform$OS.type
-     if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T)) 
-     if (method=="direct") {
-     res <- .Fortran("readbed", 
+readbed <- function(Glist=NULL, bedfiles=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,impute=TRUE, ncores=1) {
+
+     if(!is.null(Glist)) {     
+       n <- Glist$n
+       m <- Glist$m
+       nbytes <- ceiling(n/4)
+       if(is.null(cls)) cls <- 1:m
+       if(!is.null(rsids)) cls <- match(rsids,Glist$rsids)
+       nc <- length(cls)
+       if (is.null(rws)) rws <- 1:n
+       if(!is.null(ids)) rws <- match(ids,Glist$ids)
+       nr <- length(rws)
+       fnRAW <- Glist$fnRAW
+       OS <- .Platform$OS.type
+       if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T))
+       ids <- Glist$ids[rws]
+       rsids <- Glist$rsids[cls]
+     }
+     if(!is.null(bedfiles)) {
+          fnRAW <- bedfiles
+          bimfiles <- gsub(".bed",".bim",bedfiles)
+          famfiles <- gsub(".bed",".fam",bedfiles)
+          bim <- fread(input=bimfiles, header=FALSE, data.table = FALSE,showProgress=FALSE,colClasses="character")
+          fam <- fread(input=famfiles, header=FALSE, data.table = FALSE,showProgress=FALSE,colClasses="character")
+          n <- nrow(fam)
+          m <- nrow(bim)
+          nbytes <- ceiling(n/4)
+          cls <- match(rsids,as.character(bim[,2]))
+          if(any(is.na(cls))) {
+               warning(paste("some rsids not found in bimfiles"))
+               print(rsids[is.na(cls)])  
+          }
+          cls <- cls[!is.na(cls)]
+          if(length(cls)==0) stop("No rsids found in bimfiles") 
+          nc <- length(cls)
+          if (is.null(rws)) rws <- 1:n
+          if(!is.null(ids)) rws <- match(ids,as.character(fam[,2]))
+          nr <- length(rws)
+          OS <- .Platform$OS.type
+          if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T))
+          ids <- as.character(fam[rws,2])
+          rsids <- as.character(bim[cls,2])
+     }
+     W <- .Fortran("readbed", 
                      n = as.integer(n),
                      nr = as.integer(nr),
                      rws = as.integer(rws),
                      nc = as.integer(nc),
                      cls = as.integer(cls),
-                     scaled = as.integer(scaled),
+                     scaled = as.integer(impute),
                      W = matrix(as.double(0),nrow=nr,ncol=nc),
                      nbytes = as.integer(nbytes),
                      fnRAW = as.character(fnRAW),
-                     PACKAGE = 'qgg'
-                     
-     )
-     }
-     if (method=="stream") {
-          res <- .Fortran("readbedstream", 
-                          n = as.integer(n),
-                          nr = as.integer(nr),
-                          rws = as.integer(rws),
-                          nc = as.integer(nc),
-                          cls = as.integer(cls),
-                          scaled = as.integer(scaled),
-                          W = matrix(as.double(0),nrow=nr,ncol=nc),
-                          nbytes = as.integer(nbytes),
-                          fnRAW = as.character(fnRAW),
-                          ncores = as.integer(ncores),
-                          PACKAGE = 'qgg'
-                          
-          )
-     }
-     
-     #rownames(res$W) <- Glist$ids[rws]
-     #colnames(res$W) <- Glist$ids[cls]
-     return(res$W)
+                     PACKAGE = 'qgg')$W
+     rownames(W) <- ids
+     colnames(W) <- rsids
+     return(W)
 }
+
+
 
 #' @export
 #'

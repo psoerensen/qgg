@@ -154,14 +154,14 @@
 
 
 !==============================================================================================================
-  subroutine readbed(n,nr,rws,nc,cls,scaled,W,nbytes,fnRAW)	
+  subroutine readbed(n,nr,rws,nc,cls,impute,W,nbytes,fnRAW)	
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes  
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),scaled,nbytes,impute  
   real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=1000) :: fnRAW
 
@@ -181,35 +181,27 @@
   offset14 = offset
 
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
   
   ntotal=dble(nr)  
 
   do i=1,nc
-    !read(13, iostat=stat, rec=cls(i)) raw
     i14=cls(i)
     pos14 = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos14) raw(1:nbytes,i)
-    !read(13) raw(1:nbytes,i)
   enddo
-  !read(13) raw
 
   W=0.0D0  
   do i=1,nc
-    !read(13, iostat=stat, rec=cls(i)) raw
-    !i14=cls(i)
-    !pos14 = 1 + offset14 + (i14-1)*nbytes14
-    !read(13, pos=pos14) raw
     gr = raw2real(n,nbytes,raw(1:nbytes,i))
-    if (scaled==0) then
+    if (impute==0) then
       where(gr==3.0D0) gr=0.0D0
       W(1:nr,i) = gr(rws)
     endif
-    if (scaled==1) then
-      gsc=gr(rws)
-      W(1:nr,i)=scalew(nr,gsc)
-    endif
-    if (scaled==2) then
+    !if (scaled==1) then
+    !  gsc=gr(rws)
+    !  W(1:nr,i)=scalew(nr,gsc)
+    !endif
+    if (impute==1) then
       af=0.0D0
       gsc=gr(rws)
       nmiss=dble(count(gsc==3.0D0))
