@@ -395,7 +395,7 @@ readbed <- function(Glist=NULL, bedfiles=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=N
                      rws = as.integer(rws),
                      nc = as.integer(nc),
                      cls = as.integer(cls),
-                     scaled = as.integer(impute),
+                     impute = as.integer(impute),
                      W = matrix(as.double(0),nrow=nr,ncol=nc),
                      nbytes = as.integer(nbytes),
                      fnRAW = as.character(fnRAW),
