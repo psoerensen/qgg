@@ -121,6 +121,8 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
      
      print("Computing allele frequencies, missingness")
      Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=Glist$rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
+     Glist$af1 <- 1-Glist$af
+     Glist$af2 <- Glist$af
      
      return(Glist)
 }
