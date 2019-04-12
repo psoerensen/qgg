@@ -280,9 +280,9 @@
         n2=dble(count(gsc==2.0D0))
         if ( nmiss<ntotal ) af(i)=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
       endif
-      if(direction(i)==0) af(i)=1.0D0-af(i)
       where(gsc==3.0D0) gsc=2.0D0*af(i)
     endif
+    if(direction(i)==0) gsc=2.0D0-gsc
     if ( nmiss==ntotal ) gsc=0.0D0
     do j=1,nprs
        if (s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
