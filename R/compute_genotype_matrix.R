@@ -82,7 +82,8 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
      if(any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
 
      Glist$rsids <- vector(mode="list",length=nfiles)
-     Glist$alleles <- vector(mode="list",length=nfiles)
+     Glist$a1 <- vector(mode="list",length=nfiles)
+     Glist$a2 <- vector(mode="list",length=nfiles)
      Glist$position <- vector(mode="list",length=nfiles)
      Glist$chr <- vector(mode="list",length=nfiles)
      
@@ -92,7 +93,8 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
           if(!is.null(rsids)) bim <- droplevels(bim[rsidsBIM%in%rsids,])
           fam <- fread(input=famfiles[chr], header=FALSE, data.table = FALSE, colClasses="character")
           if(any(!Glist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
-          Glist$alleles[[chr]] <- as.character(bim[,6])   
+          Glist$a1[[chr]] <- as.character(bim[,5])   
+          Glist$a2[[chr]] <- as.character(bim[,6])   
           Glist$position[[chr]] <- as.numeric(bim[,4])   
           Glist$rsids[[chr]] <- as.character(bim[,2])   
           Glist$chr[[chr]] <- as.character(bim[,1])   
@@ -105,7 +107,8 @@ gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfile
      
      Glist$mchr <- sapply(Glist$rsids,length)
      Glist$rsids <- unlist(Glist$rsids)
-     Glist$alleles <- unlist(Glist$alleles)
+     Glist$a1 <- unlist(Glist$a1)
+     Glist$a2 <- unlist(Glist$a2)
      Glist$position <- unlist(Glist$position)
      Glist$chr <- unlist(Glist$chr)
      Glist$nchr <- length(unique(Glist$chr))

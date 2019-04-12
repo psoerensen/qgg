@@ -169,7 +169,7 @@ gscore <- function(Glist=NULL,stat=NULL,ids=NULL,impute=TRUE, msize=100, ncores=
      cls <- match(rsids,Glist$rsids)
      nc <- length(cls)
      
-     direction <- as.integer(stat$alleles==Glist$alleles[cls])
+     direction <- as.integer(stat$alleles==Glist$a2[cls])
      #S[direction==0,] <- -S[direction==0,]
      
      fnRAW = as.character(Glist$fnRAW) 
