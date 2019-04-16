@@ -199,17 +199,20 @@ summaryRAW <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, ncores=
      n <- Glist$n
      m <- Glist$m
      nbytes <- ceiling(n/4)
-     if(is.null(cls)) cls <- 1:m
-     if(!is.null(rsids)) cls <- match(rsids,Glist$rsids)
-     nc <- length(cls)
      rws <- 1:n
      if(!is.null(ids)) rws <- match(ids,Glist$ids)
      if(!is.null(Glist$study_ids)) rws <- match(Glist$study_ids,Glist$ids)
      nr <- length(rws)
-     af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
      fnRAW <- Glist$fnRAW
      OS <- .Platform$OS.type
-     if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T))    
+     if(OS=="windows") fnRAW <- tolower(gsub("/","\\",fnRAW,fixed=T))
+     
+     if(is.null(cls)) cls <- 1:m
+     if(!is.null(rsids)) cls <- match(rsids,Glist$rsids)
+     
+     nc <- length(cls)
+     af <- nmiss <- n0 <- n1 <- n2 <- rep(0,nc)
+
      qc <- .Fortran("summarybed", 
                     n = as.integer(n),
                     nr = as.integer(nr),
@@ -227,6 +230,8 @@ summaryRAW <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, ncores=
                     PACKAGE = 'qgg'
                     
      )
+     
+     
      qc$hom <- (qc$n0+qc$n2)/(qc$nr-qc$nmiss)
      qc$het <- qc$n1/(qc$nr-qc$nmiss)
      qc$maf <- qc$af
@@ -259,7 +264,7 @@ summaryRAW <- function(Glist=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL, ncores=
 #' @export
 #'
  
-readbed <- function(Glist=NULL, bedfiles=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,impute=TRUE, ncores=1) {
+readbed <- function(Glist=NULL, bedfiles=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=NULL,impute=TRUE, scale=FALSE, allele="a2",ncores=1) {
      if(!is.null(Glist)) {     
        n <- Glist$n
        m <- Glist$m
@@ -308,22 +313,24 @@ readbed <- function(Glist=NULL, bedfiles=NULL,ids=NULL,rsids=NULL,rws=NULL,cls=N
                      nc = as.integer(nc),
                      cls = as.integer(cls),
                      impute = as.integer(impute),
+                     scale = as.integer(scale),
                      W = matrix(as.double(0),nrow=nr,ncol=nc),
                      nbytes = as.integer(nbytes),
                      fnRAW = as.character(fnRAW),
                      PACKAGE = 'qgg')$W
      rownames(W) <- ids
      colnames(W) <- rsids
+     if(allele=="a1") W <- 2-W
      return(W)
 }
 
 
 #' @export
 #'
-getW <- function(Glist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, impute=FALSE) {
+getW <- function(Glist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, impute=FALSE, scale=FALSE, allele="a2") {
      if(is.null(ids)) ids <- Glist$ids
      if(is.null(cls)) cls <- match(rsids,Glist$rsids)
-     W <- readbed(Glist=Glist,ids=ids,rsids=rsids,rws=rws,cls=cls,impute=impute) 
+     W <- readbed(Glist=Glist,ids=ids,rsids=rsids,rws=rws,cls=cls,impute=impute, scale=scale, allele=allele) 
      rownames(W) <- ids
      colnames(W) <- Glist$rsids[cls]
      return(W)

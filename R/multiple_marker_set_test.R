@@ -279,3 +279,80 @@ mapSets <- function( sets=NULL, rsids=NULL, Glist=NULL, index=TRUE ) {
      return(rsSets)
 }
 
+
+#' @export
+#'
+
+
+mpgsea <- function(Glist=NULL,stat=NULL,ids=NULL,impute=TRUE, msize=100, ncores=1) { 
+     
+     # Prepase summary stat  
+     if( !sum(colnames(stat)[1:3]==c("rsids","alleles","af"))==3 ) {
+          stop("First three columns in data frame stat should be: rsids, alleles, af ")
+     }
+     rsidsOK <- stat$rsids%in%Glist$rsids
+     if(any(!rsidsOK)) {
+          warning("Some variants not found in genotype files")
+          print(paste("Number of variants missing;",sum(!rsidsOK)))
+          print(paste("Number of variants used;",sum(!rsidsOK)))
+          stat <- stat[rsidsOK,]
+          stat$rsids <- as.character(stat$rsids)
+          stat$alleles <- as.character(stat$alleles)
+     }
+     S <- stat[,-c(1:3)]
+     if (is.vector(S)) S <- as.matrix(S)
+     S <- apply(S,2,as.numeric)
+     colnames(S) <- colnames(stat)[-c(1:3)]
+     rsids <- as.character(stat$rsids)
+     af <- stat$af
+     
+     # Prepare input data for mpgrs
+     n <- Glist$n
+     nbytes <- ceiling(n/4)
+     rws <- 1:n
+     if(!is.null(ids)) rws <- match(ids,Glist$ids)
+     nr <- length(rws)
+     
+     cls <- match(rsids,Glist$rsids)
+     nc <- length(cls)
+     
+     direction <- as.integer(stat$alleles==Glist$a2[cls])
+     #S[direction==0,] <- -S[direction==0,]
+     
+     fnRAW = as.character(Glist$fnRAW) 
+     
+     nprs <- ncol(S)
+     prs <- matrix(0,nrow=nr,ncol=nprs)
+     rownames(prs) <- Glist$ids[rws]
+     colnames(prs) <- colnames(S)
+     
+     m <- nrow(S)
+     sets <- split(1:m, ceiling(seq_along(1:m)/msize))
+     nsets <- length(sets)
+     
+     for ( i in 1:nsets) {
+
+          nc = length(sets[[i]]) 
+          gseaSet <- .Fortran("mpgsea", 
+                             n = as.integer(n), 
+                             nr = as.integer(nr),
+                             rws = as.integer(rws), 
+                             nc = as.integer(nc), 
+                             cls = as.integer(cls[ sets[[i]] ]),
+                             nbytes = as.integer(nbytes),
+                             fnRAW = as.character(fnRAW), 
+                             nprs = as.integer(nprs), 
+                             s = matrix(as.double(S[ sets[[i]],]),nrow=nc,ncol=nprs),
+                             prs = matrix(as.double(0),nrow=nr,ncol=nprs), 
+                             stat = matrix(as.double(0),nrow=nc,ncol=nprs), 
+                             af=as.double(af[ sets[[i]] ]), 
+                             impute = as.integer(impute),
+                             direction = as.integer(direction[ sets[[i]] ]),
+                             ncores=as.integer(ncores),
+                             PACKAGE = "qgg")$prs
+          
+          prs <- prs + prsSet
+          
+     }
+     return(prs)
+}
