@@ -162,15 +162,6 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
           close(bfBED)
           append <- 1 
           if(chr==1) append <- 0
-          #if(chr==1) {
-          #     append <- 0
-          #     if(filetype=="bed") {
-          #          bfRAW <- file(fnRAW,"wb")
-          #          writeBin( as.raw(magic), bfRAW, size = 1, endian = "little")
-          #          close(bfRAW)
-          #          append <- 1
-          #     }
-          #}
           res <- .Fortran("bed2raw", 
                           n = as.integer(n),
                           m = as.integer(m),

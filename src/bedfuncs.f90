@@ -124,16 +124,17 @@
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos14, nbytes14, offset14,i14
 
-  ! input bedfile
+  ! input file
   offset=3
   nchar=index(fnBED, '.bed')
   open(unit=13, file=fnBED(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
   read(13) magic
 
+  ! output file
   nchar=index(fnRAW, '.bed')
   if(nchar>0) then		! output bed file
    if (append==0) open(unit=14, file=fnRAW(1:(nchar+3)), status='new', access='stream', action='write')
-   if (append==0) write(14) raw
+   if (append==0) write(14) magic
    if (append==1) open(unit=14, file=fnRAW(1:(nchar+3)), status='old', access='stream', action='write', position='append')
   endif
 
@@ -444,7 +445,6 @@
   do i=1,size(G,1)
       traceG = traceG + G(i,i)
   enddo
-  !traceG = traceG/real(nr) 
   traceG = traceG/dble(nr) 
  
   do i=1,size(G,1)
@@ -670,7 +670,7 @@
 !==============================================================================================================
 
 !==============================================================================================================
-  subroutine gbayes(n,nr,rws,nc,cls,impute,nbytes,fnRAW,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
+  subroutine bayesbed(n,nr,rws,nc,cls,impute,nbytes,fnRAW,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
 !==============================================================================================================
 
   use bedfuncs 
@@ -745,7 +745,7 @@
   nit=it
   tol=sum((s-os)**2)
   
-  end subroutine gbayes
+  end subroutine bayesbed
 !==============================================================================================================
 
 !==============================================================================================================
