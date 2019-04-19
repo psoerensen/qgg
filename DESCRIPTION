@@ -20,7 +20,7 @@ Depends:
 Imports:
     data.table,
     MASS
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Suggests:
     knitr,
     rmarkdown

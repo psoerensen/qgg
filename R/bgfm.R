@@ -33,7 +33,7 @@
 #' @export
 #'
 
-bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001) {
+gbayes <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001) {
      
   # nsamp is the number of samples
   y <- as.matrix(y)

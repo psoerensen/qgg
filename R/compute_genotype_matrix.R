@@ -330,7 +330,7 @@ getW <- function(Glist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, impute=FAL
 #' @export
 #'
 
-sparseLD <- function(Glist=NULL, fnLD=NULL, msize=100, chr=NULL,rsids=NULL, impute=TRUE,scale=TRUE, ids=NULL,  ncores=1) {
+spld <- function(Glist=NULL, fnLD=NULL, msize=100, chr=NULL,rsids=NULL, impute=TRUE,scale=TRUE, ids=NULL,  ncores=1) {
      if(file.exists(fnLD)) stop("LD file allready exists - please specify other file names")
      n <- Glist$n
      rws <- 1:n
