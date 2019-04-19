@@ -163,7 +163,6 @@ bed2raw <- function(fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids
           append <- 1 
           if(chr==1) append <- 0
           res <- .Fortran("bed2raw", 
-                          n = as.integer(n),
                           m = as.integer(m),
                           cls = as.integer(keep),
                           nbytes = as.integer(nbytes),
@@ -328,3 +327,137 @@ getW <- function(Glist=NULL, ids=NULL, rsids=NULL, rws=NULL,cls=NULL, impute=FAL
 }
 
 
+#' @export
+#'
+
+sparseLD <- function(Glist=NULL, fnLD=NULL, msize=100, chr=NULL,rsids=NULL, impute=TRUE,scale=TRUE, ids=NULL,  ncores=1) {
+     if(file.exists(fnLD)) stop("LD file allready exists - please specify other file names")
+     n <- Glist$n
+     rws <- 1:n
+     if(!is.null(ids)) rws <- match(ids,Glist$ids)
+     print(paste("Compute LD using individuals listed in ids"))
+     nr <- length(rws)
+     nbytes <- ceiling(n/4)
+     if(!is.null(chr)) rsids <- Glist$rsids[Glist$chr==chr]
+     cls <- match(rsids,Glist$rsids)
+     nc <- length(cls)
+     cls <- split(cls, ceiling(seq_along(cls)/msize))
+     msets <- sapply(cls,length)
+     nsets <- length(msets)
+     m <- length(rsids)
+     W1 <- matrix(logical(0),nrow=nr,ncol=msize)
+     W2 <- matrix(logical(0),nrow=nr,ncol=msize)
+     W3 <- matrix(logical(0),nrow=nr,ncol=msize)
+     fnRAW <- Glist$fnRAW
+     bfLD <- file(fnLD,"wb")
+     for ( j in 1:nsets) {
+          nc <- length(cls[[j]])
+          W1 <- W2
+          W2 <- W3
+          W3[, 1:nc]  <- .Fortran("readbed", 
+                                                 n = as.integer(n),
+                                                 nr = as.integer(nr),
+                                                 rws = as.integer(rws),
+                                                 nc = as.integer(nc),
+                                                 cls = as.integer(cls[[j]]),
+                                                 impute = as.integer(impute),
+                                                 scale = as.integer(scale),
+                                                 W = matrix(as.double(0),nrow=nr,ncol=nc),
+                                                 nbytes = as.integer(nbytes),
+                                                 fnRAW = as.character(fnRAW),
+                                                 PACKAGE = 'qgg')$W
+          if (j==nsets) W3 <- matrix(0,nrow=nr,ncol=msize)
+          WW <- t(crossprod(cbind(W1,W2,W3),W2))
+          WW <- WW/(nr-1)  # nr-1 accounts for sample mean is estimated
+          WW[is.na(WW)] <- 0
+          for ( k in 1:msets[j] ) { 
+             ld <- as.vector(WW[k,k:(k+2*msize)]) 
+             writeBin( ld, bfLD, size = 8, endian = "little")
+           }
+          print(paste("Finished block",j,"chromosome",chr))
+     }
+      close(bfLD)
+}
+
+
+#' @export
+#'
+
+getLDSets <- function(Glist=NULL, chr=NULL, r2=0.5) {
+     msize <- Glist$msize
+     ldSets <- NULL
+     for ( chr in 1:Glist$nchr ) {
+          n <- Glist$n
+          rsidsChr <- Glist$rsids[Glist$chr==chr]
+          if(!is.null(Glist$study_rsids)) rsidsChr <- rsidsChr[rsidsChr%in%Glist$study_rsids]
+          mchr <- length(rsidsChr)
+          rsidsLD <- c(rep("start",msize),rsidsChr,rep("end",msize))
+          fnLD <- Glist$fnLD[chr]
+          bfLD <- file(fnLD,"rb")
+          nld <- as.integer(mchr*(msize*2+1))
+          ld <- readBin( bfLD, "double", n=nld, size = 8, endian = "little")
+          ld <- matrix(ld,nrow=mchr,byrow=TRUE) 
+          close(bfLD)
+          ld[,msize+1] <- 1  
+          ldSetsChr <- vector(length=mchr,mode="list")
+          names(ldSetsChr) <- rsidsChr
+          for ( i in 1:mchr) { 
+               cls <- which((ld[i,]**2)>r2) + i - 1
+               ldSetsChr[[i]] <- rsidsLD[cls]
+          } 
+          ldSets[[chr]] <- ldSetsChr
+          print(paste("Finished chromosome",chr))
+     }
+     names(ldSets) <- 1:Glist$nchr
+     return(ldSets)
+}
+
+
+
+
+#' @export
+#'
+
+mapLDSets <- function( ldSets=NULL, rsids=NULL, Glist=NULL, index=TRUE ) { 
+     mpsets <- NULL
+     if(!is.null(Glist)) rsids <- unlist(Glist$rsids)
+     for ( chr in 1:length(ldSets) ) {
+          rsSets <- ldSets[[chr]]
+          rsidsChr <- Glist$rsids[Glist$chr==chr]
+          rsidsChr <- rsidsChr[rsidsChr%in%names(rsSets)]
+          nsets <- sapply(rsSets,length)
+          rsChr <- rep(names(rsSets),times=nsets)
+          rsSets <- unlist(rsSets,use.names=FALSE)
+          rsSets <- match(rsSets,rsids)
+          inW <- !is.na(rsSets)
+          rsSets <- rsSets[inW]
+          if(!index) rsSets <- rsids[rsSets]
+          rsChr <-  rsChr[inW]
+          rsChr <- factor(rsChr, levels=unique(rsChr))  
+          rsSets <- split(rsSets,f=rsChr)
+          mpsets[[chr]] <- rsSets[rsidsChr]
+     } 
+     return(mpsets)
+}
+
+
+
+#' @export
+#'
+
+getLD <- function(Glist=NULL, chr=NULL) {
+     msize <- Glist$msize
+     rsidsChr <- Glist$rsids[Glist$chr==chr]
+     if(!is.null(Glist$study_rsids))  rsidsChr <- rsidsChr[rsidsChr%in%Glist$study_rsids]
+     mchr <- length(rsidsChr)
+     fnLD <- Glist$fnLD[chr]
+     bfLD <- file(fnLD,"rb")
+     nld <- as.integer(mchr*(msize*2+1))
+     ld <- readBin( bfLD, "double", n=nld, size = 8, endian = "little")
+     ld <- matrix(ld,nrow=mchr,byrow=TRUE) 
+     close(bfLD)
+     ld[,msize+1] <- 1
+     rownames(ld) <- rsidsChr
+     colnames(ld) <- c(-(msize:1),0,1:msize)
+     return(ld)
+}

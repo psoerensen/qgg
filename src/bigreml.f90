@@ -139,7 +139,7 @@
 
     subroutine loadG(fname)
     implicit none
-    integer*4 :: i,j,k
+    integer*4 :: i,j
     real*8 :: grw(ng)
     character(len=*), intent(in) :: fname
     logical :: exst
@@ -165,7 +165,7 @@
  
     subroutine computeV(weights,fnames)
     implicit none
-    integer*4 :: i,j,k,r
+    integer*4 :: i,j,r
     real*8, dimension(:),intent(in) :: weights
     real*8 :: grw(ng)
     character(len=*), dimension(:),intent(in) :: fnames
@@ -225,10 +225,10 @@
     character(len=14) :: fnr
     
     ! local variables
-    integer*4 :: i,j,k,it,row,fileunit(nr)
-    real*8 :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr),asd(nr,nr)
+    integer*4 :: i,j,it,fileunit(nr)
+    real*8 :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr)
     real*8 :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1),varb(nf,nf) 
-    real*8 :: llik, ldV, ldXVX, yPy, ymean
+    real*8 :: llik, ldV, ldXVX, yPy
     
     logical :: exst
     

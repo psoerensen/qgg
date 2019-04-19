@@ -284,7 +284,7 @@ mapSets <- function( sets=NULL, rsids=NULL, Glist=NULL, index=TRUE ) {
 #'
 
 
-mpgsea <- function(Glist=NULL,stat=NULL,ids=NULL,impute=TRUE, msize=100, ncores=1) { 
+mpgsea <- function(Glist=NULL,stat=NULL,ids=NULL,impute=TRUE, scale=TRUE, msize=100, ncores=1) { 
      
      # Prepase summary stat  
      if( !sum(colnames(stat)[1:3]==c("rsids","alleles","af"))==3 ) {
@@ -347,6 +347,7 @@ mpgsea <- function(Glist=NULL,stat=NULL,ids=NULL,impute=TRUE, msize=100, ncores=
                              stat = matrix(as.double(0),nrow=nc,ncol=nprs), 
                              af=as.double(af[ sets[[i]] ]), 
                              impute = as.integer(impute),
+                             scale = as.integer(scale),
                              direction = as.integer(direction[ sets[[i]] ]),
                              ncores=as.integer(ncores),
                              PACKAGE = "qgg")$prs

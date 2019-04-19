@@ -37,7 +37,7 @@
 #' @param ids vector of individuals used in the analysis
 #' @param statistic single marker test statistic used (currently based on the "mastor" statistics).
 #' @param msize number of genotype markers used for batch processing
-#' @param scaled logical if TRUE the genotypes have been scaled to mean zero and variance one
+#' @param scale logical if TRUE the genotypes have been scaled to mean zero and variance one
 #'  
 
 #' @return Returns a dataframe (if number of traits = 1) else a list including 
@@ -93,10 +93,10 @@
 #' @export
 #'
 
-lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, fit=NULL, statistic="mastor", ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
+lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, fit=NULL, statistic="mastor", ids=NULL, rsids=NULL, msize=100, scale=TRUE) {
  
      if (is.null(fit)) {
-          ma <- sma( y=y, X=X, W=W, Glist=Glist, ids=ids, rsids=rsids, msize=msize, scaled=scaled) 
+          ma <- sma( y=y, X=X, W=W, Glist=Glist, ids=ids, rsids=rsids, msize=msize, scale=scale) 
           return(ma) 
      }    
      if (!is.null(fit)) {
@@ -173,7 +173,7 @@ plotma <- function(ma=NULL,chr=NULL,rsids=NULL,thresh=5) {
 
 #' @export
 
-sma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize=100, scaled=TRUE) {
+sma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize=100, scale=TRUE) {
      if(is.vector(y)) y <- matrix(y,ncol=1, dimnames= list(names(y),"trait"))
      ids <- rownames(y)
      nt <- ncol(y) 
@@ -203,7 +203,7 @@ sma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize
           nsets  <-  length(sets)
           for (i in 1:nsets) {
                cls <- sets[[i]]
-               W <- readbed(Glist=Glist,rws=rws, cls=cls, scaled=scaled)
+               W <- readbed(Glist=Glist,rws=rws, cls=cls, scale=scale)
                #W <- W[rws,]
                res <- smlm(y=y,X=X,W=W)
                s[cls,] <- res[[1]]
