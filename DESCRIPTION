@@ -16,9 +16,11 @@ License: GPL-3
 Encoding: UTF-8
 Depends:
     data.table,
+    parallel,
     MASS
 Imports:
     data.table,
+    parallel,
     MASS
 RoxygenNote: 6.1.1
 Suggests:

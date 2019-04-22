@@ -57,72 +57,93 @@
 #' @export
 #'
 
-gprep <- function( study=NULL, fnRAW=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=FALSE, ncores=1){
+gprep <- function( task="prepare", study=NULL, fnRAW=NULL, fNLD=NULL, bedfiles=NULL, bimfiles=NULL,famfiles=NULL, ids=NULL, rsids=NULL, overwrite=FALSE, msize=100, ncores=1){
      
-     nfiles <- length(bedfiles)
-
-     Glist <- NULL
-     Glist$study <- study
-     
-     Glist$fnRAW <- fnRAW
-     if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
-     
-     Glist$bedfiles <- bedfiles
-     Glist$bimfiles <- bimfiles
-     Glist$famfiles <- famfiles
-
-     # Read fam information
-     fam <- fread(input=famfiles[1], header=FALSE, data.table = FALSE, colClasses="character")
-     Glist$ids <- as.character(fam[,2])
-     Glist$study_ids <- Glist$ids
-     if(!is.null(ids)) {
-          if(any(!ids%in%as.character(fam[,2]))) warning(paste("some ids not found in famfiles"))
-          Glist$study_ids <- Glist$ids[Glist$ids%in%as.character(ids)]
+     if (task=="prepare") {
+          nfiles <- length(bedfiles)
+          
+          Glist <- NULL
+          Glist$study <- study
+          
+          Glist$fnRAW <- fnRAW
+          if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
+          
+          Glist$bedfiles <- bedfiles
+          if(!is.null(bimfiles)) Glist$bimfiles <- bimfiles
+          if(!is.null(famfiles)) Glist$famfiles <- famfiles
+          if(is.null(bimfiles)) Glist$bimfiles <- gsub(".bed",".bim",bedfiles)
+          if(is.null(famfiles)) Glist$famfiles <- gsub(".bed",".fam",bedfiles)
+          
+          # Read fam information
+          fam <- fread(input=famfiles[1], header=FALSE, data.table = FALSE, colClasses="character")
+          Glist$ids <- as.character(fam[,2])
+          Glist$study_ids <- Glist$ids
+          if(!is.null(ids)) {
+               if(any(!ids%in%as.character(fam[,2]))) warning(paste("some ids not found in famfiles"))
+               Glist$study_ids <- Glist$ids[Glist$ids%in%as.character(ids)]
+          }
+          if(any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
+          
+          Glist$rsids <- vector(mode="list",length=nfiles)
+          Glist$a1 <- vector(mode="list",length=nfiles)
+          Glist$a2 <- vector(mode="list",length=nfiles)
+          Glist$position <- vector(mode="list",length=nfiles)
+          Glist$chr <- vector(mode="list",length=nfiles)
+          
+          for ( chr in 1:length(bedfiles) ) {
+               bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE, colClasses="character")
+               rsidsBIM <- as.character(bim[,2])
+               if(!is.null(rsids)) bim <- droplevels(bim[rsidsBIM%in%rsids,])
+               fam <- fread(input=famfiles[chr], header=FALSE, data.table = FALSE, colClasses="character")
+               if(any(!Glist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
+               Glist$a1[[chr]] <- as.character(bim[,5])   
+               Glist$a2[[chr]] <- as.character(bim[,6])   
+               Glist$position[[chr]] <- as.numeric(bim[,4])   
+               Glist$rsids[[chr]] <- as.character(bim[,2])   
+               Glist$chr[[chr]] <- as.character(bim[,1])   
+               print(paste("Finished processing bim file",bimfiles[chr]))
+          }   
+          Glist$study_rsids <- unlist(Glist$rsids)
+          if(!is.null(rsids)) Glist$study_rsids <- as.character(rsids) 
+          if(!is.null(rsids)) if( any(!rsids%in%unlist(Glist$rsids)) ) warning(paste("some rsids not found in bimfiles"))
+          if (!is.null(rsids)) Glist$study_rsids <- unlist(Glist$rsids)[unlist(Glist$rsids)%in%rsids]
+          
+          Glist$mchr <- sapply(Glist$rsids,length)
+          Glist$rsids <- unlist(Glist$rsids)
+          Glist$a1 <- unlist(Glist$a1)
+          Glist$a2 <- unlist(Glist$a2)
+          Glist$position <- unlist(Glist$position)
+          Glist$chr <- unlist(Glist$chr)
+          Glist$nchr <- length(unique(Glist$chr))
+          
+          Glist$n <- length(Glist$ids)
+          Glist$m <- length(Glist$rsids)
+          
+          print("Preparing raw file")
+          writeRAW( Glist=Glist, ids=ids, rsids=Glist$rsids, overwrite=overwrite)  # write genotypes to .raw file 
+          
+          print("Computing allele frequencies, missingness")
+          Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=Glist$rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
+          Glist$af1 <- 1-Glist$af
+          Glist$af2 <- Glist$af
+          
      }
-     if(any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
+  
+     if (task=="summary") {
+          print("Computing allele frequencies, missingness")
+          Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=Glist$rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
+          Glist$af1 <- 1-Glist$af
+          Glist$af2 <- Glist$af
+     } 
 
-     Glist$rsids <- vector(mode="list",length=nfiles)
-     Glist$a1 <- vector(mode="list",length=nfiles)
-     Glist$a2 <- vector(mode="list",length=nfiles)
-     Glist$position <- vector(mode="list",length=nfiles)
-     Glist$chr <- vector(mode="list",length=nfiles)
-     
-     for ( chr in 1:length(bedfiles) ) {
-          bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE, colClasses="character")
-          rsidsBIM <- as.character(bim[,2])
-          if(!is.null(rsids)) bim <- droplevels(bim[rsidsBIM%in%rsids,])
-          fam <- fread(input=famfiles[chr], header=FALSE, data.table = FALSE, colClasses="character")
-          if(any(!Glist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
-          Glist$a1[[chr]] <- as.character(bim[,5])   
-          Glist$a2[[chr]] <- as.character(bim[,6])   
-          Glist$position[[chr]] <- as.numeric(bim[,4])   
-          Glist$rsids[[chr]] <- as.character(bim[,2])   
-          Glist$chr[[chr]] <- as.character(bim[,1])   
-          print(paste("Finished processing bim file",bimfiles[chr]))
-     }   
-     Glist$study_rsids <- unlist(Glist$rsids)
-     if(!is.null(rsids)) Glist$study_rsids <- as.character(rsids) 
-     if(!is.null(rsids)) if( any(!rsids%in%unlist(Glist$rsids)) ) warning(paste("some rsids not found in bimfiles"))
-     if (!is.null(rsids)) Glist$study_rsids <- unlist(Glist$rsids)[unlist(Glist$rsids)%in%rsids]
-     
-     Glist$mchr <- sapply(Glist$rsids,length)
-     Glist$rsids <- unlist(Glist$rsids)
-     Glist$a1 <- unlist(Glist$a1)
-     Glist$a2 <- unlist(Glist$a2)
-     Glist$position <- unlist(Glist$position)
-     Glist$chr <- unlist(Glist$chr)
-     Glist$nchr <- length(unique(Glist$chr))
-     
-     Glist$n <- length(Glist$ids)
-     Glist$m <- length(Glist$rsids)
-     
-     print("Preparing raw file")
-     writeRAW( Glist=Glist, ids=ids, rsids=Glist$rsids, overwrite=overwrite)  # write genotypes to .raw file 
-     
-     print("Computing allele frequencies, missingness")
-     Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=Glist$rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
-     Glist$af1 <- 1-Glist$af
-     Glist$af2 <- Glist$af
+     if (task=="sparseld") {
+          print("Computing ld")
+          Glist$msize <- msize
+          Glist$fnLD <- fnLD
+          if(is.null(fnLD)) Glist$fnLD <- gsub(".bed",".ld",bedfiles)
+          if(is.null(ids)) ids <- Glist$ids
+          mclapply(1:length(Glist$fnLD),function(x) {sparseLD(Glist=Glist, fnLD=Glist$fnLD[x], msize=msize, chr=x,rsids=NULL, impute=TRUE,scale=TRUE, ids=ids,  ncores=1)}, mc.cores=ncores) 
+     } 
      
      return(Glist)
 }
@@ -367,11 +388,11 @@ sparseLD <- function(Glist=NULL, fnLD=NULL, msize=100, chr=NULL,rsids=NULL, impu
                                                  fnRAW = as.character(fnRAW),
                                                  PACKAGE = 'qgg')$W
           if (j==nsets) W3 <- matrix(0,nrow=nr,ncol=msize)
-          WW <- t(crossprod(cbind(W1,W2,W3),W2))
-          WW <- WW/(nr-1)  # nr-1 accounts for sample mean is estimated
-          WW[is.na(WW)] <- 0
+          LD <- t(crossprod(cbind(W1,W2,W3),W2))
+          LD <- LD/(nr-1)  # nr-1 accounts for sample mean is estimated
+          LD[is.na(LD)] <- 0
           for ( k in 1:msets[j] ) { 
-             ld <- as.vector(WW[k,k:(k+2*msize)]) 
+             ld <- as.vector(LD[k,k:(k+2*msize)]) 
              writeBin( ld, bfLD, size = 8, endian = "little")
            }
           print(paste("Finished block",j,"chromosome",chr))
@@ -461,3 +482,87 @@ getLD <- function(Glist=NULL, chr=NULL) {
      colnames(ld) <- c(-(msize:1),0,1:msize)
      return(ld)
 }
+
+
+adjustLD <- function( stat=NULL, Glist=NULL, ldSets=NULL, threshold=1, method="pruning") {
+     
+     if (!is.null(stat)) {     
+          stop("Need to check trhis again see updated S version below")
+          stat$s[is.na(stat$s)] <- 0
+          stat$p[is.na(stat$p)] <- 1
+          
+          for ( i in 1:ncol(stat$p) ) {
+               rsidsStat <- rownames(stat$s)
+               mStat <- length(rsidsStat)
+               indx1 <- rep(T,mStat)
+               indx2 <- rep(F,mStat)
+               for ( chr in 1:length(ldSets) ) {
+                    setsChr <- ldSets[[chr]]
+                    setsChr <- setsChr[names(setsChr)%in%rsidsStat]
+                    rsidsChr <- names(setsChr)
+                    rwsChr <- match(rsidsChr,rsidsStat)
+                    p <- stat$p[rwsChr,i]
+                    s <- stat$s[rwsChr,i]
+                    o <- order(p, decreasing=FALSE)
+                    for ( j in o) {
+                         if (p[j]<=threshold) { 
+                              if (indx1[rwsChr[j]]) {
+                                   rws <- setsChr[[j]]
+                                   indx1[rws] <- F
+                                   indx2[rwsChr[j]] <- T
+                              }
+                         }
+                    }
+               }
+               stat$s[!indx2,i] <- 0
+          }
+          return(stat)
+     }
+     
+     if (!is.null(S)) {     
+          
+          studies <- colnames(S)
+          
+          if( method%in%c("pruning","clumping") ) {
+               
+               for ( i in 1:ncol(S) ) {
+                    rsidsStat <- rownames(S)
+                    mStat <- length(rsidsStat)
+                    indx1 <- rep(T,mStat)
+                    indx2 <- rep(F,mStat)
+                    for ( chr in 1:length(ldSets) ) {
+                         setsChr <- ldSets[[chr]]
+                         #setsChr <- setsChr[names(setsChr)%in%rsidsStat]
+                         rsidsChr <- names(setsChr)
+                         rwsChr <- match(rsidsChr,rsidsStat)
+                         p <- 2*pnorm(-abs(S[rwsChr,i]))
+                         o <- order(p, decreasing=FALSE)
+                         for ( j in o) {
+                              if (p[j]<=threshold) {
+                                   if (indx1[rwsChr[j]]) {
+                                        rws <- setsChr[[j]]
+                                        indx1[rws] <- F
+                                        indx2[rwsChr[j]] <- T
+                                   }
+                              }
+                         }
+                         print(paste("Finished pruning chromosome:",chr,"for S column:",colnames(S)[i]))
+                    }
+                    if(method=="clumping") {
+                         S[indx1,i] <- 0
+                         p <- 2*pnorm(-abs(S[,i]))
+                         S[p>threshold,i] <- 0
+                    }
+                    if(method=="pruning") S[!indx2,i] <- 0
+               }
+               
+          }
+          
+          
+          S <- S[!rowSums(S==0)==ncol(S),]
+          if(is.vector(S))  S <- matrix(S,ncol=1,dimnames=list(names(S),studies) )
+          return(S)
+     }
+     
+}
+
