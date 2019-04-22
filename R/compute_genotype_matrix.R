@@ -57,7 +57,7 @@
 #' @export
 #'
 
-gprep <- function( task="prepare", study=NULL, fnRAW=NULL, fNLD=NULL, bedfiles=NULL, bimfiles=NULL,famfiles=NULL, ids=NULL, rsids=NULL, overwrite=FALSE, msize=100, ncores=1){
+gprep <- function(Glist=NULL, task="prepare", study=NULL, fnRAW=NULL, fnLD=NULL, bedfiles=NULL, bimfiles=NULL,famfiles=NULL, ids=NULL, rsids=NULL, overwrite=FALSE, msize=100, ncores=1){
      
      if (task=="prepare") {
           nfiles <- length(bedfiles)
@@ -135,6 +135,7 @@ gprep <- function( task="prepare", study=NULL, fnRAW=NULL, fNLD=NULL, bedfiles=N
           Glist$af1 <- 1-Glist$af
           Glist$af2 <- Glist$af
      } 
+
 
      if (task=="sparseld") {
           print("Computing ld")
