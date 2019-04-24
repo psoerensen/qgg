@@ -271,14 +271,24 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 #' @export
 #'
 
-readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, impute = TRUE, scale = FALSE, allele = "a2", ncores = 1) {
+readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL, 
+                    rws = NULL, cls = NULL, impute = TRUE, scale = FALSE, 
+                    allele = NULL, ncores = 1) {
   if (!is.null(Glist)) {
     n <- Glist$n
     m <- Glist$m
     nbytes <- ceiling(n / 4)
     if (is.null(cls)) cls <- 1:m
     if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
+    if (any(is.na(cls))) {
+         warning(paste("some rsids not found in Glist"))
+         print(rsids[is.na(cls)])
+    }
+    if (!is.null(allele)) allele <- allele[!is.na(cls)]
+    cls <- cls[!is.na(cls)]
     nc <- length(cls)
+    if (is.null(allele)) direction <- rep(1, nc) 
+    if (!is.null(allele)) direction <- as.integer(allele==Glist$a2[cls]) 
     if (is.null(rws)) rws <- 1:n
     if (!is.null(ids)) rws <- match(ids, Glist$ids)
     nr <- length(rws)
@@ -302,9 +312,12 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL, rws
       warning(paste("some rsids not found in bimfiles"))
       print(rsids[is.na(cls)])
     }
+    if (!is.null(allele)) allele <- allele[!is.na(cls)]
     cls <- cls[!is.na(cls)]
-    if (length(cls) == 0) stop("No rsids found in bimfiles")
     nc <- length(cls)
+    if (is.null(allele)) direction <- rep(1, nc) 
+    if (!is.null(allele)) direction <- as.integer(allele==Glist$a2[cls]) 
+    if (length(cls) == 0) stop("No rsids found in bimfiles")
     if (is.null(rws)) rws <- 1:n
     if (!is.null(ids)) rws <- match(ids, as.character(fam[, 2]))
     nr <- length(rws)
@@ -313,7 +326,6 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL, rws
     ids <- as.character(fam[rws, 2])
     rsids <- as.character(bim[cls, 2])
   }
-  direction <- rep(1,nc)     
   W <- .Fortran("readbed",
     n = as.integer(n),
     nr = as.integer(nr),
@@ -330,20 +342,18 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL, rws
   )$W
   rownames(W) <- ids
   colnames(W) <- rsids
-  if (allele == "a1") W <- 2 - W
   return(W)
 }
 
 
 #' @export
 #'
-getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, impute = FALSE, scale = FALSE, allele = "a2") {
+getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, 
+                 impute = FALSE, scale = FALSE, allele = NULL) {
   if (is.null(ids)) ids <- Glist$ids
   if (is.null(cls)) cls <- match(rsids, Glist$rsids)
-  direction <- rep(1,length(cls))
-  W <- readbed(Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls, impute = impute, scale = scale, allele = allele)
-  rownames(W) <- ids
-  colnames(W) <- Glist$rsids[cls]
+  W <- readbed(Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls, 
+               impute = impute, scale = scale, allele = allele)
   return(W)
 }
 
