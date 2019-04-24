@@ -155,7 +155,7 @@
     pos14 = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos14) raw
       write(14) raw
-      print*, 'writing record', i, 'to file' 
+      !print*, 'writing record', i, 'to file' 
     endif
   enddo 
 
@@ -532,7 +532,7 @@
 
     end select
   
-    print*,'Finished block',i
+    !print*,'Finished block',i
 
   enddo
  
@@ -689,7 +689,7 @@
     call readbed(n,nr,rws,ncw,cls(i:(i+ncw-1)),impute,scale,W(:,1:ncw),nbytes,fnRAW)
     call dgemm("n","n",nr,nprs,ncw,1.0d0,W(:,1:ncw),nr,s(i:(i+ncw-1),:),ncw,1.0d0,prs,nr)
  
-    print*,'Finished block',i
+    !print*,'Finished block',i
 
   enddo
 
@@ -766,7 +766,7 @@
       g=g+w*s(i)
     enddo
     close (unit=13)
-    print*,(sum((s-os)**2)/sqrt(dble(nc)))
+    !print*,(sum((s-os)**2)/sqrt(dble(nc)))
     if( (sum((s-os)**2)/sqrt(dble(nc)))<tol) exit  
     os=s  
   enddo
@@ -845,7 +845,7 @@
       g=g+w*s(i)
     enddo
     close (unit=13)
-    print*,(sum((s-os)**2)/sqrt(dble(nc)))
+    !print*,(sum((s-os)**2)/sqrt(dble(nc)))
     if( (sum((s-os)**2)/sqrt(dble(nc)))<tol) exit  
     os=s  
   enddo

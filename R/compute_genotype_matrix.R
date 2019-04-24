@@ -57,58 +57,54 @@
 #' @export
 #'
 
-gprep <- function(Glist=NULL, task="prepare", study=NULL, fnRAW=NULL, fnLD=NULL, bedfiles=NULL, bimfiles=NULL,famfiles=NULL, ids=NULL, rsids=NULL, overwrite=FALSE, msize=100, ncores=1){
-     
-     if (task=="prepare") {
+gprep <- function(Glist=NULL, task="prepare", study=NULL, fnRAW=NULL, fnLD=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, ids=NULL, rsids=NULL, overwrite=FALSE, msize=100, ncores=1){
+     if (task == "prepare" ) {
           nfiles <- length(bedfiles)
-          
           Glist <- NULL
           Glist$study <- study
-          
           Glist$fnRAW <- fnRAW
-          if(file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
-          
+          if (file.exists(fnRAW)) warning(paste("fnRAW allready exist"))
           Glist$bedfiles <- bedfiles
-          if(!is.null(bimfiles)) Glist$bimfiles <- bimfiles
-          if(!is.null(famfiles)) Glist$famfiles <- famfiles
-          if(is.null(bimfiles)) Glist$bimfiles <- gsub(".bed",".bim",bedfiles)
-          if(is.null(famfiles)) Glist$famfiles <- gsub(".bed",".fam",bedfiles)
+          if (!is.null(bimfiles)) Glist$bimfiles <- bimfiles
+          if (!is.null(famfiles)) Glist$famfiles <- famfiles
+          if (is.null(bimfiles)) Glist$bimfiles <- gsub(".bed", ".bim", bedfiles)
+          if (is.null(famfiles)) Glist$famfiles <- gsub(".bed", ".fam", bedfiles)
           
           # Read fam information
-          fam <- fread(input=famfiles[1], header=FALSE, data.table = FALSE, colClasses="character")
-          Glist$ids <- as.character(fam[,2])
+          fam <- fread(input = famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+          Glist$ids <- as.character(fam[, 2])
           Glist$study_ids <- Glist$ids
-          if(!is.null(ids)) {
-               if(any(!ids%in%as.character(fam[,2]))) warning(paste("some ids not found in famfiles"))
-               Glist$study_ids <- Glist$ids[Glist$ids%in%as.character(ids)]
+          if (!is.null(ids)) {
+               if (any(!ids %in% as.character(fam[, 2]))) warning(paste("some ids not found in famfiles"))
+               Glist$study_ids <- Glist$ids[Glist$ids %in% as.character(ids)]
           }
-          if(any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
+          if (any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
           
-          Glist$rsids <- vector(mode="list",length=nfiles)
-          Glist$a1 <- vector(mode="list",length=nfiles)
-          Glist$a2 <- vector(mode="list",length=nfiles)
-          Glist$position <- vector(mode="list",length=nfiles)
-          Glist$chr <- vector(mode="list",length=nfiles)
+          Glist$rsids <- vector(mode = "list", length = nfiles)
+          Glist$a1 <- vector(mode = "list", length = nfiles)
+          Glist$a2 <- vector(mode = "list", length = nfiles)
+          Glist$position <- vector(mode = "list", length = nfiles)
+          Glist$chr <- vector(mode = "list", length = nfiles)
           
           for ( chr in 1:length(bedfiles) ) {
-               bim <- fread(input=bimfiles[chr], header=FALSE, data.table = FALSE, colClasses="character")
-               rsidsBIM <- as.character(bim[,2])
-               if(!is.null(rsids)) bim <- droplevels(bim[rsidsBIM%in%rsids,])
-               fam <- fread(input=famfiles[chr], header=FALSE, data.table = FALSE, colClasses="character")
-               if(any(!Glist$ids%in%as.character(fam[,2]))) stop(paste("some ids not found in famfiles"))
-               Glist$a1[[chr]] <- as.character(bim[,5])   
-               Glist$a2[[chr]] <- as.character(bim[,6])   
-               Glist$position[[chr]] <- as.numeric(bim[,4])   
-               Glist$rsids[[chr]] <- as.character(bim[,2])   
-               Glist$chr[[chr]] <- as.character(bim[,1])   
-               print(paste("Finished processing bim file",bimfiles[chr]))
+               bim <- fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
+               rsidsBIM <- as.character(bim[, 2])
+               if (!is.null(rsids)) bim <- droplevels(bim[rsidsBIM %in% rsids, ])
+               fam <- fread(input = famfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
+               if (any(!Glist$ids %in% as.character(fam[, 2]))) stop(paste("some ids not found in famfiles"))
+               Glist$a1[[chr]] <- as.character(bim[, 5])   
+               Glist$a2[[chr]] <- as.character(bim[, 6])   
+               Glist$position[[chr]] <- as.numeric(bim[, 4])   
+               Glist$rsids[[chr]] <- as.character(bim[, 2])   
+               Glist$chr[[chr]] <- as.character(bim[, 1])   
+               print(paste("Finished processing bim file", bimfiles[chr]))
           }   
           Glist$study_rsids <- unlist(Glist$rsids)
-          if(!is.null(rsids)) Glist$study_rsids <- as.character(rsids) 
-          if(!is.null(rsids)) if( any(!rsids%in%unlist(Glist$rsids)) ) warning(paste("some rsids not found in bimfiles"))
-          if (!is.null(rsids)) Glist$study_rsids <- unlist(Glist$rsids)[unlist(Glist$rsids)%in%rsids]
+          if (!is.null(rsids)) Glist$study_rsids <- as.character(rsids) 
+          if (!is.null(rsids)) if ( any(!rsids %in% unlist(Glist$rsids)) ) warning(paste("some rsids not found in bimfiles"))
+          if (!is.null(rsids)) Glist$study_rsids <- unlist(Glist$rsids)[unlist(Glist$rsids) %in% rsids]
           
-          Glist$mchr <- sapply(Glist$rsids,length)
+          Glist$mchr <- sapply(Glist$rsids, length)
           Glist$rsids <- unlist(Glist$rsids)
           Glist$a1 <- unlist(Glist$a1)
           Glist$a2 <- unlist(Glist$a2)
@@ -120,30 +116,33 @@ gprep <- function(Glist=NULL, task="prepare", study=NULL, fnRAW=NULL, fnLD=NULL,
           Glist$m <- length(Glist$rsids)
           
           print("Preparing raw file")
-          writeRAW( Glist=Glist, ids=ids, rsids=Glist$rsids, overwrite=overwrite)  # write genotypes to .raw file 
+          writeRAW( Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite)  # write genotypes to .raw file 
           
           print("Computing allele frequencies, missingness")
-          Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=Glist$rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
-          Glist$af1 <- 1-Glist$af
+          Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores) # compute allele frequencies, missingness, ....    
+          Glist$af1 <- 1 - Glist$af
           Glist$af2 <- Glist$af
           
      }
   
-     if (task=="summary") {
+     if (task == "summary") {
           print("Computing allele frequencies, missingness")
-          Glist <- summaryRAW(Glist=Glist, ids=ids, rsids=Glist$rsids, ncores=ncores) # compute allele frequencies, missingness, ....    
-          Glist$af1 <- 1-Glist$af
+          Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores) # compute allele frequencies, missingness, ....    
+          Glist$af1 <- 1 - Glist$af
           Glist$af2 <- Glist$af
      } 
 
 
-     if (task=="sparseld") {
+     if (task == "sparseld") {
           print("Computing ld")
           Glist$msize <- msize
           Glist$fnLD <- fnLD
-          if(is.null(fnLD)) Glist$fnLD <- gsub(".bed",".ld",bedfiles)
-          if(is.null(ids)) ids <- Glist$ids
-          mclapply(1:length(Glist$fnLD),function(x) {sparseLD(Glist=Glist, fnLD=Glist$fnLD[x], msize=msize, chr=x,rsids=NULL, impute=TRUE,scale=TRUE, ids=ids,  ncores=1)}, mc.cores=ncores) 
+          if (is.null(fnLD)) Glist$fnLD <- gsub(".bed", ".ld", bedfiles)
+          if (is.null(ids)) ids <- Glist$ids
+          mclapply(1:length(Glist$fnLD), function(x) { 
+               sparseLD(Glist = Glist, fnLD = Glist$fnLD[x], msize = msize, chr = x, rsids = NULL, impute = TRUE, scale = TRUE, ids = ids,  ncores = 1)
+               }
+               , mc.cores = ncores) 
      } 
      
      return(Glist)
@@ -152,7 +151,7 @@ gprep <- function(Glist=NULL, task="prepare", study=NULL, fnRAW=NULL, fnLD=NULL,
 #' @export
 #'
 writeRAW <- function(Glist=NULL, ids=NULL, rsids=NULL, overwrite=FALSE) {
-     bed2raw( fnRAW=Glist$fnRAW, bedfiles=Glist$bedfiles, bimfiles=Glist$bimfiles, famfiles=Glist$famfiles, ids=ids, rsids=rsids, overwrite=overwrite)
+     bed2raw( fnRAW = Glist$fnRAW, bedfiles = Glist$bedfiles, bimfiles = Glist$bimfiles, famfiles=Glist$famfiles, ids=ids, rsids=rsids, overwrite=overwrite)
 }
 
 #' @export
@@ -388,14 +387,27 @@ sparseLD <- function(Glist=NULL, fnLD=NULL, msize=100, chr=NULL,rsids=NULL, impu
                                                  nbytes = as.integer(nbytes),
                                                  fnRAW = as.character(fnRAW),
                                                  PACKAGE = 'qgg')$W
-          if (j==nsets) W3 <- matrix(0,nrow=nr,ncol=msize)
           LD <- t(crossprod(cbind(W1,W2,W3),W2))
           LD <- LD/(nr-1)  # nr-1 accounts for sample mean is estimated
           LD[is.na(LD)] <- 0
-          for ( k in 1:msets[j] ) { 
+          if(j>1) {
+            for ( k in 1:msets[j] ) { 
              ld <- as.vector(LD[k,k:(k+2*msize)]) 
              writeBin( ld, bfLD, size = 8, endian = "little")
            }
+          }     
+          if(j==nsets) {
+               W1 <- W2
+               W2 <- W3
+               W3 <- matrix(0,nrow=nr,ncol=msize)
+               LD <- t(crossprod(cbind(W1,W2,W3),W2))
+               LD <- LD/(nr-1)  # nr-1 accounts for sample mean is estimated
+               LD[is.na(LD)] <- 0
+               for ( k in 1:msets[j] ) { 
+                    ld <- as.vector(LD[k,k:(k+2*msize)]) 
+                    writeBin( ld, bfLD, size = 8, endian = "little")
+               }
+          }
           print(paste("Finished block",j,"chromosome",chr))
      }
       close(bfLD)

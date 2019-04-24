@@ -146,10 +146,10 @@
 
     inquire(file=trim(adjustl(fname)), exist=exst)
     if(.not.(exst)) then
-       print *, 'Trying to open file:'
-       print*, fname
-       print *, 'file does not exist'
-       stop
+       !print *, 'Trying to open file:'
+       !print*, fname
+       !print *, 'file does not exist'
+       !stop
     endif
     
     open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=8*ng)
@@ -175,10 +175,10 @@
     if (r<size(weights)) then
     inquire(file=trim(adjustl(fnames(r))), exist=exst)
     if(.not.(exst)) then
-       print *, 'Trying to open file:'
-       print*, fnames(r)
-       print *, 'file does not exist'
-       stop
+       !print *, 'Trying to open file:'
+       !print*, fnames(r)
+       !print *, 'file does not exist'
+       !stop
     endif
 
     open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
@@ -245,10 +245,10 @@
     read(unit=10,fmt=*) rfnames(i)
     inquire(file=trim(adjustl(rfnames(i))), exist=exst)
     if(.not.(exst)) then
-       print *, 'Trying to open file:'
-       print*, rfnames(i)
-       print *, 'file does not exist'
-       stop
+       !print *, 'Trying to open file:'
+       !print*, rfnames(i)
+       !print *, 'file does not exist'
+       !stop
     endif
     enddo
 
@@ -362,7 +362,7 @@
     ! compute restricted log likelihood
     llik = -0.5D0*( ldV + ldXVX + yPy )
     
-    print *, theta
+    !print *, theta
 
     if (it.eq.maxit) exit
     if ( maxval(abs(delta))<tol ) exit
