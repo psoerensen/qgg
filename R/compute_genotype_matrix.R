@@ -313,6 +313,7 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL, rws
     ids <- as.character(fam[rws, 2])
     rsids <- as.character(bim[cls, 2])
   }
+  direction <- rep(1,nc)     
   W <- .Fortran("readbed",
     n = as.integer(n),
     nr = as.integer(nr),
@@ -321,6 +322,7 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL, rws
     cls = as.integer(cls),
     impute = as.integer(impute),
     scale = as.integer(scale),
+    direction = as.integer(direction),
     W = matrix(as.double(0), nrow = nr, ncol = nc),
     nbytes = as.integer(nbytes),
     fnRAW = as.character(fnRAW),
@@ -338,6 +340,7 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL, rws
 getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, impute = FALSE, scale = FALSE, allele = "a2") {
   if (is.null(ids)) ids <- Glist$ids
   if (is.null(cls)) cls <- match(rsids, Glist$rsids)
+  direction <- rep(1,length(cls))
   W <- readbed(Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls, impute = impute, scale = scale, allele = allele)
   rownames(W) <- ids
   colnames(W) <- Glist$rsids[cls]
@@ -370,6 +373,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
   bfLD <- file(fnLD, "wb")
   for (j in 1:nsets) {
     nc <- length(cls[[j]])
+    direction <- rep(1,nc)
     W1 <- W2
     W2 <- W3
     W3[, 1:nc] <- .Fortran("readbed",
@@ -380,6 +384,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
       cls = as.integer(cls[[j]]),
       impute = as.integer(impute),
       scale = as.integer(scale),
+      direction = as.integer(direction),
       W = matrix(as.double(0), nrow = nr, ncol = nc),
       nbytes = as.integer(nbytes),
       fnRAW = as.character(fnRAW),

@@ -167,14 +167,14 @@
 
 
 !==============================================================================================================
-  subroutine readbed(n,nr,rws,nc,cls,impute,scale,W,nbytes,fnRAW)
+  subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAW)
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale 
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc) 
   real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=1000) :: fnRAW
 
@@ -220,6 +220,7 @@
       if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
       W(1:nr,i) = gr(rws)
       where(W(1:nr,i)==3.0D0) W(1:nr,i)=2.0D0*af
+      if(direction(i)==0) W(1:nr,i)=2.0D0-W(1:nr,i)
       if (scale==1) W(1:nr,i)=scalew(nr,W(1:nr,i))
       if ( nmiss==ntotal ) W(1:nr,i)=0.0D0
     endif
@@ -486,7 +487,7 @@
   
   implicit none
   
-  integer*4 :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel 
+  integer*4 :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc) 
   real*8 :: G(nr,nr), W1(nr,msize), traceG
   character(len=1000) :: fnRAW,fnG
   real*8, allocatable :: W2(:,:)
@@ -501,6 +502,7 @@
   endif
 
   impute=1
+  direction=1 
 
   do i=1,nc,msize
 
@@ -510,24 +512,24 @@
     select case (gmodel)
 
       case (1) ! additive 
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,W1(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW)
       call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
 
       case (2) ! dominance
       scale=2
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,W1(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW)
       call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
 
       case (3) ! epistasis
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,W1(:,1:ncw),nbytes,fnRAW)
-      call readbed(n,nr,rws,ncw,cls2(i:(i+ncw-1)),impute,scale,W2(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls2(i:(i+ncw-1)),impute,scale,direction,W2(:,1:ncw),nbytes,fnRAW)
       do j=1,ncw
         W1(:,j) = W1(:,j)*W2(:,j)
       enddo
       call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
 
       case (4) ! epistasis hadamard 
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,W1(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW)
       call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
 
     end select
@@ -671,12 +673,14 @@
   
   implicit none
   
-  integer*4 :: i,n,nr,nc,rws(nr),cls(nc),impute,scale,nbytes,ncores,msize,nprs,ncw 
+  integer*4 :: i,n,nr,nc,rws(nr),cls(nc),impute,scale,nbytes,ncores,msize,nprs,ncw,direction(nc) 
   real*8 :: W(nr,msize)
   character(len=1000) :: fnRAW
   real*8 :: prs(nr,nprs),s(nc,nprs)
 
   call omp_set_num_threads(ncores)
+
+  direction=1
 
   prs = 0.0D0
   W = 0.0D0 
@@ -686,7 +690,7 @@
     if((i+msize-1)<nc) ncw = size(cls(i:(i+msize-1)))
     if((i+msize-1)>=nc) ncw = size(cls(i:nc))          
 
-    call readbed(n,nr,rws,ncw,cls(i:(i+ncw-1)),impute,scale,W(:,1:ncw),nbytes,fnRAW)
+    call readbed(n,nr,rws,ncw,cls(i:(i+ncw-1)),impute,scale,direction,W(:,1:ncw),nbytes,fnRAW)
     call dgemm("n","n",nr,nprs,ncw,1.0d0,W(:,1:ncw),nr,s(i:(i+ncw-1),:),ncw,1.0d0,prs,nr)
  
     !print*,'Finished block',i
