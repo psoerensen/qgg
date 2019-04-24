@@ -27,7 +27,7 @@
 #' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of reml to declare convergence
 #' @param sets	list containing marker sets rsids
 #' @param validate	dataframe or list of individuals used in cross-validation (one column for each set)
-#' @param scaled logical if TRUE the genotypes in Glist has been scaled to mean zero and variance one
+#' @param scale logical if TRUE the genotypes in Glist has been scaled to mean zero and variance one
 #' @param ncores number of cores used in the analysis
 
 
@@ -64,10 +64,22 @@
 
 
 
-gsolve <- function(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL, rsids = NULL, sets = NULL, validate = NULL, scaled = TRUE, lambda = NULL, weights = FALSE, maxit = 500, tol = 0.00001, method = "gsru", ncores = 1) {
+gsolve <- function(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL, rsids = NULL,
+                   sets = NULL, validate = NULL, scale = TRUE, lambda = NULL, weights = FALSE,
+                   maxit = 500, tol = 0.00001, method = "gsru", ncores = 1) {
   if (!is.null(W)) {
-    if (method == "gsru") fit <- gsru(y = y, W = W, X = X, sets = sets, lambda = lambda, weights = weights, maxit = maxit, tol = tol)
-    if (method == "gsqr") fit <- gsqr(y = y, W = W, X = X, sets = sets, msets = msets, lambda = lambda, weights = weights, maxit = maxit, tol = tol)
+    if (method == "gsru") {
+      fit <- gsru(
+        y = y, W = W, X = X, sets = sets, lambda = lambda,
+        weights = weights, maxit = maxit, tol = tol
+      )
+    }
+    if (method == "gsqr") {
+      fit <- gsqr(
+        y = y, W = W, X = X, sets = sets, msets = msets,
+        lambda = lambda, weights = weights, maxit = maxit, tol = tol
+      )
+    }
     return(fit)
   }
   if (!is.null(Glist)) {
@@ -100,7 +112,11 @@ gsolve <- function(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL, rsids
     yn <- gn <- en <- rep(0, n)
     yn[rws] <- as.vector(y)
 
-    fit <- fsolve(n = n, nr = nr, rws = rws, nc = nc, cls = cls, scaled = scaled, nbytes = nbytes, fnRAW = fnRAW, ncores = ncores, nit = maxit, lambda = lambda, tol = tol, y = yn, g = gn, e = en, s = s, meanw = meanw, sdw = sdw)
+    fit <- fsolve(
+      n = n, nr = nr, rws = rws, nc = nc, cls = cls, scale = scale,
+      nbytes = nbytes, fnRAW = fnRAW, ncores = ncores, nit = maxit,
+      lambda = lambda, tol = tol, y = yn, g = gn, e = en, s = s, meanw = meanw, sdw = sdw
+    )
     # fit <- fsolve(n=n,nc=nc,cls=cls,nr=nr,rws=rws,fnRAW=fnRAW,nit=maxit,lambda=lambda,tol=tol,y=y,g=g,e=e,s=s,meanw=meanw,sdw=sdw)
 
     # if (!is.null(X)) yhat <- ghat[names(y)] + X[names(y),]%*%b
@@ -128,7 +144,7 @@ gsolve <- function(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL, rsids
 #' @param ids vector of individuals used in the analysis
 #' @param rws rows in genotype matrix used in the analysis
 #' @param cls columns in genotype matrix used in the analysis
-#' @param scaled logical if TRUE the genotype markers have been scaled to mean zero and variance one
+#' @param scale logical if TRUE the genotype markers have been scale to mean zero and variance one
 #' @param msize number of genotype markers used for batch processing
 #' @param ncores number of cores used in the analysis
 
@@ -453,7 +469,8 @@ plotgs <- function(fit = NULL, s = NULL, sets = NULL) {
   points(y = s[sets], x = (1:m)[sets], col = 2)
 }
 
-gsqr <- function(y = NULL, X = NULL, W = NULL, sets = NULL, msets = 100, lambda = NULL, weights = FALSE, maxit = 500, tol = 0.0000001) {
+gsqr <- function(y = NULL, X = NULL, W = NULL, sets = NULL, msets = 100,
+                 lambda = NULL, weights = FALSE, maxit = 500, tol = 0.0000001) {
   QRlist <- qrSets(W = W, msets = msets, return.level = "QR")
   # lambdaR <- sapply(QRlist$R,function(x){(1/diag(x))**2})
   # lambda <- lambda*lambdaR
@@ -469,7 +486,10 @@ gsqr <- function(y = NULL, X = NULL, W = NULL, sets = NULL, msets = 100, lambda 
 
 #' @export
 
-fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL, scaled = TRUE, nbytes = NULL, fnRAW = NULL, ncores = 1, nit = NULL, lambda = NULL, tol = NULL, y = NULL, g = NULL, e = NULL, s = NULL, meanw = NULL, sdw = NULL) {
+fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL,
+                   scale = TRUE, nbytes = NULL, fnRAW = NULL, ncores = 1, nit = NULL,
+                   lambda = NULL, tol = NULL, y = NULL, g = NULL, e = NULL, s = NULL,
+                   meanw = NULL, sdw = NULL) {
   OS <- .Platform$OS.type
   if (OS == "windows") fnRAW <- tolower(gsub("/", "\\", fnRAW, fixed = T))
   fit <- .Fortran("solvebed",
@@ -478,7 +498,7 @@ fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL, scale
     rws = as.integer(rws),
     nc = as.integer(nc),
     cls = as.integer(cls),
-    scaled = as.integer(scaled),
+    scale = as.integer(scale),
     nbytes = as.integer(nbytes),
     fnRAW = as.character(fnRAW),
     ncores = as.integer(ncores),
@@ -499,7 +519,9 @@ fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL, scale
 
 
 
-gsolve_oldy <- function(y = NULL, X = NULL, Glist = NULL, ids = NULL, rsids = NULL, sets = NULL, scaled = TRUE, lambda = NULL, weights = FALSE, maxit = 500, tol = 0.00001, ncores = 1) {
+gsolve_oldy <- function(y = NULL, X = NULL, Glist = NULL, ids = NULL, rsids = NULL,
+                        sets = NULL, scale = TRUE, lambda = NULL, weights = FALSE,
+                        maxit = 500, tol = 0.00001, ncores = 1) {
   ids <- names(y)
   fnRAW <- Glist$fnRAW
   n <- Glist$n
@@ -529,7 +551,10 @@ gsolve_oldy <- function(y = NULL, X = NULL, Glist = NULL, ids = NULL, rsids = NU
   yn <- gn <- en <- rep(0, n)
   yn[rws] <- as.vector(y)
 
-  fit <- fsolve(n = n, nr = nr, rws = rws, nc = nc, cls = cls, scaled = scaled, nbytes = nbytes, fnRAW = fnRAW, ncores = ncores, nit = maxit, lambda = lambda, tol = tol, y = yn, g = gn, e = en, s = s, meanw = meanw, sdw = sdw)
+  fit <- fsolve(
+    n = n, nr = nr, rws = rws, nc = nc, cls = cls, scale = scale,
+    nbytes = nbytes, fnRAW = fnRAW, ncores = ncores, nit = maxit, lambda = lambda, tol = tol, y = yn, g = gn, e = en, s = s, meanw = meanw, sdw = sdw
+  )
   # fit <- fsolve(n=n,nc=nc,cls=cls,nr=nr,rws=rws,fnRAW=fnRAW,nit=maxit,lambda=lambda,tol=tol,y=y,g=g,e=e,s=s,meanw=meanw,sdw=sdw)
 
   # if (!is.null(X)) yhat <- ghat[names(y)] + X[names(y),]%*%b

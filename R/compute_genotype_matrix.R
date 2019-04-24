@@ -57,7 +57,9 @@
 #' @export
 #'
 
-gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL, overwrite = FALSE, msize = 100, ncores = 1) {
+gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fnLD = NULL,
+                  bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
+                  overwrite = FALSE, msize = 100, ncores = 1) {
   if (task == "prepare") {
     nfiles <- length(bedfiles)
     Glist <- NULL
@@ -119,14 +121,14 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     writeRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
 
     print("Computing allele frequencies, missingness")
-    Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores) # compute allele frequencies, missingness, ....
+    Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
 
   if (task == "summary") {
     print("Computing allele frequencies, missingness")
-    Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores) # compute allele frequencies, missingness, ....
+    Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
@@ -139,7 +141,10 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     if (is.null(fnLD)) Glist$fnLD <- gsub(".bed", ".ld", bedfiles)
     if (is.null(ids)) ids <- Glist$ids
     mclapply(1:length(Glist$fnLD), function(x) {
-      sparseLD(Glist = Glist, fnLD = Glist$fnLD[x], msize = msize, chr = x, rsids = NULL, impute = TRUE, scale = TRUE, ids = ids, ncores = 1)
+      sparseLD(
+        Glist = Glist, fnLD = Glist$fnLD[x], msize = msize, chr = x, rsids = NULL,
+        impute = TRUE, scale = TRUE, ids = ids, ncores = 1
+      )
     }
     ,
     mc.cores = ncores
@@ -151,12 +156,16 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
 #' @export
 #'
 writeRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, overwrite = FALSE) {
-  bed2raw(fnRAW = Glist$fnRAW, bedfiles = Glist$bedfiles, bimfiles = Glist$bimfiles, famfiles = Glist$famfiles, ids = ids, rsids = rsids, overwrite = overwrite)
+  bed2raw(
+    fnRAW = Glist$fnRAW, bedfiles = Glist$bedfiles, bimfiles = Glist$bimfiles,
+    famfiles = Glist$famfiles, ids = ids, rsids = rsids, overwrite = overwrite
+  )
 }
 #' @export
 #'
 
-bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL, overwrite = FALSE) {
+bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL,
+                    ids = NULL, rsids = NULL, overwrite = FALSE) {
   if (file.exists(fnRAW)) {
     warning(paste("fnRAW file allready exist"))
     if (!overwrite) stop(paste("fnRAW file allready exist"))
@@ -271,8 +280,8 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 #' @export
 #'
 
-readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL, 
-                    rws = NULL, cls = NULL, impute = TRUE, scale = FALSE, 
+readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
+                    rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
                     allele = NULL, ncores = 1) {
   if (!is.null(Glist)) {
     n <- Glist$n
@@ -281,14 +290,14 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
     if (is.null(cls)) cls <- 1:m
     if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
     if (any(is.na(cls))) {
-         warning(paste("some rsids not found in Glist"))
-         print(rsids[is.na(cls)])
+      warning(paste("some rsids not found in Glist"))
+      print(rsids[is.na(cls)])
     }
     if (!is.null(allele)) allele <- allele[!is.na(cls)]
     cls <- cls[!is.na(cls)]
     nc <- length(cls)
-    if (is.null(allele)) direction <- rep(1, nc) 
-    if (!is.null(allele)) direction <- as.integer(allele==Glist$a2[cls]) 
+    if (is.null(allele)) direction <- rep(1, nc)
+    if (!is.null(allele)) direction <- as.integer(allele == Glist$a2[cls])
     if (is.null(rws)) rws <- 1:n
     if (!is.null(ids)) rws <- match(ids, Glist$ids)
     nr <- length(rws)
@@ -302,8 +311,14 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
     fnRAW <- bedfiles
     bimfiles <- gsub(".bed", ".bim", bedfiles)
     famfiles <- gsub(".bed", ".fam", bedfiles)
-    bim <- fread(input = bimfiles, header = FALSE, data.table = FALSE, showProgress = FALSE, colClasses = "character")
-    fam <- fread(input = famfiles, header = FALSE, data.table = FALSE, showProgress = FALSE, colClasses = "character")
+    bim <- fread(
+      input = bimfiles, header = FALSE, data.table = FALSE, showProgress = FALSE,
+      colClasses = "character"
+    )
+    fam <- fread(
+      input = famfiles, header = FALSE, data.table = FALSE, showProgress = FALSE,
+      colClasses = "character"
+    )
     n <- nrow(fam)
     m <- nrow(bim)
     nbytes <- ceiling(n / 4)
@@ -315,8 +330,8 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
     if (!is.null(allele)) allele <- allele[!is.na(cls)]
     cls <- cls[!is.na(cls)]
     nc <- length(cls)
-    if (is.null(allele)) direction <- rep(1, nc) 
-    if (!is.null(allele)) direction <- as.integer(allele==Glist$a2[cls]) 
+    if (is.null(allele)) direction <- rep(1, nc)
+    if (!is.null(allele)) direction <- as.integer(allele == Glist$a2[cls])
     if (length(cls) == 0) stop("No rsids found in bimfiles")
     if (is.null(rws)) rws <- 1:n
     if (!is.null(ids)) rws <- match(ids, as.character(fam[, 2]))
@@ -348,12 +363,14 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
 
 #' @export
 #'
-getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, 
+getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
                  impute = FALSE, scale = FALSE, allele = NULL) {
   if (is.null(ids)) ids <- Glist$ids
   if (is.null(cls)) cls <- match(rsids, Glist$rsids)
-  W <- readbed(Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls, 
-               impute = impute, scale = scale, allele = allele)
+  W <- readbed(
+    Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
+    impute = impute, scale = scale, allele = allele
+  )
   return(W)
 }
 
@@ -361,7 +378,8 @@ getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
 #' @export
 #'
 
-sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL, impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {
+sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL,
+                     impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {
   if (file.exists(fnLD)) stop("LD file allready exists - please specify other file names")
   n <- Glist$n
   rws <- 1:n
@@ -383,7 +401,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
   bfLD <- file(fnLD, "wb")
   for (j in 1:nsets) {
     nc <- length(cls[[j]])
-    direction <- rep(1,nc)
+    direction <- rep(1, nc)
     W1 <- W2
     W2 <- W3
     W3[, 1:nc] <- .Fortran("readbed",

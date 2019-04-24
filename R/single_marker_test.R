@@ -93,7 +93,8 @@
 #' @export
 #'
 
-lma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, fit = NULL, statistic = "mastor", ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
+lma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, fit = NULL,
+                statistic = "mastor", ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
   if (is.null(fit)) {
     ma <- sma(y = y, X = X, W = W, Glist = Glist, ids = ids, rsids = rsids, msize = msize, scale = scale)
     return(ma)
@@ -177,7 +178,8 @@ plotma <- function(ma = NULL, chr = NULL, rsids = NULL, thresh = 5) {
 
 #' @export
 
-sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
+sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = NULL,
+                msize = 100, scale = TRUE) {
   if (is.vector(y)) y <- matrix(y, ncol = 1, dimnames = list(names(y), "trait"))
   ids <- rownames(y)
   nt <- ncol(y)

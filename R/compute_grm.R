@@ -46,9 +46,15 @@
 #' @export
 #'
 
-grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, W = NULL, method = "add", scaled = TRUE, msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm") {
+grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
+                W = NULL, method = "add", scaled = TRUE, msize = 100, ncores = 1, fnG = NULL,
+                overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm") {
   if (task == "grm") {
-    GRM <- computeGRM(Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls, W = W, method = method, scaled = scaled, msize = msize, ncores = ncores, fnG = fnG, overwrite = overwrite, returnGRM = returnGRM, miss = miss)
+    GRM <- computeGRM(
+      Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
+      W = W, method = method, scaled = scaled, msize = msize, ncores = ncores,
+      fnG = fnG, overwrite = overwrite, returnGRM = returnGRM, miss = miss
+    )
     return(GRM)
   }
   if (task == "eigen") {
