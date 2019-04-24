@@ -2,46 +2,46 @@
 #    Module 5: LMM marker association test
 ####################################################################################################################
 #'
-#' Single marker association analysis using linear models or linear mixed models 
+#' Single marker association analysis using linear models or linear mixed models
 #'
 #' @description
-#' The function lma performs single marker association analysis between genotype markers and the phenotype 
+#' The function lma performs single marker association analysis between genotype markers and the phenotype
 #' either based on linear model analysis (LMA) or mixed linear model analysis (MLMA).
-#' 
-#' The basic MLMA approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide 
-#' sample structure, 2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
-#' (with or without additional fixed effects) and 3) computing association statistics that account for this component 
+#'
+#' The basic MLMA approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide
+#' sample structure, 2) estimating the contribution of the GRM to phenotypic variance using a random effects model
+#' (with or without additional fixed effects) and 3) computing association statistics that account for this component
 #' on phenotypic variance.
-#' 
-#' MLMA methods are the method of choice when conducting association mapping in the presence of sample structure, 
-#' including geographic population structure, family relatedness and/or cryptic relatedness. MLMA methods prevent 
-#' false positive associations and increase power. The general recommendation when using MLMA is to exclude candidate 
-#' markers from the GRM. This can be efficiently implemented via a leave-one-chromosome-out analysis. 
-#' Further, it is recommend that analyses of randomly ascertained quantitative traits should include all markers 
-#' (except for the candidate marker and markers in LD with the candidate marker) in the GRM, except as follows. 
-#' First, the set of markers included in the GRM can be pruned by LD to reduce running time (with association 
-#' statistics still computed for all markers). Second, genome-wide significant markers of large effect should be 
-#' conditioned out as fixed effects or as an additional random effect (if a large number of associated markers). 
-#' Third, when population stratification is less of a concern, it may be useful using the top associated markers 
+#'
+#' MLMA methods are the method of choice when conducting association mapping in the presence of sample structure,
+#' including geographic population structure, family relatedness and/or cryptic relatedness. MLMA methods prevent
+#' false positive associations and increase power. The general recommendation when using MLMA is to exclude candidate
+#' markers from the GRM. This can be efficiently implemented via a leave-one-chromosome-out analysis.
+#' Further, it is recommend that analyses of randomly ascertained quantitative traits should include all markers
+#' (except for the candidate marker and markers in LD with the candidate marker) in the GRM, except as follows.
+#' First, the set of markers included in the GRM can be pruned by LD to reduce running time (with association
+#' statistics still computed for all markers). Second, genome-wide significant markers of large effect should be
+#' conditioned out as fixed effects or as an additional random effect (if a large number of associated markers).
+#' Third, when population stratification is less of a concern, it may be useful using the top associated markers
 #' selected based on the global maximum from out-of sample predictive accuracy.
-#' 
-#' 
+#'
+#'
 
 #'
 #' @param y vector or matrix of phenotypes
 #' @param X design matrix for factors modeled as fixed effects
 #' @param fit list of information about linear mixed model fit (output from greml)
 #' @param Glist list of information about genotype matrix stored on disk
-#' @param W matrix of centered and scaled genotypes 
+#' @param W matrix of centered and scaled genotypes
 #' @param rsids vector of marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis
 #' @param statistic single marker test statistic used (currently based on the "mastor" statistics).
 #' @param msize number of genotype markers used for batch processing
 #' @param scale logical if TRUE the genotypes have been scaled to mean zero and variance one
-#'  
+#'
 
-#' @return Returns a dataframe (if number of traits = 1) else a list including 
-#' \item{coef}{single marker coefficients} 
+#' @return Returns a dataframe (if number of traits = 1) else a list including
+#' \item{coef}{single marker coefficients}
 #' \item{se}{standard error of coefficients}
 #' \item{stat}{single marker test statistic}
 #' \item{p}{p-value}
@@ -80,37 +80,35 @@
 #'
 #' # Estimate variance components using REML analysis
 #' fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
-#' 
+#'
 #' # Single marker association test
 #' maMLM <- lma(fit = fit, W = W)
-#' 
+#'
 #' # Linear model analyses and single marker association test
 #' maLM <- lma(y=y,X=X,W = W)
 #'
-#'head(maMLM)
-#'head(maLM)
+#' head(maMLM)
+#' head(maLM)
 #'
 #' @export
 #'
 
-lma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, fit=NULL, statistic="mastor", ids=NULL, rsids=NULL, msize=100, scale=TRUE) {
- 
-     if (is.null(fit)) {
-          ma <- sma( y=y, X=X, W=W, Glist=Glist, ids=ids, rsids=rsids, msize=msize, scale=scale) 
-          return(ma) 
-     }    
-     if (!is.null(fit)) {
-          ma <- mlma( y=y, X=X, fit=fit, W=W, statistic=statistic)
-          return(ma) 
-     }    
+lma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, fit = NULL, statistic = "mastor", ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
+  if (is.null(fit)) {
+    ma <- sma(y = y, X = X, W = W, Glist = Glist, ids = ids, rsids = rsids, msize = msize, scale = scale)
+    return(ma)
+  }
+  if (!is.null(fit)) {
+    ma <- mlma(y = y, X = X, fit = fit, W = W, statistic = statistic)
+    return(ma)
+  }
 }
-     
+
 
 #' @export
 #'
-     
-mlma <- function( y=NULL, X=NULL, fit=NULL, W=NULL, m=NULL, statistic="mastor") {
-  
+
+mlma <- function(y = NULL, X = NULL, fit = NULL, W = NULL, m = NULL, statistic = "mastor") {
   if (is.null(m)) m <- ncol(W)
   n <- nrow(W)
   # get linear model fit results
@@ -120,133 +118,136 @@ mlma <- function( y=NULL, X=NULL, fit=NULL, W=NULL, m=NULL, statistic="mastor") 
   yVy <- fit$yVy
   trPG <- fit$trPG[1]
   trVG <- fit$trVG[1]
-  
+
   # compute single marker, coefficients, test statistics and p-values
-  nW <- colSums(!W==0)
-  WPy <- crossprod(W,Py)
-  WVy <- crossprod(W,Vy)
+  nW <- colSums(!W == 0)
+  WPy <- crossprod(W, Py)
+  WVy <- crossprod(W, Vy)
   ww <- colSums(W**2)
-  
-  if (statistic=="mastor") {
-    coef <- (WPy/(trPG/m))/m
-    se <- (1/(trPG/m))/m
-    stat <- WPy**2/sum(Py**2)
-    p <- pchisq(stat,df=1,ncp=0, lower.tail=FALSE)
+
+  if (statistic == "mastor") {
+    coef <- (WPy / (trPG / m)) / m
+    se <- (1 / (trPG / m)) / m
+    stat <- WPy**2 / sum(Py**2)
+    p <- pchisq(stat, df = 1, ncp = 0, lower.tail = FALSE)
   }
-  
-  mma <- data.frame(coef=coef,se=se,stat=stat,p=p)
+
+  mma <- data.frame(coef = coef, se = se, stat = stat, p = p)
   rownames(mma) <- colnames(W)
-  
+
   return(as.matrix(mma))
-  
 }
 
 #' @export
 
-plotma <- function(ma=NULL,chr=NULL,rsids=NULL,thresh=5) {
-  
+plotma <- function(ma = NULL, chr = NULL, rsids = NULL, thresh = 5) {
   mlogObs <- -log10(ma$p)
   m <- length(mlogObs)
   rwsSNP <- rsids
-  if(!is.null(thresh)) { rwsSNP <- mlogObs > thresh }  
-  if(is.null(chr)) { chr <- rep(1,m) }  
-  
-  layout(matrix(1:2,ncol=1))
-  o <- order(mlogObs,decreasing=TRUE)
-  mlogExp <- -log10( (1:m)/m ) 
-  plot(y=mlogObs[o],x=mlogExp, col=2, pch="+",
-       frame.plot=FALSE, main="", xlab="Expected -log10(p)", ylab="Observed -log10(p)")
-  abline(a=0,b=1)
-  
+  if (!is.null(thresh)) {
+    rwsSNP <- mlogObs > thresh
+  }
+  if (is.null(chr)) {
+    chr <- rep(1, m)
+  }
+
+  layout(matrix(1:2, ncol = 1))
+  o <- order(mlogObs, decreasing = TRUE)
+  mlogExp <- -log10((1:m) / m)
+  plot(
+    y = mlogObs[o], x = mlogExp, col = 2, pch = "+",
+    frame.plot = FALSE, main = "", xlab = "Expected -log10(p)", ylab = "Observed -log10(p)"
+  )
+  abline(a = 0, b = 1)
+
   colSNP <- "red"
-  
+
   is.even <- function(x) x %% 2 == 0
-  colCHR <- rep(gray(0.3),m)
+  colCHR <- rep(gray(0.3), m)
   colCHR[is.even(chr)] <- gray(0.9)
-  
-  plot(y=mlogObs,x=1:m,ylab="Observed -log10(p)",xlab="Position",col=colCHR,   
-       pch=".",frame.plot=FALSE)
-  points(y=mlogObs[rwsSNP],x=(1:m)[rwsSNP],col=colSNP)  
-  abline(h=thresh,col=2,lty=2)
-}   
 
-
-#' @export
-
-sma <- function( y=NULL, X=NULL, W=NULL, Glist=NULL, ids=NULL, rsids=NULL, msize=100, scale=TRUE) {
-     if(is.vector(y)) y <- matrix(y,ncol=1, dimnames= list(names(y),"trait"))
-     ids <- rownames(y)
-     nt <- ncol(y) 
-     if(!is.null(W)) {
-          if(any(!ids==rownames(W))) stop("Some names of y does not match rownames of W")
-          if(!is.null(X)) y <- residuals(lm(y~X))
-          res <- smlm(y=y,X=X,W=W)
-          #if(is.null(colnames(y))) colnames(y) <- paste("t",1:ncol(y),sep="")
-          #lapply(res, function(x){colnames(x) <- colnames(y)})
-          #lapply(res, function(x){rownames(x) <- colnames(W)})
-          if (nt==1) res <- as.matrix(as.data.frame(res))
-     }
-     if(!is.null(Glist)) {
-          if(any(!ids%in%Glist$ids)) stop("Some names of y does not match names in Glist$ids")
-          if(!is.null(X)) y <- as.matrix(residuals(lm(y~X)))
-          nt <- ncol(y) 
-          m <- Glist$m
-          n <- Glist$n
-          cls <- 1:m
-          if(!is.null(rsids)) cls <- match(rsids,Glist$rsids)
-          rws <- 1:n
-          if(!is.null(ids)) rws <- match(ids,Glist$ids)
-          s <- se <- stat <- p <- matrix(NA,nrow=m,ncol=nt)
-          rownames(s) <- rownames(se) <- rownames(stat) <- rownames(p) <- Glist$rsids 
-          colnames(s) <- colnames(se) <- colnames(stat) <- colnames(p) <- colnames(y) 
-          sets <- split(cls, ceiling(seq_along(cls)/msize))
-          nsets  <-  length(sets)
-          for (i in 1:nsets) {
-               cls <- sets[[i]]
-               W <- readbed(Glist=Glist,rws=rws, cls=cls, scale=scale)
-               #W <- W[rws,]
-               res <- smlm(y=y,X=X,W=W)
-               s[cls,] <- res[[1]]
-               se[cls,] <- res[[2]]
-               stat[cls,] <- res[[3]]
-               p[cls,] <- res[[4]]
-               print(paste("Finished block",i,"out of",nsets,"blocks"))
-          }
-          cls <- unlist(sets)
-          res <- list(s=s[cls,],se=se[cls,],stat=stat[cls,],p=p[cls,])
-          if (nt==1) res <- as.matrix(as.data.frame(res))
-     }
-     return(res)
+  plot(
+    y = mlogObs, x = 1:m, ylab = "Observed -log10(p)", xlab = "Position", col = colCHR,
+    pch = ".", frame.plot = FALSE
+  )
+  points(y = mlogObs[rwsSNP], x = (1:m)[rwsSNP], col = colSNP)
+  abline(h = thresh, col = 2, lty = 2)
 }
 
 
 #' @export
 
-smlm <- function( y=NULL, X=NULL, W=NULL) {
-     if(is.vector(y)) y <- matrix(y,ncol=1)
-     nt <- ncol(y) 
-     ones <- matrix(1,nrow=nrow(y),ncol=nt)
-     ones[is.na(y)] <- 0
-     y[is.na(y)] <- 0
-     m <- ncol(W)
-     n <- nrow(W)
-     Wy <- crossprod(W,y)
-     #wwadj <- matrix((crossprod(W,ones)**2)/colSums(ones),nrow=m,ncol=nt,byrow=TRUE)
-     W2 <- W**2
-     ww <- crossprod(W2,ones) 
-     yy <- matrix(colSums((y**2)*ones),nrow=m,ncol=nt,byrow=TRUE)
-     sse <- yy-(Wy**2)/ww
-     sse[is.na(sse)] <- 0
-     coef <- Wy*(1/ww)
-     coef[is.na(coef)] <- 0
-     dfe <- colSums(ones)-2
-     dfe <- matrix(dfe,nrow=m,ncol=nt,byrow=TRUE)
-     se <- sqrt(sse/dfe)/sqrt(ww) 
-     tt <- coef/se
-     ptt <- 2*pt(-abs(tt),df=dfe)
-     res <- list(s=coef,se=se,stat=tt,p=ptt)
-     return(res)
+sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
+  if (is.vector(y)) y <- matrix(y, ncol = 1, dimnames = list(names(y), "trait"))
+  ids <- rownames(y)
+  nt <- ncol(y)
+  if (!is.null(W)) {
+    if (any(!ids == rownames(W))) stop("Some names of y does not match rownames of W")
+    if (!is.null(X)) y <- residuals(lm(y ~ X))
+    res <- smlm(y = y, X = X, W = W)
+    # if(is.null(colnames(y))) colnames(y) <- paste("t",1:ncol(y),sep="")
+    # lapply(res, function(x){colnames(x) <- colnames(y)})
+    # lapply(res, function(x){rownames(x) <- colnames(W)})
+    if (nt == 1) res <- as.matrix(as.data.frame(res))
+  }
+  if (!is.null(Glist)) {
+    if (any(!ids %in% Glist$ids)) stop("Some names of y does not match names in Glist$ids")
+    if (!is.null(X)) y <- as.matrix(residuals(lm(y ~ X)))
+    nt <- ncol(y)
+    m <- Glist$m
+    n <- Glist$n
+    cls <- 1:m
+    if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
+    rws <- 1:n
+    if (!is.null(ids)) rws <- match(ids, Glist$ids)
+    s <- se <- stat <- p <- matrix(NA, nrow = m, ncol = nt)
+    rownames(s) <- rownames(se) <- rownames(stat) <- rownames(p) <- Glist$rsids
+    colnames(s) <- colnames(se) <- colnames(stat) <- colnames(p) <- colnames(y)
+    sets <- split(cls, ceiling(seq_along(cls) / msize))
+    nsets <- length(sets)
+    for (i in 1:nsets) {
+      cls <- sets[[i]]
+      W <- readbed(Glist = Glist, rws = rws, cls = cls, scale = scale)
+      # W <- W[rws,]
+      res <- smlm(y = y, X = X, W = W)
+      s[cls, ] <- res[[1]]
+      se[cls, ] <- res[[2]]
+      stat[cls, ] <- res[[3]]
+      p[cls, ] <- res[[4]]
+      print(paste("Finished block", i, "out of", nsets, "blocks"))
+    }
+    cls <- unlist(sets)
+    res <- list(s = s[cls, ], se = se[cls, ], stat = stat[cls, ], p = p[cls, ])
+    if (nt == 1) res <- as.matrix(as.data.frame(res))
+  }
+  return(res)
 }
 
 
+#' @export
 
+smlm <- function(y = NULL, X = NULL, W = NULL) {
+  if (is.vector(y)) y <- matrix(y, ncol = 1)
+  nt <- ncol(y)
+  ones <- matrix(1, nrow = nrow(y), ncol = nt)
+  ones[is.na(y)] <- 0
+  y[is.na(y)] <- 0
+  m <- ncol(W)
+  n <- nrow(W)
+  Wy <- crossprod(W, y)
+  # wwadj <- matrix((crossprod(W,ones)**2)/colSums(ones),nrow=m,ncol=nt,byrow=TRUE)
+  W2 <- W**2
+  ww <- crossprod(W2, ones)
+  yy <- matrix(colSums((y**2) * ones), nrow = m, ncol = nt, byrow = TRUE)
+  sse <- yy - (Wy**2) / ww
+  sse[is.na(sse)] <- 0
+  coef <- Wy * (1 / ww)
+  coef[is.na(coef)] <- 0
+  dfe <- colSums(ones) - 2
+  dfe <- matrix(dfe, nrow = m, ncol = nt, byrow = TRUE)
+  se <- sqrt(sse / dfe) / sqrt(ww)
+  tt <- coef / se
+  ptt <- 2 * pt(-abs(tt), df = dfe)
+  res <- list(s = coef, se = se, stat = tt, p = ptt)
+  return(res)
+}
