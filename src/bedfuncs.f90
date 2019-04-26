@@ -431,6 +431,7 @@
   ntotal=dble(nr)  
 
   ! process serial
+  if (ncores==1) then
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
   do i=1,nc 
     read(13, iostat=stat, rec=cls(i)) raw
@@ -443,24 +444,27 @@
     if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
   enddo 
   close(unit=13)
+  endif
 
   ! process parallel
-  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
-  !!$omp parallel do private(i,i14,pos14,raw,g,grws)
-  !do i=1,nc 
-  !  i14=cls(i)
-  !  pos14 = 1 + offset14 + (i14-1)*nbytes14
-  !  read(13, pos=pos14) raw
-  !  g = raw2int(n,nbytes,raw)
-  !  grws = g(rws)
-  !  nmiss(i)=dble(count(grws==3))
-  !  n0(i)=dble(count(grws==0))
-  !  n1(i)=dble(count(grws==1)) 
-  !  n2(i)=dble(count(grws==2))
-  !  if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
-  !enddo 
-  !!$omp end parallel do
-  !close(unit=13)
+  if (ncores>1) then
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  !$omp parallel do private(i,i14,pos14,raw,g,grws)
+  do i=1,nc 
+    i14=cls(i)
+    pos14 = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos14) raw
+    g = raw2int(n,nbytes,raw)
+    grws = g(rws)
+    nmiss(i)=dble(count(grws==3))
+    n0(i)=dble(count(grws==0))
+    n1(i)=dble(count(grws==1)) 
+    n2(i)=dble(count(grws==2))
+    if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
+  enddo 
+  !$omp end parallel do
+  close(unit=13)
+  endif
 
   ! process parallel
   !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
