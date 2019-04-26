@@ -422,7 +422,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
     LD <- LD / (nr - 1) # nr-1 accounts for sample mean is estimated
     LD[is.na(LD)] <- 0
     if (j > 1) {
-      for (k in 1:msets[j]) {
+      for (k in 1:msize) {
         ld <- as.vector(LD[k, k:(k + 2 * msize)])
         writeBin(ld, bfLD, size = 8, endian = "little")
       }
