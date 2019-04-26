@@ -207,7 +207,14 @@
   do i=1,nc
     gr = raw2real(n,nbytes,raw(1:nbytes,i))
     if (impute==0) then
+      if(direction(i)==0) gr=2.0D0-gr
       where(gr==3.0D0) gr=0.0D0
+      where(gr==-1.0D0) gr=0.0D0
+      W(1:nr,i) = gr(rws)
+    endif
+    if (impute==3) then
+      if(direction(i)==0) gr=2.0D0-gr
+      where(gr==-1.0D0) gr=3.0D0
       W(1:nr,i) = gr(rws)
     endif
     if (impute==1) then
