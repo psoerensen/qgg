@@ -412,7 +412,7 @@
   integer :: i,stat,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
-  !integer (kind=k14) :: pos14, nbytes14, offset14, i14
+  integer (kind=k14) :: pos14, nbytes14, offset14, i14
 
   integer, external :: omp_get_thread_num
 
@@ -423,8 +423,8 @@
   if(nchar>0) offset=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
 
-  !nbytes14 = nbytes
-  !offset14 = offset
+  nbytes14 = nbytes
+  offset14 = offset
 
   af=0.0D0
   nmiss=0.0D0
