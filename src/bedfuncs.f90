@@ -448,7 +448,7 @@
 
   ! process parallel
   if (ncores>1) then
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
   !$omp parallel do private(i,i14,pos14,raw,g,grws)
   do i=1,nc 
     i14=cls(i)
