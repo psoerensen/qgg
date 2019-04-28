@@ -87,16 +87,16 @@
 
 
 #' @export
-gsea <- function(stat = NULL, sets = NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
+gsea <- function(stat = NULL, sets = NULL, Glist = NULL, fit = NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
   if (method == "sum") {
     m <- length(stat)
-    if (is.matrix(stat)) sets <- qgg::mapSets(sets = sets, rsids = rownames(stat), index = TRUE)
-    if (is.vector(stat)) sets <- qgg::mapSets(sets = sets, rsids = names(stat), index = TRUE)
+    if (is.matrix(stat)) sets <- qgg::mapsets(sets = sets, rsids = rownames(stat), index = TRUE)
+    if (is.vector(stat)) sets <- qgg::mapsets(sets = sets, rsids = names(stat), index = TRUE)
     nsets <- length(sets)
     msets <- sapply(sets, length)
     if (is.matrix(stat)) {
       p <- apply(stat, 2, function(x) {
-        gsets(stat = x, sets = sets, ncores = ncores, np = nperm)
+        qgg::gsets(stat = x, sets = sets, ncores = ncores, np = nperm)
       })
       setstat <- apply(stat, 2, function(x) {
         sapply(sets, function(y) {
@@ -117,9 +117,207 @@ gsea <- function(stat = NULL, sets = NULL, threshold = 0.05, method = "sum", npe
     return(res)
   }
   if (method == "hyperg") {
-    res <- hgTest(p = stat, sets = sets, threshold = threshold)
+    res <- qgg::hgtest(p = stat, sets = sets, threshold = threshold)
     return(res)
   }
+}
+
+
+#' @export
+
+gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum") {
+  m <- length(stat)
+  nsets <- length(sets)
+  msets <- sapply(sets, length)
+  setstat <- sapply(sets, function(x) {
+    sum(stat[x])
+  })
+
+  res <- .Fortran("psets",
+    m = as.integer(m),
+    stat = as.double(stat),
+    nsets = as.integer(nsets),
+    setstat = as.double(setstat),
+    msets = as.integer(msets),
+    p = as.integer(rep(0, nsets)),
+    np = as.integer(np),
+    ncores = as.integer(ncores),
+    PACKAGE = "qgg"
+  )
+
+  p <- res$p / np
+}
+
+
+#' @export
+
+mapsets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
+  if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
+  nsets <- sapply(sets, length)
+  rs <- rep(names(sets), times = nsets)
+  rsSets <- unlist(sets, use.names = FALSE)
+  rsSets <- match(rsSets, rsids)
+  inW <- !is.na(rsSets)
+  rsSets <- rsSets[inW]
+  if (!index) rsSets <- rsids[rsSets]
+  rs <- rs[inW]
+  rs <- factor(rs, levels = unique(rs))
+  rsSets <- split(rsSets, f = rs)
+  return(rsSets)
+}
+
+
+#' @export
+#'
+
+gstat <- function(Glist = NULL, stat = NULL, yadj = NULL, impute = TRUE, scale = TRUE, msize = 100, ncores = 1) {
+
+  # Prepase summary stat
+  if (!sum(colnames(stat)[1:3] == c("rsids", "alleles", "af")) == 3) {
+    stop("First three columns in data frame stat should be: rsids, alleles, af ")
+  }
+  rsidsOK <- stat$rsids %in% Glist$rsids
+  if (any(!rsidsOK)) {
+    warning("Some variants not found in genotype files")
+    print(paste("Number of variants missing;", sum(!rsidsOK)))
+    print(paste("Number of variants used;", sum(!rsidsOK)))
+    stat <- stat[rsidsOK, ]
+    stat$rsids <- as.character(stat$rsids)
+    stat$alleles <- as.character(stat$alleles)
+  }
+  S <- stat[, -c(1:3)]
+  if (is.vector(S)) S <- as.matrix(S)
+  S <- apply(S, 2, as.numeric)
+  colnames(S) <- colnames(stat)[-c(1:3)]
+  m <- nrow(S)
+  rsids <- as.character(stat$rsids)
+  if (!is.null(stat$af)) af <- stat$af
+  if (!is.null(stat$af)) af <- rep(0, nrow(S))
+
+  # Prepare input data for mpgrs
+  n <- Glist$n
+  nbytes <- ceiling(n / 4)
+  if (is.vector(yadj)) ids <- names(yadj)
+  if (is.matrix(yadj)) ids <- rownames(yadj)
+  rws <- match(ids, Glist$ids)
+  if (any(is.na(rws))) stop("Some ids in yadj not found in Glist")
+  nr <- length(rws)
+
+  cls <- match(rsids, Glist$rsids)
+  nc <- length(cls)
+
+  if (!is.null(stat$alleles)) direction <- as.integer(stat$alleles == Glist$a2[cls])
+  if (!is.null(stat$alleles)) direction <- rep(1, nrow(S))
+
+  fnRAW <- as.character(Glist$fnRAW)
+
+  nt <- ncol(S)
+
+  gstat <- .Fortran("gstat",
+    n = as.integer(n),
+    nr = as.integer(nr),
+    rws = as.integer(rws),
+    nc = as.integer(nc),
+    cls = as.integer(cls),
+    nbytes = as.integer(nbytes),
+    fnRAW = as.character(fnRAW),
+    nt = as.integer(nt),
+    s = matrix(as.double(S), nrow = nc, ncol = nt),
+    yadj = matrix(as.double(yadj), nrow = nr, ncol = nt),
+    setstat = matrix(as.double(0), nrow = nc, ncol = nt),
+    af = as.double(af),
+    impute = as.integer(impute),
+    scale = as.integer(scale),
+    direction = as.integer(direction),
+    ncores = as.integer(ncores),
+    PACKAGE = "qgg"
+  )$setstat
+
+  return(gstat)
+}
+
+
+#' @export
+#'
+
+adjld <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, method = "pruning") {
+  cnames <- colnames(stat)
+  rsidsStat <- rownames(stat)
+  if (statistics == "z-score") stat <- 2 * pnorm(-abs(stat))
+  if (!is.null(Glist)) ldSets <- qgg::getldsets(Glist = Glist, r2 = r2)
+  if (!is.null(Glist)) ldSets <- qgg::mapldsets(ldSets = ldSets, rsids = rsidsStat)
+  rm(list = "Glist")
+
+  if (method %in% c("pruning", "clumping")) {
+    for (i in 1:ncol(stat)) {
+      m <- length(rsidsStat)
+      indx1 <- rep(T, m)
+      indx2 <- rep(F, m)
+      for (chr in 1:length(ldSets)) {
+        setsChr <- ldSets[[chr]]
+        rsidsChr <- names(setsChr)
+        rwsChr <- match(rsidsChr, rsidsStat)
+        p <- stat[rwsChr, i]
+        o <- order(p, decreasing = FALSE)
+        for (j in o) {
+          if (p[j] <= threshold) {
+            if (indx1[rwsChr[j]]) {
+              rws <- setsChr[[j]]
+              indx1[rws] <- F
+              indx2[rwsChr[j]] <- T
+            }
+          }
+        }
+        print(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(stat)[i]))
+      }
+      if (method == "clumping") {
+        stat[indx1, i] <- 0
+        p <- stat[, i]
+        stat[p > threshold, i] <- 0
+      }
+      if (method == "pruning") stat[!indx2, i] <- 0
+    }
+  }
+
+  stat <- stat[!rowSums(stat == 0) == ncol(stat), ]
+  if (is.vector(stat)) stat <- matrix(stat, ncol = 1, dimnames = list(names(stat), cnames))
+  return(stat)
+}
+
+
+
+gsett <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
+  m <- length(stat)
+  rws <- 1:m
+  names(rws) <- names(stat)
+  sets <- lapply(sets, function(x) {
+    rws[x]
+  })
+
+  setT <- sapply(sets, function(x) {
+    sum(stat[x])
+  })
+
+  if (!is.null(nperm)) {
+    p <- rep(0, length(sets))
+    n <- length(stat)
+    nset <- sapply(sets, length)
+    sets <- lapply(sets, function(x) {
+      rws[x]
+    })
+    for (i in 1:nperm) {
+      rws <- sample(1:n, 1)
+      o <- c(rws:n, 1:(rws - 1))
+      ostat <- stat[o]
+      setTP <- sapply(sets, function(x) {
+        sum(ostat[x])
+      })
+      p <- p + as.numeric(setT > setTP)
+    }
+    p <- 1 - p / nperm
+    setT <- data.frame(setT, nset, p)
+  }
+  return(setT)
 }
 
 #' @export
@@ -194,39 +392,6 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
   setT
 }
 
-gsett <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
-  m <- length(stat)
-  rws <- 1:m
-  names(rws) <- names(stat)
-  sets <- lapply(sets, function(x) {
-    rws[x]
-  })
-
-  setT <- sapply(sets, function(x) {
-    sum(stat[x])
-  })
-
-  if (!is.null(nperm)) {
-    p <- rep(0, length(sets))
-    n <- length(stat)
-    nset <- sapply(sets, length)
-    sets <- lapply(sets, function(x) {
-      rws[x]
-    })
-    for (i in 1:nperm) {
-      rws <- sample(1:n, 1)
-      o <- c(rws:n, 1:(rws - 1))
-      ostat <- stat[o]
-      setTP <- sapply(sets, function(x) {
-        sum(ostat[x])
-      })
-      p <- p + as.numeric(setT > setTP)
-    }
-    p <- 1 - p / nperm
-    setT <- data.frame(setT, nset, p)
-  }
-  return(setT)
-}
 
 #' @export
 
@@ -254,7 +419,7 @@ scoreTest <- function(e = NULL, W = NULL, sets = NULL, nperm = 100) {
 
 #' @export
 
-hgTest <- function(p = NULL, sets = NULL, threshold = 0.05) {
+hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
   N <- length(p)
   Na <- sum(p < threshold)
   Nna <- N - Na
@@ -267,170 +432,4 @@ hgTest <- function(p = NULL, sets = NULL, threshold = 0.05) {
   Nnanf <- Nna - Nnaf
   phyperg <- 1 - phyper(Naf - 1, Nf, N - Nf, Na)
   phyperg
-}
-
-
-
-#' @export
-
-gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum") {
-  m <- length(stat)
-  nsets <- length(sets)
-  msets <- sapply(sets, length)
-  setstat <- sapply(sets, function(x) {
-    sum(stat[x])
-  })
-
-
-
-  res <- .Fortran("psets",
-    m = as.integer(m),
-    stat = as.double(stat),
-    nsets = as.integer(nsets),
-    setstat = as.double(setstat),
-    msets = as.integer(msets),
-    p = as.integer(rep(0, nsets)),
-    np = as.integer(np),
-    ncores = as.integer(ncores),
-    PACKAGE = "qgg"
-  )
-
-  p <- res$p / np
-}
-
-
-#' @export
-
-mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
-  if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
-  nsets <- sapply(sets, length)
-  rs <- rep(names(sets), times = nsets)
-  rsSets <- unlist(sets, use.names = FALSE)
-  rsSets <- match(rsSets, rsids)
-  inW <- !is.na(rsSets)
-  rsSets <- rsSets[inW]
-  if (!index) rsSets <- rsids[rsSets]
-  rs <- rs[inW]
-  rs <- factor(rs, levels = unique(rs))
-  rsSets <- split(rsSets, f = rs)
-  return(rsSets)
-}
-
-
-#' @export
-#'
-
-
-gseastat <- function(Glist = NULL, stat = NULL, yadj = NULL, impute = TRUE, scale = TRUE, msize = 100, ncores = 1) {
-
-  # Prepase summary stat
-  if (!sum(colnames(stat)[1:3] == c("rsids", "alleles", "af")) == 3) {
-    stop("First three columns in data frame stat should be: rsids, alleles, af ")
-  }
-  rsidsOK <- stat$rsids %in% Glist$rsids
-  if (any(!rsidsOK)) {
-    warning("Some variants not found in genotype files")
-    print(paste("Number of variants missing;", sum(!rsidsOK)))
-    print(paste("Number of variants used;", sum(!rsidsOK)))
-    stat <- stat[rsidsOK, ]
-    stat$rsids <- as.character(stat$rsids)
-    stat$alleles <- as.character(stat$alleles)
-  }
-  S <- stat[, -c(1:3)]
-  if (is.vector(S)) S <- as.matrix(S)
-  S <- apply(S, 2, as.numeric)
-  colnames(S) <- colnames(stat)[-c(1:3)]
-  m <- nrow(S)
-  rsids <- as.character(stat$rsids)
-  if (!is.null(stat$af)) af <- stat$af
-  if (!is.null(stat$af)) af <- rep(0,nrow(S))
-
-  # Prepare input data for mpgrs
-  n <- Glist$n
-  nbytes <- ceiling(n / 4)
-  if(is.vector(yadj)) ids <- names(yadj)
-  if(is.matrix(yadj)) ids <- rownames(yadj)
-  rws <- match(ids, Glist$ids)
-  if (any(is.na(rws))) stop("Some ids in yadj not found in Glist")
-  nr <- length(rws)
-
-  cls <- match(rsids, Glist$rsids)
-  nc <- length(cls)
-
-  if (!is.null(stat$alleles)) direction <- as.integer(stat$alleles == Glist$a2[cls])
-  if (!is.null(stat$alleles)) direction <- rep(1,nrow(S))
-  
-  fnRAW <- as.character(Glist$fnRAW)
-
-  nt <- ncol(S)
-
-  setstat <- .Fortran("gseastat",
-    n = as.integer(n),
-    nr = as.integer(nr),
-    rws = as.integer(rws),
-    nc = as.integer(nc),
-    cls = as.integer(cls),
-    nbytes = as.integer(nbytes),
-    fnRAW = as.character(fnRAW),
-    nt = as.integer(nt),
-    s = matrix(as.double(S), nrow = nc, ncol = nt),
-    yadj = matrix(as.double(yadj), nrow = nr, ncol = nt),
-    setstat = matrix(as.double(0), nrow = nc, ncol = nt),
-    af = as.double(af),
-    impute = as.integer(impute),
-    scale = as.integer(scale),
-    direction = as.integer(direction),
-    ncores = as.integer(ncores),
-    PACKAGE = "qgg"
-  )$setstat
-
-  return(setstat)
-}
-
-
-#' @export
-#'
-
-adjustLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, method = "pruning") {
-  cnames <- colnames(stat)
-  rsidsStat <- rownames(stat)
-  if (statistics == "z-score") stat <- 2 * pnorm(-abs(stat))
-  if (!is.null(Glist)) ldSets <- qgg::getLDSets(Glist = Glist, r2 = r2)
-  if (!is.null(Glist)) ldSets <- qgg::mapLDSets(ldSets = ldSets, rsids = rsidsStat)
-  rm(list = "Glist")
-
-  if (method %in% c("pruning", "clumping")) {
-    for (i in 1:ncol(stat)) {
-      m <- length(rsidsStat)
-      indx1 <- rep(T, m)
-      indx2 <- rep(F, m)
-      for (chr in 1:length(ldSets)) {
-        setsChr <- ldSets[[chr]]
-        rsidsChr <- names(setsChr)
-        rwsChr <- match(rsidsChr, rsidsStat)
-        p <- stat[rwsChr, i]
-        o <- order(p, decreasing = FALSE)
-        for (j in o) {
-          if (p[j] <= threshold) {
-            if (indx1[rwsChr[j]]) {
-              rws <- setsChr[[j]]
-              indx1[rws] <- F
-              indx2[rwsChr[j]] <- T
-            }
-          }
-        }
-        print(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(stat)[i]))
-      }
-      if (method == "clumping") {
-        stat[indx1, i] <- 0
-        p <- stat[, i]
-        stat[p > threshold, i] <- 0
-      }
-      if (method == "pruning") stat[!indx2, i] <- 0
-    }
-  }
-
-  stat <- stat[!rowSums(stat == 0) == ncol(stat), ]
-  if (is.vector(stat)) stat <- matrix(stat, ncol = 1, dimnames = list(names(stat), cnames))
-  return(stat)
 }

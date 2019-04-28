@@ -118,21 +118,20 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     Glist$m <- length(Glist$rsids)
 
     print("Preparing raw file")
-    qgg::writeRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
+    qgg::writeraw(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
 
     print("Computing allele frequencies, missingness")
-    Glist <- qgg::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- qgg::summaryraw(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
 
   if (task == "summary") {
     print("Computing allele frequencies, missingness")
-    Glist <- qgg::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- qgg::summaryraw(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
-
 
   if (task == "sparseld") {
     print("Computing ld")
@@ -141,7 +140,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     if (is.null(fnLD)) Glist$fnLD <- gsub(".bed", ".ld", bedfiles)
     if (is.null(ids)) ids <- Glist$ids
     mclapply(1:length(Glist$fnLD), function(x) {
-      qgg::sparseLD(
+      qgg::sparseld(
         Glist = Glist, fnLD = Glist$fnLD[x], msize = msize, chr = x, rsids = NULL,
         impute = TRUE, scale = TRUE, ids = ids, ncores = 1
       )
@@ -155,7 +154,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
 }
 #' @export
 #'
-writeRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, overwrite = FALSE) {
+writeraw <- function(Glist = NULL, ids = NULL, rsids = NULL, overwrite = FALSE) {
   bed2raw(
     fnRAW = Glist$fnRAW, bedfiles = Glist$bedfiles, bimfiles = Glist$bimfiles,
     famfiles = Glist$famfiles, ids = ids, rsids = rsids, overwrite = overwrite
@@ -207,7 +206,7 @@ bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = N
 
 #' @export
 #'
-summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, ncores = 1) {
+summaryraw <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, ncores = 1) {
   n <- Glist$n
   m <- Glist$m
   nbytes <- ceiling(n / 4)
@@ -242,20 +241,11 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     PACKAGE = "qgg"
   )
 
-
   qc$hom <- (qc$n0 + qc$n2) / (qc$nr - qc$nmiss)
   qc$het <- qc$n1 / (qc$nr - qc$nmiss)
   qc$maf <- qc$af
   qc$maf[qc$maf > 0.5] <- 1 - qc$maf[qc$maf > 0.5]
   rsids <- Glist$rsids[cls]
-  names(qc$af) <- rsids
-  names(qc$maf) <- rsids
-  names(qc$hom) <- rsids
-  names(qc$het) <- rsids
-  names(qc$n0) <- rsids
-  names(qc$n1) <- rsids
-  names(qc$n2) <- rsids
-  names(qc$nmiss) <- rsids
 
   Glist$nmiss <- qc$nmiss
   Glist$af <- qc$af
@@ -372,7 +362,7 @@ getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
 #' @export
 #'
 
-sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL,
+sparseld <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL,
                      impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {
   if (file.exists(fnLD)) stop("LD file allready exists - please specify other file names")
   n <- Glist$n
@@ -442,7 +432,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
 #' @export
 #'
 
-getLDSets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
+getldsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   msize <- Glist$msize
   ldSets <- NULL
   for (chr in 1:Glist$nchr) {
@@ -476,7 +466,7 @@ getLDSets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
 #' @export
 #'
 
-mapLDSets <- function(ldSets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
+mapldsets <- function(ldSets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
   mpsets <- NULL
   if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
   for (chr in 1:length(ldSets)) {
@@ -503,7 +493,7 @@ mapLDSets <- function(ldSets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
 #' @export
 #'
 
-getLD <- function(Glist = NULL, chr = NULL) {
+getld <- function(Glist = NULL, chr = NULL) {
   msize <- Glist$msize
   rsidsChr <- Glist$rsids[Glist$chr == chr]
   if (!is.null(Glist$study_rsids)) rsidsChr <- rsidsChr[rsidsChr %in% Glist$study_rsids]

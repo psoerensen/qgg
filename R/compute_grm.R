@@ -50,7 +50,7 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
                 W = NULL, method = "add", scaled = TRUE, msize = 100, ncores = 1, fnG = NULL,
                 overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm") {
   if (task == "grm") {
-    GRM <- computeGRM(
+    GRM <- qgg::computeGRM(
       Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
       W = W, method = method, scaled = scaled, msize = msize, ncores = ncores,
       fnG = fnG, overwrite = overwrite, returnGRM = returnGRM, miss = miss
@@ -58,7 +58,7 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
     return(GRM)
   }
   if (task == "eigen") {
-    eig <- eigengrm(GRM = GRM, GRMlist = GRMlist, method = "default", ncores = ncores)
+    eig <- qgg::eigengrm(GRM = GRM, GRMlist = GRMlist, method = "default", ncores = ncores)
     return(eig)
   }
 }
@@ -140,7 +140,7 @@ computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     )
     if (!returnGRM) return(GRMlist)
     if (returnGRM) {
-      GRM <- getGRM(GRMlist = GRMlist, ids = GRMlist$idsG)
+      GRM <- qgg::getGRM(GRMlist = GRMlist, ids = GRMlist$idsG)
       return(GRM)
     }
   }

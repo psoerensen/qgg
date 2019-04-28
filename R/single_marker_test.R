@@ -96,11 +96,11 @@
 lma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, fit = NULL,
                 statistic = "mastor", ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
   if (is.null(fit)) {
-    ma <- sma(y = y, X = X, W = W, Glist = Glist, ids = ids, rsids = rsids, msize = msize, scale = scale)
+    ma <- qgg::sma(y = y, X = X, W = W, Glist = Glist, ids = ids, rsids = rsids, msize = msize, scale = scale)
     return(ma)
   }
   if (!is.null(fit)) {
-    ma <- mlma(y = y, X = X, fit = fit, W = W, statistic = statistic)
+    ma <- qgg::mlma(y = y, X = X, fit = fit, W = W, statistic = statistic)
     return(ma)
   }
 }
@@ -187,9 +187,6 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
     if (any(!ids == rownames(W))) stop("Some names of y does not match rownames of W")
     if (!is.null(X)) y <- residuals(lm(y ~ X))
     res <- smlm(y = y, X = X, W = W)
-    # if(is.null(colnames(y))) colnames(y) <- paste("t",1:ncol(y),sep="")
-    # lapply(res, function(x){colnames(x) <- colnames(y)})
-    # lapply(res, function(x){rownames(x) <- colnames(W)})
     if (nt == 1) res <- as.matrix(as.data.frame(res))
   }
   if (!is.null(Glist)) {
@@ -209,9 +206,8 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
     nsets <- length(sets)
     for (i in 1:nsets) {
       cls <- sets[[i]]
-      W <- readbed(Glist = Glist, rws = rws, cls = cls, scale = scale)
-      # W <- W[rws,]
-      res <- smlm(y = y, X = X, W = W)
+      W <- qgg::readbed(Glist = Glist, rws = rws, cls = cls, scale = scale)
+      res <- qgg::smlm(y = y, X = X, W = W)
       s[cls, ] <- res[[1]]
       se[cls, ] <- res[[2]]
       stat[cls, ] <- res[[3]]
@@ -237,7 +233,6 @@ smlm <- function(y = NULL, X = NULL, W = NULL) {
   m <- ncol(W)
   n <- nrow(W)
   Wy <- crossprod(W, y)
-  # wwadj <- matrix((crossprod(W,ones)**2)/colSums(ones),nrow=m,ncol=nt,byrow=TRUE)
   W2 <- W**2
   ww <- crossprod(W2, ones)
   yy <- matrix(colSums((y**2) * ones), nrow = m, ncol = nt, byrow = TRUE)

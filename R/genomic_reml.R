@@ -116,9 +116,8 @@
 
 greml <- function(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL, ids = NULL, validate = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE, interface = "R", fm = NULL, data = NULL) {
   if (interface == "DMU") {
-    fit <- remlDMU(fm = fm, GRM = GRM, data = data)
-    remlDMU(fm = fm, GRM = GRM, restrict = restrict, data = data, validate = validate, bin = bin)
-
+    fit <- qgg::remlDMU(fm = fm, GRM = GRM, data = data)
+    #remlDMU(fm = fm, GRM = GRM, restrict = restrict, data = data, validate = validate, bin = bin)
     return(fit)
   }
 
@@ -126,15 +125,15 @@ greml <- function(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL, 
 
     # if(interface=="R") {
     if (!is.null(GRM)) {
-      if (is.null(validate)) fit <- remlR(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir)
-      if (!is.null(validate)) fit <- cvreml(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, validate = validate, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir, makeplots = makeplots)
+      if (is.null(validate)) fit <- qgg::remlR(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir)
+      if (!is.null(validate)) fit <- qgg::cvreml(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, validate = validate, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir, makeplots = makeplots)
     }
     if (!is.null(bin)) {
-      fit <- remlF(y = y, X = X, GRMlist = GRMlist, G = GRM, ids = ids, theta = theta, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir)
+      fit <- qgg::remlF(y = y, X = X, GRMlist = GRMlist, G = GRM, ids = ids, theta = theta, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir)
     }
     # if(interface=="fortran") {
     if (!is.null(GRMlist)) {
-      fit <- freml(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, ncores = ncores, verbose = verbose)
+      fit <- qgg::freml(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, ncores = ncores, verbose = verbose)
     }
     return(fit)
   }
@@ -147,7 +146,7 @@ greml <- function(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL, 
 remlF <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE) {
   # greml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, ids = NULL, theta = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd()) {
 
-  write.reml(y = as.numeric(y), X = X, G = G)
+  qgg::write.reml(y = as.numeric(y), X = X, G = G)
   n <- length(y)
   nf <- ncol(X)
   if (!is.null(G)) fnamesG <- paste("G", 1:length(G), sep = "")
@@ -168,8 +167,8 @@ remlF <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   write.table(tol, file = "param.txt", quote = FALSE, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE)
   write.table(fnamesG, file = "param.txt", quote = TRUE, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE)
 
-  execute.reml(bin = bin, ncores = ncores)
-  fit <- read.reml(wkdir = wkdir)
+  qgg::execute.reml(bin = bin, ncores = ncores)
+  fit <- qgg::read.reml(wkdir = wkdir)
   fit$y <- y
   fit$X <- X
   fit$ids <- names(y)
@@ -178,7 +177,7 @@ remlF <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   fit$wd <- getwd()
   fit$GRMlist <- GRMlist
 
-  clean.reml(wkdir = wkdir)
+  qgg::clean.reml(wkdir = wkdir)
 
   return(fit)
 }
