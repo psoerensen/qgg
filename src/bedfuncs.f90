@@ -319,7 +319,7 @@
 !==============================================================================================================
 
 !==============================================================================================================
-  subroutine mpgsea(n,nr,rws,nc,cls,nbytes,fnRAW,nprs,s,prs,stat,af,impute,scale,direction,ncores)
+  subroutine statgsea(n,nr,rws,nc,cls,nbytes,fnRAW,nprs,s,prs,setstat,af,impute,scale,direction,ncores)
 !==============================================================================================================
 
   use bedfuncs 
@@ -328,12 +328,12 @@
   
   integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,scale,direction(nc)
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
-  real*8 :: prs(nr,nprs),s(nc,nprs),stat(nc,nprs)
+  real*8 :: prs(nr,nprs),s(nc,nprs),setstat(nc,nprs)
   character(len=1000) :: fnRAW
   integer, external :: omp_get_thread_num
 
   integer*4, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes,nc)
+  integer(byte) :: raw(nbytes)
   integer*4 :: i,j,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -348,23 +348,18 @@
   offset14 = offset
 
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  do i=1,nc
-    i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw(1:nbytes,i)
-  enddo
-
-  close(unit=13)
 
   ntotal=dble(nr)  
 
   call omp_set_num_threads(ncores)
 
-  stat=0.0d0
-  !$omp parallel do private(i,j,gr,gsc,nmiss,n0,n1,n2,thread)
+  setstat=0.0d0
+  !$omp parallel do private(i,j,i14,pos14,raw,gr,gsc,nmiss,n0,n1,n2,thread)
   do i=1,nc
-    thread=omp_get_thread_num()+1
-    gr = raw2real(n,nbytes,raw(1:nbytes,i))
+    i14=cls(i)
+    pos14 = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos14) raw
+    gr = raw2real(n,nbytes,raw(1:nbytes))
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
     if (impute==0) then
@@ -383,14 +378,15 @@
     if(scale==1) gsc=scalew(nr,gsc)
     if ( nmiss==ntotal ) gsc=0.0D0
     do j=1,nprs
-       if (s(i,j)/=0.0d0) stat(i,j) = sum(prs(1:nr,j)*gsc*s(i,j))
+       if (s(i,j)/=0.0d0) setstat(i,j) = sum(prs(1:nr,j)*gsc*s(i,j))
     enddo  
   enddo 
   !$omp end parallel do
+  close(unit=13)
 
   
 
-  end subroutine mpgsea
+  end subroutine statgsea
 !==============================================================================================================
 
   
