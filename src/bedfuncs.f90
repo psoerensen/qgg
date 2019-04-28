@@ -319,16 +319,16 @@
 !==============================================================================================================
 
 !==============================================================================================================
-  subroutine statgsea(n,nr,rws,nc,cls,nbytes,fnRAW,nprs,s,prs,setstat,af,impute,scale,direction,ncores)
+  subroutine gseastat(n,nr,rws,nc,cls,nbytes,fnRAW,nt,s,yadj,setstat,af,impute,scale,direction,ncores)
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,scale,direction(nc)
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc)
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
-  real*8 :: prs(nr,nprs),s(nc,nprs),setstat(nc,nprs)
+  real*8 :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
   character(len=1000) :: fnRAW
   integer, external :: omp_get_thread_num
 
@@ -377,8 +377,8 @@
     if(direction(i)==0) gsc=2.0D0-gsc
     if(scale==1) gsc=scalew(nr,gsc)
     if ( nmiss==ntotal ) gsc=0.0D0
-    do j=1,nprs
-       if (s(i,j)/=0.0d0) setstat(i,j) = sum(prs(1:nr,j)*gsc*s(i,j))
+    do j=1,nt
+       if (s(i,j)/=0.0d0) setstat(i,j) = sum(yadj(1:nr,j)*gsc*s(i,j))
     enddo  
   enddo 
   !$omp end parallel do
@@ -386,7 +386,7 @@
 
   
 
-  end subroutine statgsea
+  end subroutine gseastat
 !==============================================================================================================
 
   

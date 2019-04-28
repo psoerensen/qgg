@@ -118,17 +118,17 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     Glist$m <- length(Glist$rsids)
 
     print("Preparing raw file")
-    writeRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
+    qgg::writeRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
 
     print("Computing allele frequencies, missingness")
-    Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- qgg::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
 
   if (task == "summary") {
     print("Computing allele frequencies, missingness")
-    Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- qgg::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
@@ -141,7 +141,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     if (is.null(fnLD)) Glist$fnLD <- gsub(".bed", ".ld", bedfiles)
     if (is.null(ids)) ids <- Glist$ids
     mclapply(1:length(Glist$fnLD), function(x) {
-      sparseLD(
+      qgg::sparseLD(
         Glist = Glist, fnLD = Glist$fnLD[x], msize = msize, chr = x, rsids = NULL,
         impute = TRUE, scale = TRUE, ids = ids, ncores = 1
       )
@@ -170,7 +170,6 @@ bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = N
     warning(paste("fnRAW file allready exist"))
     if (!overwrite) stop(paste("fnRAW file allready exist"))
   }
-  # bim0 <- NULL
   for (chr in 1:length(bedfiles)) {
     print(paste("Processing bedfile:", bedfiles[chr]))
     bim <- fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
@@ -202,12 +201,7 @@ bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = N
       PACKAGE = "qgg"
     )
     print(paste("Finished processing bedfile:", bedfiles[chr]))
-    # bim0 <- rbind(bim0,bim)
   }
-  # fnBIM <- gsub(".raw",".bim",fnRAW)
-  # fnFAM <- gsub(".raw",".fam",fnRAW)
-  # write.table(bim0, file="fnBIM", col.names=FALSE,row.names=FALSE,quote=FALSE,sep="\t")
-  # write.table(fam, file="fnFAM", col.names=FALSE,row.names=FALSE,quote=FALSE,sep="\t")
 }
 
 
@@ -367,7 +361,7 @@ getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
                  impute = FALSE, scale = FALSE, allele = NULL) {
   if (is.null(ids)) ids <- Glist$ids
   if (is.null(cls)) cls <- match(rsids, Glist$rsids)
-  W <- readbed(
+  W <- qgg::readbed(
     Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
     impute = impute, scale = scale, allele = allele
   )
@@ -479,7 +473,6 @@ getLDSets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
 
 
 
-
 #' @export
 #'
 
@@ -525,46 +518,4 @@ getLD <- function(Glist = NULL, chr = NULL) {
   rownames(ld) <- rsidsChr
   colnames(ld) <- c(-(msize:1), 0, 1:msize)
   return(ld)
-}
-
-
-adjustLD <- function(stat = NULL, statistics = "p-value", ldSets = NULL, threshold = 1, method = "pruning") {
-  cnames <- colnames(stat)
-  rsidsStat <- rownames(stat)
-  if (statistics == "z-score") stat <- 2 * pnorm(-abs(stat))
-
-  if (method %in% c("pruning", "clumping")) {
-    for (i in 1:ncol(stat)) {
-      m <- length(rsidsStat)
-      indx1 <- rep(T, m)
-      indx2 <- rep(F, m)
-      for (chr in 1:length(ldSets)) {
-        setsChr <- ldSets[[chr]]
-        rsidsChr <- names(setsChr)
-        rwsChr <- match(rsidsChr, rsidsStat)
-        p <- stat[rwsChr, i]
-        o <- order(p, decreasing = FALSE)
-        for (j in o) {
-          if (p[j] <= threshold) {
-            if (indx1[rwsChr[j]]) {
-              rws <- setsChr[[j]]
-              indx1[rws] <- F
-              indx2[rwsChr[j]] <- T
-            }
-          }
-        }
-        print(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(stat)[i]))
-      }
-      if (method == "clumping") {
-        stat[indx1, i] <- 0
-        p <- stat[, i]
-        stat[p > threshold, i] <- 0
-      }
-      if (method == "pruning") stat[!indx2, i] <- 0
-    }
-  }
-
-  stat <- stat[!rowSums(stat == 0) == ncol(stat), ]
-  if (is.vector(stat)) stat <- matrix(stat, ncol = 1, dimnames = list(names(stat), cnames))
-  return(stat)
 }

@@ -321,7 +321,7 @@ mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
 #'
 
 
-mpgsea <- function(Glist = NULL, stat = NULL, ids = NULL, impute = TRUE, scale = TRUE, msize = 100, ncores = 1) {
+gseastat <- function(Glist = NULL, stat = NULL, yadj = NULL, impute = TRUE, scale = TRUE, msize = 100, ncores = 1) {
 
   # Prepase summary stat
   if (!sum(colnames(stat)[1:3] == c("rsids", "alleles", "af")) == 3) {
@@ -340,56 +340,97 @@ mpgsea <- function(Glist = NULL, stat = NULL, ids = NULL, impute = TRUE, scale =
   if (is.vector(S)) S <- as.matrix(S)
   S <- apply(S, 2, as.numeric)
   colnames(S) <- colnames(stat)[-c(1:3)]
+  m <- nrow(S)
   rsids <- as.character(stat$rsids)
-  af <- stat$af
+  if (!is.null(stat$af)) af <- stat$af
+  if (!is.null(stat$af)) af <- rep(0,nrow(S))
 
   # Prepare input data for mpgrs
   n <- Glist$n
   nbytes <- ceiling(n / 4)
-  rws <- 1:n
-  if (!is.null(ids)) rws <- match(ids, Glist$ids)
+  if(is.vector(yadj)) ids <- names(yadj)
+  if(is.matrix(yadj)) ids <- rownames(yadj)
+  rws <- match(ids, Glist$ids)
+  if (any(is.na(rws))) stop("Some ids in yadj not found in Glist")
   nr <- length(rws)
 
   cls <- match(rsids, Glist$rsids)
   nc <- length(cls)
 
-  direction <- as.integer(stat$alleles == Glist$a2[cls])
-  # S[direction==0,] <- -S[direction==0,]
-
+  if (!is.null(stat$alleles)) direction <- as.integer(stat$alleles == Glist$a2[cls])
+  if (!is.null(stat$alleles)) direction <- rep(1,nrow(S))
+  
   fnRAW <- as.character(Glist$fnRAW)
 
-  nprs <- ncol(S)
-  prs <- matrix(0, nrow = nr, ncol = nprs)
-  rownames(prs) <- Glist$ids[rws]
-  colnames(prs) <- colnames(S)
+  nt <- ncol(S)
 
-  m <- nrow(S)
-  sets <- split(1:m, ceiling(seq_along(1:m) / msize))
-  nsets <- length(sets)
+  setstat <- .Fortran("gseastat",
+    n = as.integer(n),
+    nr = as.integer(nr),
+    rws = as.integer(rws),
+    nc = as.integer(nc),
+    cls = as.integer(cls),
+    nbytes = as.integer(nbytes),
+    fnRAW = as.character(fnRAW),
+    nt = as.integer(nt),
+    s = matrix(as.double(S), nrow = nc, ncol = nt),
+    yadj = matrix(as.double(yadj), nrow = nr, ncol = nt),
+    setstat = matrix(as.double(0), nrow = nc, ncol = nt),
+    af = as.double(af),
+    impute = as.integer(impute),
+    scale = as.integer(scale),
+    direction = as.integer(direction),
+    ncores = as.integer(ncores),
+    PACKAGE = "qgg"
+  )$setstat
 
-  for (i in 1:nsets) {
-    nc <- length(sets[[i]])
-    gseaSet <- .Fortran("mpgsea",
-      n = as.integer(n),
-      nr = as.integer(nr),
-      rws = as.integer(rws),
-      nc = as.integer(nc),
-      cls = as.integer(cls[ sets[[i]] ]),
-      nbytes = as.integer(nbytes),
-      fnRAW = as.character(fnRAW),
-      nprs = as.integer(nprs),
-      s = matrix(as.double(S[ sets[[i]], ]), nrow = nc, ncol = nprs),
-      prs = matrix(as.double(0), nrow = nr, ncol = nprs),
-      stat = matrix(as.double(0), nrow = nc, ncol = nprs),
-      af = as.double(af[ sets[[i]] ]),
-      impute = as.integer(impute),
-      scale = as.integer(scale),
-      direction = as.integer(direction[ sets[[i]] ]),
-      ncores = as.integer(ncores),
-      PACKAGE = "qgg"
-    )$prs
+  return(setstat)
+}
 
-    prs <- prs + prsSet
+
+#' @export
+#'
+
+adjustLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, method = "pruning") {
+  cnames <- colnames(stat)
+  rsidsStat <- rownames(stat)
+  if (statistics == "z-score") stat <- 2 * pnorm(-abs(stat))
+  if (!is.null(Glist)) ldSets <- qgg::getLDSets(Glist = Glist, r2 = r2)
+  if (!is.null(Glist)) ldSets <- qgg::mapLDSets(ldSets = ldSets, rsids = rsidsStat)
+  rm(list = "Glist")
+
+  if (method %in% c("pruning", "clumping")) {
+    for (i in 1:ncol(stat)) {
+      m <- length(rsidsStat)
+      indx1 <- rep(T, m)
+      indx2 <- rep(F, m)
+      for (chr in 1:length(ldSets)) {
+        setsChr <- ldSets[[chr]]
+        rsidsChr <- names(setsChr)
+        rwsChr <- match(rsidsChr, rsidsStat)
+        p <- stat[rwsChr, i]
+        o <- order(p, decreasing = FALSE)
+        for (j in o) {
+          if (p[j] <= threshold) {
+            if (indx1[rwsChr[j]]) {
+              rws <- setsChr[[j]]
+              indx1[rws] <- F
+              indx2[rwsChr[j]] <- T
+            }
+          }
+        }
+        print(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(stat)[i]))
+      }
+      if (method == "clumping") {
+        stat[indx1, i] <- 0
+        p <- stat[, i]
+        stat[p > threshold, i] <- 0
+      }
+      if (method == "pruning") stat[!indx2, i] <- 0
+    }
   }
-  return(prs)
+
+  stat <- stat[!rowSums(stat == 0) == ncol(stat), ]
+  if (is.vector(stat)) stat <- matrix(stat, ncol = 1, dimnames = list(names(stat), cnames))
+  return(stat)
 }
