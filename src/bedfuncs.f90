@@ -405,7 +405,7 @@
 
   integer, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
-  integer :: i,stat,nchar,offset
+  integer :: i,stat,nchar
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos14, nbytes14, offset14, i14
@@ -419,6 +419,7 @@
   if(nchar>0) offset14=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
 
+  offset14 = 0
   nbytes14 = nbytes
 
   af=0.0D0
