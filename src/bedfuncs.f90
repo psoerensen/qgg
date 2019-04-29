@@ -421,7 +421,7 @@
   !nchar=index(fnRAW, '.raw')
   !if(nchar>0) offset = 0
   !if(nchar==0) nchar=index(fnRAW, '.bed')
-  print*,offset,nchar,trim(fnRAW)
+  print*,offset,nchar,trim(fnRAW),len_trim(fnRAW)
 
   offset14 = offset
   nbytes14 = nbytes
