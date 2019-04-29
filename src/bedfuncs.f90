@@ -414,12 +414,13 @@
 
   call omp_set_num_threads(ncores)
 
-  offset = 0
-  nchar=index(trim(fnRAW), '.bed')
-  print*,offset,nchar,trim(fnRAW)
-  if(nchar>0) offset = 3
-  print*,offset,nchar,trim(fnRAW)
-  if(nchar==0) nchar=index(trim(fnRAW), '.raw')
+  offset = 3
+  !nchar=index(fnRAW, '.bed')
+  !if(nchar>0) offset = 3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+  nchar=index(fnRAW, '.raw')
+  if(nchar>0) offset = 0
+  if(nchar==0) nchar=index(fnRAW, '.bed')
   print*,offset,nchar,trim(fnRAW)
 
   offset14 = offset
