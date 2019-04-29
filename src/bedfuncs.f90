@@ -405,7 +405,7 @@
 
   integer, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
-  integer*4 :: i,stat,nchar,offset,len
+  integer*4 :: i,stat,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos14, nbytes14, offset14, i14
@@ -415,10 +415,12 @@
   call omp_set_num_threads(ncores)
 
   offset = 0
-  len = len_trim(fnRAW)
-  nchar=index(fnRAW(1:len), '.bed')
+  nchar=index(trim(fnRAW), '.bed')
+  print*,offset,nchar,trim(fnRAW)
   if(nchar>0) offset = 3
+  print*,offset,nchar,trim(fnRAW)
   if(nchar==0) nchar=index(trim(fnRAW), '.raw')
+  print*,offset,nchar,trim(fnRAW)
 
   offset14 = offset
   nbytes14 = nbytes
