@@ -415,7 +415,7 @@
   call omp_set_num_threads(ncores)
 
   offset = 0
-  nchar=index(trim(fnRAW), '.bed')
+  nchar=index(adjustr(fnRAW), '.bed')
   if(nchar>0) offset = 3
   if(nchar==0) nchar=index(trim(fnRAW), '.raw')
 
