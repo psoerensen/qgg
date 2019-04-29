@@ -450,7 +450,7 @@
       thread=omp_get_thread_num()+1
       i14=cls(i)
       pos14 = 1 + offset14 + (i14-1)*nbytes14
-      print*,pos14,i
+      print*,pos14,i,i14
       read(13, pos=pos14) raw
       g = raw2int(n,nbytes,raw)
       grws = g(rws)
