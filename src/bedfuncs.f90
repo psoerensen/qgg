@@ -399,7 +399,7 @@
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores 
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,thread 
   real*8 :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
   character(len=1000) :: fnRAW
 
@@ -413,7 +413,7 @@
   integer, external :: omp_get_thread_num
 
   call omp_set_num_threads(ncores)
-  
+
   offset=0
   nchar=index(fnRAW, '.bed')
   if(nchar>0) offset=3
@@ -445,8 +445,9 @@
   ! process parallel
   if (ncores>1) then
     open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-    !$omp parallel do private(i,i14,pos14,raw,g,grws)
+    !$omp parallel do private(i,i14,pos14,raw,g,grws,thread)
     do i=1,nc 
+      thread=omp_get_thread_num()+1
       i14=cls(i)
       pos14 = 1 + offset14 + (i14-1)*nbytes14
       read(13, pos=pos14) raw
