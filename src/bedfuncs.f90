@@ -416,13 +416,12 @@
 
   offset=0
   nchar=index(fnRAW, '.bed')
-  print*,nchar,offset 
   if(nchar>0) offset=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
-  print*,nchar,offset 
 
   nbytes14 = nbytes
   offset14 = offset
+  offset14 = 0
 
   af=0.0D0
   nmiss=0.0D0
@@ -452,7 +451,6 @@
       thread=omp_get_thread_num()+1
       i14=cls(i)
       pos14 = 1 + offset14 + (i14-1)*nbytes14
-      print*,pos14,i,i14
       read(13, pos=pos14) raw
       g = raw2int(n,nbytes,raw)
       grws = g(rws)
