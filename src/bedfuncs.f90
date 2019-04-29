@@ -416,15 +416,11 @@
 
   offset = 0
   nchar=index(fnRAW, '.bed')
-  print*,offset14,offset,nchar,fnRAW
   if(nchar>0) offset = 3
-  print*,offset14,offset,nchar
   if(nchar==0) nchar=index(fnRAW, '.raw')
-  print*,offset14,offset,nchar
 
   offset14 = offset
   nbytes14 = nbytes
-
 
   af=0.0D0
   nmiss=0.0D0
