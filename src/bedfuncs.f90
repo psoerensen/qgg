@@ -418,10 +418,6 @@
   nchar=index(adjustr(trim(fnRAW)), '.bed')
   if(nchar>0) offset = 3
   if(nchar==0) nchar=index(adjustl(trim(fnRAW)), '.raw')
-  !nchar=index(fnRAW, '.raw')
-  !if(nchar>0) offset = 0
-  !if(nchar==0) nchar=index(fnRAW, '.bed')
-  print*,offset,nchar,trim(fnRAW),len_trim(fnRAW)
 
   offset14 = offset
   nbytes14 = nbytes
