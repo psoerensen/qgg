@@ -404,7 +404,7 @@
   character(len=1000) :: fnRAW
 
   integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)!, raw(nbytes)
+  integer(byte) :: raw(nbytes)
   integer :: i,stat,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
