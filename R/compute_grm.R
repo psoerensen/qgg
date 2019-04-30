@@ -63,8 +63,7 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
   }
 }
 
-#' @export
-#'
+
 
 computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, W = NULL, method = "add", scaled = TRUE, msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE, returnGRM = FALSE, miss = 0) {
   if (method == "add") gmodel <- 1
@@ -206,9 +205,6 @@ mergeGRM <- function(GRMlist = NULL) {
 }
 
 
-
-#' @export
-#'
 
 
 eigengrm <- function(GRM = NULL, GRMlist = NULL, method = "default", ncores = 1) {

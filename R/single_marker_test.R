@@ -139,8 +139,6 @@ mlma <- function(y = NULL, X = NULL, fit = NULL, W = NULL, m = NULL, statistic =
   return(as.matrix(mma))
 }
 
-#' @export
-
 plotma <- function(ma = NULL, chr = NULL, rsids = NULL, thresh = 5) {
   mlogObs <- -log10(ma$p)
   m <- length(mlogObs)
@@ -175,8 +173,6 @@ plotma <- function(ma = NULL, chr = NULL, rsids = NULL, thresh = 5) {
   abline(h = thresh, col = 2, lty = 2)
 }
 
-
-#' @export
 
 sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = NULL,
                 msize = 100, scale = TRUE) {
@@ -221,8 +217,6 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
   return(res)
 }
 
-
-#' @export
 
 smlm <- function(y = NULL, X = NULL, W = NULL) {
   if (is.vector(y)) y <- matrix(y, ncol = 1)

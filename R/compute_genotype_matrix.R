@@ -152,16 +152,15 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
 
   return(Glist)
 }
-#' @export
-#'
+
+
 writeraw <- function(Glist = NULL, ids = NULL, rsids = NULL, overwrite = FALSE) {
   bed2raw(
     fnRAW = Glist$fnRAW, bedfiles = Glist$bedfiles, bimfiles = Glist$bimfiles,
     famfiles = Glist$famfiles, ids = ids, rsids = rsids, overwrite = overwrite
   )
 }
-#' @export
-#'
+
 
 bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL,
                     ids = NULL, rsids = NULL, overwrite = FALSE) {
@@ -206,8 +205,6 @@ bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = N
 }
 
 
-#' @export
-#'
 summaryraw <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, ncores = 1) {
   n <- Glist$n
   m <- Glist$m
@@ -437,7 +434,7 @@ sparseld <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
 #' @export
 #'
 
-getldsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
+getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   msize <- Glist$msize
   ldSets <- NULL
   for (chr in 1:Glist$nchr) {
@@ -471,7 +468,7 @@ getldsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
 #' @export
 #'
 
-mapldsets <- function(ldSets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
+mapLDsets <- function(ldSets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
   mpsets <- NULL
   if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
   for (chr in 1:length(ldSets)) {
@@ -498,7 +495,7 @@ mapldsets <- function(ldSets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
 #' @export
 #'
 
-getld <- function(Glist = NULL, chr = NULL) {
+getLD <- function(Glist = NULL, chr = NULL) {
   msize <- Glist$msize
   rsidsChr <- Glist$rsids[Glist$chr == chr]
   if (!is.null(Glist$study_rsids)) rsidsChr <- rsidsChr[rsidsChr %in% Glist$study_rsids]

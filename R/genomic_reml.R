@@ -115,162 +115,24 @@
 #'
 
 greml <- function(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL, ids = NULL, validate = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE, interface = "R", fm = NULL, data = NULL) {
-  if (interface == "DMU") {
-    fit <- qgg::remlDMU(fm = fm, GRM = GRM, data = data)
-    #remlDMU(fm = fm, GRM = GRM, restrict = restrict, data = data, validate = validate, bin = bin)
-    return(fit)
+  if (!is.null(GRM)) {
+    if (is.null(validate)) fit <- qgg::remlr(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir)
+    if (!is.null(validate)) fit <- qgg::cvreml(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, validate = validate, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir, makeplots = makeplots)
   }
-
-  if (!interface == "DMU") {
-
-    # if(interface=="R") {
-    if (!is.null(GRM)) {
-      if (is.null(validate)) fit <- qgg::remlR(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir)
-      if (!is.null(validate)) fit <- qgg::cvreml(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, validate = validate, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir, makeplots = makeplots)
-    }
-    if (!is.null(bin)) {
-      fit <- qgg::remlF(y = y, X = X, GRMlist = GRMlist, G = GRM, ids = ids, theta = theta, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir)
-    }
-    # if(interface=="fortran") {
-    if (!is.null(GRMlist)) {
-      fit <- qgg::freml(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, ncores = ncores, verbose = verbose)
-    }
-    return(fit)
+  if (!is.null(GRMlist)) {
+    fit <- qgg::remlf(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, ncores = ncores, verbose = verbose)
   }
-}
-
-
-####################################################################################################################
-# REML interface functions for fortran executable
-
-remlF <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE) {
-  # greml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, ids = NULL, theta = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd()) {
-
-  qgg::write.reml(y = as.numeric(y), X = X, G = G)
-  n <- length(y)
-  nf <- ncol(X)
-  if (!is.null(G)) fnamesG <- paste("G", 1:length(G), sep = "")
-  if (!is.null(GRMlist$fnG)) fnamesG <- GRMlist$fnG
-  nr <- length(fnamesG) + 1
-  if (is.null(ids)) {
-    indxG <- c(n, 1:n)
-  }
-  if (!is.null(ids)) {
-    indxG <- c(GRMlist$n, match(ids, GRMlist$idsG))
-  }
-  write.table(indxG, file = "indxg.txt", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
-
-  write.table(paste(n, nf, nr, maxit, ncores), file = "param.txt", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
-  if (is.null(theta)) theta <- rep(sd(y) / nr, nr)
-  # if (is.null(theta)) theta <- rep(var(y) / nr, nr)
-  write.table(t(theta), file = "param.txt", quote = FALSE, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE)
-  write.table(tol, file = "param.txt", quote = FALSE, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE)
-  write.table(fnamesG, file = "param.txt", quote = TRUE, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE)
-
-  qgg::execute.reml(bin = bin, ncores = ncores)
-  fit <- qgg::read.reml(wkdir = wkdir)
-  fit$y <- y
-  fit$X <- X
-  fit$ids <- names(y)
-  fit$yVy <- sum(y * fit$Vy)
-  fit$fnamesG <- fnamesG
-  fit$wd <- getwd()
-  fit$GRMlist <- GRMlist
-
-  qgg::clean.reml(wkdir = wkdir)
-
   return(fit)
 }
 
 
-write.reml <- function(y = NULL, X = NULL, G = NULL) {
-  fileout <- file("y", "wb")
-  writeBin(y, fileout)
-  close(fileout)
-
-  filename <- "X"
-  fileout <- file(filename, "wb")
-  for (i in 1:nrow(X)) {
-    writeBin(X[i, ], fileout)
-  }
-  close(fileout)
-
-  if (!is.null(G)) {
-    for (i in 1:length(G)) {
-      fileout <- file(paste("G", i, sep = ""), "wb")
-      nr <- nrow(G[[i]])
-      for (j in 1:nr) {
-        writeBin(as.double(G[[i]][1:nr, j]), fileout, size = 8, endian = "little")
-      }
-      close(fileout)
-    }
-  }
-}
-
-execute.reml <- function(bin = NULL, ncores = ncores) {
-  HW <- Sys.info()["machine"]
-  OS <- .Platform$OS.type
-  if (OS == "windows") {
-    "my.system" <- function(cmd) {
-      return(system(paste(Sys.getenv("COMSPEC"), "/c", cmd)))
-    }
-
-    # my.system(paste("set MKL_NUM_THREADS = ", ncores))
-    test <- my.system(paste(shQuote(bin), " < param.txt > reml.lst", sep = ""))
-  }
-  if (!OS == "windows") {
-    system(paste("cp ", bin, " reml.exe", sep = ""))
-    # system(paste("export MKL_NUM_THREADS=", ncores))
-    system("time ./reml.exe < param.txt > reml.lst")
-  }
-}
-
-read.reml <- function(wkdir = NULL) {
-  llik <- read.table(file = "llik.qgg", header = FALSE, colClasses = "numeric")
-  names(llik) <- "logLikelihood"
-  theta <- read.table(file = "theta.qgg", header = FALSE, colClasses = "numeric")
-  colnames(theta) <- "Estimate"
-  rownames(theta) <- 1:nrow(theta)
-  asd <- read.table(file = "thetaASD.qgg", header = FALSE, colClasses = "numeric")
-  colnames(asd) <- rownames(asd) <- 1:ncol(asd)
-  b <- read.table(file = "beta.qgg", header = FALSE, colClasses = "numeric")
-  colnames(b) <- "Estimate"
-  rownames(b) <- 1:nrow(b)
-  varb <- read.table(file = "betaASD.qgg", header = FALSE, colClasses = "numeric")
-  colnames(varb) <- rownames(varb) <- 1:nrow(b)
-  u <- read.table(file = "uhat.qgg", header = FALSE, colClasses = "numeric")
-  colnames(u) <- 1:(nrow(theta) - 1)
-  e <- read.table(file = "residuals.qgg", header = FALSE, colClasses = "numeric")
-  colnames(e) <- "residuals"
-  rownames(e) <- rownames(u) <- 1:nrow(u)
-  Vy <- read.table(file = "Vy.qgg", header = FALSE, colClasses = "numeric")
-  rownames(Vy) <- 1:nrow(u)
-  Py <- read.table(file = "Py.qgg", header = FALSE, colClasses = "numeric")
-  rownames(Py) <- 1:nrow(u)
-  trPG <- as.vector(unlist(read.table(file = "trPG.qgg", header = FALSE, colClasses = "numeric")[, 1]))
-  names(trPG) <- 1:nrow(theta)
-  trVG <- as.vector(unlist(read.table(file = "trVG.qgg", header = FALSE, colClasses = "numeric")[, 1]))
-  names(trVG) <- 1:nrow(theta)
-  fit <- list(llik = llik, theta = theta, asd = asd, b = b, varb = varb, g = u, e = e, Vy = Vy, Py = Py, trPG = trPG, trVG = trVG)
-  fit <- lapply(fit, as.matrix)
-
-  return(fit)
-}
-
-clean.reml <- function(wkdir = NULL) {
-  fnames <- c(
-    "llik.qgg", "theta.qgg", "thetaASD.qgg", "beta.qgg", "betaASD.qgg",
-    "uhat.qgg", "residuals.qgg", "Vy.qgg", "Py.qgg", "trPG.qgg", "trVG.qgg"
-  )
-  file.remove(fnames)
-}
 
 
 
 ####################################################################################################################
 # REML R functions
 
-remlR <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE) {
+remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE) {
   np <- length(G) + 1
   if (is.null(theta)) theta <- rep(sd(y) / np**2, np)
   n <- length(y)
@@ -376,7 +238,7 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
   for (i in 1:nv) {
     v <- validate[[i]]
     t <- (1:n)[-v]
-    fit <- remlR(y = y[t], X = X[t, ], G = lapply(G, function(x) {
+    fit <- remlr(y = y[t], X = X[t, ], G = lapply(G, function(x) {
       x[t, t]
     }), verbose = verbose)
     theta <- rbind(theta, as.vector(fit$theta))
@@ -386,12 +248,12 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
       ypred <- ypred + G[[j]][v, t] %*% fit$Py * fit$theta[j]
     }
     yobs <- y[v]
-    if (!is.atomic(validate)) res <- rbind(res, acc(yobs = yobs, ypred = ypred, typeoftrait = typeoftrait))
+    if (!is.atomic(validate)) res <- rbind(res, qgg::acc(yobs = yobs, ypred = ypred, typeoftrait = typeoftrait))
     yo <- c(yo, yobs)
     yp <- c(yp, ypred)
   }
 
-  if (is.atomic(validate)) res <- matrix(acc(yobs = yo, ypred = yp, typeoftrait = typeoftrait), nrow = 1)
+  if (is.atomic(validate)) res <- matrix(qgg::acc(yobs = yo, ypred = yp, typeoftrait = typeoftrait), nrow = 1)
   # if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp,typeoftrait=typeoftrait),nrow=1)
   res <- as.data.frame(res)
   names(res) <- c("Corr", "R2", "Nagel R2", "AUC", "intercept", "slope", "MSPE")
@@ -414,11 +276,10 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
 ####################################################################################################################
 # REML interface functions for fortran linked library
 
-#' @export
-#'
 
-freml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, ncores = 1, verbose = FALSE) {
-  if (!is.null(G)) writeG(G = G)
+
+remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, ncores = 1, verbose = FALSE) {
+  if (!is.null(G)) qgg::writeG(G = G)
 
   ids <- names(y)
 
@@ -479,8 +340,6 @@ freml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   return(fit)
 }
 
-#' @export
-#'
 
 
 writeG <- function(G = NULL) {
@@ -513,7 +372,7 @@ gblup <- function(GRMlist = NULL, G = NULL, fit = NULL, g = NULL, ids = NULL, id
   if (sum(!idsRWS %in% GRMlist$idsG) > 0) stop("Error some ids not found in idsG")
   for (i in 1:nr) {
     GRMlist$fnG <- fnG[i]
-    G <- getGRM(GRMlist = GRMlist, idsCLS = idsCLS, idsRWS = idsRWS)
+    G <- qgg::getGRM(GRMlist = GRMlist, idsCLS = idsCLS, idsRWS = idsRWS)
     g <- cbind(g, G %*% Py[idsCLS] * fit$theta[i])
   }
   colnames(g) <- paste("G", 1:nr, sep = "")

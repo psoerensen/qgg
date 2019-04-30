@@ -123,7 +123,6 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, fit = NULL, threshold =
 }
 
 
-#' @export
 
 gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum") {
   m <- length(stat)
@@ -149,7 +148,6 @@ gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum
 }
 
 
-#' @export
 
 mapsets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
   if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
@@ -167,8 +165,6 @@ mapsets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
 }
 
 
-#' @export
-#'
 
 gstat <- function(Glist = NULL, stat = NULL, yadj = NULL, impute = TRUE, scale = TRUE, msize = 100, ncores = 1) {
 
@@ -241,12 +237,12 @@ gstat <- function(Glist = NULL, stat = NULL, yadj = NULL, impute = TRUE, scale =
 #' @export
 #'
 
-adjld <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, method = "pruning") {
+adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, method = "pruning") {
   cnames <- colnames(stat)
   rsidsStat <- rownames(stat)
   if (statistics == "z-score") stat <- 2 * pnorm(-abs(stat))
-  if (!is.null(Glist)) ldSets <- qgg::getldsets(Glist = Glist, r2 = r2)
-  if (!is.null(Glist)) ldSets <- qgg::mapldsets(ldSets = ldSets, rsids = rsidsStat)
+  if (!is.null(Glist)) ldSets <- qgg::getLDsets(Glist = Glist, r2 = r2)
+  if (!is.null(Glist)) ldSets <- qgg::mapLDsets(ldSets = ldSets, rsids = rsidsStat)
   rm(list = "Glist")
 
   if (method %in% c("pruning", "clumping")) {
@@ -321,7 +317,6 @@ gsett <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "su
   return(setT)
 }
 
-#' @export
 
 setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
   if (method == "sum") setT <- sumTest(stat = stat, sets = sets, nperm = nperm)
@@ -394,7 +389,6 @@ msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 }
 
 
-#' @export
 
 cvat <- function(fit = NULL, s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 100) {
   if (!is.null(fit)) {
@@ -417,8 +411,6 @@ scoreTest <- function(e = NULL, W = NULL, sets = NULL, nperm = 100) {
   return(setT)
 }
 
-
-#' @export
 
 hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
   N <- length(p)

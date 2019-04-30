@@ -106,8 +106,6 @@ reorder_cormat <- function(cormat) {
   cormat
 }
 
-#' @export
-#'
 
 hmmat <- function(df = NULL, xlab = "Cols", ylab = "Rows", title = NULL, fname = NULL) {
   rowOrder <- order(rowSums(df))
@@ -129,8 +127,7 @@ hmmat <- function(df = NULL, xlab = "Cols", ylab = "Rows", title = NULL, fname =
   dev.off()
 }
 
-#' @export
-#'
+
 
 hmcor <- function(df = NULL, fname = NULL) {
   cormat <- round(cor(df), 2)
