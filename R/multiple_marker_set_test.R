@@ -221,6 +221,7 @@ gstat <- function(Glist = NULL, stat = NULL, yadj = NULL, impute = TRUE, scale =
     cls = as.integer(cls),
     nbytes = as.integer(nbytes),
     fnRAW = as.character(fnRAW),
+    nchars = nchar(as.character(fnRAW)),
     nt = as.integer(nt),
     s = matrix(as.double(S), nrow = nc, ncol = nt),
     yadj = matrix(as.double(yadj), nrow = nr, ncol = nt),

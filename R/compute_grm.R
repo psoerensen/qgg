@@ -131,6 +131,7 @@ computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
       scale = as.integer(scaled),
       nbytes = as.integer(nbytes),
       fnRAW = as.character(fnRAW),
+      nchars = nchar(as.character(fnRAW)),
       msize = as.integer(msize),
       ncores = as.integer(ncores),
       fnG = as.character(fnG),

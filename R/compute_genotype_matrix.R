@@ -237,6 +237,7 @@ summaryraw <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     n2 = as.double(n2),
     nbytes = as.integer(nbytes),
     fnRAW = as.character(fnRAW),
+    nchars = nchar(as.character(fnRAW)),
     ncores = as.integer(ncores),
     PACKAGE = "qgg"
   )
@@ -337,6 +338,7 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
     W = matrix(as.double(0), nrow = nr, ncol = nc),
     nbytes = as.integer(nbytes),
     fnRAW = as.character(fnRAW),
+    nchars = nchar(as.character(fnRAW)),
     PACKAGE = "qgg"
   )$W
   rownames(W) <- ids
@@ -400,6 +402,7 @@ sparseld <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
       W = matrix(as.double(0), nrow = nr, ncol = nc),
       nbytes = as.integer(nbytes),
       fnRAW = as.character(fnRAW),
+      nchars = nchar(as.character(fnRAW)),
       PACKAGE = "qgg"
     )$W
     LD <- t(crossprod(cbind(W1, W2, W3), W2))

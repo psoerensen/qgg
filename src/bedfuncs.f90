@@ -167,16 +167,16 @@
 
 
 !==============================================================================================================
-  subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAW)
+  subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAW,nchars)
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc) 
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
   real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
-  character(len=1000) :: fnRAW
+  character(len=nchars) :: fnRAW
 
   integer*4, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes,nc)
@@ -239,17 +239,17 @@
 
 
 !==============================================================================================================
-  subroutine mpgrs(n,nr,rws,nc,cls,nbytes,fnRAW,nprs,s,prs,af,impute,direction,ncores)
+  subroutine mpgrs(n,nr,rws,nc,cls,nbytes,fnRAW,nchars,nprs,s,prs,af,impute,direction,ncores)
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc)
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc),nchars
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
   real*8 :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
-  character(len=1000) :: fnRAW
+  character(len=nchars) :: fnRAW
   integer, external :: omp_get_thread_num
 
 
@@ -319,17 +319,17 @@
 !==============================================================================================================
 
 !==============================================================================================================
-  subroutine gstat(n,nr,rws,nc,cls,nbytes,fnRAW,nt,s,yadj,setstat,af,impute,scale,direction,ncores)
+  subroutine gstat(n,nr,rws,nc,cls,nbytes,fnRAW,nchars,nt,s,yadj,setstat,af,impute,scale,direction,ncores)
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc)
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc),nchars
   real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
   real*8 :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
-  character(len=1000) :: fnRAW
+  character(len=nchars) :: fnRAW
   integer, external :: omp_get_thread_num
 
   integer*4, parameter :: byte = selected_int_kind(1) 
@@ -392,16 +392,16 @@
   
 
 !==============================================================================================================
-  subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,ncores)
+  subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,nchars,ncores)
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,thread 
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,thread,nchars 
   real*8 :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
-  character(len=1000) :: fnRAW
+  character(len=nchars) :: fnRAW
 
   integer, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
@@ -414,13 +414,13 @@
 
   call omp_set_num_threads(ncores)
 
-  offset = 3
-  nchar=index(adjustr(trim(fnRAW)), '.raw')
-  if(nchar>0) offset = 0
-  !if(nchar==0) nchar=index(adjustl(trim(fnRAW)), '.raw')
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
 
-  offset14 = offset
   nbytes14 = nbytes
+  offset14 = offset
 
   af=0.0D0
   nmiss=0.0D0
@@ -467,16 +467,17 @@
 !==============================================================================================================
 
 !==============================================================================================================
-  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,fnRAW,msize,ncores,fnG,gmodel)
+  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,fnRAW,nchars,msize,ncores,fnG,gmodel)
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc) 
+  integer*4 :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc),nchars 
   real*8 :: G(nr,nr), W1(nr,msize), traceG
-  character(len=1000) :: fnRAW,fnG
+  character(len=nchars) :: fnRAW
+  character(len=1000) :: fnG
   real*8, allocatable :: W2(:,:)
 
   call omp_set_num_threads(ncores)
@@ -499,24 +500,24 @@
     select case (gmodel)
 
       case (1) ! additive 
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW,nchars)
       call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
 
       case (2) ! dominance
       scale=2
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW,nchars)
       call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
 
       case (3) ! epistasis
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW)
-      call readbed(n,nr,rws,ncw,cls2(i:(i+ncw-1)),impute,scale,direction,W2(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW,nchars)
+      call readbed(n,nr,rws,ncw,cls2(i:(i+ncw-1)),impute,scale,direction,W2(:,1:ncw),nbytes,fnRAW,nchars)
       do j=1,ncw
         W1(:,j) = W1(:,j)*W2(:,j)
       enddo
       call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
 
       case (4) ! epistasis hadamard 
-      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW)
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW,nchars)
       call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
 
     end select
@@ -649,7 +650,7 @@
 
 
 !==============================================================================================================
-  subroutine mmbed(n,nr,rws,nc,cls,impute,scale,nbytes,fnRAW,msize,ncores,nprs,s,prs)
+  subroutine mmbed(n,nr,rws,nc,cls,impute,scale,nbytes,fnRAW,nchars,msize,ncores,nprs,s,prs)
 !==============================================================================================================
 ! C = A*B (dimenions: mxn = mxk kxn) 
 ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,0.0d0,c,m)
@@ -660,9 +661,9 @@
   
   implicit none
   
-  integer*4 :: i,n,nr,nc,rws(nr),cls(nc),impute,scale,nbytes,ncores,msize,nprs,ncw,direction(nc) 
+  integer*4 :: i,n,nr,nc,rws(nr),cls(nc),impute,scale,nbytes,ncores,msize,nprs,ncw,direction(nc),nchars 
   real*8 :: W(nr,msize)
-  character(len=1000) :: fnRAW
+  character(len=nchars) :: fnRAW
   real*8 :: prs(nr,nprs),s(nc,nprs)
 
   call omp_set_num_threads(ncores)
@@ -677,7 +678,7 @@
     if((i+msize-1)<nc) ncw = size(cls(i:(i+msize-1)))
     if((i+msize-1)>=nc) ncw = size(cls(i:nc))          
 
-    call readbed(n,nr,rws,ncw,cls(i:(i+ncw-1)),impute,scale,direction,W(:,1:ncw),nbytes,fnRAW)
+    call readbed(n,nr,rws,ncw,cls(i:(i+ncw-1)),impute,scale,direction,W(:,1:ncw),nbytes,fnRAW,nchars)
     call dgemm("n","n",nr,nprs,ncw,1.0d0,W(:,1:ncw),nr,s(i:(i+ncw-1),:),ncw,1.0d0,prs,nr)
  
     !print*,'Finished block',i
@@ -690,18 +691,18 @@
 
 
 !==============================================================================================================
-  subroutine solvebed(n,nr,rws,nc,cls,scale,nbytes,fnRAW,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
+  subroutine solvebed(n,nr,rws,nc,cls,scale,nbytes,fnRAW,nchars,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
 !==============================================================================================================
 
   use bedfuncs 
 
   !implicit none
   
-  integer*4 :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset
+  integer*4 :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset,nchars
   real*8 :: y(n),e(n),raww(n),w(n),g(n)
   real*8 :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
   real*8 :: lhs,rhs,snew,tol
-  character(len=1000) :: fnRAW
+  character(len=nchars) :: fnRAW
   real*8, external  :: ddot
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -769,18 +770,18 @@
 !==============================================================================================================
 
 !==============================================================================================================
-  subroutine bayesbed(n,nr,rws,nc,cls,impute,nbytes,fnRAW,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
+  subroutine bayesbed(n,nr,rws,nc,cls,impute,nbytes,fnRAW,nchars,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
 !==============================================================================================================
 
   use bedfuncs 
 
   !implicit none
   
-  integer*4 :: i,n,nr,nc,rws(nr),cls(nc),impute,nbytes,nit,it,ncores,nchar,offset
+  integer*4 :: i,n,nr,nc,rws(nr),cls(nc),impute,nbytes,nit,it,ncores,nchar,offset,nchars
   real*8 :: y(n),e(n),raww(n),w(n),g(n)
   real*8 :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
   real*8 :: lhs,rhs,snew,tol
-  character(len=1000) :: fnRAW
+  character(len=nchars) :: fnRAW
   real*8, external  :: ddot
 
   integer, parameter :: k14 = selected_int_kind(14) 
