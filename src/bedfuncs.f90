@@ -107,15 +107,16 @@
 
 
 !==============================================================================================================
-  subroutine bed2raw(m,cls,nbytes,append,fnBED,fnRAW)
+  subroutine bed2raw(m,cls,nbytes,append,fnBED,fnRAW,ncharbed,ncharraw)
 !==============================================================================================================
 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: m,cls(m),nbytes,append  
-  character(len=1000) :: fnBED,fnRAW
+  integer*4 :: m,cls(m),nbytes,append,ncharbed,ncharraw  
+  character(len=ncharraw) :: fnRAW
+  character(len=ncharbed) :: fnBED
 
   integer*4, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes), magic(3)

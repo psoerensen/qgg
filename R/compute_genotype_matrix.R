@@ -197,6 +197,8 @@ bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = N
       append = as.integer(append),
       fnBED = as.character(fnBED),
       fnRAW = as.character(fnRAW),
+      ncharbed = nchar(as.character(fnBED)),
+      ncharraw = nchar(as.character(fnRAW)),
       PACKAGE = "qgg"
     )
     print(paste("Finished processing bedfile:", bedfiles[chr]))
