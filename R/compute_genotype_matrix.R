@@ -179,8 +179,6 @@ bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = N
     keep <- rep(TRUE, m)
     if (!is.null(rsids)) keep <- rsidsBIM %in% rsids
     nbytes <- ceiling(n / 4)
-    printmarker <- rep(F, m)
-    printmarker[seq(1, m, 10000)] <- T
     fnBED <- bedfiles[chr]
     bfBED <- file(fnBED, "rb")
     magic <- readBin(bfBED, "raw", n = 3)
@@ -224,7 +222,7 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 
   nc <- length(cls)
   af <- nmiss <- n0 <- n1 <- n2 <- rep(0, nc)
-
+  
   qc <- .Fortran("summarybed",
     n = as.integer(n),
     nr = as.integer(nr),
