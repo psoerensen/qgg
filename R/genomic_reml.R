@@ -279,7 +279,7 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
 
 
 remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, ncores = 1, verbose = FALSE) {
-  if (!is.null(G)) qgg::writeG(G = G)
+  if (!is.null(G)) qgg::writeGRM(GRM = G)
 
   ids <- names(y)
 
@@ -338,21 +338,6 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   names(fit$theta) <- c(paste("G", 1:(np - 1), sep = ""), "E")
 
   return(fit)
-}
-
-
-
-writeG <- function(G = NULL) {
-  if (!is.null(G)) {
-    for (i in 1:length(G)) {
-      fileout <- file(paste("G", i, sep = ""), "wb")
-      nr <- nrow(G[[i]])
-      for (j in 1:nr) {
-        writeBin(as.double(G[[i]][1:nr, j]), fileout, size = 8, endian = "little")
-      }
-      close(fileout)
-    }
-  }
 }
 
 

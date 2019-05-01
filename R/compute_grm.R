@@ -58,7 +58,7 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
     return(GRM)
   }
   if (task == "eigen") {
-    eig <- qgg::eigengrm(GRM = GRM, GRMlist = GRMlist, method = "default", ncores = ncores)
+    eig <- qgg::eigenGRM(GRM = GRM, GRMlist = GRMlist, method = "default", ncores = ncores)
     return(eig)
   }
 }
@@ -147,6 +147,19 @@ computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 }
 
 
+writeGRM <- function(GRM = NULL) {
+  if (!is.null(GRM)) {
+    for (i in 1:length(GRM)) {
+      fileout <- file(paste("G", i, sep = ""), "wb")
+      nr <- nrow(GRM[[i]])
+      for (j in 1:nr) {
+        writeBin(as.double(GRM[[i]][1:nr, j]), fileout, size = 8, endian = "little")
+      }
+      close(fileout)
+    }
+  }
+}
+
 
 #' @export
 #'
@@ -207,7 +220,7 @@ mergeGRM <- function(GRMlist = NULL) {
 
 
 
-eigengrm <- function(GRM = NULL, GRMlist = NULL, method = "default", ncores = 1) {
+eigenGRM <- function(GRM = NULL, GRMlist = NULL, method = "default", ncores = 1) {
   # subroutine eiggrm(n,nev,ev,U,fnG,fnU,ncores)
   # subroutine eiggrm(n,grm,eig,ncores)
   n <- ncol(GRM)

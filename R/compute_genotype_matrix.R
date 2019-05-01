@@ -118,17 +118,17 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     Glist$m <- length(Glist$rsids)
 
     print("Preparing raw file")
-    qgg::writeraw(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
+    qgg::writeRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
 
     print("Computing allele frequencies, missingness")
-    Glist <- qgg::summaryraw(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- qgg::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
 
   if (task == "summary") {
     print("Computing allele frequencies, missingness")
-    Glist <- qgg::summaryraw(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- qgg::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
@@ -153,8 +153,10 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
   return(Glist)
 }
 
+#' @export
+#'
 
-writeraw <- function(Glist = NULL, ids = NULL, rsids = NULL, overwrite = FALSE) {
+writeRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, overwrite = FALSE) {
   bed2raw(
     fnRAW = Glist$fnRAW, bedfiles = Glist$bedfiles, bimfiles = Glist$bimfiles,
     famfiles = Glist$famfiles, ids = ids, rsids = rsids, overwrite = overwrite
@@ -204,8 +206,10 @@ bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = N
   }
 }
 
+#' @export
+#'
 
-summaryraw <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, ncores = 1) {
+summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, ncores = 1) {
   n <- Glist$n
   m <- Glist$m
   nbytes <- ceiling(n / 4)
