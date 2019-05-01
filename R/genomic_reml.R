@@ -116,11 +116,11 @@
 
 greml <- function(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL, ids = NULL, validate = NULL, maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE, interface = "R", fm = NULL, data = NULL) {
   if (!is.null(GRM)) {
-    if (is.null(validate)) fit <- qgg::remlr(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir)
-    if (!is.null(validate)) fit <- qgg::cvreml(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, validate = validate, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir, makeplots = makeplots)
+    if (is.null(validate)) fit <- qgg:::remlr(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir)
+    if (!is.null(validate)) fit <- qgg:::cvreml(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, validate = validate, maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, wkdir = wkdir, makeplots = makeplots)
   }
   if (!is.null(GRMlist)) {
-    fit <- qgg::remlf(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, ncores = ncores, verbose = verbose)
+    fit <- qgg:::remlf(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, tol = tol, ncores = ncores, verbose = verbose)
   }
   return(fit)
 }
@@ -248,12 +248,12 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
       ypred <- ypred + G[[j]][v, t] %*% fit$Py * fit$theta[j]
     }
     yobs <- y[v]
-    if (!is.atomic(validate)) res <- rbind(res, qgg::acc(yobs = yobs, ypred = ypred, typeoftrait = typeoftrait))
+    if (!is.atomic(validate)) res <- rbind(res, qgg:::acc(yobs = yobs, ypred = ypred, typeoftrait = typeoftrait))
     yo <- c(yo, yobs)
     yp <- c(yp, ypred)
   }
 
-  if (is.atomic(validate)) res <- matrix(qgg::acc(yobs = yo, ypred = yp, typeoftrait = typeoftrait), nrow = 1)
+  if (is.atomic(validate)) res <- matrix(qgg:::acc(yobs = yo, ypred = yp, typeoftrait = typeoftrait), nrow = 1)
   # if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp,typeoftrait=typeoftrait),nrow=1)
   res <- as.data.frame(res)
   names(res) <- c("Corr", "R2", "Nagel R2", "AUC", "intercept", "slope", "MSPE")
@@ -279,7 +279,7 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
 
 
 remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, tol = 0.00001, ncores = 1, verbose = FALSE) {
-  if (!is.null(G)) qgg::writeGRM(GRM = G)
+  if (!is.null(G)) qgg:::writeGRM(GRM = G)
 
   ids <- names(y)
 
@@ -357,7 +357,7 @@ gblup <- function(GRMlist = NULL, G = NULL, fit = NULL, g = NULL, ids = NULL, id
   if (sum(!idsRWS %in% GRMlist$idsG) > 0) stop("Error some ids not found in idsG")
   for (i in 1:nr) {
     GRMlist$fnG <- fnG[i]
-    G <- qgg::getGRM(GRMlist = GRMlist, idsCLS = idsCLS, idsRWS = idsRWS)
+    G <- qgg:::getGRM(GRMlist = GRMlist, idsCLS = idsCLS, idsRWS = idsRWS)
     g <- cbind(g, G %*% Py[idsCLS] * fit$theta[i])
   }
   colnames(g) <- paste("G", 1:nr, sep = "")

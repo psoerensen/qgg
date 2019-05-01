@@ -148,29 +148,3 @@ hmcor <- function(df = NULL, fname = NULL) {
   print(hmplot)
   dev.off()
 }
-
-
-# y <- c(5,8,6,2,3,1,2,4,5)     #dependent/observation
-# x <- c(-1,-1,-1,0,0,0,1,1,1)  #independent
-# d1 <- as.data.frame(cbind(y=y,x=x))
-#
-# model <- glm(y~x, data=d1, family = poisson(link="log"))
-# summary(model)
-#
-# X <- cbind(1,x)
-#
-# #write an interatively reweighted least squares function with log link
-# glmfunc.log <- function(d,betas,iterations=1)
-# {
-#      X <- cbind(1,d[,"x"])
-#      for(i in 1:iterations) {
-#           z <- as.matrix(betas[1]+betas[2]*d[,"x"]+((d[,"y"]-exp(betas[1]+betas[2]*d[,"x"]))/exp(betas[1]+betas[2]*d[,"x"])))
-#           W <- diag(exp(betas[1]+betas[2]*d[,"x"]))
-#           betas <- solve(t(X)%*%W%*%X)%*%t(X)%*%W%*%z
-#           print(betas)
-#      }
-#      return(list(betas=betas,Information=t(X)%*%W%*%X))
-# }
-#
-# #run the function
-# model <- glmfunc.log(d=d1,betas=c(1,0),iterations=10)

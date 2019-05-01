@@ -50,7 +50,7 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
                 W = NULL, method = "add", scaled = TRUE, msize = 100, ncores = 1, fnG = NULL,
                 overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm") {
   if (task == "grm") {
-    GRM <- qgg::computeGRM(
+    GRM <- qgg:::computeGRM(
       Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
       W = W, method = method, scaled = scaled, msize = msize, ncores = ncores,
       fnG = fnG, overwrite = overwrite, returnGRM = returnGRM, miss = miss
@@ -58,12 +58,14 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
     return(GRM)
   }
   if (task == "eigen") {
-    eig <- qgg::eigenGRM(GRM = GRM, GRMlist = GRMlist, method = "default", ncores = ncores)
+    eig <- qgg:::eigenGRM(GRM = GRM, GRMlist = GRMlist, method = "default", ncores = ncores)
     return(eig)
   }
 }
 
 
+#' @export
+#'
 
 computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, W = NULL, method = "add", scaled = TRUE, msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE, returnGRM = FALSE, miss = 0) {
   if (method == "add") gmodel <- 1
@@ -140,7 +142,7 @@ computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     )
     if (!returnGRM) return(GRMlist)
     if (returnGRM) {
-      GRM <- qgg::getGRM(GRMlist = GRMlist, ids = GRMlist$idsG)
+      GRM <- qgg:::getGRM(GRMlist = GRMlist, ids = GRMlist$idsG)
       return(GRM)
     }
   }
@@ -218,11 +220,10 @@ mergeGRM <- function(GRMlist = NULL) {
 }
 
 
-
+#' @export
+#'
 
 eigenGRM <- function(GRM = NULL, GRMlist = NULL, method = "default", ncores = 1) {
-  # subroutine eiggrm(n,nev,ev,U,fnG,fnU,ncores)
-  # subroutine eiggrm(n,grm,eig,ncores)
   n <- ncol(GRM)
   evals <- rep(0, n)
   res <- .Fortran("eiggrm",

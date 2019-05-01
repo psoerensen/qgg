@@ -66,13 +66,13 @@ gsolve <- function(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL, rsids
                    maxit = 500, tol = 0.00001, method = "gsru", ncores = 1) {
   if (!is.null(W)) {
     if (method == "gsru") {
-      fit <- qgg::gsru(
+      fit <- qgg:::gsru(
         y = y, W = W, X = X, sets = sets, lambda = lambda,
         weights = weights, maxit = maxit, tol = tol
       )
     }
     if (method == "gsqr") {
-      fit <- qgg::gsqr(
+      fit <- qgg:::gsqr(
         y = y, W = W, X = X, sets = sets, msets = msets,
         lambda = lambda, weights = weights, maxit = maxit, tol = tol
       )
@@ -109,7 +109,7 @@ gsolve <- function(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL, rsids
     yn <- gn <- en <- rep(0, n)
     yn[rws] <- as.vector(y)
 
-    fit <- qgg::fsolve(
+    fit <- qgg:::fsolve(
       n = n, nr = nr, rws = rws, nc = nc, cls = cls, scale = scale,
       nbytes = nbytes, fnRAW = fnRAW, ncores = ncores, nit = maxit,
       lambda = lambda, tol = tol, y = yn, g = gn, e = en, s = s, meanw = meanw, sdw = sdw
@@ -312,10 +312,10 @@ plotgs <- function(fit = NULL, s = NULL, sets = NULL) {
 
 gsqr <- function(y = NULL, X = NULL, W = NULL, sets = NULL, msets = 100,
                  lambda = NULL, weights = FALSE, maxit = 500, tol = 0.0000001) {
-  QRlist <- qgg::qrSets(W = W, msets = msets, return.level = "QR")
+  QRlist <- qgg:::qrSets(W = W, msets = msets, return.level = "QR")
   # lambdaR <- sapply(QRlist$R,function(x){(1/diag(x))**2})
   # lambda <- lambda*lambdaR
-  fit <- qgg::gsru(y = y, X = X, W = QRlist$Q, sets = QRlist$sets, lambda = lambda, weights = weights)
+  fit <- qgg:::gsru(y = y, X = X, W = QRlist$Q, sets = QRlist$sets, lambda = lambda, weights = weights)
   nsets <- length(QRlist$sets)
   for (i in 1:nsets) {
     rws <- QRlist$sets[[i]]

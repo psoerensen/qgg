@@ -90,13 +90,13 @@
 gsea <- function(stat = NULL, sets = NULL, Glist = NULL, fit = NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
   if (method == "sum") {
     m <- length(stat)
-    if (is.matrix(stat)) sets <- qgg::mapsets(sets = sets, rsids = rownames(stat), index = TRUE)
-    if (is.vector(stat)) sets <- qgg::mapsets(sets = sets, rsids = names(stat), index = TRUE)
+    if (is.matrix(stat)) sets <- qgg:::mapsets(sets = sets, rsids = rownames(stat), index = TRUE)
+    if (is.vector(stat)) sets <- qgg:::mapsets(sets = sets, rsids = names(stat), index = TRUE)
     nsets <- length(sets)
     msets <- sapply(sets, length)
     if (is.matrix(stat)) {
       p <- apply(stat, 2, function(x) {
-        qgg::gsets(stat = x, sets = sets, ncores = ncores, np = nperm)
+        qgg:::gsets(stat = x, sets = sets, ncores = ncores, np = nperm)
       })
       setstat <- apply(stat, 2, function(x) {
         sapply(sets, function(y) {
@@ -110,14 +110,14 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, fit = NULL, threshold =
       setstat <- sapply(sets, function(x) {
         sum(stat[x])
       })
-      p <- qgg::gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = method)
+      p <- qgg:::gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = method)
       res <- cbind(m = msets, stat = setstat, p = p)
       rownames(res) <- names(sets)
     }
     return(res)
   }
   if (method == "hyperg") {
-    res <- qgg::hgtest(p = stat, sets = sets, threshold = threshold)
+    res <- qgg:::hgtest(p = stat, sets = sets, threshold = threshold)
     return(res)
   }
 }
@@ -241,8 +241,8 @@ adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, l
   cnames <- colnames(stat)
   rsidsStat <- rownames(stat)
   if (statistics == "z-score") stat <- 2 * pnorm(-abs(stat))
-  if (!is.null(Glist)) ldSets <- qgg::getLDsets(Glist = Glist, r2 = r2)
-  if (!is.null(Glist)) ldSets <- qgg::mapLDsets(ldSets = ldSets, rsids = rsidsStat)
+  if (!is.null(Glist)) ldSets <- qgg:::getLDsets(Glist = Glist, r2 = r2)
+  if (!is.null(Glist)) ldSets <- qgg:::mapLDsets(ldSets = ldSets, rsids = rsidsStat)
   rm(list = "Glist")
 
   if (method %in% c("pruning", "clumping")) {

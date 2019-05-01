@@ -118,17 +118,17 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     Glist$m <- length(Glist$rsids)
 
     print("Preparing raw file")
-    qgg::writeRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
+    qgg:::writeRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
 
     print("Computing allele frequencies, missingness")
-    Glist <- qgg::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- qgg:::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
 
   if (task == "summary") {
     print("Computing allele frequencies, missingness")
-    Glist <- qgg::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- qgg:::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
@@ -140,7 +140,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     if (is.null(fnLD)) Glist$fnLD <- gsub(".bed", ".ld", bedfiles)
     if (is.null(ids)) ids <- Glist$ids
     mclapply(1:length(Glist$fnLD), function(x) {
-      qgg::sparseld(
+      qgg:::sparseLD(
         Glist = Glist, fnLD = Glist$fnLD[x], msize = msize, chr = x, rsids = NULL,
         impute = TRUE, scale = TRUE, ids = ids, ncores = 1
       )
@@ -153,11 +153,10 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
   return(Glist)
 }
 
-#' @export
-#'
+
 
 writeRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, overwrite = FALSE) {
-  bed2raw(
+  qgg:::bed2raw(
     fnRAW = Glist$fnRAW, bedfiles = Glist$bedfiles, bimfiles = Glist$bimfiles,
     famfiles = Glist$famfiles, ids = ids, rsids = rsids, overwrite = overwrite
   )
@@ -206,8 +205,7 @@ bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = N
   }
 }
 
-#' @export
-#'
+
 
 summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, ncores = 1) {
   n <- Glist$n
@@ -367,7 +365,7 @@ getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
 #' @export
 #'
 
-sparseld <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL,
+sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL,
                      impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {
   if (file.exists(fnLD)) stop("LD file allready exists - please specify other file names")
   n <- Glist$n
