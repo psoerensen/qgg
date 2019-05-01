@@ -47,12 +47,12 @@
 #'
 
 grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
-                W = NULL, method = "add", scaled = TRUE, msize = 100, ncores = 1, fnG = NULL,
+                W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL,
                 overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm") {
   if (task == "grm") {
     GRM <- qgg:::computeGRM(
       Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
-      W = W, method = method, scaled = scaled, msize = msize, ncores = ncores,
+      W = W, method = method, scale = scale, msize = msize, ncores = ncores,
       fnG = fnG, overwrite = overwrite, returnGRM = returnGRM, miss = miss
     )
     return(GRM)
@@ -67,7 +67,7 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
 #' @export
 #'
 
-computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, W = NULL, method = "add", scaled = TRUE, msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE, returnGRM = FALSE, miss = 0) {
+computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE, returnGRM = FALSE, miss = 0) {
   if (method == "add") gmodel <- 1
   if (method == "dom") gmodel <- 2
   if (method == "epi-pairs") gmodel <- 3
@@ -129,7 +129,7 @@ computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
       nc = as.integer(nc),
       cls1 = as.integer(cls1),
       cls2 = as.integer(cls2),
-      scale = as.integer(scaled),
+      scale = as.integer(scale),
       nbytes = as.integer(nbytes),
       fnRAW = as.character(fnRAW),
       nchars = nchar(as.character(fnRAW)),

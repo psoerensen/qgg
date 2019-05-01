@@ -400,7 +400,7 @@
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,thread,nchars 
+  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,nchars 
   real*8 :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
   character(len=nchars) :: fnRAW
 
@@ -446,9 +446,8 @@
   ! process parallel
   if (ncores>1) then
     open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-    !$omp parallel do private(i,i14,pos14,raw,g,grws,thread)
+    !$omp parallel do private(i,i14,pos14,raw,g,grws)
     do i=1,nc 
-      thread=omp_get_thread_num()+1
       i14=cls(i)
       pos14 = 1 + offset14 + (i14-1)*nbytes14
       read(13, pos=pos14) raw
