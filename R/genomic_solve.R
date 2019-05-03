@@ -366,12 +366,10 @@ fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL,
 #' (coefficients, log-odds ratios, z-scores) and observed genotypes.
 #'
 
-#' @param S matrix of single marker effects
+#' @param stat matrix of single marker effects
 #' @param Glist list of information about genotype matrix
-#' @param rsids vector marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis
 #' @param rws rows in genotype matrix used in the analysis
-#' @param cls columns in genotype matrix used in the analysis
 #' @param scale logical if TRUE the genotype markers have been scale to mean zero and variance one
 #' @param msize number of genotype markers used for batch processing
 #' @param ncores number of cores used in the analysis

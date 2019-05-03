@@ -214,7 +214,7 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
       print(paste("Finished block", i, "out of", nsets, "blocks"))
     }
     cls <- unlist(sets)
-    res <- list(s = s[cls, ], se = se[cls, ], stat = stat[cls, ], p = p[cls, ])
+    res <- list(coef = s[cls, ], se = se[cls, ], stat = stat[cls, ], p = p[cls, ])
     if (nt == 1) res <- as.matrix(as.data.frame(res))
   }
   return(res)
