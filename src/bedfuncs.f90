@@ -255,7 +255,7 @@
 
 
   integer*4, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes) !raw(nbytes,nc)
+  integer(byte) :: raw(nbytes)
   integer*4 :: i,j,k,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -270,12 +270,6 @@
   offset14 = offset
 
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  !do i=1,nc
-  !  i14=cls(i)
-  !  pos14 = 1 + offset14 + (i14-1)*nbytes14
-  !  read(13, pos=pos14) raw(1:nbytes,i)
-  !enddo
-  !close(unit=13)
 
   ntotal=dble(nr)  
 
@@ -291,7 +285,6 @@
     pos14 = 1 + offset14 + (i14-1)*nbytes14
     read(13, pos=pos14) raw
     gr = raw2real(n,nbytes,raw)
-    !gr = raw2real(n,nbytes,raw(1:nbytes,i))
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
     if (impute==0) then

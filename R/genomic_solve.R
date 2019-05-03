@@ -413,7 +413,6 @@ gscore <- function(Glist = NULL, stat = NULL, ids = NULL, impute = TRUE, msize =
   nc <- length(cls)
 
   direction <- as.integer(stat$alleles == Glist$a2[cls])
-  # S[direction==0,] <- -S[direction==0,]
 
   fnRAW <- as.character(Glist$fnRAW)
 
@@ -423,32 +422,6 @@ gscore <- function(Glist = NULL, stat = NULL, ids = NULL, impute = TRUE, msize =
   colnames(prs) <- colnames(S)
 
   m <- nrow(S)
-  # sets <- split(1:m, ceiling(seq_along(1:m) / msize))
-  # nsets <- length(sets)
-
-  # for (i in 1:nsets) {
-  #  nc <- length(sets[[i]])
-  #  prsSet <- .Fortran("mpgrs",
-  #    n = as.integer(n),
-  #    nr = as.integer(nr),
-  #    rws = as.integer(rws),
-  #    nc = as.integer(nc),
-  #    cls = as.integer(cls[ sets[[i]] ]),
-  #    nbytes = as.integer(nbytes),
-  #    fnRAW = as.character(fnRAW),
-  #    nchars = nchar(as.character(fnRAW)),
-  #    nprs = as.integer(nprs),
-  #    s = matrix(as.double(S[ sets[[i]], ]), nrow = nc, ncol = nprs),
-  #    prs = matrix(as.double(0), nrow = nr, ncol = nprs),
-  #    af = as.double(af[ sets[[i]] ]),
-  #    impute = as.integer(impute),
-  #    direction = as.integer(direction[ sets[[i]] ]),
-  #    ncores = as.integer(ncores),
-  #    PACKAGE = "qgg"
-  #  )$prs
-  #
-  #  prs <- prs + prsSet
-  # }
 
   prs <- .Fortran("mpgrs",
     n = as.integer(n),
