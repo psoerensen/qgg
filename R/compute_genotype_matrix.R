@@ -459,30 +459,6 @@ getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
 }
 
 
-#' @export
-#'
-
-mapLDsets <- function(ldSets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
-  mpsets <- NULL
-  if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
-  for (chr in 1:length(ldSets)) {
-    rsSets <- ldSets[[chr]]
-    rsidsChr <- Glist$rsids[Glist$chr == chr]
-    rsidsChr <- rsidsChr[rsidsChr %in% names(rsSets)]
-    nsets <- sapply(rsSets, length)
-    rsChr <- rep(names(rsSets), times = nsets)
-    rsSets <- unlist(rsSets, use.names = FALSE)
-    rsSets <- match(rsSets, rsids)
-    inW <- !is.na(rsSets)
-    rsSets <- rsSets[inW]
-    if (!index) rsSets <- rsids[rsSets]
-    rsChr <- rsChr[inW]
-    rsChr <- factor(rsChr, levels = unique(rsChr))
-    rsSets <- split(rsSets, f = rsChr)
-    mpsets[[chr]] <- rsSets[rsidsChr]
-  }
-  return(mpsets)
-}
 
 
 
