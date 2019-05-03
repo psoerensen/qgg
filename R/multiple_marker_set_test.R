@@ -90,8 +90,8 @@
 gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W=NULL, fit = NULL, g=NULL, e=NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
   if (method == "sum") {
     m <- length(stat)
-    if (is.matrix(stat)) sets <- qgg:::mapsets(sets = sets, rsids = rownames(stat), index = TRUE)
-    if (is.vector(stat)) sets <- qgg:::mapsets(sets = sets, rsids = names(stat), index = TRUE)
+    if (is.matrix(stat)) sets <- qgg:::mapSets(sets = sets, rsids = rownames(stat), index = TRUE)
+    if (is.vector(stat)) sets <- qgg:::mapSets(sets = sets, rsids = names(stat), index = TRUE)
     nsets <- length(sets)
     msets <- sapply(sets, length)
     if (is.matrix(stat)) {
