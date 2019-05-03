@@ -270,12 +270,12 @@
   offset14 = offset
 
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  #do i=1,nc
-  #  i14=cls(i)
-  #  pos14 = 1 + offset14 + (i14-1)*nbytes14
-  #  read(13, pos=pos14) raw(1:nbytes,i)
-  #enddo
-  #close(unit=13)
+  !do i=1,nc
+  !  i14=cls(i)
+  !  pos14 = 1 + offset14 + (i14-1)*nbytes14
+  !  read(13, pos=pos14) raw(1:nbytes,i)
+  !enddo
+  !close(unit=13)
 
   ntotal=dble(nr)  
 
