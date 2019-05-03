@@ -241,8 +241,6 @@ adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, l
   rsidsStat <- rownames(stat)
   if (statistics == "p-value") pstat <- stat$p
   if (statistics == "z-score") pstat <- 2 * pnorm(-abs(stat$p))
-
-
   pstat <- as.matrix(pstat)
   rownames(pstat) <- rsidsStat
   colnames(pstat) <- "p"

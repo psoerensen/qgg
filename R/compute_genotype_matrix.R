@@ -434,35 +434,30 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
 #' @export
 #'
 
-getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
+getLDCHRsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   msize <- Glist$msize
   ldSets <- NULL
-  for (chr in 1:Glist$nchr) {
-    n <- Glist$n
-    rsidsChr <- Glist$rsids[Glist$chr == chr]
-    if (!is.null(Glist$study_rsids)) rsidsChr <- rsidsChr[rsidsChr %in% Glist$study_rsids]
-    mchr <- length(rsidsChr)
-    rsidsLD <- c(rep("start", msize), rsidsChr, rep("end", msize))
-    fnLD <- Glist$fnLD[chr]
-    bfLD <- file(fnLD, "rb")
-    nld <- as.integer(mchr * (msize * 2 + 1))
-    ld <- readBin(bfLD, "double", n = nld, size = 8, endian = "little")
-    ld <- matrix(ld, nrow = mchr, byrow = TRUE)
-    close(bfLD)
-    ld[, msize + 1] <- 1
-    ldSetsChr <- vector(length = mchr, mode = "list")
-    names(ldSetsChr) <- rsidsChr
-    for (i in 1:mchr) {
-      cls <- which((ld[i, ]**2) > r2) + i - 1
-      ldSetsChr[[i]] <- rsidsLD[cls]
-    }
-    ldSets[[chr]] <- ldSetsChr
-    print(paste("Finished chromosome", chr))
+  n <- Glist$n
+  rsidsChr <- Glist$rsids[Glist$chr == chr]
+  if (!is.null(Glist$study_rsids)) rsidsChr <- rsidsChr[rsidsChr %in% Glist$study_rsids]
+  mchr <- length(rsidsChr)
+  rsidsLD <- c(rep("start", msize), rsidsChr, rep("end", msize))
+  fnLD <- Glist$fnLD[chr]
+  bfLD <- file(fnLD, "rb")
+  nld <- as.integer(mchr * (msize * 2 + 1))
+  ld <- readBin(bfLD, "double", n = nld, size = 8, endian = "little")
+  ld <- matrix(ld, nrow = mchr, byrow = TRUE)
+  close(bfLD)
+  ld[, msize + 1] <- 1
+  ldSetsChr <- vector(length = mchr, mode = "list")
+  names(ldSetsChr) <- rsidsChr
+  for (i in 1:mchr) {
+    cls <- which((ld[i, ]**2) > r2) + i - 1
+    ldSetsChr[[i]] <- rsidsLD[cls]
   }
-  names(ldSets) <- 1:Glist$nchr
-  return(ldSets)
+  print(paste("Finished chromosome", chr))
+  return(ldSetsChr)
 }
-
 
 
 #' @export
