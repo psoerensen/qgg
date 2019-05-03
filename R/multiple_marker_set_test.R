@@ -87,7 +87,7 @@
 
 
 #' @export
-gsea <- function(stat = NULL, sets = NULL, Glist = NULL, fit = NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
+gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W=NULL, fit = NULL, g=NULL, e=NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
   if (method == "sum") {
     m <- length(stat)
     if (is.matrix(stat)) sets <- qgg:::mapsets(sets = sets, rsids = rownames(stat), index = TRUE)
@@ -149,7 +149,7 @@ gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum
 
 
 
-mapsets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
+mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
   if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
   nsets <- sapply(sets, length)
   rs <- rep(names(sets), times = nsets)
@@ -238,23 +238,30 @@ gstat <- function(Glist = NULL, stat = NULL, yadj = NULL, impute = TRUE, scale =
 #'
 
 adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, method = "pruning") {
-  cnames <- colnames(stat)
   rsidsStat <- rownames(stat)
-  if (statistics == "z-score") stat <- 2 * pnorm(-abs(stat))
-  if (!is.null(Glist)) ldSets <- qgg:::getLDsets(Glist = Glist, r2 = r2)
-  if (!is.null(Glist)) ldSets <- qgg:::mapLDsets(ldSets = ldSets, rsids = rsidsStat)
-  rm(list = "Glist")
+  if (statistics == "p-value") pstat <- stat$p
+  if (statistics == "z-score") pstat <- 2 * pnorm(-abs(stat$p))
 
+
+  pstat <- as.matrix(pstat)
+  rownames(pstat) <- rsidsStat
+  colnames(pstat) <- "p"
   if (method %in% c("pruning", "clumping")) {
-    for (i in 1:ncol(stat)) {
+    if (!is.null(ldSets)) nchr <- length(ldSets)
+    if (!is.null(Glist)) nchr <- Glist$nchr
+    for (i in 1:ncol(pstat)) {
       m <- length(rsidsStat)
       indx1 <- rep(T, m)
       indx2 <- rep(F, m)
-      for (chr in 1:length(ldSets)) {
-        setsChr <- ldSets[[chr]]
+      for (chr in 1:nchr) {
+        if (!is.null(Glist)) {
+          setsChr <- qgg:::getLDsets(Glist = Glist, r2 = r2, chr = chr)
+          setsChr <- qgg:::mapSets(sets = setsChr, rsids = rsidsStat)
+        }
+        if (!is.null(ldSets)) setsChr <- ldSets[[chr]]
         rsidsChr <- names(setsChr)
         rwsChr <- match(rsidsChr, rsidsStat)
-        p <- stat[rwsChr, i]
+        p <- pstat[rwsChr, i]
         o <- order(p, decreasing = FALSE)
         for (j in o) {
           if (p[j] <= threshold) {
@@ -265,69 +272,31 @@ adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, l
             }
           }
         }
-        print(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(stat)[i]))
+        print(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
       }
       if (method == "clumping") {
-        stat[indx1, i] <- 0
-        p <- stat[, i]
-        stat[p > threshold, i] <- 0
+        pstat[indx1, i] <- 0
+        p <- pstat[, i]
+        pstat[p > threshold, i] <- 0
       }
-      if (method == "pruning") stat[!indx2, i] <- 0
+      if (method == "pruning") pstat[!indx2, i] <- 0
     }
   }
-
-  stat <- stat[!rowSums(stat == 0) == ncol(stat), ]
-  if (is.vector(stat)) stat <- matrix(stat, ncol = 1, dimnames = list(names(stat), cnames))
+  stat <- stat[!rowSums(pstat == 0) == ncol(pstat), ]
   return(stat)
 }
 
 
-
-gsett <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
-  m <- length(stat)
-  rws <- 1:m
-  names(rws) <- names(stat)
-  sets <- lapply(sets, function(x) {
-    rws[x]
-  })
-
-  setT <- sapply(sets, function(x) {
-    sum(stat[x])
-  })
-
-  if (!is.null(nperm)) {
-    p <- rep(0, length(sets))
-    n <- length(stat)
-    nset <- sapply(sets, length)
-    sets <- lapply(sets, function(x) {
-      rws[x]
-    })
-    for (i in 1:nperm) {
-      rws <- sample(1:n, 1)
-      o <- c(rws:n, 1:(rws - 1))
-      ostat <- stat[o]
-      setTP <- sapply(sets, function(x) {
-        sum(ostat[x])
-      })
-      p <- p + as.numeric(setT > setTP)
-    }
-    p <- 1 - p / nperm
-    setT <- data.frame(setT, nset, p)
-  }
-  return(setT)
-}
-
-
-setTest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
-  if (method == "sum") setT <- sumTest(stat = stat, sets = sets, nperm = nperm)
+settest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
+  if (method == "sum") setT <- sumtest(stat = stat, sets = sets, nperm = nperm)
   if (method == "cvat") setT <- cvat(s = stat, W = W, sets = sets, nperm = nperm)
-  if (method == "hyperG") setT <- hgTest(p = stat, sets = sets, threshold = threshold)
-  if (method == "score") setT <- scoreTest(e = e, W = W, sets = sets, nperm = nperm)
+  if (method == "hyperG") setT <- hgtest(p = stat, sets = sets, threshold = threshold)
+  if (method == "score") setT <- scoretest(e = e, W = W, sets = sets, nperm = nperm)
 
   return(setT)
 }
 
-sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
+sumtest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
   if (method == "mean") {
     setT <- sapply(sets, function(x) {
       mean(stat[x])
@@ -380,15 +349,6 @@ sumTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
   return(setT)
 }
 
-msetTest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
-  setT <- apply(stat, 2, function(x) {
-    setTest(stat = x, sets = sets, nperm = nperm, method = method)
-  })
-  names(setT) <- colnames(stat)
-  setT
-}
-
-
 
 cvat <- function(fit = NULL, s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 100) {
   if (!is.null(fit)) {
@@ -404,13 +364,12 @@ cvat <- function(fit = NULL, s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 
   return(setT)
 }
 
-scoreTest <- function(e = NULL, W = NULL, sets = NULL, nperm = 100) {
+scoretest <- function(e = NULL, W = NULL, sets = NULL, nperm = 100) {
   we2 <- as.vector((t(W) %*% e)**2)
   names(we2) <- colnames(W)
   setT <- setTest(stat = we2, sets = sets, nperm = nperm, method = "sum")$p
   return(setT)
 }
-
 
 hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
   N <- length(p)
