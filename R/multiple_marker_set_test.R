@@ -239,8 +239,7 @@ gstat <- function(Glist = NULL, stat = NULL, yadj = NULL, impute = TRUE, scale =
 
 adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, method = "pruning") {
   rsidsStat <- rownames(stat)
-  if (statistics == "p-value") pstat <- stat$p
-  if (statistics == "z-score") pstat <- 2 * pnorm(-abs(stat$p))
+  if (statistics == "p-value") pstat <- stat[,"p"]
   pstat <- as.matrix(pstat)
   rownames(pstat) <- rsidsStat
   colnames(pstat) <- "p"
