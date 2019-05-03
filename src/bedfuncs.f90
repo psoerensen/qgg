@@ -255,7 +255,7 @@
 
 
   integer*4, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes,nc)
+  integer(byte) :: raw(nbytes) !raw(nbytes,nc)
   integer*4 :: i,j,k,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -270,12 +270,12 @@
   offset14 = offset
 
   open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  do i=1,nc
-    i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw(1:nbytes,i)
-  enddo
-  close(unit=13)
+  #do i=1,nc
+  #  i14=cls(i)
+  #  pos14 = 1 + offset14 + (i14-1)*nbytes14
+  #  read(13, pos=pos14) raw(1:nbytes,i)
+  #enddo
+  #close(unit=13)
 
   ntotal=dble(nr)  
 
@@ -284,10 +284,14 @@
   prs=0.0d0
   prsmp=0.0d0
 
-  !$omp parallel do private(i,j,k,gr,gsc,nmiss,n0,n1,n2,thread)
+  !$omp parallel do private(i,j,k,gr,gsc,nmiss,n0,n1,n2,thread,i14,pos14,raw)
   do i=1,nc
     thread=omp_get_thread_num()+1
-    gr = raw2real(n,nbytes,raw(1:nbytes,i))
+    i14=cls(i)
+    pos14 = 1 + offset14 + (i14-1)*nbytes14
+    read(13, pos=pos14) raw
+    gr = raw2real(n,nbytes,raw)
+    !gr = raw2real(n,nbytes,raw(1:nbytes,i))
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
     if (impute==0) then
@@ -309,6 +313,8 @@
     enddo  
   enddo 
   !$omp end parallel do
+
+  close(unit=13)
 
   do i=1,nprs
     do j=1,ncores
