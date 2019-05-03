@@ -434,7 +434,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
 #' @export
 #'
 
-getLDCHRsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
+getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   msize <- Glist$msize
   ldSets <- NULL
   n <- Glist$n
@@ -455,7 +455,6 @@ getLDCHRsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
     cls <- which((ld[i, ]**2) > r2) + i - 1
     ldSetsChr[[i]] <- rsidsLD[cls]
   }
-  print(paste("Finished chromosome", chr))
   return(ldSetsChr)
 }
 
