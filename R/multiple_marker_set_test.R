@@ -87,7 +87,7 @@
 
 
 #' @export
-gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W=NULL, fit = NULL, g=NULL, e=NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
+gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g = NULL, e = NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
   if (method == "sum") {
     m <- length(stat)
     if (is.matrix(stat)) sets <- qgg:::mapSets(sets = sets, rsids = rownames(stat), index = TRUE)
@@ -116,13 +116,49 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W=NULL, fit = NULL, g=N
     }
     return(res)
   }
+  if (method == "cvat") {
+    if (!is.null(W)) res <- qgg:::cvat(fit = fit, g = g, W = W, sets = sets, nperm = nperm)
+    if (!is.null(Glist)) {
+      sets <- qgg:::mapSets(sets = sets, rsids = Glist$rsids, index = TRUE)
+      nsets <- length(sets)
+      msets <- sapply(sets, length)
+      ids <- fit$ids
+      Py <- fit$Py
+      g <- as.vector(fit$g)
+      Sg <- fit$theta[1]
+      stat <- gstat(method = "cvat", Glist = Glist, g = g, Sg = Sg, Py = Py, ids = ids)
+      setstat <- sapply(sets, function(x) {
+        sum(stat[x])
+      })
+      p <- qgg:::gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = "sum")
+      res <- cbind(m = msets, stat = setstat, p = p)
+      rownames(res) <- names(sets)
+    }
+    return(res)
+  }
+  if (method == "score") {
+    if (!is.null(W)) res <- qgg:::scoretest(fit = fit, e = e, W = W, sets = sets, nperm = nperm)
+    if (!is.null(Glist)) {
+      sets <- qgg:::mapSets(sets = sets, rsids = Glist$rsids, index = TRUE)
+      nsets <- length(sets)
+      msets <- sapply(sets, length)
+      ids <- fit$ids
+      e <- fit$e
+      stat <- gstat(method = "score", Glist = Glist, e = e, ids = ids)
+      setstat <- sapply(sets, function(x) {
+        sum(stat[x])
+      })
+      p <- qgg:::gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = "sum")
+      res <- cbind(m = msets, stat = setstat, p = p)
+      rownames(res) <- names(sets)
+    }
+    return(res)
+  }
   if (method == "hyperg") {
     res <- qgg:::hgtest(p = stat, sets = sets, threshold = threshold)
     return(res)
   }
 }
-
-
 
 gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum") {
   m <- length(stat)
@@ -166,71 +202,50 @@ mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
 
 
 
-gstat <- function(Glist = NULL, stat = NULL, yadj = NULL, impute = TRUE, scale = TRUE, msize = 100, ncores = 1) {
-
-  # Prepase summary stat
-  if (!sum(colnames(stat)[1:3] == c("rsids", "alleles", "af")) == 3) {
-    stop("First three columns in data frame stat should be: rsids, alleles, af ")
-  }
-  rsidsOK <- stat$rsids %in% Glist$rsids
-  if (any(!rsidsOK)) {
-    warning("Some variants not found in genotype files")
-    print(paste("Number of variants missing;", sum(!rsidsOK)))
-    print(paste("Number of variants used;", sum(!rsidsOK)))
-    stat <- stat[rsidsOK, ]
-    stat$rsids <- as.character(stat$rsids)
-    stat$alleles <- as.character(stat$alleles)
-  }
-  S <- stat[, -c(1:3)]
-  if (is.vector(S)) S <- as.matrix(S)
-  S <- apply(S, 2, as.numeric)
-  colnames(S) <- colnames(stat)[-c(1:3)]
-  m <- nrow(S)
-  rsids <- as.character(stat$rsids)
-  if (!is.null(stat$af)) af <- stat$af
-  if (!is.null(stat$af)) af <- rep(0, nrow(S))
-
-  # Prepare input data for mpgrs
+gstat <- function(method = NULL, Glist = NULL, g=NULL, Sg=NULL, Py = NULL, e=NULL, msize = 100, rsids = NULL,
+                  impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {
   n <- Glist$n
-  nbytes <- ceiling(n / 4)
-  if (is.vector(yadj)) ids <- names(yadj)
-  if (is.matrix(yadj)) ids <- rownames(yadj)
   rws <- match(ids, Glist$ids)
-  if (any(is.na(rws))) stop("Some ids in yadj not found in Glist")
+  if (any(is.na(rws))) stop("Some ids in fit object not found in Glist")
   nr <- length(rws)
-
-  cls <- match(rsids, Glist$rsids)
+  nbytes <- ceiling(n / 4)
+  cls <- 1:Glist$m
+  if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
   nc <- length(cls)
-
-  if (!is.null(stat$alleles)) direction <- as.integer(stat$alleles == Glist$a2[cls])
-  if (!is.null(stat$alleles)) direction <- rep(1, nrow(S))
-
-  fnRAW <- as.character(Glist$fnRAW)
-
-  nt <- ncol(S)
-
-  gstat <- .Fortran("gstat",
-    n = as.integer(n),
-    nr = as.integer(nr),
-    rws = as.integer(rws),
-    nc = as.integer(nc),
-    cls = as.integer(cls),
-    nbytes = as.integer(nbytes),
-    fnRAW = as.character(fnRAW),
-    nchars = nchar(as.character(fnRAW)),
-    nt = as.integer(nt),
-    s = matrix(as.double(S), nrow = nc, ncol = nt),
-    yadj = matrix(as.double(yadj), nrow = nr, ncol = nt),
-    setstat = matrix(as.double(0), nrow = nc, ncol = nt),
-    af = as.double(af),
-    impute = as.integer(impute),
-    scale = as.integer(scale),
-    direction = as.integer(direction),
-    ncores = as.integer(ncores),
-    PACKAGE = "qgg"
-  )$setstat
-
-  return(gstat)
+  cls <- split(cls, ceiling(seq_along(cls) / msize))
+  msets <- sapply(cls, length)
+  nsets <- length(msets)
+  setstat <- NULL
+  fnRAW <- Glist$fnRAW
+  for (j in 1:nsets) {
+    nc <- length(cls[[j]])
+    direction <- rep(1, nc)
+    W <- .Fortran("readbed",
+      n = as.integer(n),
+      nr = as.integer(nr),
+      rws = as.integer(rws),
+      nc = as.integer(nc),
+      cls = as.integer(cls[[j]]),
+      impute = as.integer(impute),
+      scale = as.integer(scale),
+      direction = as.integer(direction),
+      W = matrix(as.double(0), nrow = nr, ncol = nc),
+      nbytes = as.integer(nbytes),
+      fnRAW = as.character(fnRAW),
+      nchars = nchar(as.character(fnRAW)),
+      PACKAGE = "qgg"
+    )$W
+    if (method == "cvat") {
+      s <- crossprod(W / nc, Py) * Sg
+      Ws <- t(t(W) * as.vector(s))
+      setstat <- c(setstat, colSums(g * Ws))
+    }
+    if (method == "score") {
+      we2 <- as.vector((t(W) %*% e)**2)
+      setstat <- c(setstat, we2)
+    }
+  }
+  return(setstat)
 }
 
 
