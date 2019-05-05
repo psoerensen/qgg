@@ -256,7 +256,7 @@
 
   integer*4, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
-  integer*4 :: i,j,k,nchar,offset
+  integer*4 :: i,j,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos14, nbytes14, offset14, i14
@@ -278,7 +278,7 @@
   prs=0.0d0
   prsmp=0.0d0
 
-  !$omp parallel do private(i,j,k,gr,gsc,nmiss,n0,n1,n2,thread,i14,pos14,raw)
+  !$omp parallel do private(i,j,gr,gsc,nmiss,n0,n1,n2,thread,i14,pos14,raw)
   do i=1,nc
     thread=omp_get_thread_num()+1
     i14=cls(i)
