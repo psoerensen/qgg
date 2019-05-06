@@ -126,7 +126,7 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g
       Py <- fit$Py
       g <- as.vector(fit$g)
       Sg <- fit$theta[1]
-      stat <- gstat(method = "cvat", Glist = Glist, g = g, Sg = Sg, Py = Py, ids = ids)
+      stat <- qgg:::gstat(method = "cvat", Glist = Glist, g = g, Sg = Sg, Py = Py, ids = ids)
       setstat <- sapply(sets, function(x) {
         sum(stat[x])
       })
@@ -144,7 +144,7 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g
       msets <- sapply(sets, length)
       ids <- fit$ids
       e <- fit$e
-      stat <- gstat(method = "score", Glist = Glist, e = e, ids = ids)
+      stat <- qgg:::gstat(method = "score", Glist = Glist, e = e, ids = ids)
       setstat <- sapply(sets, function(x) {
         sum(stat[x])
       })
@@ -244,6 +244,8 @@ gstat <- function(method = NULL, Glist = NULL, g=NULL, Sg=NULL, Py = NULL, e=NUL
       we2 <- as.vector((t(W) %*% e)**2)
       setstat <- c(setstat, we2)
     }
+    print(paste("Finished block", j, "out of", nsets, "blocks"))
+    
   }
   return(setstat)
 }
