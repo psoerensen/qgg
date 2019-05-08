@@ -123,7 +123,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Tutorial on using 1000 Genome Data</h1>
 <h4 class="author"><em>Peter Sørensen, Izel Fourie Sørensen</em></h4>
-<h4 class="date"><em>28 November, 2018</em></h4>
+<h4 class="date"><em>08 May, 2019</em></h4>
 
 </div>
 
@@ -165,8 +165,8 @@ save(Glist, file=&quot;./Glist_1000G.Rdata&quot;, compress=FALSE)</code></pre>
 rsids2 &lt;- sample(Glist$rsids,900)
 rsids &lt;- c(rsids1,rsids2)</code></pre>
 <p>Extract genotypes for causal markers.</p>
-<pre class="r"><code>W1 &lt;- getW(Glist=Glist, rsids=rsids1, scale=TRUE) 
-W2 &lt;- getW(Glist=Glist, rsids=rsids2, scale=TRUE)</code></pre>
+<pre class="r"><code>W1 &lt;- getW(Glist=Glist, rsids=rsids1, scale=TRUE, impute=TRUE) 
+W2 &lt;- getW(Glist=Glist, rsids=rsids2, scale=TRUE, impute=TRUE)</code></pre>
 <p>Single marker variance</p>
 <pre class="r"><code>S1 &lt;- 0.5/length(rsids1)
 S2 &lt;- 0.5/length(rsids2)
@@ -192,31 +192,31 @@ data &lt;- data.frame(y = y, mu = 1)</code></pre>
 fnG1 &lt;- &quot;./G1.grm&quot;
 fnG2 &lt;- &quot;./G2.grm&quot;
 
-GRMlist &lt;- computeGRM(Glist=Glist, ids=Glist$ids, rsids=rsids, scaled=TRUE, msize=100, ncores=4, fnG=fnG, overwrite=TRUE)
+GRMlist &lt;- grm(Glist=Glist, ids=Glist$ids, rsids=rsids, scale=TRUE, msize=100, ncores=4, fnG=fnG, overwrite=TRUE)
 
-GRMlist1 &lt;- computeGRM(Glist=Glist, ids=Glist$ids, rsids=rsids1, scaled=TRUE, msize=100, ncores=4, fnG=fnG1, overwrite=TRUE)
+GRMlist1 &lt;- grm(Glist=Glist, ids=Glist$ids, rsids=rsids1, scale=TRUE, msize=100, ncores=4, fnG=fnG1, overwrite=TRUE)
 
-GRMlist2 &lt;- computeGRM(Glist=Glist, ids=Glist$ids, rsids=rsids2, scaled=TRUE, msize=100, ncores=4, fnG=fnG2, overwrite=TRUE)
+GRMlist2 &lt;- grm(Glist=Glist, ids=Glist$ids, rsids=rsids2, scale=TRUE, msize=100, ncores=4, fnG=fnG2, overwrite=TRUE)
 
 GRMlist12 &lt;- mergeGRM(list(GRMlist1,GRMlist2)) 
 
-W &lt;- getW(Glist=Glist, rsids=rsids, scaled=TRUE) 
-W1 &lt;- getW(Glist=Glist, rsids=rsids1, scaled=TRUE) 
-W2 &lt;- getW(Glist=Glist, rsids=rsids2, scaled=TRUE)
+W &lt;- getW(Glist=Glist, rsids=rsids, scale=TRUE, impute=TRUE) 
+W1 &lt;- getW(Glist=Glist, rsids=rsids1, scale=TRUE, impute=TRUE) 
+W2 &lt;- getW(Glist=Glist, rsids=rsids2, scale=TRUE, impute=TRUE)
 
-G &lt;- computeGRM(W=W)
-G1 &lt;- computeGRM(W=W1)
-G2 &lt;- computeGRM(W=W2)
+G &lt;- grm(W=W)
+G1 &lt;- grm(W=W1)
+G2 &lt;- grm(W=W2)
 
 G &lt;- getGRM(GRMlist=GRMlist, ids=Glist$ids)
 G1 &lt;- getGRM(GRMlist=GRMlist1, ids=Glist$ids)
 G2 &lt;- getGRM(GRMlist=GRMlist2, ids=Glist$ids)
 
-G &lt;- computeGRM(Glist=Glist, ids=Glist$ids, rsids=rsids, scaled=TRUE, msize=100, ncores=4, fnG=fnG, overwrite=TRUE, returnGRM=TRUE)
+G &lt;- grm(Glist=Glist, ids=Glist$ids, rsids=rsids, scale=TRUE, msize=100, ncores=4, fnG=fnG, overwrite=TRUE, returnGRM=TRUE)
 
-G1 &lt;- computeGRM(Glist=Glist, ids=Glist$ids, rsids=rsids1, scaled=TRUE, msize=100, ncores=4, fnG=fnG1, overwrite=TRUE, returnGRM=TRUE)
+G1 &lt;- grm(Glist=Glist, ids=Glist$ids, rsids=rsids1, scale=TRUE, msize=100, ncores=4, fnG=fnG1, overwrite=TRUE, returnGRM=TRUE)
 
-G2 &lt;- computeGRM(Glist=Glist, ids=Glist$ids, rsids=rsids2, scaled=TRUE, msize=100, ncores=4, fnG=fnG2, overwrite=TRUE, returnGRM=TRUE)</code></pre>
+G2 &lt;- grm(Glist=Glist, ids=Glist$ids, rsids=rsids2, scale=TRUE, msize=100, ncores=4, fnG=fnG2, overwrite=TRUE, returnGRM=TRUE)</code></pre>
 <p><br></p>
 </div>
 <div id="examples-using-grmlist-suitable-for-big-data" class="section level4">
@@ -246,11 +246,11 @@ g12 &lt;- gblup(GRMlist=GRMlist12,fit=fitG12)</code></pre>
 <div id="examples-using-grm-suitable-for-small-data" class="section level4">
 <h4><strong>Examples using GRM (suitable for small data)</strong></h4>
 <p>Fit linear mixed model - estimate variance components using REML</p>
-<pre class="r"><code>G &lt;- computeGRM(Glist=Glist, ids=Glist$ids, rsids=rsids, scaled=TRUE, msize=100, ncores=4, fnG=fnG, overwrite=TRUE, returnGRM=TRUE)
+<pre class="r"><code>G &lt;- grm(Glist=Glist, ids=Glist$ids, rsids=rsids, scale=TRUE, msize=100, ncores=4, fnG=fnG, overwrite=TRUE, returnGRM=TRUE)
 
-G1 &lt;- computeGRM(Glist=Glist, ids=Glist$ids, rsids=rsids1, scaled=TRUE, msize=100, ncores=4, fnG=fnG1, overwrite=TRUE, returnGRM=TRUE)
+G1 &lt;- grm(Glist=Glist, ids=Glist$ids, rsids=rsids1, scale=TRUE, msize=100, ncores=4, fnG=fnG1, overwrite=TRUE, returnGRM=TRUE)
 
-G2 &lt;- computeGRM( Glist=Glist, ids=Glist$ids, rsids=rsids2, scaled=TRUE, msize=100, ncores=4, fnG=fnG2, overwrite=TRUE, returnGRM=TRUE)
+G2 &lt;- grm( Glist=Glist, ids=Glist$ids, rsids=rsids2, scale=TRUE, msize=100, ncores=4, fnG=fnG2, overwrite=TRUE, returnGRM=TRUE)
 
 fitG &lt;- greml(y=y, X=X, GRM=list(G=G), theta=c(0.1,0.4), ncores=4)
 fitG1 &lt;- greml(y=y, X=X, GRM=list(G1=G1), theta=c(0.1,0.4), ncores=4)
@@ -293,7 +293,7 @@ S[,1]  &lt;- c(s1,s2)
 S[1:100,2]  &lt;- s1
 S[101:1000,3]  &lt;- s2
 
-gt &lt;- gscore(Glist=Glist,S=S,scaled=FALSE)</code></pre>
+gt &lt;- gscore(Glist=Glist,S=S,scale=FALSE)</code></pre>
 <p><br></p>
 </div>
 <div id="single-marker-association-and-gene-set-enrichment-analysis" class="section level4">
