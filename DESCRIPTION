@@ -17,10 +17,12 @@ Encoding: UTF-8
 Depends:
     data.table,
     parallel,
+    statmod,
     MASS
 Imports:
     data.table,
     parallel,
+    statmod,
     MASS
 RoxygenNote: 6.1.1
 Suggests:

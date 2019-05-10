@@ -83,7 +83,17 @@
 #'  mma <- gsea(stat = ma[,"p"], sets = sets, method = "hyperg", threshold = 0.05)
 #'  head(mma)
 #'
-#'
+#'  G <- grm(W=W)
+#'  fit <- greml(y=y, X=X, GRM=list(G=G), theta=c(0.1,0.4), ncores=4)
+#'  
+#'  # Set test based on cvat
+#'  mma <- gsea(W=W,fit = fit, sets = sets, nperm = 1000, method="cvat")
+#'  head(mma)
+#'  
+#'  # Set test based on score
+#'  mma <- gsea(W=W,fit = fit, sets = sets, nperm = 1000, method="score")
+#'  head(mma)
+#'  
 
 
 #' @export
@@ -137,7 +147,7 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g
     return(res)
   }
   if (method == "score") {
-    if (!is.null(W)) res <- qgg:::scoretest(fit = fit, e = e, W = W, sets = sets, nperm = nperm)
+    if (!is.null(W)) res <- qgg:::scoretest(e = fit$e, W = W, sets = sets, nperm = nperm)
     if (!is.null(Glist)) {
       sets <- qgg:::mapSets(sets = sets, rsids = Glist$rsids, index = TRUE)
       nsets <- length(sets)
@@ -302,10 +312,10 @@ adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, l
 
 
 settest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
-  if (method == "sum") setT <- sumtest(stat = stat, sets = sets, nperm = nperm)
-  if (method == "cvat") setT <- cvat(s = stat, W = W, sets = sets, nperm = nperm)
-  if (method == "hyperG") setT <- hgtest(p = stat, sets = sets, threshold = threshold)
-  if (method == "score") setT <- scoretest(e = e, W = W, sets = sets, nperm = nperm)
+  if (method == "sum") setT <- qgg:::sumtest(stat = stat, sets = sets, nperm = nperm)
+  if (method == "cvat") setT <- qgg:::cvat(s = stat, W = W, sets = sets, nperm = nperm)
+  if (method == "hyperG") setT <- qgg:::hgtest(p = stat, sets = sets, threshold = threshold)
+  if (method == "score") setT <- qgg:::scoretest(e = e, W = W, sets = sets, nperm = nperm)
 
   return(setT)
 }
@@ -373,7 +383,7 @@ cvat <- function(fit = NULL, s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 
   cvs <- colSums(as.vector(g) * Ws)
   # setT <- setTest(stat = cvs, sets = sets, nperm = nperm, method = "sum")$p
   # names(setT) <- names(sets)
-  setT <- setTest(stat = cvs, sets = sets, nperm = nperm, method = "sum")
+  setT <- settest(stat = cvs, sets = sets, nperm = nperm, method = "sum")
   if (!is.null(names(sets))) rownames(setT) <- names(sets)
   return(setT)
 }
@@ -381,7 +391,7 @@ cvat <- function(fit = NULL, s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 
 scoretest <- function(e = NULL, W = NULL, sets = NULL, nperm = 100) {
   we2 <- as.vector((t(W) %*% e)**2)
   names(we2) <- colnames(W)
-  setT <- setTest(stat = we2, sets = sets, nperm = nperm, method = "sum")$p
+  setT <- settest(stat = we2, sets = sets, nperm = nperm, method = "sum")$p
   return(setT)
 }
 

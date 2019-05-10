@@ -24,24 +24,34 @@
 #' allele frequencies and missing genotypes, and construct a binary file on the disk that contains
 #' the genotypes as allele counts of the alternative allele (memory usage = (n x m)/4 bytes).
 #'
+#' The gprep function can also be used to prepare sparse ld matrices. 
+#' The r2 metric used is the pairwise correlation between markers (allele count alternative allele) 
+#' in a specified region of the genome. The marker genotype is allele count of the alternative allele
+#' which is assumed to be centered and scaled. 
+#'
 #' The Glist structure is used as input parameter for a number of qgg core functions including:
-#' 1) construction of genomic relationship matrices (grm), 2) estimating genomic parameters (greml),
-#' 3) single marker association analyses (lma or mlma), 4) gene set enrichment analyses (gsea),
-#' and 5) genomic prediction from genotypes and phenotypes (gsolve) or genotypes and summary statistics (gscore).
+#' 1) construction of genomic relationship matrices (grm), 2) construction of sparse ld matrices, 
+#' 3) estimating genomic parameters (greml), 4) single marker association analyses (lma or mlma), 
+#' 5) gene set enrichment analyses (gsea), and 6) genomic prediction from genotypes 
+#' and phenotypes (gsolve) or genotypes and summary statistics (gscore).
 #'
 
 #'
+#' @param Glist only provided if task="summary" or task="sparseld"
+#' @param task character specifying which task to perform ("prepare" is default, "summary", or "sparseld")
 #' @param study name of the study
-#' @param fnRAW path and .raw filename of the binary file used for storing genotypes on the disk
+#' @param fnRAW path and filename of the binary file .raw or .bed used for storing genotypes on the disk
 #' @param bedfiles vector of names for the PLINK bed-files
 #' @param famfiles vector of names for the PLINK fam-files
 #' @param bimfiles vector of names for the PLINK bim-files
 #' @param ids vector of individuals used in the study
 #' @param rsids vector of marker rsids used in the study
+#' @param fnLD path and filename of the binary files .ld for storing sparse ld matrix on the disk
+#' @param msize number of markers used in compuation of sparseld
 #' @param overwrite logical if TRUE overwite binary genotype file
 #' @param ncores number of cores used to process the genotypes
 #'
-#' @return Returns a list structure with information about genotypes
+#' @return Returns a list structure (Glist) with information about genotypes
 #'
 
 
@@ -50,8 +60,31 @@
 #' @examples
 #
 
-#' #Glist <- gprep( bedfiles, bimfiles, study, path, additional arguments...)
-#' #W <- getW( Glist, ids, rsids, additional arguments...)
+#' # Download 1000G Plink files
+#' download.file(url="https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase1_plinkfiles.tgz",dest="./1000G_Phase1_plinkfiles.tgz")
+#' 
+#' download.file(url="https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz",dest="./1000G_Phase3_plinkfiles.tgz")
+#' 
+#' cmd <- "tar -xvzf 1000G_Phase1_plinkfiles.tgz"
+#' cmd <- "tar -xvzf 1000G_Phase3_plinkfiles.tgz"
+#' system(cmd)
+#'
+#' # Prepare Glist
+#' 
+#' bedfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".bed",sep="")
+#' bimfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".bim",sep="")
+#' famfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".fam",sep="")
+#'
+#' fnRAW <- "./1000G.raw"
+#' 
+#' Glist <- gprep(study="1000G", fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, overwrite=TRUE)
+#' 
+#' 
+#' Glist <- gprep(Glist=Glist, task="summary")
+#' 
+#' fnLD <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".ld",sep="")
+#' Glist <- gprep( task="sparseld", Glist=Glist, fnLD=fnLD, msize=200, ncores=4)
+#' 
 
 
 #' @export
