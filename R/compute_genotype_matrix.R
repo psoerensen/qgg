@@ -24,15 +24,15 @@
 #' allele frequencies and missing genotypes, and construct a binary file on the disk that contains
 #' the genotypes as allele counts of the alternative allele (memory usage = (n x m)/4 bytes).
 #'
-#' The gprep function can also be used to prepare sparse ld matrices. 
-#' The r2 metric used is the pairwise correlation between markers (allele count alternative allele) 
+#' The gprep function can also be used to prepare sparse ld matrices.
+#' The r2 metric used is the pairwise correlation between markers (allele count alternative allele)
 #' in a specified region of the genome. The marker genotype is allele count of the alternative allele
-#' which is assumed to be centered and scaled. 
+#' which is assumed to be centered and scaled.
 #'
 #' The Glist structure is used as input parameter for a number of qgg core functions including:
-#' 1) construction of genomic relationship matrices (grm), 2) construction of sparse ld matrices, 
-#' 3) estimating genomic parameters (greml), 4) single marker association analyses (lma or mlma), 
-#' 5) gene set enrichment analyses (gsea), and 6) genomic prediction from genotypes 
+#' 1) construction of genomic relationship matrices (grm), 2) construction of sparse ld matrices,
+#' 3) estimating genomic parameters (greml), 4) single marker association analyses (lma or mlma),
+#' 5) gene set enrichment analyses (gsea), and 6) genomic prediction from genotypes
 #' and phenotypes (gsolve) or genotypes and summary statistics (gscore).
 #'
 
@@ -62,29 +62,29 @@
 
 #' # Download 1000G Plink files
 #' download.file(url="https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase1_plinkfiles.tgz",dest="./1000G_Phase1_plinkfiles.tgz")
-#' 
+#'
 #' download.file(url="https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz",dest="./1000G_Phase3_plinkfiles.tgz")
-#' 
+#'
 #' cmd <- "tar -xvzf 1000G_Phase1_plinkfiles.tgz"
 #' cmd <- "tar -xvzf 1000G_Phase3_plinkfiles.tgz"
 #' system(cmd)
 #'
 #' # Prepare Glist
-#' 
+#'
 #' bedfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".bed",sep="")
 #' bimfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".bim",sep="")
 #' famfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".fam",sep="")
 #'
 #' fnRAW <- "./1000G.raw"
-#' 
+#'
 #' Glist <- gprep(study="1000G", fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, overwrite=TRUE)
-#' 
-#' 
+#'
+#'
 #' Glist <- gprep(Glist=Glist, task="summary")
-#' 
+#'
 #' fnLD <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".ld",sep="")
 #' Glist <- gprep( task="sparseld", Glist=Glist, fnLD=fnLD, msize=200, ncores=4)
-#' 
+#'
 
 
 #' @export
@@ -255,7 +255,7 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 
   nc <- length(cls)
   af <- nmiss <- n0 <- n1 <- n2 <- rep(0, nc)
-  
+
   qc <- .Fortran("summarybed",
     n = as.integer(n),
     nr = as.integer(nr),

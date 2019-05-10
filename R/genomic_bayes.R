@@ -8,65 +8,63 @@
 #' Genomic prediction models implemented using Bayesian Methods (small data).
 #' The models are implemented using empirical Bayesian methods. The hyperparameters of the dispersion parameters of the Bayesian model can
 #' be obtained from prior information or estimated by maximum likelihood, and conditional on these, the model is fitted using
-#' Markov chain Monte Carlo. These functions are currently under development and tuture release will be able to handle large data sets. 
+#' Markov chain Monte Carlo. These functions are currently under development and tuture release will be able to handle large data sets.
 #'
-#' 
+#'
 #' @param y is a matrix of phenotypes
 #' @param W is a matrix of centered and scaled genotypes
 #' @param nsamp is the number of samples after burnin
-#' @param sets is a list of markers defining a group 
-#' @param method specifies the methods used (method="ssvs","blasso","blr") 
+#' @param sets is a list of markers defining a group
+#' @param method specifies the methods used (method="ssvs","blasso","blr")
 #' @param nburn is the number of burnin samples
 #' @param nsave is the number of samples to save
 #' @param tol is the tolerance
-#' 
+#'
 
 #' @author Peter Sørensen
 
 
 #' @examples
-#' 
 #'
-#'# Simulate data and test functions
 #'
-#'W <- matrix(rnorm(10000000),nrow=1000)
-#'set1 <- sample(1:ncol(W),5)
-#'set2 <- sample(1:ncol(W),5)
-#'sets <- list(set1,set2)
-#'g <- rowSums(W[,c(set1,set2)]) 
-#'e <- rnorm(nrow(W),mean=0,sd=1)
-#'y <- g + e
+#' # Simulate data and test functions
 #'
-#'gbayes(y=y, W=W, method="blasso", nsamp=100)
-#'gbayes(y=y, W=W, method="ssvs", nsamp=100)
-#'gbayes(y=y, W=W, method="blr", nsets=7, nsamp=100)
-#'gbayes(y=y, W=W, method="ssvs", sets=sets, nsamp=100)
-#'gbayes(y=y, W=W, method="blasso", sets=sets, nsamp=100)
+#' W <- matrix(rnorm(10000000),nrow=1000)
+#' set1 <- sample(1:ncol(W),5)
+#' set2 <- sample(1:ncol(W),5)
+#' sets <- list(set1,set2)
+#' g <- rowSums(W[,c(set1,set2)])
+#' e <- rnorm(nrow(W),mean=0,sd=1)
+#' y <- g + e
+#'
+#' gbayes(y=y, W=W, method="blasso", nsamp=100)
+#' gbayes(y=y, W=W, method="ssvs", nsamp=100)
+#' gbayes(y=y, W=W, method="blr", nsets=7, nsamp=100)
+#' gbayes(y=y, W=W, method="ssvs", sets=sets, nsamp=100)
+#' gbayes(y=y, W=W, method="blasso", sets=sets, nsamp=100)
 
 
 #'
 #' @export
 #'
 
-gbayes<- function(y = NULL, W = NULL, sets=NULL, h2=NULL, nsets=NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001, 
-                  method="blasso",p1=0.001,g0=0.0000001) {
-     if(method=="blasso") res <- blasso(y=y, X=W, nsamp=nsamp)
-     if(method=="blr") res <- mcbr(y=y, X=W, nc=nsets, nsamp=nsamp)
-     if(method=="ssvs") res <- ssvs(y=y, X=W,p1=p1,g0=g0, nsamp=nsamp)
-     if(!is.null(sets)) {
-          nsets <- length(sets)
-          g <- rep(0,times=ncol(W))
-          for (i in 1:nsets) {
-            g[sets[[i]]] <- i      
-          }
-          g[g==0] <- nsets + 1
-          
-     }     
-     if(method=="blasso" && !is.null(sets)) res <- bglasso(y=y,X=W,g=g, nsamp=nsamp)
-     if(method=="ssvs" && !is.null(sets)) res <- hssvs(y=y,X=W,set=sets, p1=0.01,g0=0.0000001, nsamp=nsamp)
-     
+gbayes <- function(y = NULL, W = NULL, sets = NULL, h2 = NULL, nsets = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001,
+                   method = "blasso", p1 = 0.001, g0 = 0.0000001) {
+  if (method == "blasso") res <- blasso(y = y, X = W, nsamp = nsamp)
+  if (method == "blr") res <- mcbr(y = y, X = W, nc = nsets, nsamp = nsamp)
+  if (method == "ssvs") res <- ssvs(y = y, X = W, p1 = p1, g0 = g0, nsamp = nsamp)
+  if (!is.null(sets)) {
+    nsets <- length(sets)
+    g <- rep(0, times = ncol(W))
+    for (i in 1:nsets) {
+      g[sets[[i]]] <- i
+    }
+    g[g == 0] <- nsets + 1
+  }
+  if (method == "blasso" && !is.null(sets)) res <- bglasso(y = y, X = W, g = g, nsamp = nsamp)
+  if (method == "ssvs" && !is.null(sets)) res <- hssvs(y = y, X = W, set = sets, p1 = 0.01, g0 = 0.0000001, nsamp = nsamp)
 }
-     
+
 bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001) {
 
   # nsamp is the number of samples
@@ -202,7 +200,7 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
   lrate0 <- 0.1 # lambda2 hyperparameter rate
   lshape0 <- 1 # lambda2 hyperparameter shape
 
-  
+
   e <- as.vector(y - mu - X %*% b) # initialize residuals
   sigma2 <- var(e) / 2 # initialize sigma2
 
@@ -226,9 +224,9 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
     # sample invtau2
     mutau <- sqrt(lambda2 * sigma2) / abs(b) # Park & Casella
     lambdatau <- rep(lambda2, p) # Park & Casella
-    #invtau2 <- rinvgauss(p, mu = mutau, lambda = lambdatau)
+    # invtau2 <- rinvgauss(p, mu = mutau, lambda = lambdatau)
     invtau2 <- rinvgauss(p, mean = mutau, dispersion = lambdatau)
-    
+
     # update lambda
     shl2 <- p + lshape0 # Park & Casella
     ratel2 <- sum(1 / (invtau2)) / 2 + lrate0 # Park & Casella
@@ -240,9 +238,9 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
     she <- (n + p) / 2 # Park & Casella ((n-1+p)/2)
     sce <- sum(e**2) / 2 + sum((b * invtau2 * b)) / 2 # Park & Casella
     sigma2 <- 1 / rgamma(1, shape = she, rate = sce) # Park & Casella
-    she <- n + p 
-    sce <- sum(e**2) + sum((b * invtau2 * b)) 
-    sigma2 <- sce / rchisq(n = 1, df = she) 
+    she <- n + p
+    sce <- sum(e**2) + sum((b * invtau2 * b))
+    sigma2 <- sce / rchisq(n = 1, df = she)
     if (!is.null(sigma0)) sigma2 <- sigma0
     print(c(sum(e**2), sum((b * (1 / invtau2) * b)), sum((1 / invtau2))))
     plot(b)

@@ -85,15 +85,15 @@
 #'
 #'  G <- grm(W=W)
 #'  fit <- greml(y=y, X=X, GRM=list(G=G), theta=c(0.1,0.4), ncores=4)
-#'  
+#'
 #'  # Set test based on cvat
 #'  mma <- gsea(W=W,fit = fit, sets = sets, nperm = 1000, method="cvat")
 #'  head(mma)
-#'  
+#'
 #'  # Set test based on score
 #'  mma <- gsea(W=W,fit = fit, sets = sets, nperm = 1000, method="score")
 #'  head(mma)
-#'  
+#'
 
 
 #' @export
@@ -212,7 +212,7 @@ mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
 
 
 
-gstat <- function(method = NULL, Glist = NULL, g=NULL, Sg=NULL, Py = NULL, e=NULL, msize = 100, rsids = NULL,
+gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e = NULL, msize = 100, rsids = NULL,
                   impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {
   n <- Glist$n
   rws <- match(ids, Glist$ids)
@@ -255,7 +255,6 @@ gstat <- function(method = NULL, Glist = NULL, g=NULL, Sg=NULL, Py = NULL, e=NUL
       setstat <- c(setstat, we2)
     }
     print(paste("Finished block", j, "out of", nsets, "blocks"))
-    
   }
   return(setstat)
 }
@@ -266,7 +265,7 @@ gstat <- function(method = NULL, Glist = NULL, g=NULL, Sg=NULL, Py = NULL, e=NUL
 
 adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, method = "pruning") {
   rsidsStat <- rownames(stat)
-  if (statistics == "p-value") pstat <- stat[,"p"]
+  if (statistics == "p-value") pstat <- stat[, "p"]
   pstat <- as.matrix(pstat)
   rownames(pstat) <- rsidsStat
   colnames(pstat) <- "p"
