@@ -39,10 +39,11 @@
 #' @param sets list of marker sets - names corresponds to row names in stat
 #' @param nperm number of permutations used for obtaining an empirical p-value
 #' @param ncores number of cores used in the analysis
+#' @param Glist list providing information about genotypes stored on disk
 #' @param W matrix of centered and scaled genotypes (used if method = cvat or score)
 #' @param fit list object obtained from a linear mixed model fit using the greml function
 #' @param g vector (or matrix) of genetic effects obtained from a linear mixed model fit (GBLUP of GFBLUP)
-#' @param s vector (or list) of single marker effects obtained from a linear mixed model fit (GBLUP of GFBLUP)
+#' @param e vector (or matrix) of residual effects obtained from a linear mixed model fit (GBLUP of GFBLUP)
 #' @param method including sum, cvat, hyperg, score
 #' @param threshold used if method='hyperg' (threshold=0.05 is default)
 
@@ -100,13 +101,13 @@
 gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g = NULL, e = NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
   if (method == "sum") {
     m <- length(stat)
-    if (is.matrix(stat)) sets <- qgg:::mapSets(sets = sets, rsids = rownames(stat), index = TRUE)
-    if (is.vector(stat)) sets <- qgg:::mapSets(sets = sets, rsids = names(stat), index = TRUE)
+    if (is.matrix(stat)) sets <- mapSets(sets = sets, rsids = rownames(stat), index = TRUE)
+    if (is.vector(stat)) sets <- mapSets(sets = sets, rsids = names(stat), index = TRUE)
     nsets <- length(sets)
     msets <- sapply(sets, length)
     if (is.matrix(stat)) {
       p <- apply(stat, 2, function(x) {
-        qgg:::gsets(stat = x, sets = sets, ncores = ncores, np = nperm)
+        gsets(stat = x, sets = sets, ncores = ncores, np = nperm)
       })
       setstat <- apply(stat, 2, function(x) {
         sapply(sets, function(y) {
@@ -120,55 +121,57 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g
       setstat <- sapply(sets, function(x) {
         sum(stat[x])
       })
-      p <- qgg:::gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = method)
+      p <- gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = method)
       res <- cbind(m = msets, stat = setstat, p = p)
       rownames(res) <- names(sets)
     }
     return(res)
   }
   if (method == "cvat") {
-    if (!is.null(W)) res <- qgg:::cvat(fit = fit, g = g, W = W, sets = sets, nperm = nperm)
+    if (!is.null(W)) res <- cvat(fit = fit, g = g, W = W, sets = sets, nperm = nperm)
     if (!is.null(Glist)) {
-      sets <- qgg:::mapSets(sets = sets, rsids = Glist$rsids, index = TRUE)
+      sets <- mapSets(sets = sets, rsids = Glist$rsids, index = TRUE)
       nsets <- length(sets)
       msets <- sapply(sets, length)
       ids <- fit$ids
       Py <- fit$Py
       g <- as.vector(fit$g)
       Sg <- fit$theta[1]
-      stat <- qgg:::gstat(method = "cvat", Glist = Glist, g = g, Sg = Sg, Py = Py, ids = ids)
+      stat <- gstat(method = "cvat", Glist = Glist, g = g, Sg = Sg, Py = Py, ids = ids)
       setstat <- sapply(sets, function(x) {
         sum(stat[x])
       })
-      p <- qgg:::gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = "sum")
+      p <- gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = "sum")
       res <- cbind(m = msets, stat = setstat, p = p)
       rownames(res) <- names(sets)
     }
     return(res)
   }
   if (method == "score") {
-    if (!is.null(W)) res <- qgg:::scoretest(e = fit$e, W = W, sets = sets, nperm = nperm)
+    if (!is.null(W)) res <- scoretest(e = fit$e, W = W, sets = sets, nperm = nperm)
     if (!is.null(Glist)) {
-      sets <- qgg:::mapSets(sets = sets, rsids = Glist$rsids, index = TRUE)
+      sets <- mapSets(sets = sets, rsids = Glist$rsids, index = TRUE)
       nsets <- length(sets)
       msets <- sapply(sets, length)
       ids <- fit$ids
       e <- fit$e
-      stat <- qgg:::gstat(method = "score", Glist = Glist, e = e, ids = ids)
+      stat <- gstat(method = "score", Glist = Glist, e = e, ids = ids)
       setstat <- sapply(sets, function(x) {
         sum(stat[x])
       })
-      p <- qgg:::gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = "sum")
+      p <- gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = "sum")
       res <- cbind(m = msets, stat = setstat, p = p)
       rownames(res) <- names(sets)
     }
     return(res)
   }
   if (method == "hyperg") {
-    res <- qgg:::hgtest(p = stat, sets = sets, threshold = threshold)
+    res <- hgtest(p = stat, sets = sets, threshold = threshold)
     return(res)
   }
 }
+
+
 
 gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum") {
   m <- length(stat)
@@ -194,7 +197,6 @@ gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum
 }
 
 
-
 mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
   if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
   nsets <- sapply(sets, length)
@@ -209,6 +211,7 @@ mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
   rsSets <- split(rsSets, f = rs)
   return(rsSets)
 }
+
 
 
 
@@ -260,10 +263,23 @@ gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e
 }
 
 
-#' @export
+#' LD pruning of summary statistics
 #'
+#' @description
+#' Perform LD pruning of summary statistics before they are used in gene set enrichment analyses. 
+#' @param stat vector or matrix of single marker statistics (e.g. coefficients, t-statistics, p-values)
+#' @param statistics is the type of statistics used in stat (e.g. statistics="p-value")
+#' @param ldSets list of marker sets - names corresponds to row names in stat
+#' @param r2 threshold for r2 used in LD pruning
+#' @param threshold p-value threshold used in LD pruning
+#' @param Glist list providing information about genotypes stored on disk
+#' @param method used including method="pruning" which is default or "clumping"
 
-adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, method = "pruning") {
+
+#' @export
+
+adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, 
+                  method = "pruning") {
   rsidsStat <- rownames(stat)
   if (statistics == "p-value") pstat <- stat[, "p"]
   pstat <- as.matrix(pstat)
@@ -278,8 +294,8 @@ adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, l
       indx2 <- rep(F, m)
       for (chr in 1:nchr) {
         if (!is.null(Glist)) {
-          setsChr <- qgg:::getLDsets(Glist = Glist, r2 = r2, chr = chr)
-          setsChr <- qgg:::mapSets(sets = setsChr, rsids = rsidsStat)
+          setsChr <- getLDsets(Glist = Glist, r2 = r2, chr = chr)
+          setsChr <- mapSets(sets = setsChr, rsids = rsidsStat)
         }
         if (!is.null(ldSets)) setsChr <- ldSets[[chr]]
         rsidsChr <- names(setsChr)
@@ -310,14 +326,15 @@ adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, l
 }
 
 
-settest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
-  if (method == "sum") setT <- qgg:::sumtest(stat = stat, sets = sets, nperm = nperm)
-  if (method == "cvat") setT <- qgg:::cvat(s = stat, W = W, sets = sets, nperm = nperm)
-  if (method == "hyperG") setT <- qgg:::hgtest(p = stat, sets = sets, threshold = threshold)
-  if (method == "score") setT <- qgg:::scoretest(e = e, W = W, sets = sets, nperm = nperm)
 
+
+settest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
+  if (method == "sum") setT <- sumtest(stat = stat, sets = sets, nperm = nperm)
+  if (method == "hyperG") setT <- hgtest(p = stat, sets = sets, threshold = threshold)
   return(setT)
 }
+
+
 
 sumtest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
   if (method == "mean") {
@@ -373,6 +390,7 @@ sumtest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
 }
 
 
+
 cvat <- function(fit = NULL, s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 100) {
   if (!is.null(fit)) {
     s <- crossprod(W / ncol(W), fit$Py) * fit$theta[1]
@@ -387,12 +405,15 @@ cvat <- function(fit = NULL, s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 
   return(setT)
 }
 
+
 scoretest <- function(e = NULL, W = NULL, sets = NULL, nperm = 100) {
   we2 <- as.vector((t(W) %*% e)**2)
   names(we2) <- colnames(W)
   setT <- settest(stat = we2, sets = sets, nperm = nperm, method = "sum")$p
   return(setT)
 }
+
+
 
 hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
   N <- length(p)

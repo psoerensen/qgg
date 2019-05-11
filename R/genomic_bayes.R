@@ -15,6 +15,9 @@
 #' @param W is a matrix of centered and scaled genotypes
 #' @param nsamp is the number of samples after burnin
 #' @param sets is a list of markers defining a group
+#' @param nsets is a list of number of marker groups
+#' @param phi is the proportion of markers in each marker variance class (phi=c(0.999,0.001),used if method="ssvs")
+#' @param h2 is the trait heritability
 #' @param method specifies the methods used (method="ssvs","blasso","blr")
 #' @param nburn is the number of burnin samples
 #' @param nsave is the number of samples to save
@@ -37,11 +40,13 @@
 #' e <- rnorm(nrow(W),mean=0,sd=1)
 #' y <- g + e
 #'
+#' \dontrun{
 #' gbayes(y=y, W=W, method="blasso", nsamp=100)
 #' gbayes(y=y, W=W, method="ssvs", nsamp=100)
 #' gbayes(y=y, W=W, method="blr", nsets=7, nsamp=100)
 #' gbayes(y=y, W=W, method="ssvs", sets=sets, nsamp=100)
 #' gbayes(y=y, W=W, method="blasso", sets=sets, nsamp=100)
+#' }
 
 
 #'
@@ -49,10 +54,10 @@
 #'
 
 gbayes <- function(y = NULL, W = NULL, sets = NULL, h2 = NULL, nsets = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001,
-                   method = "blasso", p1 = 0.001, g0 = 0.0000001) {
+                   method = "blasso", phi = c(0.999,0.001)) {
   if (method == "blasso") res <- blasso(y = y, X = W, nsamp = nsamp)
   if (method == "blr") res <- mcbr(y = y, X = W, nc = nsets, nsamp = nsamp)
-  if (method == "ssvs") res <- ssvs(y = y, X = W, p1 = p1, g0 = g0, nsamp = nsamp)
+  if (method == "ssvs") res <- ssvs(y = y, X = W, , p1 = phi[length(phi)], g0 = 0.0000001, nsamp = nsamp)
   if (!is.null(sets)) {
     nsets <- length(sets)
     g <- rep(0, times = ncol(W))
@@ -187,7 +192,6 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 }
 
 
-#' @export
 
 blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 100) {
   n <- length(y) # number of observations
@@ -249,7 +253,7 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
 }
 
 
-#' @export
+
 
 mcbr <- function(y = NULL, X = NULL, nc = NULL, l1 = NULL, l2 = NULL, phi = NULL, nsamp = 100) {
   n <- length(y) # number of observations
@@ -335,7 +339,7 @@ mcbr <- function(y = NULL, X = NULL, nc = NULL, l1 = NULL, l2 = NULL, phi = NULL
 
 
 
-#' @export
+
 
 hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = 0.001, g0 = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
   n <- length(y) # number of observations
@@ -378,7 +382,7 @@ hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = 0.001, g0 = NULL, nsamp =
   for (i in 1:nsamp) {
     for (j in 1:nset) {
       cls <- set[[j]]
-      samp <- qgg:::hssvs_ssvs(e = e, X = X[, cls], b = bset[[j]], dxx = dxx[cls], mu = mu, g = gset[[j]], sigma2 = sigma2, p0 = p0, p1 = p1, g0 = g0[j], g1 = g1[j], hgprior = hgprior)
+      samp <- hssvs_ssvs(e = e, X = X[, cls], b = bset[[j]], dxx = dxx[cls], mu = mu, g = gset[[j]], sigma2 = sigma2, p0 = p0, p1 = p1, g0 = g0[j], g1 = g1[j], hgprior = hgprior)
       e <- samp$e
       bset[[j]] <- samp$b
       mu <- samp$mu
@@ -466,7 +470,6 @@ hssvs_ssvs <- function(e = e, X = X, b = b, dxx = dxx, mu = mu, g = g, sigma2 = 
 }
 
 
-#' @export
 
 ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
   n <- length(y) # number of observations
@@ -550,7 +553,6 @@ ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior 
   }
 }
 
-#' @export
 
 bglasso <- function(y = NULL, X = NULL, g = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
   n <- length(y) # number of observations

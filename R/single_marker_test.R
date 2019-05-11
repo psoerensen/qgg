@@ -96,18 +96,15 @@
 lma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, fit = NULL,
                 statistic = "mastor", ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
   if (is.null(fit)) {
-    ma <- qgg:::sma(y = y, X = X, W = W, Glist = Glist, ids = ids, rsids = rsids, msize = msize, scale = scale)
+    ma <- sma(y = y, X = X, W = W, Glist = Glist, ids = ids, rsids = rsids, msize = msize, scale = scale)
     return(ma)
   }
   if (!is.null(fit)) {
-    ma <- qgg:::mlma(y = y, X = X, fit = fit, W = W, statistic = statistic)
+    ma <- mlma(y = y, X = X, fit = fit, W = W, statistic = statistic)
     return(ma)
   }
 }
 
-
-#' @export
-#'
 
 mlma <- function(y = NULL, X = NULL, fit = NULL, W = NULL, m = NULL, statistic = "mastor") {
   if (is.null(m)) m <- ncol(W)
@@ -139,8 +136,6 @@ mlma <- function(y = NULL, X = NULL, fit = NULL, W = NULL, m = NULL, statistic =
   return(as.matrix(mma))
 }
 
-#' @export
-#'
 
 plotma <- function(ma = NULL, chr = NULL, rsids = NULL, thresh = 5) {
   mlogObs <- -log10(ma$p)
@@ -205,8 +200,8 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
     nsets <- length(sets)
     for (i in 1:nsets) {
       cls <- sets[[i]]
-      W <- qgg:::readbed(Glist = Glist, rws = rws, cls = cls, scale = scale)
-      res <- qgg:::smlm(y = y, X = X, W = W)
+      W <- freadbed(Glist = Glist, rws = rws, cls = cls, scale = scale)
+      res <- smlm(y = y, X = X, W = W)
       s[cls, ] <- res[[1]]
       se[cls, ] <- res[[2]]
       stat[cls, ] <- res[[3]]
