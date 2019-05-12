@@ -474,19 +474,20 @@
   implicit none
   
   integer*4 :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc),nchars 
-  real*8 :: G(nr,nr), W1(nr,msize), traceG
+  real*8 :: G(nr,nr), W1(nr,msize),W2(nr,msize), traceG
   character(len=nchars) :: fnRAW
   character(len=1000) :: fnG
-  real*8, allocatable :: W2(:,:)
+  !real*8, allocatable :: W2(:,:)
 
   call omp_set_num_threads(ncores)
 
   G = 0.0D0
   W1 = 0.0D0
-  if(gmodel==3) then 
-    allocate(W2(nr,msize))
-    W2 = 0.0D0
-  endif
+  W2 = 0.0D0
+  !if(gmodel==3) then 
+  !  allocate(W2(nr,msize))
+  !  W2 = 0.0D0
+  !endif
 
   impute=1
   direction=1 
@@ -613,6 +614,8 @@
   integer :: stat
 
   call omp_set_num_threads(ncores)
+
+  if (scale==0) scale = 1
 
   offset=0
   nchar=index(fnRAW, '.bed')
