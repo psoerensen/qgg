@@ -42,7 +42,7 @@
 #' @param data data frame containing the phenotypic observations and fixed factors specified in the model statements
 #' @param interface used for specifying whether to use R or Fortran implementations of REML
 #' @param wkdir is the working directory used for REML
-#' @param makeplots logical if TRUE makes some plots or parameter estimates and prediction accuracy during cross validation 
+#' @param makeplots logical if TRUE makes some plots or parameter estimates and prediction accuracy during cross validation
 #' @param verbose logical if TRUE print more details during optimization
 #' @param bin directory for fortran binaries (e.g. DMU binaries dmu1 and dmuai)
 
@@ -65,6 +65,8 @@
 
 #' @examples
 #'
+#' \dontrun{
+#'
 #' # Simulate data
 #' W <- matrix(rnorm(20000000), ncol = 10000)
 #' 	colnames(W) <- as.character(1:ncol(W))
@@ -86,9 +88,9 @@
 #'
 #' # Create marker sets
 #' setsGB <- list(A = colnames(W)) # gblup model
-#' setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], 
+#' setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000],
 #'                C3 = colnames(W)[2000:10000]) # gfblup model
-#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], 
+#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010],
 #'                C3 = colnames(W)[1:10000]) # true model
 #'
 #' GB <- lapply(setsGB, function(x) {grm(W = W[, x])})
@@ -108,28 +110,38 @@
 #' cvGF$accuracy
 #' cvGT$accuracy
 #'
-#'
+#' }
 
 #'
 #' @export
 #'
 
-greml <- function(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL, 
-                  ids = NULL, validate = NULL, maxit = 100, tol = 0.00001, bin = NULL, 
-                  ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE, 
+greml <- function(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL,
+                  ids = NULL, validate = NULL, maxit = 100, tol = 0.00001, bin = NULL,
+                  ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE,
                   interface = "R", fm = NULL, data = NULL) {
   if (!is.null(GRM)) {
-    if (is.null(validate)) fit <- remlr(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, 
-                                        maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose, 
-                                        wkdir = wkdir)
-    if (!is.null(validate)) fit <- cvreml(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, 
-                                          validate = validate, maxit = maxit, tol = tol, bin = bin, 
-                                          ncores = ncores, verbose = verbose, wkdir = wkdir, 
-                                          makeplots = makeplots)
+    if (is.null(validate)) {
+      fit <- remlr(
+        y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids,
+        maxit = maxit, tol = tol, bin = bin, ncores = ncores, verbose = verbose,
+        wkdir = wkdir
+      )
+    }
+    if (!is.null(validate)) {
+      fit <- cvreml(
+        y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids,
+        validate = validate, maxit = maxit, tol = tol, bin = bin,
+        ncores = ncores, verbose = verbose, wkdir = wkdir,
+        makeplots = makeplots
+      )
+    }
   }
   if (!is.null(GRMlist)) {
-    fit <- remlf(y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit, 
-                 tol = tol, ncores = ncores, verbose = verbose)
+    fit <- remlf(
+      y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids, maxit = maxit,
+      tol = tol, ncores = ncores, verbose = verbose
+    )
   }
   return(fit)
 }
@@ -143,7 +155,7 @@ greml <- function(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL,
 
 
 
-remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, 
+remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100,
                   tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE) {
   np <- length(G) + 1
   if (is.null(theta)) theta <- rep(sd(y) / np**2, np)
@@ -235,14 +247,16 @@ remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   if (is.null(names(G))) colnames(u) <- c(paste("G", 1:(np - 1), sep = ""))
   if (!is.null(names(G))) colnames(u) <- names(G)[-np]
 
-  return(list(y = y, X = X, b = b, vb = vb, g = u, e = e, fitted = fitted, predicted = predicted, 
-              Py = Py, Vy = Vy, theta = theta, asd = theta.cov, llik = llik, niter = it, trPG = trPG, 
-              trVG = trVG, ids = names(y), yVy = yVy))
+  return(list(
+    y = y, X = X, b = b, vb = vb, g = u, e = e, fitted = fitted, predicted = predicted,
+    Py = Py, Vy = Vy, theta = theta, asd = theta.cov, llik = llik, niter = it, trPG = trPG,
+    trVG = trVG, ids = names(y), yVy = yVy
+  ))
 }
 
 
-cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, validate = NULL, 
-                   maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE, 
+cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, validate = NULL,
+                   maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE,
                    makeplots = FALSE) {
   n <- length(y)
   theta <- yobs <- ypred <- yo <- yp <- NULL
@@ -295,7 +309,7 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
 
 
 
-remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100, 
+remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, maxit = 100,
                   tol = 0.00001, ncores = 1, verbose = FALSE) {
   if (!is.null(G)) writeGRM(GRM = G)
 
@@ -361,7 +375,7 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
 #' Compute Genomic BLUP values
 
 #' @description
-#' Compute Genomic BLUP values based on linear mixed model fit output from greml  
+#' Compute Genomic BLUP values based on linear mixed model fit output from greml
 
 #' @param GRM list of one or more genomic relationship matrices
 #' @param GRMlist list providing information about GRM matrix stored in binary files on disk

@@ -54,7 +54,7 @@
 #'
 
 gbayes <- function(y = NULL, W = NULL, sets = NULL, h2 = NULL, nsets = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001,
-                   method = "blasso", phi = c(0.999,0.001)) {
+                   method = "blasso", phi = c(0.999, 0.001)) {
   if (method == "blasso") res <- blasso(y = y, X = W, nsamp = nsamp)
   if (method == "blr") res <- mcbr(y = y, X = W, nc = nsets, nsamp = nsamp)
   if (method == "ssvs") res <- ssvs(y = y, X = W, , p1 = phi[length(phi)], g0 = 0.0000001, nsamp = nsamp)

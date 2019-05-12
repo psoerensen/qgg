@@ -197,7 +197,7 @@ writeRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, overwrite = FALSE) 
 
 
 fbed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL,
-                    ids = NULL, rsids = NULL, overwrite = FALSE) {
+                     ids = NULL, rsids = NULL, overwrite = FALSE) {
   if (file.exists(fnRAW)) {
     warning(paste("fnRAW file allready exist"))
     if (!overwrite) stop(paste("fnRAW file allready exist"))
@@ -292,8 +292,8 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 
 
 freadbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
-                    rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
-                    allele = NULL, ncores = 1) {
+                     rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
+                     allele = NULL, ncores = 1) {
   if (!is.null(Glist)) {
     n <- Glist$n
     m <- Glist$m
@@ -376,7 +376,7 @@ freadbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
 #' Extract elements from genotype matrix (W) stored on disk
 #'
 #' @description
-#' Extract elements from genotype matrix W (whole or subset) stored on disk.  
+#' Extract elements from genotype matrix W (whole or subset) stored on disk.
 
 #' @param Glist only provided if task="summary" or task="sparseld"
 #' @param ids vector of ids in W to be extracted

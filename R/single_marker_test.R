@@ -64,6 +64,8 @@
 
 #' @examples
 #'
+#' \dontrun{
+#'
 #' # Simulate data
 #' W <- matrix(rnorm(20000000), ncol = 10000)
 #' 	colnames(W) <- as.character(1:ncol(W))
@@ -89,6 +91,8 @@
 #'
 #' head(maMLM)
 #' head(maLM)
+#'
+#' }
 #'
 #' @export
 #'

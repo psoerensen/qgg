@@ -54,7 +54,7 @@ fastlm <- function(y = NULL, X = NULL, sets = NULL) {
   sigma_e <- sse / dfe
   ftest <- NULL
   if (!is.null(sets)) {
-    nsets <- length(sets)  
+    nsets <- length(sets)
     for (i in 1:nsets) {
       rws <- sets[[i]]
       dfq <- length(rws)
@@ -71,4 +71,3 @@ fastlm <- function(y = NULL, X = NULL, sets = NULL) {
 
   return(fit)
 }
-

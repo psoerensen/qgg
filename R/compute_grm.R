@@ -35,6 +35,7 @@
 
 #' @examples
 #'
+#' \dontrun{
 #' # Simulate data
 #' W <- matrix(rnorm(20000000), ncol = 10000)
 #' 	colnames(W) <- as.character(1:ncol(W))
@@ -45,6 +46,9 @@
 #'
 #' # Eigen value decompostion GRM
 #' eig <- grm(GRM=GRM, task="eigen")
+#'
+#' }
+#'
 
 #' @export
 #'
@@ -169,7 +173,7 @@ writeGRM <- function(GRM = NULL) {
 #' Extract elements from genomic relationship matrix (GRM) stored on disk
 #'
 #' @description
-#' Extract elements from genomic relationship matrix (GRM) (whole or subset) stored on disk.  
+#' Extract elements from genomic relationship matrix (GRM) (whole or subset) stored on disk.
 
 #' @param GRMlist list providing information about GRM matrix stored in binary files on disk
 #' @param ids vector of ids in GRM to be extracted

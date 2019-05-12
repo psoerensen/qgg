@@ -57,6 +57,7 @@
 
 #' @examples
 #'
+#' \dontrun{
 #'
 #'  # Simulate data
 #'  W <- matrix(rnorm(20000000), ncol = 10000)
@@ -95,6 +96,7 @@
 #'  mma <- gsea(W=W,fit = fit, sets = sets, nperm = 1000, method="score")
 #'  head(mma)
 #'
+#' }
 
 
 #' @export
@@ -266,7 +268,7 @@ gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e
 #' LD pruning of summary statistics
 #'
 #' @description
-#' Perform LD pruning of summary statistics before they are used in gene set enrichment analyses. 
+#' Perform LD pruning of summary statistics before they are used in gene set enrichment analyses.
 #' @param stat vector or matrix of single marker statistics (e.g. coefficients, t-statistics, p-values)
 #' @param statistics is the type of statistics used in stat (e.g. statistics="p-value")
 #' @param ldSets list of marker sets - names corresponds to row names in stat
@@ -278,7 +280,7 @@ gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e
 
 #' @export
 
-adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1, 
+adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1,
                   method = "pruning") {
   rsidsStat <- rownames(stat)
   if (statistics == "p-value") pstat <- stat[, "p"]

@@ -37,6 +37,7 @@
 
 #' @examples
 #'
+#' \dontrun{
 #' # Simulate data
 #' W <- matrix(rnorm(20000000), ncol = 10000)
 #' 	colnames(W) <- as.character(1:ncol(W))
@@ -56,7 +57,7 @@
 #' # BLUP of single marker effects and total genomic effects based on Gauss-Seidel procedure
 #' fit <- gsolve( y=y, X=X, W=W, lambda=lambda)
 #'
-#'
+#' }
 
 
 
@@ -378,7 +379,7 @@ fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL,
 #'
 
 
-gscore <- function(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE, impute=TRUE, msize = 100, ncores = 1) {
+gscore <- function(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
 
   # Prepase summary stat
   if (!sum(colnames(stat)[1:3] == c("rsids", "alleles", "af")) == 3) {
