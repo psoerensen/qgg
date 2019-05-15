@@ -2,14 +2,24 @@
 ! module global
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+    module kinds
+
+    implicit none
+    
+    integer, parameter :: real64 = selected_real_kind(15, 307)
+    integer, parameter :: int32 = selected_int_kind(9)
+
+    end module kinds
+
 
     module global
 
+    use kinds
     implicit none
     public
-    real*8, allocatable :: V(:,:),P(:,:),G(:,:)
-    integer*4, allocatable :: indxg(:)
-    integer*4 :: ng
+    real(real64), allocatable :: V(:,:),P(:,:),G(:,:)
+    integer(int32), allocatable :: indxg(:)
+    integer(int32) :: ng
     
     end module global
 
@@ -20,6 +30,7 @@
 
     module bigfuncs
 
+    use kinds
     use global
     
     implicit none
@@ -29,25 +40,25 @@
     function crossprod(a,b) result(c)
     implicit none
     external dgemm
-    real*8, dimension(:,:), intent(in)  :: a,b
-    real*8 :: c(size(a,1),size(b,2))
+    real(real64), dimension(:,:), intent(in)  :: a,b
+    real(real64) :: c(size(a,1),size(b,2))
     call dgemm('n', 'n', size(a,1), size(b,2), size(a,2), 1.0D0, a, size(a,1), b, size(a,2), 0.0D0, c, size(a,1))
     end function crossprod
 
     function matvec(a,b) result(c)
     implicit none
     external dgemm
-    real*8, dimension(:,:), intent(in)  :: a
-    real*8, dimension(:), intent(in)  :: b
-    real*8 :: c(size(a,1))
+    real(real64), dimension(:,:), intent(in)  :: a
+    real(real64), dimension(:), intent(in)  :: b
+    real(real64) :: c(size(a,1))
     call dgemm('n', 'n', size(a,1), 1, size(a,2), 1.0D0, a, size(a,1), b, size(a,2), 0.0D0, c, size(a,1))
     end function matvec
 
     function diag(a) result(b)
     implicit none
-    real*8, dimension(:,:), intent(in)  :: a
-    real*8 :: b(size(a,1))
-    integer*4 :: i
+    real(real64), dimension(:,:), intent(in)  :: a
+    real(real64) :: b(size(a,1))
+    integer(int32) :: i
     do i=1,size(a,1)
       b(i) = a(i,i)
     enddo
@@ -56,9 +67,9 @@
     function inverse(a) result(b)
     implicit none
     external dpotrf, dpotri
-    real*8, dimension(:,:), intent(in)  :: a
-    real*8 :: b(size(a,1),size(a,2))
-    integer*4 :: info,i,j
+    real(real64), dimension(:,:), intent(in)  :: a
+    real(real64) :: b(size(a,1),size(a,2))
+    integer(int32) :: info,i,j
     info=0
     call dpotrf('U',size(a,1),a,size(a,1),info)             ! cholesky decompostion of a
     call dpotri('U',size(a,1),a,size(a,1),info)             ! inverse of a
@@ -75,9 +86,9 @@
     !function readG(row,fname) result(gr)
     implicit none
     !character(len=*), intent(in) :: fname
-    integer*4, intent(in) :: row,funit
-    integer*4 :: i
-    real*8 :: gr(size(V,1)),grw(ng)
+    integer(int32), intent(in) :: row,funit
+    integer(int32) :: i
+    real(real64) :: gr(size(V,1)),grw(ng)
     !open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=8*ng)
     !read (unit=12, rec=indxg(row)) grw
     read (unit=funit, rec=indxg(row)) grw
@@ -100,6 +111,7 @@
     
     module bigsubs
 
+    use kinds
     use global
     !use mymkl
     
@@ -110,8 +122,8 @@
     subroutine chol(a)
     implicit none
     external dpotrf
-    real*8, dimension(:,:), intent(inout)  :: a
-    integer*4 :: info,i,j
+    real(real64), dimension(:,:), intent(inout)  :: a
+    integer(int32) :: info,i,j
     info=0
     call dpotrf('U',size(a,1),a,size(a,1),info)             ! cholesky decompostion of a
     ! copy to lower
@@ -125,8 +137,8 @@
     subroutine chol2inv(a)
     implicit none
     external dpotri
-    real*8, dimension(:,:), intent(inout)  :: a
-    integer*4 :: info,i,j
+    real(real64), dimension(:,:), intent(inout)  :: a
+    integer(int32) :: info,i,j
     info=0
     call dpotri('U',size(a,1),a,size(a,1),info)             ! inverse of a
     ! copy to lower
@@ -139,8 +151,8 @@
 
     subroutine loadG(fname)
     implicit none
-    integer*4 :: i,j
-    real*8 :: grw(ng)
+    integer(int32) :: i,j
+    real(real64) :: grw(ng)
     character(len=*), intent(in) :: fname
     logical :: exst
 
@@ -165,9 +177,9 @@
  
     subroutine computeV(weights,fnames)
     implicit none
-    integer*4 :: i,j,r
-    real*8, dimension(:),intent(in) :: weights
-    real*8 :: grw(ng)
+    integer(int32) :: i,j,r
+    real(real64), dimension(:),intent(in) :: weights
+    real(real64) :: grw(ng)
     character(len=*), dimension(:),intent(in) :: fnames
     logical :: exst
 
@@ -218,17 +230,17 @@
     implicit none
 
     ! input and output variables
-    integer*4 :: n,nf,nr,maxit,ngr,indx(n),ncores
-    real*8 :: tol
-    real*8  :: y(n),X(n,nf),theta(nr)
+    integer(int32) :: n,nf,nr,maxit,ngr,indx(n),ncores
+    real(real64) :: tol
+    real(real64)  :: y(n),X(n,nf),theta(nr)
     character(len=1000) :: rfnames(nr-1)
     character(len=14) :: fnr
     
     ! local variables
-    integer*4 :: i,j,it,fileunit(nr)
-    real*8 :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr)
-    real*8 :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1),varb(nf,nf) 
-    real*8 :: llik, ldV, ldXVX, yPy
+    integer(int32) :: i,j,it,fileunit(nr)
+    real(real64) :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr)
+    real(real64) :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1),varb(nf,nf) 
+    real(real64) :: llik, ldV, ldXVX, yPy
     
     logical :: exst
     
