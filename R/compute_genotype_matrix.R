@@ -24,34 +24,68 @@
 #' allele frequencies and missing genotypes, and construct a binary file on the disk that contains
 #' the genotypes as allele counts of the alternative allele (memory usage = (n x m)/4 bytes).
 #'
+#' The gprep function can also be used to prepare sparse ld matrices.
+#' The r2 metric used is the pairwise correlation between markers (allele count alternative allele)
+#' in a specified region of the genome. The marker genotype is allele count of the alternative allele
+#' which is assumed to be centered and scaled.
+#'
 #' The Glist structure is used as input parameter for a number of qgg core functions including:
-#' 1) construction of genomic relationship matrices (grm), 2) estimating genomic parameters (greml),
-#' 3) single marker association analyses (lma or mlma), 4) gene set enrichment analyses (gsea),
-#' and 5) genomic prediction from genotypes and phenotypes (gsolve) or genotypes and summary statistics (gscore).
+#' 1) construction of genomic relationship matrices (grm), 2) construction of sparse ld matrices,
+#' 3) estimating genomic parameters (greml), 4) single marker association analyses (lma or mlma),
+#' 5) gene set enrichment analyses (gsea), and 6) genomic prediction from genotypes
+#' and phenotypes (gsolve) or genotypes and summary statistics (gscore).
 #'
 
 #'
+#' @param Glist only provided if task="summary" or task="sparseld"
+#' @param task character specifying which task to perform ("prepare" is default, "summary", or "sparseld")
 #' @param study name of the study
-#' @param fnRAW path and .raw filename of the binary file used for storing genotypes on the disk
+#' @param fnRAW path and filename of the binary file .raw or .bed used for storing genotypes on the disk
 #' @param bedfiles vector of names for the PLINK bed-files
 #' @param famfiles vector of names for the PLINK fam-files
 #' @param bimfiles vector of names for the PLINK bim-files
 #' @param ids vector of individuals used in the study
 #' @param rsids vector of marker rsids used in the study
+#' @param fnLD path and filename of the binary files .ld for storing sparse ld matrix on the disk
+#' @param msize number of markers used in compuation of sparseld
 #' @param overwrite logical if TRUE overwite binary genotype file
 #' @param ncores number of cores used to process the genotypes
 #'
-#' @return Returns a list structure with information about genotypes
+#' @return Returns a list structure (Glist) with information about genotypes
 #'
 
 
 #' @author Peter Soerensen
 
 #' @examples
-#
-
-#' #Glist <- gprep( bedfiles, bimfiles, study, path, additional arguments...)
-#' #W <- getW( Glist, ids, rsids, additional arguments...)
+#'
+#' \dontrun{
+#' # Download 1000G Plink files
+#'
+#' url <- "https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz"
+#' download.file(url=url,dest="./1000G_Phase3_plinkfiles.tgz")
+#'
+#' cmd <- "tar -xvzf 1000G_Phase3_plinkfiles.tgz"
+#' system(cmd)
+#'
+#' # Prepare Glist
+#'
+#' bedfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".bed",sep="")
+#' bimfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".bim",sep="")
+#' famfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".fam",sep="")
+#'
+#' fnRAW <- "./1000G.raw"
+#'
+#' Glist <- gprep(study="1000G", fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles,
+#'                famfiles=famfiles, overwrite=TRUE)
+#'
+#'
+#' Glist <- gprep(Glist=Glist, task="summary")
+#'
+#' fnLD <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".ld",sep="")
+#' Glist <- gprep( task="sparseld", Glist=Glist, fnLD=fnLD, msize=200, ncores=4)
+#'
+#' }
 
 
 #' @export
@@ -118,17 +152,17 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     Glist$m <- length(Glist$rsids)
 
     print("Preparing raw file")
-    qgg:::writeRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
+    writeRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
 
     print("Computing allele frequencies, missingness")
-    Glist <- qgg:::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
 
   if (task == "summary") {
     print("Computing allele frequencies, missingness")
-    Glist <- qgg:::summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
@@ -140,7 +174,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     if (is.null(fnLD)) Glist$fnLD <- gsub(".bed", ".ld", bedfiles)
     if (is.null(ids)) ids <- Glist$ids
     mclapply(1:length(Glist$fnLD), function(x) {
-      qgg:::sparseLD(
+      sparseLD(
         Glist = Glist, fnLD = Glist$fnLD[x], msize = msize, chr = x, rsids = NULL,
         impute = TRUE, scale = TRUE, ids = ids, ncores = 1
       )
@@ -154,17 +188,16 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
 }
 
 
-
 writeRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, overwrite = FALSE) {
-  qgg:::bed2raw(
+  fbed2raw(
     fnRAW = Glist$fnRAW, bedfiles = Glist$bedfiles, bimfiles = Glist$bimfiles,
     famfiles = Glist$famfiles, ids = ids, rsids = rsids, overwrite = overwrite
   )
 }
 
 
-bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL,
-                    ids = NULL, rsids = NULL, overwrite = FALSE) {
+fbed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL,
+                     ids = NULL, rsids = NULL, overwrite = FALSE) {
   if (file.exists(fnRAW)) {
     warning(paste("fnRAW file allready exist"))
     if (!overwrite) stop(paste("fnRAW file allready exist"))
@@ -203,8 +236,6 @@ bed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = N
   }
 }
 
-
-
 summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, ncores = 1) {
   n <- Glist$n
   m <- Glist$m
@@ -222,7 +253,7 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 
   nc <- length(cls)
   af <- nmiss <- n0 <- n1 <- n2 <- rep(0, nc)
-  
+
   qc <- .Fortran("summarybed",
     n = as.integer(n),
     nr = as.integer(nr),
@@ -260,13 +291,9 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 }
 
 
-
-#' @export
-#'
-
-readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
-                    rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
-                    allele = NULL, ncores = 1) {
+freadbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
+                     rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
+                     allele = NULL, ncores = 1) {
   if (!is.null(Glist)) {
     n <- Glist$n
     m <- Glist$m
@@ -346,22 +373,33 @@ readbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
 }
 
 
+#' Extract elements from genotype matrix (W) stored on disk
+#'
+#' @description
+#' Extract elements from genotype matrix W (whole or subset) stored on disk.
+
+#' @param Glist only provided if task="summary" or task="sparseld"
+#' @param ids vector of ids in W to be extracted
+#' @param rsids vector of rsids in W to be extracted
+#' @param rws vector of rows in W to be extracted
+#' @param cls vector of columns in W to be extracted
+#' @param scale logical if TRUE the genotype markers have been scale to mean zero and variance one
+#' @param impute logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)
+#' @param allele vector of alleles to be extracted
+
+
 #' @export
 #'
 getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
                  impute = FALSE, scale = FALSE, allele = NULL) {
   if (is.null(ids)) ids <- Glist$ids
   if (is.null(cls)) cls <- match(rsids, Glist$rsids)
-  W <- qgg::readbed(
+  W <- freadbed(
     Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
     impute = impute, scale = scale, allele = allele
   )
   return(W)
 }
-
-
-#' @export
-#'
 
 sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL,
                      impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {
@@ -430,10 +468,6 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
   close(bfLD)
 }
 
-
-#' @export
-#'
-
 getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   msize <- Glist$msize
   ldSets <- NULL
@@ -457,13 +491,6 @@ getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   }
   return(ldSetsChr)
 }
-
-
-
-
-
-#' @export
-#'
 
 getLD <- function(Glist = NULL, chr = NULL) {
   msize <- Glist$msize

@@ -12,17 +12,20 @@
 #' contains information about the GRM stored in a binary file on the disk.
 #'
 #' @param Glist list providing information about genotypes stored on disk
+#' @param GRMlist list providing information about GRM matrix stored in binary files on disk
 #' @param ids vector of individuals used for computing GRM
 #' @param rsids vector marker rsids used for computing GRM
 #' @param rws rows in genotype matrix used for computing GRM
 #' @param cls columns in genotype matrix used for computing GRM
 #' @param W matrix of centered and scaled genotypes
+#' @param scale logical if TRUE the genotypes in Glist has been scaled to mean zero and variance one
 #' @param method indicator of method used for computing GRM: additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))
 #' @param msize number of genotype markers used for batch processing
 #' @param ncores number of cores used to compute the GRM
 #' @param fnG name of the binary file used for storing the GRM on disk
 #' @param overwrite logical if TRUE the binary file fnG will be overwritten
 #' @param returnGRM logical if TRUE function returns the GRM matrix to the R environment
+#' @param task either computation of GRM (task="grm"  which is default) or eigenvalue decomposition of GRM (task="eigen")
 #' @param miss the missing code (miss=0 is default) used for missing values in the genotype data
 #'
 #'
@@ -32,6 +35,7 @@
 
 #' @examples
 #'
+#' \dontrun{
 #' # Simulate data
 #' W <- matrix(rnorm(20000000), ncol = 10000)
 #' 	colnames(W) <- as.character(1:ncol(W))
@@ -42,6 +46,9 @@
 #'
 #' # Eigen value decompostion GRM
 #' eig <- grm(GRM=GRM, task="eigen")
+#'
+#' }
+#'
 
 #' @export
 #'
@@ -50,7 +57,7 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
                 W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL,
                 overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm") {
   if (task == "grm") {
-    GRM <- qgg:::computeGRM(
+    GRM <- computeGRM(
       Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
       W = W, method = method, scale = scale, msize = msize, ncores = ncores,
       fnG = fnG, overwrite = overwrite, returnGRM = returnGRM, miss = miss
@@ -58,14 +65,13 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
     return(GRM)
   }
   if (task == "eigen") {
-    eig <- qgg:::eigenGRM(GRM = GRM, GRMlist = GRMlist, method = "default", ncores = ncores)
+    eig <- eigenGRM(GRM = GRM, GRMlist = GRMlist, method = "default", ncores = ncores)
     return(eig)
   }
 }
 
 
-#' @export
-#'
+
 
 computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE, returnGRM = FALSE, miss = 0) {
   if (method == "add") gmodel <- 1
@@ -142,11 +148,12 @@ computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     )
     if (!returnGRM) return(GRMlist)
     if (returnGRM) {
-      GRM <- qgg:::getGRM(GRMlist = GRMlist, ids = GRMlist$idsG)
+      GRM <- getGRM(GRMlist = GRMlist, ids = GRMlist$idsG)
       return(GRM)
     }
   }
 }
+
 
 
 writeGRM <- function(GRM = NULL) {
@@ -161,6 +168,19 @@ writeGRM <- function(GRM = NULL) {
     }
   }
 }
+
+
+#' Extract elements from genomic relationship matrix (GRM) stored on disk
+#'
+#' @description
+#' Extract elements from genomic relationship matrix (GRM) (whole or subset) stored on disk.
+
+#' @param GRMlist list providing information about GRM matrix stored in binary files on disk
+#' @param ids vector of ids in GRM to be extracted
+#' @param idsRWS vector of row ids in GRM to be extracted
+#' @param idsCLS vector of column ids in GRM to be extracted
+#' @param rws vector of rows in GRM to be extracted
+#' @param cls vector of columns in GRM to be extracted
 
 
 #' @export
@@ -208,9 +228,6 @@ getGRM <- function(GRMlist = NULL, ids = NULL, idsCLS = NULL, idsRWS = NULL, cls
 
 
 
-#' @export
-#'
-
 mergeGRM <- function(GRMlist = NULL) {
   GRMlist <- do.call(function(...) mapply(c, ..., SIMPLIFY = FALSE), args = GRMlist)
   GRMlist$idsG <- unique(GRMlist$idsG)
@@ -220,8 +237,7 @@ mergeGRM <- function(GRMlist = NULL) {
 }
 
 
-#' @export
-#'
+
 
 eigenGRM <- function(GRM = NULL, GRMlist = NULL, method = "default", ncores = 1) {
   n <- ncol(GRM)

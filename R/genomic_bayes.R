@@ -2,38 +2,75 @@
 #    Module 3: LMM, Bayesian
 ####################################################################################################################
 #'
-#' Genomic Feature Model analyses implemented using Bayesian Methods (small data)
+#' Genomic prediction models implemented using Bayesian Methods (small data)
 #'
 #' @description
-#' Bayesian Genomic Feature models implemented using Bayesian Methods.
-#' Multiple features and multiple traits models can be fitted.
-#' Different genetic models (e.g. additive, dominance, gene by gene and gene by environment interactions) can be specified.
-#'
-#' @details
+#' Genomic prediction models implemented using Bayesian Methods (small data).
 #' The models are implemented using empirical Bayesian methods. The hyperparameters of the dispersion parameters of the Bayesian model can
 #' be obtained from prior information or estimated by maximum likelihood, and conditional on these, the model is fitted using
-#' Markov chain Monte Carlo. Furthermore, a spectral decomposition of genomic feature relationship matrices plays an
-#' important computational role in the Markov chain Monte Carlo strategy implemented.
+#' Markov chain Monte Carlo. These functions are currently under development and tuture release will be able to handle large data sets.
+#'
 #'
 #' @param y is a matrix of phenotypes
-#' @param g is a list of G matrices (g$G), prior (co)variances (g$sigma), prior degrees of freedom (g$sigma),  prior distribution (g$ds)
+#' @param W is a matrix of centered and scaled genotypes
 #' @param nsamp is the number of samples after burnin
+#' @param sets is a list of markers defining a group
+#' @param nsets is a list of number of marker groups
+#' @param phi is the proportion of markers in each marker variance class (phi=c(0.999,0.001),used if method="ssvs")
+#' @param h2 is the trait heritability
+#' @param method specifies the methods used (method="ssvs","blasso","blr")
 #' @param nburn is the number of burnin samples
 #' @param nsave is the number of samples to save
 #' @param tol is the tolerance
-#' @return Returns a list including
-#' \item{sigmas}{posterior samples variance components}
-#' \item{alphas}{posterior samples alphas}
-#' \item{mus}{posterior samples mu}
-#' \item{logCPO}{log CPOs}
-#' \item{g}{g is a list of G matrices (g$G), prior (co)variances (g$sigma), prior degrees of freedom (g$sigma),  prior distribution (g$ds)}
+#'
+
 #' @author Peter Sørensen
-# ’ @references Sørensen, P., de los Campos, G., Morgante, F., Mackay, T. F., & Sorensen, D. (2015). Genetic control of environmental variation of two quantitative traits of Drosophila melanogaster revealed by whole-genome sequencing. Genetics, 201(2), 487-497.
+
+
+#' @examples
+#'
+#'
+#' # Simulate data and test functions
+#'
+#' W <- matrix(rnorm(10000000),nrow=1000)
+#' set1 <- sample(1:ncol(W),5)
+#' set2 <- sample(1:ncol(W),5)
+#' sets <- list(set1,set2)
+#' g <- rowSums(W[,c(set1,set2)])
+#' e <- rnorm(nrow(W),mean=0,sd=1)
+#' y <- g + e
+#'
+#' \dontrun{
+#' gbayes(y=y, W=W, method="blasso", nsamp=100)
+#' gbayes(y=y, W=W, method="ssvs", nsamp=100)
+#' gbayes(y=y, W=W, method="blr", nsets=7, nsamp=100)
+#' gbayes(y=y, W=W, method="ssvs", sets=sets, nsamp=100)
+#' gbayes(y=y, W=W, method="blasso", sets=sets, nsamp=100)
+#' }
+
+
 #'
 #' @export
 #'
 
-gbayes <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001) {
+gbayes <- function(y = NULL, W = NULL, sets = NULL, h2 = NULL, nsets = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001,
+                   method = "blasso", phi = c(0.999, 0.001)) {
+  if (method == "blasso") res <- blasso(y = y, X = W, nsamp = nsamp)
+  if (method == "blr") res <- mcbr(y = y, X = W, nc = nsets, nsamp = nsamp)
+  if (method == "ssvs") res <- ssvs(y = y, X = W, , p1 = phi[length(phi)], g0 = 0.0000001, nsamp = nsamp)
+  if (!is.null(sets)) {
+    nsets <- length(sets)
+    g <- rep(0, times = ncol(W))
+    for (i in 1:nsets) {
+      g[sets[[i]]] <- i
+    }
+    g[g == 0] <- nsets + 1
+  }
+  if (method == "blasso" && !is.null(sets)) res <- bglasso(y = y, X = W, g = g, nsamp = nsamp)
+  if (method == "ssvs" && !is.null(sets)) res <- hssvs(y = y, X = W, set = sets, p1 = 0.01, g0 = 0.0000001, nsamp = nsamp)
+}
+
+bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001) {
 
   # nsamp is the number of samples
   y <- as.matrix(y)
@@ -156,10 +193,6 @@ gbayes <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, to
 
 
 
-################################################################################
-# Bayesian lasso function
-################################################################################
-
 blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 100) {
   n <- length(y) # number of observations
   p <- ncol(X) # number of regression variables
@@ -171,7 +204,6 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
   lrate0 <- 0.1 # lambda2 hyperparameter rate
   lshape0 <- 1 # lambda2 hyperparameter shape
 
-  Xs <- as.vector(X)
 
   e <- as.vector(y - mu - X %*% b) # initialize residuals
   sigma2 <- var(e) / 2 # initialize sigma2
@@ -187,7 +219,7 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
     bC <- b
     xxs <- as.numeric(dxx + invtau2) # Park & Casella
     for (j in 1:p) {
-      rhs <- as.numeric(sum(X[, j] * e) + dxx[j] * bc[j])
+      rhs <- as.numeric(sum(X[, j] * e) + dxx[j] * bC[j])
       b[j] <- rnorm(1, mean = rhs / xxs[j], sd = sigma2 / xxs[j])
       e <- as.numeric(e - X[, j] * (b[j] - bC[j]))
     }
@@ -196,7 +228,8 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
     # sample invtau2
     mutau <- sqrt(lambda2 * sigma2) / abs(b) # Park & Casella
     lambdatau <- rep(lambda2, p) # Park & Casella
-    invtau2 <- rinvgauss(p, mu = mutau, lambda = lambdatau)
+    # invtau2 <- rinvgauss(p, mu = mutau, lambda = lambdatau)
+    invtau2 <- rinvgauss(p, mean = mutau, dispersion = lambdatau)
 
     # update lambda
     shl2 <- p + lshape0 # Park & Casella
@@ -209,9 +242,9 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
     she <- (n + p) / 2 # Park & Casella ((n-1+p)/2)
     sce <- sum(e**2) / 2 + sum((b * invtau2 * b)) / 2 # Park & Casella
     sigma2 <- 1 / rgamma(1, shape = she, rate = sce) # Park & Casella
-    she <- n + p # Gustavo
-    sce <- sum(e**2) + sum((b * invtau2 * b)) # Gustavo
-    sigma2 <- sce / rchisq(n = 1, df = she) # Gustavo
+    she <- n + p
+    sce <- sum(e**2) + sum((b * invtau2 * b))
+    sigma2 <- sce / rchisq(n = 1, df = she)
     if (!is.null(sigma0)) sigma2 <- sigma0
     print(c(sum(e**2), sum((b * (1 / invtau2) * b)), sum((1 / invtau2))))
     plot(b)
@@ -219,22 +252,6 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
   }
 }
 
-
-#' # Simulate data and test function
-#'
-#' X <- matrix(rnorm(10000000),nrow=1000)
-#' set <- sample(1:ncol(X),10)
-#' y <- rowSums(X[,set]) + rnorm(nrow(X),mean=0,sd=1)
-#' n <- length(y)
-#' h2 <- var(rowSums(X[,set]))/var(y)
-#'
-#' lambda0 <- (sum(colSums(X**2))/n)*(1-h2)/h2
-#'
-#' blasso(y=y, X=X, lambda0=lambda0)
-
-################################################################################
-# Multi Class Bayesian Regression function
-################################################################################
 
 
 
@@ -321,27 +338,10 @@ mcbr <- function(y = NULL, X = NULL, nc = NULL, l1 = NULL, l2 = NULL, phi = NULL
 }
 
 
-#' # Simulate data and test function
-#'
-#' X <- matrix(rnorm(10000000),nrow=1000)
-#' set <- sample(1:ncol(X),10)
-#' y <- rowSums(X[,set]) + rnorm(nrow(X),mean=0,sd=1)
-#' h2 <- var(rowSums(X[,set]))/var(y)
-#'
-#' mcbr(y=y, X=X, nc=7)
-
-
-################################################################################
-# SSVS function
-################################################################################
 
 
 
-hgprior <- list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)
-p1 <- 0.001
-g0 <- NULL
-
-hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
+hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = 0.001, g0 = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
   n <- length(y) # number of observations
   p <- ncol(X) # number of regression variables
   dxx <- colSums(X**2) # diagonal elements of the X'X matrix
@@ -382,7 +382,7 @@ hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = NULL, g0 = NULL, nsamp = 
   for (i in 1:nsamp) {
     for (j in 1:nset) {
       cls <- set[[j]]
-      samp <- ssvs2(e = e, X = X[, cls], b = bset[[j]], dxx = dxx[cls], mu = mu, g = gset[[j]], sigma2 = sigma2, p0 = p0, p1 = p1, g0 = g0[j], g1 = g1[j], hgprior = hgprior)
+      samp <- hssvs_ssvs(e = e, X = X[, cls], b = bset[[j]], dxx = dxx[cls], mu = mu, g = gset[[j]], sigma2 = sigma2, p0 = p0, p1 = p1, g0 = g0[j], g1 = g1[j], hgprior = hgprior)
       e <- samp$e
       bset[[j]] <- samp$b
       mu <- samp$mu
@@ -408,7 +408,9 @@ hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = NULL, g0 = NULL, nsamp = 
   }
 }
 
-ssvs2 <- function(e = e, X = X, b = b, dxx = dxx, mu = mu, g = g, sigma2 = sigma2, p0 = p0, p1 = p1, g0 = g0, g1 = g1, hgprior = hgprior) {
+
+
+hssvs_ssvs <- function(e = e, X = X, b = b, dxx = dxx, mu = mu, g = g, sigma2 = sigma2, p0 = p0, p1 = p1, g0 = g0, g1 = g1, hgprior = hgprior) {
   n <- length(e) # number of observations
   p <- ncol(X) # number of regression variables
 
@@ -467,27 +469,6 @@ ssvs2 <- function(e = e, X = X, b = b, dxx = dxx, mu = mu, g = g, sigma2 = sigma
   return(list(e = e, mu = mu, b = b, sigma2 = sigma2, g = g, g0 = g0, g1 = g1))
 }
 
-#' # Simulate data and test function
-#'
-#' X <- matrix(rnorm(10000000),nrow=1000)
-#' set1 <- sample(1:ncol(X),5)
-#' set2 <- sample(1:ncol(X),5)
-#' set1a <- unique(c(set1,sample(1:ncol(X),100)))
-#' set2a <- unique(c(set2,sample(1:ncol(X),100)))
-#' set3 <- (1:ncol(X))[-unique(c(set1a,set2a))]
-#'
-#' y <- rowSums(X[,set1]) + rowSums(X[,set2]) + rnorm(nrow(X),mean=0,sd=1)
-#'
-#' varE <- var( y - rowSums(X[,set1]) - rowSums(X[,set2]) )
-#' varE
-#'
-#' h2 <- ( var(rowSums(X[,set1])) + var(rowSums(X[,set2])) )/var(y)
-#' h2
-#'
-#' set <- list(set1=set1a,set2=set2a,set3=set3)
-#'
-#' res <- hssvs(y=y,X=X,set=set, p1=0.01,g0=0.0000001, nsamp=100)
-
 
 
 ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
@@ -515,9 +496,6 @@ ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior 
   e <- as.vector(y - mu - X %*% b) # initialize residuals
 
   Xs <- as.vector(X)
-
-
-
 
   for (i in 1:nsamp) {
 
@@ -575,19 +553,6 @@ ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior 
   }
 }
 
-
-#' # Simulate data and test function
-#'
-#' X <- matrix(rnorm(10000000),nrow=1000)
-#' set <- sample(1:ncol(X),10)
-#' y <- rowSums(2*X[,set]) + rnorm(nrow(X),mean=0,sd=1)
-#'
-#' res <- ssvs(y=y,X=X,p1=0.001,g0=0.0000001, nsamp=100)
-#' sort(set)
-
-################################################################################
-# Bayesian group lasso
-################################################################################
 
 bglasso <- function(y = NULL, X = NULL, g = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
   n <- length(y) # number of observations
@@ -655,24 +620,3 @@ bglasso <- function(y = NULL, X = NULL, g = NULL, nsamp = 100, hgprior = list(sc
     print(c("round", i, b[g == 1]))
   }
 }
-
-#' # Simulate data and test function
-#'
-#' X <- matrix(rnorm(10000000),nrow=1000)
-#' set1 <- sample(1:ncol(X),50)
-#' set2 <- sample(1:ncol(X),50)
-#' set3 <- sample(1:ncol(X),50)
-#' set4 <- sample(1:ncol(X),50)
-#' set5 <- sample(1:ncol(X),50)
-#' g <- rep(6,times=ncol(X))
-#' g[set1] <- 1
-#' g[set2] <- 2
-#' g[set3] <- 3
-#' g[set4] <- 4
-#' g[set5] <- 5
-#'
-#' set <- unique(c(set1,set2,set3,set4,set5))
-#'
-#' y <- rowSums(X[,set]) + rnorm(nrow(X),mean=0,sd=20)
-#'
-#' res <- bglasso(y=y,X=X,g=g, nsamp=10)

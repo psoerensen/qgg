@@ -9,9 +9,20 @@
 !	11 Homozygous for second allele in .bim file
 !
 !==============================================================================================================
-    
+
+    module kinds
+
+    implicit none
+
+    integer, parameter :: real64 = selected_real_kind(15, 307)
+    integer, parameter :: int32 = selected_int_kind(9)
+
+    end module kinds
 
     module bedfuncs
+
+
+    use kinds 
 
     implicit none
     
@@ -26,7 +37,7 @@
     integer, intent(in) :: nbytes,n
     integer, parameter :: byte = selected_int_kind(1) 
     integer(byte), intent(in) :: raw(nbytes)
-    integer*4 :: i,j,k,rawbits,g(n) 
+    integer(int32) :: i,j,k,rawbits,g(n) 
     integer, dimension(4) :: rawcodes
  
     rawcodes = (/ 0, 3, 1, 2 /)
@@ -56,9 +67,9 @@
     integer, intent(in) :: nbytes,n
     integer, parameter :: byte = selected_int_kind(1) 
     integer(byte), intent(in) :: raw(nbytes)
-    integer*4 :: i,j,k,rawbits
-    real*8 :: w(n)
-    real*8, dimension(4) :: rawcodes
+    integer(int32) :: i,j,k,rawbits
+    real(real64) :: w(n)
+    real(real64), dimension(4) :: rawcodes
  
     rawcodes = (/ 0.0D0, 3.0D0, 1.0D0, 2.0D0 /)
     ! 00 01 10 11
@@ -85,8 +96,8 @@
     implicit none
 
     integer, intent(in) :: nr
-    real*8, intent(in) :: g(nr)
-    real*8 :: mean,sd,tol,nsize,w(nr)
+    real(real64), intent(in) :: g(nr)
+    real(real64) :: mean,sd,tol,nsize,w(nr)
 
     tol=0.00001D0
     w=g
@@ -110,17 +121,18 @@
   subroutine bed2raw(m,cls,nbytes,append,fnBED,fnRAW,ncharbed,ncharraw)
 !==============================================================================================================
 
+  use kinds 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: m,cls(m),nbytes,append,ncharbed,ncharraw  
+  integer(int32) :: m,cls(m),nbytes,append,ncharbed,ncharraw  
   character(len=ncharraw) :: fnRAW
   character(len=ncharbed) :: fnBED
 
-  integer*4, parameter :: byte = selected_int_kind(1) 
+  integer(int32), parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes), magic(3)
-  integer*4 :: i,offset,nchar
+  integer(int32) :: i,offset,nchar
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos14, nbytes14, offset14,i14
@@ -171,17 +183,18 @@
   subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAW,nchars)
 !==============================================================================================================
 
+  use kinds 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
-  real*8 :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
+  real(real64) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=nchars) :: fnRAW
 
-  integer*4, parameter :: byte = selected_int_kind(1) 
+  integer(int32), parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes,nc)
-  integer*4 :: i,nchar,offset
+  integer(int32) :: i,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos14, nbytes14, offset14, i14
@@ -243,20 +256,21 @@
   subroutine mpgrs(n,nr,rws,nc,cls,nbytes,fnRAW,nchars,nprs,s,prs,af,impute,direction,ncores)
 !==============================================================================================================
 
+  use kinds 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc),nchars
-  real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
-  real*8 :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
+  integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc),nchars
+  real(real64) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
+  real(real64) :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
   character(len=nchars) :: fnRAW
   integer, external :: omp_get_thread_num
 
 
-  integer*4, parameter :: byte = selected_int_kind(1) 
+  integer(int32), parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
-  integer*4 :: i,j,nchar,offset
+  integer(int32) :: i,j,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos14, nbytes14, offset14, i14
@@ -322,19 +336,20 @@
   subroutine gstat(n,nr,rws,nc,cls,nbytes,fnRAW,nchars,nt,s,yadj,setstat,af,impute,scale,direction,ncores)
 !==============================================================================================================
 
+  use kinds 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc),nchars
-  real*8 :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
-  real*8 :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
+  integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc),nchars
+  real(real64) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
+  real(real64) :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
   character(len=nchars) :: fnRAW
   integer, external :: omp_get_thread_num
 
-  integer*4, parameter :: byte = selected_int_kind(1) 
+  integer(int32), parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
-  integer*4 :: i,j,nchar,offset
+  integer(int32) :: i,j,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos14, nbytes14, offset14, i14
@@ -395,17 +410,18 @@
   subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,nchars,ncores)
 !==============================================================================================================
 
+  use kinds 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,nchars 
-  real*8 :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
+  integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,nchars 
+  real(real64) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
   character(len=nchars) :: fnRAW
 
   integer, parameter :: byte = selected_int_kind(1) 
   integer(byte) :: raw(nbytes)
-  integer*4 :: i,stat,nchar,offset
+  integer(int32) :: i,stat,nchar,offset
 
   integer, parameter :: k14 = selected_int_kind(14) 
   integer (kind=k14) :: pos14, nbytes14, offset14, i14
@@ -469,24 +485,26 @@
   subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,fnRAW,nchars,msize,ncores,fnG,gmodel)
 !==============================================================================================================
 
+  use kinds 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc),nchars 
-  real*8 :: G(nr,nr), W1(nr,msize), traceG
+  integer(int32) :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc),nchars 
+  real(real64) :: G(nr,nr), W1(nr,msize),W2(nr,msize), traceG
   character(len=nchars) :: fnRAW
   character(len=1000) :: fnG
-  real*8, allocatable :: W2(:,:)
+  !real(real64), allocatable :: W2(:,:)
 
   call omp_set_num_threads(ncores)
 
   G = 0.0D0
   W1 = 0.0D0
-  if(gmodel==3) then 
-    allocate(W2(nr,msize))
-    W2 = 0.0D0
-  endif
+  W2 = 0.0D0
+  !if(gmodel==3) then 
+  !  allocate(W2(nr,msize))
+  !  W2 = 0.0D0
+  !endif
 
   impute=1
   direction=1 
@@ -557,14 +575,15 @@
 ! C = A*B + C
 ! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,1.0d0,c,m)
 
+  use kinds 
   use bedfuncs 
   
   implicit none
   
-  integer*4 :: i,n,nr,nc,rws(nr),cls(nc),impute,scale,nbytes,ncores,msize,nprs,ncw,direction(nc),nchars 
-  real*8 :: W(nr,msize)
+  integer(int32) :: i,n,nr,nc,rws(nr),cls(nc),impute,scale,nbytes,ncores,msize,nprs,ncw,direction(nc),nchars 
+  real(real64) :: W(nr,msize)
   character(len=nchars) :: fnRAW
-  real*8 :: prs(nr,nprs),s(nc,nprs)
+  real(real64) :: prs(nr,nprs),s(nc,nprs)
 
   call omp_set_num_threads(ncores)
 
@@ -594,16 +613,17 @@
   subroutine solvebed(n,nr,rws,nc,cls,scale,nbytes,fnRAW,nchars,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
 !==============================================================================================================
 
+  use kinds 
   use bedfuncs 
 
   !implicit none
   
-  integer*4 :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset,nchars
-  real*8 :: y(n),e(n),raww(n),w(n),g(n)
-  real*8 :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
-  real*8 :: lhs,rhs,snew,tol
+  integer(int32) :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset,nchars
+  real(real64) :: y(n),e(n),raww(n),w(n),g(n)
+  real(real64) :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
+  real(real64) :: lhs,rhs,snew,tol
   character(len=nchars) :: fnRAW
-  real*8, external  :: ddot
+  real(real64), external  :: ddot
 
   integer, parameter :: k14 = selected_int_kind(14) 
   !integer (kind=k14) :: pos14
@@ -613,6 +633,8 @@
   integer :: stat
 
   call omp_set_num_threads(ncores)
+
+  if (scale==0) scale = 1
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -674,10 +696,11 @@
   subroutine readbin(n,nr,rws,nc,cls,W,nbytes,fnBIN)
 !==============================================================================================================
 
+  use kinds 
   implicit none
   
-  integer*4 :: n,nr,rws(nr),nc,cls(nc),nbytes,nchar,i  
-  real*8 :: W(nr,nc),raw(n)
+  integer(int32) :: n,nr,rws(nr),nc,cls(nc),nbytes,nchar,i  
+  real(real64) :: W(nr,nc),raw(n)
   character(len=1000) :: fnBIN
 
   integer, parameter :: k14 = selected_int_kind(14) 
@@ -704,11 +727,12 @@
   subroutine psets(m,stat,nsets,setstat,msets,p,np,ncores)
 !==============================================================================================================
 
+  use kinds 
   implicit none
   
-  integer*4 :: m,nsets,msets(nsets),p(nsets),np,ncores   
-  integer*4 :: i,j,k1,k2,maxm,thread,multicore   
-  real*8 :: stat(m),setstat(nsets),u,pstat
+  integer(int32) :: m,nsets,msets(nsets),p(nsets),np,ncores   
+  integer(int32) :: i,j,k1,k2,maxm,thread,multicore   
+  real(real64) :: stat(m),setstat(nsets),u,pstat
   integer, external :: omp_get_thread_num
 
   p=0
@@ -767,11 +791,13 @@
 !output: G(n,n) = orthonormal eigenvectors of G           !
 !        eig(n) = eigenvalues of G in ascending order     !
 !---------------------------------------------------------!
+  use kinds 
+
   implicit none
 
   external dsyev
-  integer*4 :: n,l,info,ncores
-  real*8 :: GRM(n,n),evals(n),work(n*(3+n/2))
+  integer(int32) :: n,l,info,ncores
+  real(real64) :: GRM(n,n),evals(n),work(n*(3+n/2))
   !character(len=1000) :: fnG,fnU
 
   call omp_set_num_threads(ncores)
