@@ -401,7 +401,7 @@ getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
   return(W)
 }
 
-sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL,
+sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL, allele = NULL,
                      impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {
   if (file.exists(fnLD)) stop("LD file allready exists - please specify other file names")
   n <- Glist$n
@@ -413,6 +413,9 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
   if (!is.null(chr)) rsids <- Glist$rsids[Glist$chr == chr]
   cls <- match(rsids, Glist$rsids)
   nc <- length(cls)
+  if(!is.null(allele)) direction <- allele == Glist$a2[cls]
+  if(is.null(allele)) direction <- rep(1, nc)
+  direction <- split(direction, ceiling(seq_along(direction) / msize))
   cls <- split(cls, ceiling(seq_along(cls) / msize))
   msets <- sapply(cls, length)
   nsets <- length(msets)
@@ -424,7 +427,6 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
   bfLD <- file(fnLD, "wb")
   for (j in 1:nsets) {
     nc <- length(cls[[j]])
-    direction <- rep(1, nc)
     W1 <- W2
     W2 <- W3
     W3[, 1:nc] <- .Fortran("readbed",
@@ -435,7 +437,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
       cls = as.integer(cls[[j]]),
       impute = as.integer(impute),
       scale = as.integer(scale),
-      direction = as.integer(direction),
+      direction = as.integer(direction[[j]]),
       W = matrix(as.double(0), nrow = nr, ncol = nc),
       nbytes = as.integer(nbytes),
       fnRAW = as.character(fnRAW),
