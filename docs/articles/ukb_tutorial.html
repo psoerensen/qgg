@@ -244,7 +244,7 @@ ntrain &lt;- c(10000,20000,30000,50000)
 for ( i in c(1:nrep) ) {
 idsG &lt;- sample(names(y),max(ntrain))
 fnG &lt;- &quot;/faststorage/project/ukbiobank/grm/G.grm&quot; 
-GRMlist &lt;- GRM( Glist=Glist, ids=idsG, rsids=rsids, scale=TRUE, msize=100, ncores=12, fnG=fnG, overwrite=TRUE)
+GRMlist &lt;- grm( Glist=Glist, ids=idsG, rsids=rsids, scale=TRUE, msize=100, ncores=12, fnG=fnG, overwrite=TRUE)
 fit &lt;- vector(length=length(ntrain),mode=&quot;list&quot;)
      for ( j in 1:length(ntrain) ) {
        idsT &lt;- idsG[1:ntrain[j]] 
@@ -267,7 +267,7 @@ for ( i in 1:nrep) {
      for ( chr in 1:22 ) { 
        rsidsChr &lt;- Glist$rsids[Glist$chr==chr]
        rsidsChr &lt;- rsidsChr[rsidsChr%in%rsids] 
-       GRMlist[[chr]] &lt;- GRM( Glist=Glist, ids=idsG, rsids=rsidsChr, scale=TRUE,   msize=100, ncores=16, fnG=fnG[chr], overwrite=TRUE)
+       GRMlist[[chr]] &lt;- grm( Glist=Glist, ids=idsG, rsids=rsidsChr, scale=TRUE,   msize=100, ncores=16, fnG=fnG[chr], overwrite=TRUE)
      }
 names(GRMlist)&lt;- paste(&quot;CHR&quot;,1:22,sep=&quot;&quot;)
 GRMlist &lt;- mergeGRM( GRMlist ) 
