@@ -19,6 +19,87 @@
 
     end module kinds
 
+
+     module f2cio
+     use iso_c_binding
+     implicit none
+     
+     interface
+     function fopen(filename, mode) bind(C,name='fopen')
+     !filename: file name to associate the file stream to 
+     !mode: null-terminated character string determining file access mode 
+     import
+     implicit none
+     type(c_ptr) fopen
+     character(kind=c_char), intent(in) :: filename(*)
+     character(kind=c_char), intent(in) :: mode(*)
+
+     end function fopen
+     end interface
+
+     interface
+     function fclose(fp) bind(C,name='fclose')
+     !fp: the file stream to close 
+     import
+     implicit none
+     integer(c_int) fclose
+     type(c_ptr), value :: fp
+     end function fclose
+     end interface
+     
+     interface
+     function fread(buffer,size,nbytes,fp) bind(C,name='fread')
+     ! buffer: pointer to the array where the read objects are stored 
+     ! size: size of each object in bytes 
+     ! count: the number of the objects to be read 
+     ! fp: the stream to read 
+     import
+     implicit none
+     integer(c_int) fread
+     type(c_ptr), intent(in), value :: buffer  
+     integer(kind=c_int), intent(in) :: size
+     integer(kind=c_int), intent(in) :: nbytes
+     type(c_ptr), value :: fp
+     end function fread
+     end interface
+
+    
+     interface
+     function fseek(fp,offset,origin) bind(C,name='fseek')
+     !fp: file stream to modify 
+     !offset: number of characters to shift the position relative to origin 
+     !origin: position to which offset is added (SEEK_SET, SEEK_CUR, SEEK_END) 
+     import
+     implicit none
+     integer(c_int) fseek
+     type(c_ptr), value :: fp
+     integer(kind=c_long), intent(in) :: offset
+     integer(kind=c_int), intent(in) :: origin
+     end function fseek
+     end interface
+
+     interface
+     function fwrite(buffer,size,nbytes,fp) bind(C,name='fwrite')
+     ! buffer: pointer to the array where the write objects are stored 
+     ! size: size of each object in bytes 
+     ! count: the number of the objects to be written 
+     ! fp: the stream to write 
+     import
+     implicit none
+     integer(c_int) fwrite
+     type(c_ptr), intent(in) :: buffer
+     integer(kind=c_int), intent(in) :: size
+     integer(kind=c_int), intent(in) :: nbytes
+     type(c_ptr), intent(in) :: fp
+     end function fwrite
+
+     end interface
+     
+     end module f2cio
+     
+
+
+
     module bedfuncs
 
 
@@ -116,6 +197,84 @@
 
     end module bedfuncs
 
+
+
+
+!==============================================================================================================
+  subroutine creadbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAW,nchars)
+!==============================================================================================================
+
+  use kinds 
+  use bedfuncs 
+  !use, intrinsic :: iso_c_binding, only : c_ptr, c_int, c_long, c_char, c_signed_char, c_loc 
+  use, intrinsic :: iso_c_binding
+  use f2cio
+   
+  implicit none
+  
+  integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
+  real(real64) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  character(len=nchars) :: fnRAW
+  !character(len=20, kind=c_char) :: filename, mode
+ 
+  !integer(int32), parameter :: byte = selected_int_kind(1) 
+  !integer(byte) :: raw(nbytes,nc)
+  integer(kind=c_signed_char) :: raw(nbytes,nc)
+  integer(int32) :: i,nchar,offset
+
+  !integer, parameter :: k14 = selected_int_kind(14) 
+  !integer (kind=k14) :: pos14, nbytes14, offset14, i14
+  integer (kind=c_long) :: pos14, nbytes14, offset14, i14
+  integer(c_int):: cfres
+  type(c_ptr):: fp
+  !integer(c_signed_char), allocatable, target :: buffer(:)
+  integer(c_signed_char), target :: buffer(nbytes)
+  !allocate(buffer(nbytes))
+  
+
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+
+  nbytes14 = nbytes
+  offset14 = offset
+
+  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  fp = fopen(fnRAW(1:(nchar+3))// C_NULL_CHAR ,'rb'// C_NULL_CHAR )
+  !filename = c_char_"asd.raw"//C_NULL_CHAR
+  !mode = c_char_"rb"//C_NULL_CHAR  
+  !fp = fopen(filename ,mode)
+  print*, fp
+ 
+  cfres=fseek(fp,0,0)             ! check if c is 0 or 1-based
+  print*, cfres
+  
+  do i=1,nc
+    i14=cls(i)
+    pos14 = 1 + offset14 + (i14-1)*nbytes14
+    !read(13, pos=pos14) raw(1:nbytes,i)
+    !cfres=fseek(fp,0,0)             ! check if c is 0 or 1-based
+    !print*, cfres
+    cfres=fread(c_loc(buffer),1,nbytes,fp)
+    print*, cfres
+    !raw(1:nbytes,i) = buffer
+    print*,'i',i
+    !print*, raw(1:nbytes,i) 
+    print*, buffer 
+  enddo
+  !close(unit=13)
+  cfres=fclose(fp)
+  print*, 'fclose', cfres
+  !deallocate(buffer)
+  
+
+ 
+
+
+  end subroutine creadbed
+!==============================================================================================================
+     
 
 !==============================================================================================================
   subroutine bed2raw(m,cls,nbytes,append,fnBED,fnRAW,ncharbed,ncharraw)
