@@ -287,7 +287,7 @@
   !print*, magic
   
   offset14 = 0
-  cfres=fseek(fp,offset14,offset14)             ! check if c is 0 or 1-based
+  !cfres=fseek(fp,offset14,offset14)             ! check if c is 0 or 1-based
   !print*, cfres
   
   do i=1,nc
