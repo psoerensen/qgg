@@ -57,6 +57,7 @@
      implicit none
      integer(c_int) fread
      type(c_ptr), intent(in), value :: buffer  
+     !type(c_ptr), intent(in) :: buffer  
      integer(kind=c_int), intent(in) :: size
      integer(kind=c_int), intent(in) :: nbytes
      type(c_ptr), value :: fp
@@ -170,6 +171,40 @@
     end function raw2real
 
 
+
+    !============================================
+    function craw2real(n,nbytes,raw) result(w)
+    !============================================
+
+    use iso_c_binding
+    implicit none
+
+    integer, intent(in) :: nbytes,n
+    integer, parameter :: byte = selected_int_kind(1) 
+    integer(c_signed_char), intent(in) :: raw(nbytes)
+    integer(int32) :: i,j,k,rawbits
+    real(real64) :: w(n)
+    real(real64), dimension(4) :: rawcodes
+ 
+    rawcodes = (/ 0.0D0, 3.0D0, 1.0D0, 2.0D0 /)
+    ! 00 01 10 11
+    
+    w=0.0D0
+    k=0
+    do i=1,nbytes 
+      do j=0,6,2
+        k = k + 1
+        rawbits = ibits(raw(i), j, 2)
+        w(k) = rawcodes(rawbits+1)
+        if (k==n) exit 
+      enddo
+      if (k==n) exit
+    enddo
+
+    end function craw2real
+
+
+
     !============================================
     function scalew(nr,g) result(w)
     !============================================
@@ -215,11 +250,12 @@
   integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
   real(real64) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
   character(len=nchars) :: fnRAW
-  !character(len=20, kind=c_char) :: filename, mode
+  character(len=20, kind=c_char) :: mode
+  character(len=20, kind=c_char) :: filename
  
   !integer(int32), parameter :: byte = selected_int_kind(1) 
   !integer(byte) :: raw(nbytes,nc)
-  integer(kind=c_signed_char) :: raw(nbytes,nc)
+  integer(kind=c_signed_char), target :: raw(nbytes,nc)
   integer(int32) :: i,nchar,offset
 
   !integer, parameter :: k14 = selected_int_kind(14) 
@@ -228,7 +264,7 @@
   integer(c_int):: cfres
   type(c_ptr):: fp
   !integer(c_signed_char), allocatable, target :: buffer(:)
-  integer(c_signed_char), target :: buffer(nbytes)
+  integer(c_signed_char), target :: buffer(nbytes),magic(3)
   !allocate(buffer(nbytes))
   
 
@@ -245,10 +281,14 @@
   !filename = c_char_"asd.raw"//C_NULL_CHAR
   !mode = c_char_"rb"//C_NULL_CHAR  
   !fp = fopen(filename ,mode)
-  print*, fp
- 
-  cfres=fseek(fp,0,0)             ! check if c is 0 or 1-based
-  print*, cfres
+  !print*, fp
+  cfres=fread(c_loc(magic),1,3,fp)
+  !print*, cfres
+  !print*, magic
+  
+  offset14 = 0
+  cfres=fseek(fp,offset14,offset14)             ! check if c is 0 or 1-based
+  !print*, cfres
   
   do i=1,nc
     i14=cls(i)
@@ -256,18 +296,50 @@
     !read(13, pos=pos14) raw(1:nbytes,i)
     !cfres=fseek(fp,0,0)             ! check if c is 0 or 1-based
     !print*, cfres
-    cfres=fread(c_loc(buffer),1,nbytes,fp)
-    print*, cfres
+    !cfres=fread(c_loc(buffer),1,nbytes,fp)
+    cfres=fread(c_loc(raw(1:nbytes,i)),1,nbytes,fp)
+    !print*, cfres
     !raw(1:nbytes,i) = buffer
-    print*,'i',i
+    !print*,'i',i
     !print*, raw(1:nbytes,i) 
-    print*, buffer 
+    !print*, buffer 
   enddo
   !close(unit=13)
   cfres=fclose(fp)
-  print*, 'fclose', cfres
+  !print*, 'fclose', cfres
   !deallocate(buffer)
   
+ntotal=dble(nr)  
+
+  W=0.0D0  
+  do i=1,nc
+    gr = craw2real(n,nbytes,raw(1:nbytes,i))
+    if (impute==0) then
+      if(direction(i)==0) gr=2.0D0-gr
+      where(gr==3.0D0) gr=0.0D0
+      where(gr==-1.0D0) gr=0.0D0
+      W(1:nr,i) = gr(rws)
+    endif
+    if (impute==3) then
+      if(direction(i)==0) gr=2.0D0-gr
+      where(gr==-1.0D0) gr=3.0D0
+      W(1:nr,i) = gr(rws)
+    endif
+    if (impute==1) then
+      af=0.0D0
+      gsc=gr(rws)
+      nmiss=dble(count(gsc==3.0D0))
+      n0=dble(count(gsc==0.0D0))
+      n1=dble(count(gsc==1.0D0)) 
+      n2=dble(count(gsc==2.0D0))
+      if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+      W(1:nr,i) = gr(rws)
+      where(W(1:nr,i)==3.0D0) W(1:nr,i)=2.0D0*af
+      if(direction(i)==0) W(1:nr,i)=2.0D0-W(1:nr,i)
+      if (scale==1) W(1:nr,i)=scalew(nr,W(1:nr,i))
+      if ( nmiss==ntotal ) W(1:nr,i)=0.0D0
+    endif
+  enddo 
 
  
 
