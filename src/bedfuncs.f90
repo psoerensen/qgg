@@ -10,404 +10,196 @@
 !
 !==============================================================================================================
 
-    module kinds
+  module kinds
 
-    implicit none
+  implicit none
 
-    integer, parameter :: real64 = selected_real_kind(15, 307)
-    integer, parameter :: int32 = selected_int_kind(9)
+  integer, parameter :: real64 = selected_real_kind(15, 307)
+  integer, parameter :: int32 = selected_int_kind(9)
 
-    end module kinds
+  end module kinds
 
 
-     module f2cio
-     use iso_c_binding
-     implicit none
+  module f2cio
+  
+  use iso_c_binding
+
+  implicit none
+  private
+  public :: fopen, fclose, fread, fwrite, fwrite_real, cseek 
      
-     interface
+  interface
+
      function fopen(filename, mode) bind(C,name='fopen')
-     !filename: file name to associate the file stream to 
-     !mode: null-terminated character string determining file access mode 
-     import
-     implicit none
-     type(c_ptr) fopen
-     character(kind=c_char), intent(in) :: filename(*)
-     character(kind=c_char), intent(in) :: mode(*)
-
+       !filename: file name to associate the file stream to 
+       !mode: null-terminated character string determining file access mode 
+       import
+       implicit none
+       type(c_ptr) fopen
+       character(kind=c_char), intent(in) :: filename(*)
+       character(kind=c_char), intent(in) :: mode(*)
      end function fopen
-     end interface
 
-     interface
      function fclose(fp) bind(C,name='fclose')
-     !fp: the file stream to close 
-     import
-     implicit none
-     integer(c_int) fclose
-     type(c_ptr), value :: fp
+       !fp: the file stream to close 
+       import
+       implicit none
+       integer(c_int) fclose
+       type(c_ptr), value :: fp
      end function fclose
-     end interface
      
-     interface
      function fread(buffer,size,nbytes,fp) bind(C,name='fread')
-     ! buffer: pointer to the array where the read objects are stored 
-     ! size: size of each object in bytes 
-     ! count: the number of the objects to be read 
-     ! fp: the stream to read 
-     import
-     implicit none
-     integer(c_int) fread
-     type(c_ptr), intent(in), value :: buffer  
-     !type(c_ptr), intent(in) :: buffer  
-     integer(kind=c_int), intent(in) :: size
-     integer(kind=c_int), intent(in) :: nbytes
-     type(c_ptr), value :: fp
+       ! buffer: pointer to the array where the read objects are stored 
+       ! size: size of each object in bytes 
+       ! count: the number of the objects to be read 
+       ! fp: the stream to read 
+       import
+       implicit none
+       integer(c_int) fread
+       integer(kind=c_int), value :: size
+       integer(kind=c_int), value :: nbytes
+       integer(kind=c_int8_t), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: fp
      end function fread
-     end interface
-
-    
-     interface
-     function fseek(fp,offset,origin) bind(C,name='fseek')
-     !fp: file stream to modify 
-     !offset: number of characters to shift the position relative to origin 
-     !origin: position to which offset is added (SEEK_SET, SEEK_CUR, SEEK_END) 
-     import
-     implicit none
-     integer(c_int) fseek
-     type(c_ptr), value :: fp
-     integer(kind=c_long), intent(in) :: offset
-     integer(kind=c_int), intent(in) :: origin
-     end function fseek
-     end interface
-
-     interface
+     
+     function cseek(fp,offset,origin) bind(C,name='fseek')
+       !fp: file stream to modify 
+       !offset: number of characters to shift the position relative to origin 
+       !origin: position to which offset is added (SEEK_SET, SEEK_CUR, SEEK_END) 
+       import
+       implicit none
+       integer(c_int) cseek
+       type(c_ptr), value :: fp
+       integer(kind=c_int64_t), value :: offset
+       integer(kind=c_int), value :: origin
+     end function cseek
+     
      function fwrite(buffer,size,nbytes,fp) bind(C,name='fwrite')
-     ! buffer: pointer to the array where the write objects are stored 
-     ! size: size of each object in bytes 
-     ! count: the number of the objects to be written 
-     ! fp: the stream to write 
-     import
-     implicit none
-     integer(c_int) fwrite
-     type(c_ptr), intent(in) :: buffer
-     integer(kind=c_int), intent(in) :: size
-     integer(kind=c_int), intent(in) :: nbytes
-     type(c_ptr), intent(in) :: fp
+       ! buffer: pointer to the array where the write objects are stored 
+       ! size: size of each object in bytes 
+       ! count: the number of the objects to be written 
+       ! fp: the stream to write 
+       import
+       implicit none
+       integer(c_int) fwrite
+       integer(kind=c_int), value :: size
+       integer(kind=c_int), value :: nbytes
+       integer(kind=c_int8_t), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: fp
      end function fwrite
 
-     end interface
+     function fwrite_real(buffer,size,nbytes,fp) bind(C,name='fwrite')
+       ! buffer: pointer to the array where the write objects are stored 
+       ! size: size of each object in bytes 
+       ! count: the number of the objects to be written 
+       ! fp: the stream to write 
+       import
+       implicit none
+       integer(c_int) fwrite_real
+       integer(kind=c_int), value :: size
+       integer(kind=c_int), value :: nbytes
+       real(c_double), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: fp
+     end function fwrite_real
+
+  end interface
      
-     end module f2cio
+  end module f2cio
      
 
+  module bedfuncs
 
-
-    module bedfuncs
-
-
-    use kinds 
-
-    implicit none
-    
-    contains
-
-    !============================================
-    function raw2int(n,nbytes,raw) result(g)
-    !============================================
-
-    implicit none
-
-    integer, intent(in) :: nbytes,n
-    integer, parameter :: byte = selected_int_kind(1) 
-    integer(byte), intent(in) :: raw(nbytes)
-    integer(int32) :: i,j,k,rawbits,g(n) 
-    integer, dimension(4) :: rawcodes
- 
-    rawcodes = (/ 0, 3, 1, 2 /)
-    ! 00 01 10 11
-
-    g=0
-    k=0
-    do i=1,nbytes 
-      do j=0,6,2
-        k = k + 1
-        rawbits = ibits(raw(i), j, 2)
-        g(k) = rawcodes(rawbits+1)
-        if (k==n) exit 
-      enddo
-      if (k==n) exit
-    enddo
-
-    end function raw2int
-
-
-    !============================================
-    function raw2real(n,nbytes,raw) result(w)
-    !============================================
-
-    implicit none
-
-    integer, intent(in) :: nbytes,n
-    integer, parameter :: byte = selected_int_kind(1) 
-    integer(byte), intent(in) :: raw(nbytes)
-    integer(int32) :: i,j,k,rawbits
-    real(real64) :: w(n)
-    real(real64), dimension(4) :: rawcodes
- 
-    rawcodes = (/ 0.0D0, 3.0D0, 1.0D0, 2.0D0 /)
-    ! 00 01 10 11
-    
-    w=0.0D0
-    k=0
-    do i=1,nbytes 
-      do j=0,6,2
-        k = k + 1
-        rawbits = ibits(raw(i), j, 2)
-        w(k) = rawcodes(rawbits+1)
-        if (k==n) exit 
-      enddo
-      if (k==n) exit
-    enddo
-
-    end function raw2real
-
-
-
-    !============================================
-    function craw2real(n,nbytes,raw) result(w)
-    !============================================
-
-    use iso_c_binding
-    implicit none
-
-    integer, intent(in) :: nbytes,n
-    integer, parameter :: byte = selected_int_kind(1) 
-    integer(c_signed_char), intent(in) :: raw(nbytes)
-    integer(int32) :: i,j,k,rawbits
-    real(real64) :: w(n)
-    real(real64), dimension(4) :: rawcodes
- 
-    rawcodes = (/ 0.0D0, 3.0D0, 1.0D0, 2.0D0 /)
-    ! 00 01 10 11
-    
-    w=0.0D0
-    k=0
-    do i=1,nbytes 
-      do j=0,6,2
-        k = k + 1
-        rawbits = ibits(raw(i), j, 2)
-        w(k) = rawcodes(rawbits+1)
-        if (k==n) exit 
-      enddo
-      if (k==n) exit
-    enddo
-
-    end function craw2real
-
-
-
-    !============================================
-    function scalew(nr,g) result(w)
-    !============================================
-
-    implicit none
-
-    integer, intent(in) :: nr
-    real(real64), intent(in) :: g(nr)
-    real(real64) :: mean,sd,tol,nsize,w(nr)
-
-    tol=0.00001D0
-    w=g
-    nsize=dble(count(w<3.0D0))
-    mean=sum(w, mask=w<3.0D0)/nsize
-    where(w<3.0D0) 
-      w=w-mean
-    elsewhere
-      w=0.0D0
-    end where
-    sd=sqrt(sum(w**2)/(nsize-1))
-    if(sd>tol) w=w/sd
-    if(sd<tol) w=0.0D0
-
-    end function scalew
-
-    end module bedfuncs
-
-
-
-
-!==============================================================================================================
-  subroutine creadbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAW,nchars)
-!==============================================================================================================
-
+  use iso_c_binding
   use kinds 
-  use bedfuncs 
-  !use, intrinsic :: iso_c_binding, only : c_ptr, c_int, c_long, c_char, c_signed_char, c_loc 
-  use, intrinsic :: iso_c_binding
-  use f2cio
-   
+
   implicit none
-  
-  integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
-  real(real64) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
-  character(len=nchars) :: fnRAW
-  character(len=20, kind=c_char) :: mode
-  character(len=20, kind=c_char) :: filename
+    
+  contains
+
+  !============================================
+  function raw2int(n,nbytes,raw) result(g)
+  !============================================
+
+  implicit none
+
+  integer(c_int), intent(in) :: nbytes,n
+  integer(c_int8_t), intent(in) :: raw(nbytes)
+  integer(c_int) :: i,j,k,rawbits,g(n) 
+  integer(c_int), dimension(4) :: rawcodes
  
-  !integer(int32), parameter :: byte = selected_int_kind(1) 
-  !integer(byte) :: raw(nbytes,nc)
-  integer(kind=c_signed_char), target :: raw(nbytes,nc)
-  integer(int32) :: i,nchar,offset
+  rawcodes = (/ 0, 3, 1, 2 /)
+  ! 00 01 10 11
 
-  !integer, parameter :: k14 = selected_int_kind(14) 
-  !integer (kind=k14) :: pos14, nbytes14, offset14, i14
-  integer (kind=c_long) :: pos14, nbytes14, offset14, i14
-  integer(c_int):: cfres
-  type(c_ptr):: fp
-  !integer(c_signed_char), allocatable, target :: buffer(:)
-  integer(c_signed_char), target :: buffer(nbytes),magic(3)
-  !allocate(buffer(nbytes))
-  
-
-  offset=0
-  nchar=index(fnRAW, '.bed')
-  if(nchar>0) offset=3
-  if(nchar==0) nchar=index(fnRAW, '.raw')
-
-  nbytes14 = nbytes
-  offset14 = offset
-
-  !open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  fp = fopen(fnRAW(1:(nchar+3))// C_NULL_CHAR ,'rb'// C_NULL_CHAR )
-  !filename = c_char_"asd.raw"//C_NULL_CHAR
-  !mode = c_char_"rb"//C_NULL_CHAR  
-  !fp = fopen(filename ,mode)
-  !print*, fp
-  cfres=fread(c_loc(magic),1,3,fp)
-  !print*, cfres
-  !print*, magic
-  
-  offset14 = 0
-  !cfres=fseek(fp,offset14,offset14)             ! check if c is 0 or 1-based
-  !print*, cfres
-  
-  do i=1,nc
-    i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    !read(13, pos=pos14) raw(1:nbytes,i)
-    !cfres=fseek(fp,0,0)             ! check if c is 0 or 1-based
-    !print*, cfres
-    !cfres=fread(c_loc(buffer),1,nbytes,fp)
-    cfres=fread(c_loc(raw(1:nbytes,i)),1,nbytes,fp)
-    !print*, cfres
-    !raw(1:nbytes,i) = buffer
-    !print*,'i',i
-    !print*, raw(1:nbytes,i) 
-    !print*, buffer 
+  g=0
+  k=0
+  do i=1,nbytes 
+    do j=0,6,2
+      k = k + 1
+      rawbits = ibits(raw(i), j, 2)
+      g(k) = rawcodes(rawbits+1)
+      if (k==n) exit 
+    enddo
+    if (k==n) exit
   enddo
-  !close(unit=13)
-  cfres=fclose(fp)
-  !print*, 'fclose', cfres
-  !deallocate(buffer)
-  
-ntotal=dble(nr)  
 
-  W=0.0D0  
-  do i=1,nc
-    gr = craw2real(n,nbytes,raw(1:nbytes,i))
-    if (impute==0) then
-      if(direction(i)==0) gr=2.0D0-gr
-      where(gr==3.0D0) gr=0.0D0
-      where(gr==-1.0D0) gr=0.0D0
-      W(1:nr,i) = gr(rws)
-    endif
-    if (impute==3) then
-      if(direction(i)==0) gr=2.0D0-gr
-      where(gr==-1.0D0) gr=3.0D0
-      W(1:nr,i) = gr(rws)
-    endif
-    if (impute==1) then
-      af=0.0D0
-      gsc=gr(rws)
-      nmiss=dble(count(gsc==3.0D0))
-      n0=dble(count(gsc==0.0D0))
-      n1=dble(count(gsc==1.0D0)) 
-      n2=dble(count(gsc==2.0D0))
-      if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
-      W(1:nr,i) = gr(rws)
-      where(W(1:nr,i)==3.0D0) W(1:nr,i)=2.0D0*af
-      if(direction(i)==0) W(1:nr,i)=2.0D0-W(1:nr,i)
-      if (scale==1) W(1:nr,i)=scalew(nr,W(1:nr,i))
-      if ( nmiss==ntotal ) W(1:nr,i)=0.0D0
-    endif
-  enddo 
-
- 
+  end function raw2int
 
 
-  end subroutine creadbed
-!==============================================================================================================
-     
+  !============================================
+  function raw2real(n,nbytes,raw) result(w)
+  !============================================
 
-!==============================================================================================================
-  subroutine bed2raw(m,cls,nbytes,append,fnBED,fnRAW,ncharbed,ncharraw)
-!==============================================================================================================
-
-  use kinds 
-  use bedfuncs 
-  
   implicit none
-  
-  integer(int32) :: m,cls(m),nbytes,append,ncharbed,ncharraw  
-  character(len=ncharraw) :: fnRAW
-  character(len=ncharbed) :: fnBED
-
-  integer(int32), parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes), magic(3)
-  integer(int32) :: i,offset,nchar
-
-  integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos14, nbytes14, offset14,i14
-
+  integer(c_int), intent(in) :: nbytes,n
+  integer(c_int8_t), intent(in) :: raw(nbytes)
+  integer(c_int) :: i,j,k,rawbits
+  real(c_double) :: w(n)
+  real(c_double), dimension(4) :: rawcodes
  
-  ! input file
-  offset=3
-  nchar=index(fnBED, '.bed')
-  open(unit=13, file=fnBED(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  read(13) magic
+  rawcodes = (/ 0.0D0, 3.0D0, 1.0D0, 2.0D0 /)
+  ! 00 01 10 11
+    
+  w=0.0D0
+  k=0
+  do i=1,nbytes 
+    do j=0,6,2
+      k = k + 1
+      rawbits = ibits(raw(i), j, 2)
+      w(k) = rawcodes(rawbits+1)
+      if (k==n) exit 
+    enddo
+    if (k==n) exit
+  enddo
 
-  ! output bedfile
-  nchar=index(fnRAW, '.bed')
-  if (nchar>0) then
-   if (append==0) open(unit=14, file=fnRAW(1:(nchar+3)), status='new', access='stream', action='write')
-   if (append==0) write(14) magic
-   if (append==1) open(unit=14, file=fnRAW(1:(nchar+3)), status='old', access='stream', action='write', position='append')
-  endif
+  end function raw2real
 
-  ! output rawfile
-  nchar=index(fnRAW, '.raw')
-  if (nchar>0) then
-    if (append==0) open(unit=14, file=fnRAW(1:(nchar+3)), status='new', access='stream', action='write')
-    if (append==1) open(unit=14, file=fnRAW(1:(nchar+3)), status='old', access='stream', action='write', position='append')
-  endif
-  
-  nbytes14 = nbytes
-  offset14 = offset
-  
-  do i=1,m 
-    if(cls(i)==1) then
-    i14=i
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw
-    write(14) raw
-    !print*, 'writing record', i, 'to file' 
-    endif
-  enddo 
 
-  close(unit=13)
-  close(unit=14)
+  !============================================
+  function scalew(nr,g) result(w)
+  !============================================
 
-  end subroutine bed2raw
-!==============================================================================================================
+  implicit none
+
+  integer(c_int), intent(in) :: nr
+  real(c_double), intent(in) :: g(nr)
+  real(c_double) :: mean,sd,tol,nsize,w(nr)
+
+  tol=0.00001D0
+  w=g
+  nsize=dble(count(w<3.0D0))
+  mean=sum(w, mask=w<3.0D0)/nsize
+  where(w<3.0D0) 
+    w=w-mean
+  elsewhere
+    w=0.0D0
+  end where
+  sd=sqrt(sum(w**2)/(nsize-1))
+  if(sd>tol) w=w/sd
+  if(sd<tol) w=0.0D0
+
+  end function scalew
+
+  end module bedfuncs
 
 
 !==============================================================================================================
@@ -416,20 +208,24 @@ ntotal=dble(nr)
 
   use kinds 
   use bedfuncs 
-  
+  use iso_c_binding
+  use f2cio
+   
   implicit none
   
-  integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
-  real(real64) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
-  character(len=nchars) :: fnRAW
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
+  real(c_double) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
 
-  integer(int32), parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes,nc)
-  integer(int32) :: i,nchar,offset
+  character(len=nchars, kind=c_char) :: fnRAW, filename
+  character(len=20, kind=c_char) :: mode
+  
+  integer(kind=c_int8_t) :: raw(nbytes,nc), magic(3)
+  integer(c_int) :: i,nchar,offset
 
-  integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos14, nbytes14, offset14, i14
-
+  integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
+  integer(c_int):: cfres
+  type(c_ptr):: fp
+  
   offset=0
   nchar=index(fnRAW, '.bed')
   if(nchar>0) offset=3
@@ -438,14 +234,18 @@ ntotal=dble(nr)
   nbytes14 = nbytes
   offset14 = offset
 
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
+  mode =  'rb' // C_NULL_CHAR
+  fp = fopen(filename, mode)
+
   do i=1,nc
     i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw(1:nbytes,i)
+    pos14 = offset14 + (i14-1)*nbytes14 
+    cfres=cseek(fp,pos14,0)            
+    cfres=fread(raw(1:nbytes,i),1,nbytes,fp)
   enddo
-  close(unit=13)
-
+  cfres=fclose(fp)
+  
   ntotal=dble(nr)  
 
   W=0.0D0  
@@ -478,9 +278,81 @@ ntotal=dble(nr)
     endif
   enddo 
 
-
   end subroutine readbed
 !==============================================================================================================
+     
+!==============================================================================================================
+  subroutine bed2raw(m,cls,nbytes,append,fnBED,fnRAW,ncharbed,ncharraw)
+!==============================================================================================================
+
+  use kinds 
+  use bedfuncs 
+  use iso_c_binding
+  use f2cio
+  
+  implicit none
+  
+  integer(c_int) :: m,cls(m),nbytes,append,ncharbed,ncharraw  
+  character(len=ncharbed, kind=c_char) :: fnBED, filename1
+  character(len=ncharraw, kind=c_char) :: fnRAW, filename2
+  character(len=20, kind=c_char) :: mode1, mode2
+
+  integer(kind=c_int8_t) :: raw(nbytes), magic(3)
+  integer(c_int) :: i,offset,nchar
+
+  integer(c_int64_t) :: pos14, nbytes14, offset14,i14
+
+  integer(c_int):: cfres
+  type(c_ptr):: fp1, fp2
+  
+
+  ! input file
+  offset=3
+  nchar=index(fnBED, '.bed')
+  mode1 =  'rb' // C_NULL_CHAR
+  filename1 = fnBED(1:(nchar+3)) // C_NULL_CHAR
+  fp1 = fopen(filename1, mode1)
+  cfres=fread(magic,1,3,fp1)
+
+  ! output bedfile
+  nchar=index(fnRAW, '.bed')
+  if (nchar>0) then
+   filename2 = fnRAW(1:(nchar+3)) // C_NULL_CHAR
+   if (append==0) mode2 =  'wb' // C_NULL_CHAR
+   if (append==0) fp2 = fopen(filename2, mode2)
+   if (append==0) cfres=fwrite(magic,1,3,fp2) 
+   if (append==1) mode2 =  'ab' // C_NULL_CHAR
+   if (append==1) fp2 = fopen(filename2, mode2)
+  endif
+
+  ! output rawfile
+  nchar=index(fnRAW, '.raw')
+  if (nchar>0) then
+   filename2 = fnRAW(1:(nchar+3)) // C_NULL_CHAR
+   if (append==0) mode2 =  'wb' // C_NULL_CHAR
+   if (append==0) fp2 = fopen(filename2, mode2)
+   if (append==1) mode2 =  'ab' // C_NULL_CHAR
+   if (append==1) fp2 = fopen(filename2, mode2)
+  endif
+  
+  nbytes14 = nbytes
+  offset14 = offset
+  
+  do i=1,m 
+    if(cls(i)==1) then
+    i14=i
+    pos14 = offset14 + (i14-1)*nbytes14
+    cfres=fread(raw,1,nbytes,fp1)
+    cfres=fwrite(raw,1,nbytes,fp2)
+    endif
+  enddo 
+
+  cfres=fclose(fp1)
+  cfres=fclose(fp2)
+
+  end subroutine bed2raw
+!==============================================================================================================
+
 
 
 !==============================================================================================================
@@ -488,23 +360,29 @@ ntotal=dble(nr)
 !==============================================================================================================
 
   use kinds 
-  use bedfuncs 
+  use bedfuncs
+  use iso_c_binding
+  use f2cio
+
+ 
   
   implicit none
   
-  integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc),nchars
-  real(real64) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
-  real(real64) :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
-  character(len=nchars) :: fnRAW
-  integer, external :: omp_get_thread_num
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc),nchars
+  real(c_double) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
+  real(c_double) :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
+  character(len=nchars, kind=c_char) :: fnRAW, filename
+  character(len=20, kind=c_char) :: mode
+  type(c_ptr):: fp
+  integer(c_int) :: cfres 
+
+  integer(kind=c_int8_t) :: raw(nbytes), magic(3)
+  integer(c_int) :: i,j,nchar,offset
+
+  integer(c_int64_t) :: pos14, nbytes14, offset14,i14
 
 
-  integer(int32), parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
-  integer(int32) :: i,j,nchar,offset
-
-  integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos14, nbytes14, offset14, i14
+  integer(c_int), external :: omp_get_thread_num
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -514,7 +392,9 @@ ntotal=dble(nr)
   nbytes14 = nbytes
   offset14 = offset
 
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
+  mode =  'rb' // C_NULL_CHAR
+  fp = fopen(filename, mode)
 
   ntotal=dble(nr)  
 
@@ -527,8 +407,9 @@ ntotal=dble(nr)
   do i=1,nc
     thread=omp_get_thread_num()+1
     i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw
+    pos14 = offset14 + (i14-1)*nbytes14
+    cfres=cseek(fp,pos14,0)            
+    cfres=fread(raw(1:nbytes),1,nbytes,fp)
     gr = raw2real(n,nbytes,raw)
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
@@ -552,7 +433,7 @@ ntotal=dble(nr)
   enddo 
   !$omp end parallel do
 
-  close(unit=13)
+  cfres=fclose(fp)
 
   do i=1,nprs
     do j=1,ncores
@@ -569,21 +450,28 @@ ntotal=dble(nr)
 
   use kinds 
   use bedfuncs 
+  use iso_c_binding
+  use f2cio
+ 
   
   implicit none
   
-  integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc),nchars
-  real(real64) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
-  real(real64) :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
-  character(len=nchars) :: fnRAW
-  integer, external :: omp_get_thread_num
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc),nchars
+  real(c_double) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
+  real(c_double) :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
 
-  integer(int32), parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
-  integer(int32) :: i,j,nchar,offset
+  character(len=nchars, kind=c_char) :: fnRAW, filename
+  character(len=20, kind=c_char) :: mode
+  type(c_ptr):: fp
+  integer(c_int) :: cfres 
 
-  integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos14, nbytes14, offset14, i14
+  integer(kind=c_int8_t) :: raw(nbytes), magic(3)
+  integer(c_int) :: i,j,stat,nchar,offset
+
+  integer(c_int64_t) :: pos14, nbytes14, offset14,i14
+
+  integer(c_int), external :: omp_get_thread_num
+
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -593,7 +481,10 @@ ntotal=dble(nr)
   nbytes14 = nbytes
   offset14 = offset
 
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+  filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
+  mode =  'rb' // C_NULL_CHAR
+  fp = fopen(filename, mode)
+
 
   ntotal=dble(nr)  
 
@@ -603,8 +494,9 @@ ntotal=dble(nr)
   !$omp parallel do private(i,j,i14,pos14,raw,gr,gsc,nmiss,n0,n1,n2,thread)
   do i=1,nc
     i14=cls(i)
-    pos14 = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14) raw
+    pos14 = offset14 + (i14-1)*nbytes14
+    cfres=cseek(fp,pos14,0)            
+    cfres=fread(raw(1:nbytes),1,nbytes,fp)
     gr = raw2real(n,nbytes,raw(1:nbytes))
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
@@ -628,14 +520,12 @@ ntotal=dble(nr)
     enddo  
   enddo 
   !$omp end parallel do
-  close(unit=13)
 
-  
+  cfres=fclose(fp)
 
   end subroutine gstat
 !==============================================================================================================
 
-  
 
 !==============================================================================================================
   subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,nchars,ncores)
@@ -643,21 +533,24 @@ ntotal=dble(nr)
 
   use kinds 
   use bedfuncs 
+  use iso_c_binding
+  use f2cio
   
   implicit none
   
-  integer(int32) :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,nchars 
-  real(real64) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
-  character(len=nchars) :: fnRAW
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,nchars 
+  real(c_double) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
+  character(len=nchars, kind=c_char) :: fnRAW, filename
+  character(len=20, kind=c_char) :: mode
+  type(c_ptr):: fp
+  integer(c_int) :: cfres 
 
-  integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
-  integer(int32) :: i,stat,nchar,offset
+  integer(kind=c_int8_t) :: raw(nbytes), magic(3)
+  integer(c_int) :: i,nchar,offset
 
-  integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos14, nbytes14, offset14, i14
+  integer(c_int64_t) :: pos14, nbytes14, offset14,i14
 
-  integer, external :: omp_get_thread_num
+  integer(c_int), external :: omp_get_thread_num
 
   call omp_set_num_threads(ncores)
 
@@ -671,13 +564,19 @@ ntotal=dble(nr)
 
   af=0.0D0
   nmiss=0.0D0
-  ntotal=dble(nr)  
+  ntotal=dble(nr) 
+
+  filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
+  mode =  'rb' // C_NULL_CHAR
 
   ! process serial
   if (ncores==1) then
-    open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+    fp = fopen(filename, mode)
     do i=1,nc 
-      read(13, iostat=stat, rec=cls(i)) raw
+      i14=cls(i)
+      pos14 = offset14 + (i14-1)*nbytes14
+      cfres=cseek(fp,pos14,0)            
+      cfres=fread(raw(1:nbytes),1,nbytes,fp)
       g = raw2int(n,nbytes,raw)
       grws = g(rws)
       nmiss(i)=dble(count(grws==3))
@@ -686,17 +585,18 @@ ntotal=dble(nr)
       n2(i)=dble(count(grws==2))
       if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
     enddo 
-    close(unit=13)
+    cfres=fclose(fp)
   endif
 
   ! process parallel
   if (ncores>1) then
-    open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
+    fp = fopen(filename, mode)
     !$omp parallel do private(i,i14,pos14,raw,g,grws)
     do i=1,nc 
       i14=cls(i)
-      pos14 = 1 + offset14 + (i14-1)*nbytes14
-      read(13, pos=pos14) raw
+      pos14 = offset14 + (i14-1)*nbytes14
+      cfres=cseek(fp,pos14,0)            
+      cfres=fread(raw(1:nbytes),1,nbytes,fp)
       g = raw2int(n,nbytes,raw)
       grws = g(rws)
       nmiss(i)=dble(count(grws==3))
@@ -706,8 +606,10 @@ ntotal=dble(nr)
       if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
     enddo 
     !$omp end parallel do
-    close(unit=13)
+    cfres=fclose(fp)
   endif
+
+
 
   end subroutine summarybed
 !==============================================================================================================
@@ -718,24 +620,25 @@ ntotal=dble(nr)
 
   use kinds 
   use bedfuncs 
+  use iso_c_binding
+  use f2cio
   
   implicit none
   
-  integer(int32) :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc),nchars 
-  real(real64) :: G(nr,nr), W1(nr,msize),W2(nr,msize), traceG
-  character(len=nchars) :: fnRAW
-  character(len=1000) :: fnG
-  !real(real64), allocatable :: W2(:,:)
+  integer(c_int) :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc),nchars
+  real(c_double) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
+  character(len=nchars, kind=c_char) :: fnRAW
+  character(len=1000, kind=c_char) :: fnG, filename
+  character(len=20, kind=c_char) :: mode
+  type(c_ptr):: fp
+  integer(c_int) :: cfres 
 
   call omp_set_num_threads(ncores)
 
   G = 0.0D0
   W1 = 0.0D0
   W2 = 0.0D0
-  !if(gmodel==3) then 
-  !  allocate(W2(nr,msize))
-  !  W2 = 0.0D0
-  !endif
+  w=0.0d0
 
   impute=1
   direction=1 
@@ -770,8 +673,6 @@ ntotal=dble(nr)
 
     end select
   
-    !print*,'Finished block',i
-
   enddo
  
   traceG = 0.0D0
@@ -788,56 +689,18 @@ ntotal=dble(nr)
   enddo
 
   nchar=index(fnG, '.grm')
-  open(unit=10, file=fnG(1:(nchar+3)), status='unknown', access='stream', form='unformatted', action='write')
+  mode =  'wb' // C_NULL_CHAR
+  filename = fnG(1:(nchar+3)) // C_NULL_CHAR
+  fp = fopen(filename, mode)
   do j=1,size(G,1)
-    if (gmodel<4) write(unit=10) G(1:size(G,1),j)
-    if (gmodel==4) write(unit=10) G(1:size(G,1),j)**2
+    if (gmodel<4) w = G(1:size(G,1),j)
+    if (gmodel==4) w = G(1:size(G,1),j)**2
+    cfres=fwrite_real(w,8,nr,fp)
   enddo
-  close(10)
+  cfres=fclose(fp)
 
   end subroutine grmbed
 !==============================================================================================================
-
-!==============================================================================================================
-  subroutine mmbed(n,nr,rws,nc,cls,impute,scale,nbytes,fnRAW,nchars,msize,ncores,nprs,s,prs)
-!==============================================================================================================
-! C = A*B (dimenions: mxn = mxk kxn) 
-! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,0.0d0,c,m)
-! C = A*B + C
-! call dgemm("n","n",m,n,k,1.0d0,a,m,b,k,1.0d0,c,m)
-
-  use kinds 
-  use bedfuncs 
-  
-  implicit none
-  
-  integer(int32) :: i,n,nr,nc,rws(nr),cls(nc),impute,scale,nbytes,ncores,msize,nprs,ncw,direction(nc),nchars 
-  real(real64) :: W(nr,msize)
-  character(len=nchars) :: fnRAW
-  real(real64) :: prs(nr,nprs),s(nc,nprs)
-
-  call omp_set_num_threads(ncores)
-
-  direction=1
-
-  prs = 0.0D0
-  W = 0.0D0 
-
-  do i=1,nc,msize
-
-    if((i+msize-1)<nc) ncw = size(cls(i:(i+msize-1)))
-    if((i+msize-1)>=nc) ncw = size(cls(i:nc))          
-
-    call readbed(n,nr,rws,ncw,cls(i:(i+ncw-1)),impute,scale,direction,W(:,1:ncw),nbytes,fnRAW,nchars)
-    call dgemm("n","n",nr,nprs,ncw,1.0d0,W(:,1:ncw),nr,s(i:(i+ncw-1),:),ncw,1.0d0,prs,nr)
- 
-    !print*,'Finished block',i
-
-  enddo
-
-  end subroutine mmbed
-!==============================================================================================================
-
 
 
 !==============================================================================================================
@@ -846,22 +709,25 @@ ntotal=dble(nr)
 
   use kinds 
   use bedfuncs 
+  use iso_c_binding
+  use f2cio
 
   !implicit none
   
-  integer(int32) :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset,nchars
-  real(real64) :: y(n),e(n),raww(n),w(n),g(n)
-  real(real64) :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
-  real(real64) :: lhs,rhs,snew,tol
-  character(len=nchars) :: fnRAW
-  real(real64), external  :: ddot
+  integer(c_int) :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset,nchars
+  real(c_double) :: y(n),e(n),raww(n),w(n),g(n)
+  real(c_double) :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
+  real(c_double) :: lhs,rhs,snew,tol
+  character(len=nchars, kind=c_char) :: fnRAW, filename
+  character(len=20, kind=c_char) :: mode
+  type(c_ptr):: fp
+  integer(c_int) :: cfres 
+  real(c_double), external  :: ddot
 
-  integer, parameter :: k14 = selected_int_kind(14) 
-  !integer (kind=k14) :: pos14
+  integer(kind=c_int8_t) :: raw(nbytes), magic(3)
+ 
+  integer(c_int64_t) :: pos14,nbytes14,offset14,i14
 
-  integer, parameter :: byte = selected_int_kind(1) 
-  integer(byte) :: raw(nbytes)
-  integer :: stat
 
   call omp_set_num_threads(ncores)
 
@@ -871,11 +737,20 @@ ntotal=dble(nr)
   nchar=index(fnRAW, '.bed')
   if(nchar>0) offset=3
   if(nchar==0) nchar=index(fnRAW, '.raw')
-  open(unit=13, file=fnRAW(1:(nchar+3)), status='old', access='direct', form='unformatted', recl=nbytes)
+
+  nbytes14 = nbytes
+  offset14 = offset
+
+  filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
+  mode =  'rb' // C_NULL_CHAR
+  fp = fopen(filename, mode)
 
   ! genotypes coded 0,1,2,3=missing => where 0,1,2 means 0,1,2 copies of alternative allele 
   do i=1,nc
-    read(13, iostat=stat, rec=cls(i)) raw
+    i14=cls(i)
+    pos14 = offset14 + (i14-1)*nbytes14
+    cfres=cseek(fp,pos14,0)            
+    cfres=fread(raw(1:nbytes),1,nbytes,fp)
     raww = raw2real(n,nbytes,raw)
     where (raww<3.0D0)
       w = (raww-mean(i))/sd(i)
@@ -887,7 +762,7 @@ ntotal=dble(nr)
       s(i)=(ddot(nr,w(rws),1,y(rws),1)/dww(i))/nc
     endif     
   enddo
-  close (unit=13)
+
   os=s
   e=0.0D0
   e(rws)=y(rws)
@@ -895,7 +770,10 @@ ntotal=dble(nr)
     g=0.0D0
     open(unit=13,file=fnRAW(1:(nchar+3)), status='old', form='unformatted', access='direct', recl=nbytes)
     do i=1,nc
-      read(13, iostat=stat, rec=cls(i)) raw
+    i14=cls(i)
+    pos14 = offset14 + (i14-1)*nbytes14
+    cfres=cseek(fp,pos14,0)            
+    cfres=fread(raw(1:nbytes),1,nbytes,fp)
       raww = raw2real(n,nbytes,raw)
         where (raww<3.0D0)
         w = (raww-mean(i))/sd(i)
@@ -910,11 +788,11 @@ ntotal=dble(nr)
       s(i)=snew
       g=g+w*s(i)
     enddo
-    close (unit=13)
-    !print*,(sum((s-os)**2)/sqrt(dble(nc)))
     if( (sum((s-os)**2)/sqrt(dble(nc)))<tol) exit  
     os=s  
   enddo
+
+  cfres=fclose(fp)
   
   nit=it
   tol=sum((s-os)**2)
@@ -923,48 +801,19 @@ ntotal=dble(nr)
 !==============================================================================================================
 
 
-!==============================================================================================================
-  subroutine readbin(n,nr,rws,nc,cls,W,nbytes,fnBIN)
-!==============================================================================================================
-
-  use kinds 
-  implicit none
-  
-  integer(int32) :: n,nr,rws(nr),nc,cls(nc),nbytes,nchar,i  
-  real(real64) :: W(nr,nc),raw(n)
-  character(len=1000) :: fnBIN
-
-  integer, parameter :: k14 = selected_int_kind(14) 
-  integer (kind=k14) :: pos14(nc),nbytes14,offset14,i14
-
-  nchar=index(fnBIN, '.bin')
-  open(unit=13, file=fnBIN(1:(nchar+3)), status='old', access='stream', form='unformatted', action='read')
-  nbytes14 = nbytes*n
-  offset14 = 0
-  do i=1,nc 
-    i14=cls(i)
-    pos14(i) = 1 + offset14 + (i14-1)*nbytes14
-    read(13, pos=pos14(i)) raw(1:n)
-    W(1:nr,i) = raw(rws)
-  enddo
-
-  close(unit=13)
-
-  end subroutine readbin
-!==============================================================================================================
-
 
 !==============================================================================================================
   subroutine psets(m,stat,nsets,setstat,msets,p,np,ncores)
 !==============================================================================================================
 
   use kinds 
+  use iso_c_binding
   implicit none
   
-  integer(int32) :: m,nsets,msets(nsets),p(nsets),np,ncores   
-  integer(int32) :: i,j,k1,k2,maxm,thread,multicore   
-  real(real64) :: stat(m),setstat(nsets),u,pstat
-  integer, external :: omp_get_thread_num
+  integer(c_int) :: m,nsets,msets(nsets),p(nsets),np,ncores   
+  integer(c_int) :: i,j,k1,k2,maxm,thread,multicore   
+  real(c_double) :: stat(m),setstat(nsets),u,pstat
+  integer(c_int), external :: omp_get_thread_num
 
   p=0
 
@@ -1012,45 +861,30 @@ ntotal=dble(nr)
 
 
 !==============================================================================================================
-!  subroutine eiggrm(n,nev,ev,U,fnG,fnU,ncores)	
   subroutine eiggrm(n,GRM,evals,ncores)
- 
 !==============================================================================================================
-! calls the LAPACK diagonalization subroutine dsyev       !
-!input:  G(n,n) = real symmetric matrix to be diagonalized!
-!            n  = size of G                               !
-!output: G(n,n) = orthonormal eigenvectors of G           !
-!        eig(n) = eigenvalues of G in ascending order     !
-!---------------------------------------------------------!
+! calls the LAPACK diagonalization subroutine dsyev       
+!  input:  G(n,n) = real symmetric matrix to be diagonalized
+!            n  = size of G                               
+!  output: G(n,n) = orthonormal eigenvectors of G           
+!        eig(n) = eigenvalues of G in ascending order     
+!==============================================================================================================
   use kinds 
+  use iso_c_binding
 
   implicit none
 
   external dsyev
-  integer(int32) :: n,l,info,ncores
-  real(real64) :: GRM(n,n),evals(n),work(n*(3+n/2))
-  !character(len=1000) :: fnG,fnU
+  integer(c_int) :: n,l,info,ncores
+  real(c_double) :: GRM(n,n),evals(n),work(n*(3+n/2))
 
   call omp_set_num_threads(ncores)
+
   info=0
   l=0
 
   l=n*(3+n/2)
-  !l=max(1,3*n-1)  
   call dsyev('V','U',n,GRM,n,evals,work,l,info)
-  
-
-
-  !U = 0.0D0
-  !G = 0.0D0
-  !nchar=index(fnG, '.grm')
-  !open(unit=10, file=fnG(1:(nchar+3)), status='unknown', access='stream', form='unformatted', action='read')
-  !do j=1,size(G,1)
-  !  read(unit=10) G(1:size(G,1),j)
-  !enddo
-  !close(10)
-
-  !call sspevd(jobz, uplo, n, ap, w, z, ldz, work, lwork, iwork, liwork, info)
 
   end subroutine eiggrm
 !==============================================================================================================
