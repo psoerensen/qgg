@@ -17,6 +17,7 @@
   integer, parameter :: real64 = selected_real_kind(15, 307)
   integer, parameter :: int32 = selected_int_kind(9)
 
+
   end module kinds
 
 
@@ -26,7 +27,8 @@
 
   implicit none
   private
-  public :: fopen, fclose, fread, fwrite, fwrite_real, cseek 
+  public :: fopen, fclose, fread, fwrite, fwrite_real, fread_real, fgets_char, cseek 
+
      
   interface
 
@@ -102,6 +104,35 @@
        type(c_ptr), value :: fp
      end function fwrite_real
 
+     function fread_real(buffer,size,nbytes,fp) bind(C,name='fread')
+       ! buffer: pointer to the array where the read objects are stored 
+       ! size: size of each object in bytes 
+       ! count: the number of the objects to be read 
+       ! fp: the stream to read 
+       import
+       implicit none
+       integer(c_int) fread_real
+       integer(kind=c_int), value :: size
+       integer(kind=c_int), value :: nbytes
+       real(kind=c_double), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: fp
+     end function fread_real
+
+     function fgets_char(buffer,nbytes,fp) bind(C,name='fgets')
+       ! buffer: pointer to the array where the read objects are stored 
+       ! size: size of each object in bytes 
+       ! count: the number of the objects to be read 
+       ! fp: the stream to read 
+       import
+       implicit none
+       integer(c_int) fgets_char
+       integer(kind=c_int), value :: nbytes
+       character(kind=c_char) :: buffer(1000) 
+       type(c_ptr), value :: fp
+     end function fgets_char
+
+
+
   end interface
      
   end module f2cio
@@ -153,8 +184,8 @@
   integer(c_int), intent(in) :: nbytes,n
   integer(c_int8_t), intent(in) :: raw(nbytes)
   integer(c_int) :: i,j,k,rawbits
-  real(c_double) :: w(n)
-  real(c_double), dimension(4) :: rawcodes
+  real(real64) :: w(n)
+  real(real64), dimension(4) :: rawcodes
  
   rawcodes = (/ 0.0D0, 3.0D0, 1.0D0, 2.0D0 /)
   ! 00 01 10 11
@@ -181,8 +212,8 @@
   implicit none
 
   integer(c_int), intent(in) :: nr
-  real(c_double), intent(in) :: g(nr)
-  real(c_double) :: mean,sd,tol,nsize,w(nr)
+  real(real64), intent(in) :: g(nr)
+  real(real64) :: mean,sd,tol,nsize,w(nr)
 
   tol=0.00001D0
   w=g
@@ -214,7 +245,7 @@
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
-  real(c_double) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  real(real64) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
 
   character(len=nchars, kind=c_char) :: fnRAW, filename
   character(len=20, kind=c_char) :: mode
@@ -237,6 +268,9 @@
   filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
   mode =  'rb' // C_NULL_CHAR
   fp = fopen(filename, mode)
+
+  if (c_double /= kind(1.0d0))  &
+    error stop 'Default REAL isn''t interoperable with FLOAT!!'
 
   do i=1,nc
     i14=cls(i)
@@ -369,8 +403,8 @@
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc),nchars
-  real(c_double) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
-  real(c_double) :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
+  real(real64) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
+  real(real64) :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
   character(len=nchars, kind=c_char) :: fnRAW, filename
   character(len=20, kind=c_char) :: mode
   type(c_ptr):: fp
@@ -457,8 +491,8 @@
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc),nchars
-  real(c_double) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
-  real(c_double) :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
+  real(real64) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
+  real(real64) :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
 
   character(len=nchars, kind=c_char) :: fnRAW, filename
   character(len=20, kind=c_char) :: mode
@@ -539,7 +573,7 @@
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,nchars 
-  real(c_double) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
+  real(real64) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
   character(len=nchars, kind=c_char) :: fnRAW, filename
   character(len=20, kind=c_char) :: mode
   type(c_ptr):: fp
@@ -626,7 +660,7 @@
   implicit none
   
   integer(c_int) :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc),nchars
-  real(c_double) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
+  real(real64) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: fnG, filename
   character(len=20, kind=c_char) :: mode
@@ -715,14 +749,14 @@
   !implicit none
   
   integer(c_int) :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset,nchars
-  real(c_double) :: y(n),e(n),raww(n),w(n),g(n)
-  real(c_double) :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
-  real(c_double) :: lhs,rhs,snew,tol
+  real(real64) :: y(n),e(n),raww(n),w(n),g(n)
+  real(real64) :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
+  real(real64) :: lhs,rhs,snew,tol
   character(len=nchars, kind=c_char) :: fnRAW, filename
   character(len=20, kind=c_char) :: mode
   type(c_ptr):: fp
   integer(c_int) :: cfres 
-  real(c_double), external  :: ddot
+  real(real64), external  :: ddot
 
   integer(kind=c_int8_t) :: raw(nbytes), magic(3)
  
@@ -812,7 +846,7 @@
   
   integer(c_int) :: m,nsets,msets(nsets),p(nsets),np,ncores   
   integer(c_int) :: i,j,k1,k2,maxm,thread,multicore   
-  real(c_double) :: stat(m),setstat(nsets),u,pstat
+  real(real64) :: stat(m),setstat(nsets),u,pstat
   integer(c_int), external :: omp_get_thread_num
 
   p=0
@@ -876,7 +910,7 @@
 
   external dsyev
   integer(c_int) :: n,l,info,ncores
-  real(c_double) :: GRM(n,n),evals(n),work(n*(3+n/2))
+  real(real64) :: GRM(n,n),evals(n),work(n*(3+n/2))
 
   call omp_set_num_threads(ncores)
 
@@ -888,3 +922,7 @@
 
   end subroutine eiggrm
 !==============================================================================================================
+
+
+
+

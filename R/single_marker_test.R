@@ -195,6 +195,7 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
     n <- Glist$n
     cls <- 1:m
     if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
+    m <- length(cls)
     rws <- 1:n
     if (!is.null(ids)) rws <- match(ids, Glist$ids)
     s <- se <- stat <- p <- matrix(NA, nrow = m, ncol = nt)
@@ -204,7 +205,7 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
     nsets <- length(sets)
     for (i in 1:nsets) {
       cls <- sets[[i]]
-      W <- freadbed(Glist = Glist, rws = rws, cls = cls, scale = scale)
+      W <- getW(Glist = Glist, rws = rws, cls = cls, scale = scale)
       res <- smlm(y = y, X = X, W = W)
       s[cls, ] <- res[[1]]
       se[cls, ] <- res[[2]]

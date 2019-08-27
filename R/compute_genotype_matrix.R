@@ -290,8 +290,10 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   return(Glist)
 }
 
+#' @export
+#'
 
-freadbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
+getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
                      rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
                      allele = NULL, ncores = 1) {
   if (!is.null(Glist)) {
@@ -388,18 +390,18 @@ freadbed <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
 #' @param allele vector of alleles to be extracted
 
 
-#' @export
-#'
-getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
-                 impute = FALSE, scale = FALSE, allele = NULL) {
-  if (is.null(ids)) ids <- Glist$ids
-  if (is.null(cls)) cls <- match(rsids, Glist$rsids)
-  W <- freadbed(
-    Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
-    impute = impute, scale = scale, allele = allele
-  )
-  return(W)
-}
+#' #' @export
+#' #'
+#' getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
+#'                  impute = FALSE, scale = FALSE, allele = NULL) {
+#'   if (is.null(ids)) ids <- Glist$ids
+#'   if (is.null(cls)) cls <- match(rsids, Glist$rsids)
+#'   W <- freadbed(
+#'     Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
+#'     impute = impute, scale = scale, allele = allele
+#'   )
+#'   return(W)
+#' }
 
 sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL, allele = NULL,
                      impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {

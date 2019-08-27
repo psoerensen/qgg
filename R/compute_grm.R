@@ -227,6 +227,8 @@ getGRM <- function(GRMlist = NULL, ids = NULL, idsCLS = NULL, idsRWS = NULL, cls
 }
 
 
+#' @export
+#'
 
 mergeGRM <- function(GRMlist = NULL) {
   GRMlist <- do.call(function(...) mapply(c, ..., SIMPLIFY = FALSE), args = GRMlist)

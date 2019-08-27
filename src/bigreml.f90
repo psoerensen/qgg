@@ -15,11 +15,19 @@
     module global
 
     use kinds
+    use iso_c_binding
+    use f2cio
+
     implicit none
     public
     real(real64), allocatable :: V(:,:),P(:,:),G(:,:)
     integer(int32), allocatable :: indxg(:)
     integer(int32) :: ng
+    integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
+    integer(c_int):: cfres, nbytes
+    character(len=1000, kind=c_char) :: filename
+    character(len=20, kind=c_char) :: mode
+
     
     end module global
 
@@ -32,10 +40,13 @@
 
     use kinds
     use global
-    
+    use iso_c_binding
+    use f2cio
+ 
     implicit none
     
     contains
+
 
     function crossprod(a,b) result(c)
     implicit none
@@ -82,25 +93,27 @@
     enddo
     end function inverse
 
-    function readG(row,funit) result(gr)
-    !function readG(row,fname) result(gr)
+ 
+    function readG(row,fp) result(gr)
     implicit none
-    !character(len=*), intent(in) :: fname
-    integer(int32), intent(in) :: row,funit
+    !type(c_ptr):: fp
+    type(c_ptr), value :: fp
+    integer(int32), intent(in) :: row
     integer(int32) :: i
     real(real64) :: gr(size(V,1)),grw(ng)
-    !open (unit=12,file=trim(adjustl(fname)) , status='old', form='unformatted', access='direct', recl=8*ng)
-    !read (unit=12, rec=indxg(row)) grw
-    read (unit=funit, rec=indxg(row)) grw
-    !close (unit=12)
+
+    !i14=indxg(row)
+    i14=row
+    pos14 = (i14-1)*nbytes14 
+    cfres=cseek(fp,pos14,0)            
+    !cfres=fread_real(grw,8,nbytes,fp)
+    cfres=fread_real(grw,8,ng,fp)
     do i=1,size(V,1)
       gr(i) = grw(indxg(i))
     enddo
-
     end function readG
-
-
   
+
     
     end module bigfuncs
     
@@ -113,7 +126,9 @@
 
     use kinds
     use global
-    !use mymkl
+    use bigfuncs
+    use iso_c_binding
+    use f2cio
     
     implicit none
     
@@ -149,59 +164,35 @@
     enddo
     end subroutine chol2inv
 
-    subroutine loadG(fname)
-    implicit none
-    integer(int32) :: i,j
-    real(real64) :: grw(ng)
-    character(len=*), intent(in) :: fname
-    logical :: exst
 
-    inquire(file=trim(adjustl(fname)), exist=exst)
-    if(.not.(exst)) then
-       !print *, 'Trying to open file:'
-       !print*, fname
-       !print *, 'file does not exist'
-       !stop
-    endif
-    
-    open (unit=12,file=trim(adjustl(fname)), status='old', form='unformatted', access='direct', recl=8*ng)
-    do i=1,size(G,1)
-      read (unit=12, rec=indxg(i)) grw
-      do j=1,size(G,1)
-        G(i,j) = grw(indxg(j))
-      enddo
-    enddo
-    close (unit=12)
-    end subroutine loadG
-
- 
     subroutine computeV(weights,fnames)
     implicit none
     integer(int32) :: i,j,r
     real(real64), dimension(:),intent(in) :: weights
-    real(real64) :: grw(ng)
-    character(len=*), dimension(:),intent(in) :: fnames
-    logical :: exst
+    real(real64) :: gr(size(V,1)), grw(ng)
+    character(len=*, kind=c_char), dimension(:),intent(in) :: fnames
+ 
+    type(c_ptr):: fp
 
     do r=1,size(weights)
-    if (r<size(weights)) then
-    inquire(file=trim(adjustl(fnames(r))), exist=exst)
-    if(.not.(exst)) then
-       !print *, 'Trying to open file:'
-       !print*, fnames(r)
-       !print *, 'file does not exist'
-       !stop
-    endif
 
-    open (unit=12,file=trim(adjustl(fnames(r))), status='old', form='unformatted', access='direct', recl=8*ng)
+    if (r<size(weights)) then
+
+    filename = trim(adjustl(fnames(r))) // C_NULL_CHAR
+    mode =  'rb' // C_NULL_CHAR
+    fp = fopen(filename, mode)
+
     do i=1,size(V,1)
-      read (unit=12,rec=indxg(i)) grw
+      gr = readG(indxg(i),fp)
+      !print*, i, indxg(i), gr(1:3)
       do j=1,size(V,1)
-        V(i,j)=V(i,j)+grw(indxg(j))*weights(r)
+        !V(i,j)=V(i,j)+grw(indxg(j))*weights(r)
+        V(i,j)=V(i,j)+gr(j)*weights(r)
       enddo
     enddo
-    close (unit=12)
 
+    cfres=fclose(fp)
+    
     else
     
     do j=1,size(V,1)
@@ -223,24 +214,27 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     use global
-    !use mymkl
     use bigsubs
     use bigfuncs
+    use iso_c_binding
+    use f2cio
 
     implicit none
 
     ! input and output variables
-    integer(int32) :: n,nf,nr,maxit,ngr,indx(n),ncores
+    integer(int32) :: n,nf,nr,maxit,ngr,indx(n),ncores,nchar
     real(real64) :: tol
     real(real64)  :: y(n),X(n,nf),theta(nr)
     character(len=1000) :: rfnames(nr-1)
     character(len=14) :: fnr
     
     ! local variables
-    integer(int32) :: i,j,it,fileunit(nr)
+    integer(int32) :: i,j,it
     real(real64) :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr)
     real(real64) :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1),varb(nf,nf) 
     real(real64) :: llik, ldV, ldXVX, yPy
+
+    type(c_ptr):: fileunit(nr-1), fp
     
     logical :: exst
     
@@ -250,21 +244,26 @@
     indxg=indx   
     ng=ngr
 
-    open (unit=10, file=trim(adjustl(fnr)), status='old')
+    nbytes14 = 8.0d0*dble(ng) 
 
-    !read G filenames and check they exist
+    filename = 'reml.qgg' // C_NULL_CHAR
+    !filename = trim(adjustl(fnr)) // C_NULL_CHAR
+    mode =  'r' // C_NULL_CHAR
+    fp = fopen(filename, mode)
     do i=1,nr-1
-    read(unit=10,fmt=*) rfnames(i)
-    inquire(file=trim(adjustl(rfnames(i))), exist=exst)
-    if(.not.(exst)) then
-       !print *, 'Trying to open file:'
-       !print*, rfnames(i)
-       !print *, 'file does not exist'
-       !stop
-    endif
+      cfres=fgets_char(filename,100,fp)
+      nchar=index(filename, '.grm')
+      rfnames(i) = filename(2:(nchar+3)) 
     enddo
+    cfres=fclose(fp)
 
-    close(unit=10, status='delete')
+    !open (unit=10, file=trim(adjustl(fnr)), status='old')
+    !read G filenames and check they exist
+    !do i=1,nr-1
+    !read(unit=10,fmt=*) rfnames(i)
+    !print*, rfnames(i)
+    !enddo
+    !close(unit=10, status='delete')
 
     call omp_set_num_threads(ncores)
 
@@ -273,6 +272,7 @@
     ! compute V and save to file
     allocate(V(n,n))
     V=0.0D0
+
     call computeV(theta,rfnames)
 
     ! compute inverse of V (store in V) and log determinant of V
@@ -298,10 +298,13 @@
     trPG = 0.0D0
     trVG(nr) = sum(diag(V))  ! residual effects
 
-
     do i=1,nr-1
-    fileunit(i)=10+i
-    open (unit=fileunit(i),file=trim(adjustl(rfnames(i))) , status='old', form='unformatted', access='direct', recl=8*ng)
+     !fileunit(i)=10+i
+     !open (unit=fileunit(i),file=trim(adjustl(rfnames(i))) , status='old', form='unformatted', access='direct', recl=8*ng)
+      filename = trim(adjustl(rfnames(i))) // C_NULL_CHAR
+      mode =  'rb' // C_NULL_CHAR
+      fileunit(i) = fopen(filename, mode)
+          !print*, filename
     enddo
 
     do j=1,n
@@ -309,7 +312,7 @@
         gr(1:n,i) = readG(j,fileunit(i))
         !gr(1:n,i) = readG(j,rfnames(i))
         trVG(i) = trVG(i) + sum(gr(1:n,i)*V(1:n,j)) 
-      enddo 
+      enddo
       V(1:n,j) = V(1:n,j) - matvec(VXXVX(:,1:nf),VX(j,1:nf))  ! update the j'th column of V to be the j'th column of P 
       do i=1,nr-1
         trPG(i) = trPG(i) + sum(gr(1:n,i)*V(1:n,j))
@@ -323,12 +326,13 @@
     
     ! compute u (unscaled)
     do i=1,n
+      ! open file !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       do j=1,nr-1           ! random effects excluding residual
         gr(1:n,j) = readG(i,fileunit(j))
         !gr(1:n,j) = readG(i,rfnames(j))
         u(i,j) = sum(gr(1:n,j)*Py)
-      enddo 
-      !u(i,1:(nr-1)) = matvec(transpose(gr),Py)
+      enddo
+      ! close file !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     enddo
     u(:,nr) = Py            ! random residual effects
 
@@ -338,7 +342,7 @@
     enddo
 
     do i=1,nr-1
-    close(fileunit(i))
+      cfres=fclose(fileunit(i))
     enddo
 
     deallocate(V) 
