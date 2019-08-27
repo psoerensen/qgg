@@ -330,6 +330,7 @@ fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL,
                    meanw = NULL, sdw = NULL) {
   OS <- .Platform$OS.type
   if (OS == "windows") fnRAW <- tolower(gsub("/", "\\", fnRAW, fixed = T))
+  write.table(as.character(fnRAW), file = "param.qgg", quote = TRUE, sep = " ", col.names = FALSE, row.names = FALSE)
   fit <- .Fortran("solvebed",
     n = as.integer(n),
     nr = as.integer(nr),
@@ -421,6 +422,8 @@ gscore <- function(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE, impute =
   colnames(prs) <- colnames(S)
 
   m <- nrow(S)
+
+  write.table(as.character(fnRAW), file = "param.qgg", quote = TRUE, sep = " ", col.names = FALSE, row.names = FALSE)
 
   prs <- .Fortran("mpgrs",
     n = as.integer(n),

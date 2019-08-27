@@ -327,7 +327,7 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   if (!is.null(GRMlist)) indx <- match(ids, GRMlist$idsG)
 
   fnr <- paste(paste(sample(letters, 10, replace = TRUE), collapse = ""), ".qgg", sep = "")
-  fnr <- "reml.qgg"
+  fnr <- "param.qgg"
   write.table(as.character(rfnames), file = fnr, quote = TRUE, sep = " ", col.names = FALSE, row.names = FALSE)
   
 

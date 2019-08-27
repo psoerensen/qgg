@@ -120,14 +120,13 @@
 
      function fgets_char(buffer,nbytes,fp) bind(C,name='fgets')
        ! buffer: pointer to the array where the read objects are stored 
-       ! size: size of each object in bytes 
        ! count: the number of the objects to be read 
        ! fp: the stream to read 
        import
        implicit none
        integer(c_int) fgets_char
        integer(kind=c_int), value :: nbytes
-       character(kind=c_char) :: buffer(1000) 
+       character(kind=c_char) :: buffer(500) 
        type(c_ptr), value :: fp
      end function fgets_char
 
@@ -256,6 +255,16 @@
   integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
   integer(c_int):: cfres
   type(c_ptr):: fp
+
+  filename = 'param.qgg' // C_NULL_CHAR
+  mode =  'r' // C_NULL_CHAR
+  fp = fopen(filename, mode)
+  cfres=fgets_char(filename,500,fp)
+  nchar=index(filename, '.raw')
+  if(nchar==0) nchar=index(filename, '.bed')
+  fnRAW = filename(2:(nchar+3)) 
+  cfres=fclose(fp)
+
   
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -330,6 +339,7 @@
   character(len=ncharbed, kind=c_char) :: fnBED, filename1
   character(len=ncharraw, kind=c_char) :: fnRAW, filename2
   character(len=20, kind=c_char) :: mode1, mode2
+  character(len=500, kind=c_char) :: mode, filename
 
   integer(kind=c_int8_t) :: raw(nbytes), magic(3)
   integer(c_int) :: i,offset,nchar
@@ -337,8 +347,19 @@
   integer(c_int64_t) :: pos14, nbytes14, offset14,i14
 
   integer(c_int):: cfres
-  type(c_ptr):: fp1, fp2
+  type(c_ptr):: fp, fp1, fp2
   
+  filename = 'param.qgg' // C_NULL_CHAR
+  mode =  'r' // C_NULL_CHAR
+  fp = fopen(filename, mode)
+  cfres=fgets_char(filename,500,fp)
+  nchar=index(filename, '.bed')
+  fnBED = filename(2:(nchar+3)) 
+  cfres=fgets_char(filename,500,fp)
+  nchar=index(filename, '.raw')
+  fnRAW = filename(2:(nchar+3)) 
+  cfres=fclose(fp)
+
 
   ! input file
   offset=3
@@ -417,6 +438,16 @@
 
 
   integer(c_int), external :: omp_get_thread_num
+
+  filename = 'param.qgg' // C_NULL_CHAR
+  mode =  'r' // C_NULL_CHAR
+  fp = fopen(filename, mode)
+  cfres=fgets_char(filename,500,fp)
+  nchar=index(filename, '.raw')
+  if(nchar==0) nchar=index(filename, '.bed')
+  fnRAW = filename(2:(nchar+3)) 
+  cfres=fclose(fp)
+
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -506,6 +537,15 @@
 
   integer(c_int), external :: omp_get_thread_num
 
+  filename = 'param.qgg' // C_NULL_CHAR
+  mode =  'r' // C_NULL_CHAR
+  fp = fopen(filename, mode)
+  cfres=fgets_char(filename,500,fp)
+  nchar=index(filename, '.raw')
+  if(nchar==0) nchar=index(filename, '.bed')
+  fnRAW = filename(2:(nchar+3)) 
+  cfres=fclose(fp)
+
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -588,6 +628,15 @@
 
   call omp_set_num_threads(ncores)
 
+  filename = 'param.qgg' // C_NULL_CHAR
+  mode =  'r' // C_NULL_CHAR
+  fp = fopen(filename, mode)
+  cfres=fgets_char(filename,500,fp)
+  nchar=index(filename, '.raw')
+  if(nchar==0) nchar=index(filename, '.bed')
+  fnRAW = filename(2:(nchar+3)) 
+  cfres=fclose(fp)
+
   offset=0
   nchar=index(fnRAW, '.bed')
   if(nchar>0) offset=3
@@ -668,6 +717,19 @@
   integer(c_int) :: cfres 
 
   call omp_set_num_threads(ncores)
+
+  filename = 'param.qgg' // C_NULL_CHAR
+  mode =  'r' // C_NULL_CHAR
+  fp = fopen(filename, mode)
+  cfres=fgets_char(filename,500,fp)
+  nchar=index(filename, '.raw')
+  if(nchar==0) nchar=index(filename, '.bed')
+  fnRAW = filename(2:(nchar+3)) 
+  cfres=fgets_char(filename,500,fp)
+  nchar=index(filename, '.grm')
+  fnG = filename(2:(nchar+3)) 
+  cfres=fclose(fp)
+
 
   G = 0.0D0
   W1 = 0.0D0
@@ -762,10 +824,18 @@
  
   integer(c_int64_t) :: pos14,nbytes14,offset14,i14
 
-
   call omp_set_num_threads(ncores)
 
   if (scale==0) scale = 1
+
+  filename = 'param.qgg' // C_NULL_CHAR
+  mode =  'r' // C_NULL_CHAR
+  fp = fopen(filename, mode)
+  cfres=fgets_char(filename,500,fp)
+  nchar=index(filename, '.raw')
+  if(nchar==0) nchar=index(filename, '.bed')
+  fnRAW = filename(2:(nchar+3)) 
+  cfres=fclose(fp)
 
   offset=0
   nchar=index(fnRAW, '.bed')

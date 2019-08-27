@@ -96,17 +96,13 @@
  
     function readG(row,fp) result(gr)
     implicit none
-    !type(c_ptr):: fp
     type(c_ptr), value :: fp
     integer(int32), intent(in) :: row
     integer(int32) :: i
     real(real64) :: gr(size(V,1)),grw(ng)
-
-    !i14=indxg(row)
     i14=row
     pos14 = (i14-1)*nbytes14 
     cfres=cseek(fp,pos14,0)            
-    !cfres=fread_real(grw,8,nbytes,fp)
     cfres=fread_real(grw,8,ng,fp)
     do i=1,size(V,1)
       gr(i) = grw(indxg(i))
@@ -210,7 +206,6 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine reml(n,nf,nr,tol,maxit,ncores,fnr,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
-    !subroutine reml(n,nf,nr,tol,maxit,ncores,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     use global
@@ -246,8 +241,7 @@
 
     nbytes14 = 8.0d0*dble(ng) 
 
-    filename = 'reml.qgg' // C_NULL_CHAR
-    !filename = trim(adjustl(fnr)) // C_NULL_CHAR
+    filename = 'param.qgg' // C_NULL_CHAR
     mode =  'r' // C_NULL_CHAR
     fp = fopen(filename, mode)
     do i=1,nr-1
@@ -256,14 +250,6 @@
       rfnames(i) = filename(2:(nchar+3)) 
     enddo
     cfres=fclose(fp)
-
-    !open (unit=10, file=trim(adjustl(fnr)), status='old')
-    !read G filenames and check they exist
-    !do i=1,nr-1
-    !read(unit=10,fmt=*) rfnames(i)
-    !print*, rfnames(i)
-    !enddo
-    !close(unit=10, status='delete')
 
     call omp_set_num_threads(ncores)
 
@@ -299,18 +285,14 @@
     trVG(nr) = sum(diag(V))  ! residual effects
 
     do i=1,nr-1
-     !fileunit(i)=10+i
-     !open (unit=fileunit(i),file=trim(adjustl(rfnames(i))) , status='old', form='unformatted', access='direct', recl=8*ng)
       filename = trim(adjustl(rfnames(i))) // C_NULL_CHAR
       mode =  'rb' // C_NULL_CHAR
       fileunit(i) = fopen(filename, mode)
-          !print*, filename
     enddo
 
     do j=1,n
       do i=1,nr-1            ! random effects excluding residual
         gr(1:n,i) = readG(j,fileunit(i))
-        !gr(1:n,i) = readG(j,rfnames(i))
         trVG(i) = trVG(i) + sum(gr(1:n,i)*V(1:n,j)) 
       enddo
       V(1:n,j) = V(1:n,j) - matvec(VXXVX(:,1:nf),VX(j,1:nf))  ! update the j'th column of V to be the j'th column of P 
@@ -326,13 +308,10 @@
     
     ! compute u (unscaled)
     do i=1,n
-      ! open file !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       do j=1,nr-1           ! random effects excluding residual
         gr(1:n,j) = readG(i,fileunit(j))
-        !gr(1:n,j) = readG(i,rfnames(j))
         u(i,j) = sum(gr(1:n,j)*Py)
       enddo
-      ! close file !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     enddo
     u(:,nr) = Py            ! random residual effects
 
