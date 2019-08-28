@@ -165,7 +165,7 @@
     implicit none
     integer(int32) :: i,j,r
     real(real64), dimension(:),intent(in) :: weights
-    real(real64) :: gr(size(V,1)), grw(ng)
+    real(real64) :: gr(size(V,1))
     character(len=*, kind=c_char), dimension(:),intent(in) :: fnames
  
     type(c_ptr):: fp
@@ -205,7 +205,8 @@
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine reml(n,nf,nr,tol,maxit,ncores,fnr,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
+!    subroutine reml(n,nf,nr,tol,maxit,ncores,fnr,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
+    subroutine reml(n,nf,nr,tol,maxit,ncores,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     use global
@@ -221,7 +222,6 @@
     real(real64) :: tol
     real(real64)  :: y(n),X(n,nf),theta(nr)
     character(len=1000) :: rfnames(nr-1)
-    character(len=14) :: fnr
     
     ! local variables
     integer(int32) :: i,j,it
@@ -231,7 +231,6 @@
 
     type(c_ptr):: fileunit(nr-1), fp
     
-    logical :: exst
     
     ! allocate variables
     allocate(indxg(n))
@@ -239,7 +238,7 @@
     indxg=indx   
     ng=ngr
 
-    nbytes14 = 8.0d0*dble(ng) 
+    nbytes14 = int(8.0d0*dble(ng),kind=c_int64_t) 
 
     filename = 'param.qgg' // C_NULL_CHAR
     mode =  'r' // C_NULL_CHAR
@@ -247,7 +246,7 @@
     do i=1,nr-1
       cfres=fgets_char(filename,100,fp)
       nchar=index(filename, '.grm')
-      rfnames(i) = filename(2:(nchar+3)) 
+      rfnames(i) = filename(1:(nchar+3)) 
     enddo
     cfres=fclose(fp)
 

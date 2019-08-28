@@ -330,7 +330,7 @@ fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL,
                    meanw = NULL, sdw = NULL) {
   OS <- .Platform$OS.type
   if (OS == "windows") fnRAW <- tolower(gsub("/", "\\", fnRAW, fixed = T))
-  write.table(as.character(fnRAW), file = "param.qgg", quote = TRUE, sep = " ", col.names = FALSE, row.names = FALSE)
+  write.table(as.character(fnRAW), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
   fit <- .Fortran("solvebed",
     n = as.integer(n),
     nr = as.integer(nr),
@@ -339,7 +339,7 @@ fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL,
     cls = as.integer(cls),
     scale = as.integer(scale),
     nbytes = as.integer(nbytes),
-    fnRAW = as.character(fnRAW),
+    #fnRAW = as.character(fnRAW),
     nchars = nchar(as.character(fnRAW)),
     ncores = as.integer(ncores),
     nit = as.integer(nit),
@@ -423,7 +423,7 @@ gscore <- function(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE, impute =
 
   m <- nrow(S)
 
-  write.table(as.character(fnRAW), file = "param.qgg", quote = TRUE, sep = " ", col.names = FALSE, row.names = FALSE)
+  write.table(as.character(fnRAW), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
 
   prs <- .Fortran("mpgrs",
     n = as.integer(n),
@@ -432,7 +432,7 @@ gscore <- function(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE, impute =
     nc = as.integer(nc),
     cls = as.integer(cls),
     nbytes = as.integer(nbytes),
-    fnRAW = as.character(fnRAW),
+    #fnRAW = as.character(fnRAW),
     nchars = nchar(as.character(fnRAW)),
     nprs = as.integer(nprs),
     s = matrix(as.double(S), nrow = nc, ncol = nprs),

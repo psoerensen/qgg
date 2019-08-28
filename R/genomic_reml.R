@@ -327,8 +327,7 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   if (!is.null(GRMlist)) indx <- match(ids, GRMlist$idsG)
 
   fnr <- paste(paste(sample(letters, 10, replace = TRUE), collapse = ""), ".qgg", sep = "")
-  fnr <- "param.qgg"
-  write.table(as.character(rfnames), file = fnr, quote = TRUE, sep = " ", col.names = FALSE, row.names = FALSE)
+  write.table(as.character(rfnames), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
   
 
   fit <- .Fortran("reml",
@@ -338,7 +337,7 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
     tol = as.double(tol),
     maxit = as.integer(maxit),
     ncores = as.integer(ncores),
-    fnr = as.character(fnr),
+    #fnr = as.character(fnr),
     # rfnames = as.character(rfnames),
     ngr = as.integer(ngr),
     indx = as.integer(indx),
