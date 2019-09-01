@@ -294,12 +294,24 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   return(Glist)
 }
 
-#' @export
+#' Extract elements from genotype matrix (W) stored on disk
 #'
+#' @description
+#' Extract elements from genotype matrix W (whole or subset) stored on disk.
+
+#' @param Glist only provided if task="summary" or task="sparseld"
+#' @param bedfiles vector of name for the PLINK bed-file
+#' @param ids vector of ids in W to be extracted
+#' @param rsids vector of rsids in W to be extracted
+#' @param rws vector of rows in W to be extracted
+#' @param cls vector of columns in W to be extracted
+#' @param scale logical if TRUE the genotype markers have been scale to mean zero and variance one
+#' @param impute logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)
+#' @param allele vector of alleles to be extracted
 
 getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
                      rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
-                     allele = NULL, ncores = 1) {
+                     allele = NULL) {
   if (!is.null(Glist)) {
     n <- Glist$n
     m <- Glist$m
@@ -380,33 +392,7 @@ getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
 }
 
 
-#' Extract elements from genotype matrix (W) stored on disk
-#'
-#' @description
-#' Extract elements from genotype matrix W (whole or subset) stored on disk.
 
-#' @param Glist only provided if task="summary" or task="sparseld"
-#' @param ids vector of ids in W to be extracted
-#' @param rsids vector of rsids in W to be extracted
-#' @param rws vector of rows in W to be extracted
-#' @param cls vector of columns in W to be extracted
-#' @param scale logical if TRUE the genotype markers have been scale to mean zero and variance one
-#' @param impute logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)
-#' @param allele vector of alleles to be extracted
-
-
-#' #' @export
-#' #'
-#' getW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
-#'                  impute = FALSE, scale = FALSE, allele = NULL) {
-#'   if (is.null(ids)) ids <- Glist$ids
-#'   if (is.null(cls)) cls <- match(rsids, Glist$rsids)
-#'   W <- freadbed(
-#'     Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
-#'     impute = impute, scale = scale, allele = allele
-#'   )
-#'   return(W)
-#' }
 
 sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids = NULL, allele = NULL,
                      impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {

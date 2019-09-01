@@ -33,6 +33,12 @@ greml(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL,
 
 \item{ncores}{number of cores used for the analysis}
 
+\item{wkdir}{is the working directory used for REML}
+
+\item{verbose}{logical if TRUE print more details during optimization}
+
+\item{makeplots}{logical if TRUE makes some plots or parameter estimates and prediction accuracy during cross validation}
+
 \item{interface}{used for specifying whether to use R or Fortran implementations of REML}
 
 \item{fm}{formula with model statement for the linear mixed model}
@@ -51,30 +57,32 @@ Returns a list structure including
 \item{accuracy}{matrix of prediction accuracies (only returned if validate is provided)}
 }
 \description{
-The greml function is used for estimation of genomic parameters (co-variance, heritability and correlation) 
-for linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using 
+The greml function is used for estimation of genomic parameters (co-variance, heritability and correlation)
+for linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using
 best linear unbiased prediction (BLUP).
 
-The linear mixed model can account for multiple genetic factors (fixed and random genetic marker effects), 
-adjust for complex family relationships or population stratification, and adjust for other non-genetic factors 
-including lifestyle characteristics. Different genetic architectures (infinitesimal, few large and many 
-small effects) is accounted for by modeling genetic markers in different sets as fixed or random effects 
-and by specifying individual genetic marker weights. Different genetic models (e.g. additive and non-additive) 
-can be specified by providing additive and non-additive genomic relationship matrices (GRMs) (constructed using grm). 
-The GRMs can be accessed from the R environment or from binary files stored on disk facilitating analyses of 
+The linear mixed model can account for multiple genetic factors (fixed and random genetic marker effects),
+adjust for complex family relationships or population stratification, and adjust for other non-genetic factors
+including lifestyle characteristics. Different genetic architectures (infinitesimal, few large and many
+small effects) is accounted for by modeling genetic markers in different sets as fixed or random effects
+and by specifying individual genetic marker weights. Different genetic models (e.g. additive and non-additive)
+can be specified by providing additive and non-additive genomic relationship matrices (GRMs) (constructed using grm).
+The GRMs can be accessed from the R environment or from binary files stored on disk facilitating analyses of
 large-scale genetic data.
 
-The output contains estimates of variance components, fixed and random effects, first and second derivatives of 
+The output contains estimates of variance components, fixed and random effects, first and second derivatives of
 log-likelihood, and the asymptotic standard deviation of parameter estimates.
 
-Assessment of predictive accuracy (including correlation and R2, and AUC for binary phenotypes) can be obtained 
+Assessment of predictive accuracy (including correlation and R2, and AUC for binary phenotypes) can be obtained
 by providing greml with a dataframe or list containing sample IDs used in the validation, see examples for details.
 
-Genomic parameters can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”. 
-This option requires DMU to be installed locally, and the path to the DMU binary files has to be specified 
+Genomic parameters can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”.
+This option requires DMU to be installed locally, and the path to the DMU binary files has to be specified
 (see examples below for details).
 }
 \examples{
+
+\dontrun{
 
 # Simulate data
 W <- matrix(rnorm(20000000), ncol = 10000)
@@ -97,8 +105,10 @@ fitG <- greml(y = y, X = X, GRM = list(GRM))
 
 # Create marker sets
 setsGB <- list(A = colnames(W)) # gblup model
-setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000], C3 = colnames(W)[2000:10000]) # gfblup model
-setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010], C3 = colnames(W)[1:10000]) # true model
+setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000],
+               C3 = colnames(W)[2000:10000]) # gfblup model
+setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010],
+               C3 = colnames(W)[1:10000]) # true model
 
 GB <- lapply(setsGB, function(x) {grm(W = W[, x])})
 GF <- lapply(setsGF, function(x) {grm(W = W[, x])})
@@ -117,12 +127,7 @@ cvGB$accuracy
 cvGF$accuracy
 cvGT$accuracy
 
-
-# bin <- "C:/Program Files (x86)/QGG-AU/DMUv6/R5.2-EM64T/bin"
-# data <- data.frame(f = factor(sample(1:2, nrow(W), replace = TRUE)), g = factor(1:nrow(W)), y = y)
-# fm <- y ~ f + (1 | g~G) 
-# fit <- greml(fm = list(fm), GRM = list(G=G), data = data, interface="DMU")
-# str(fit)
+}
 
 }
 \references{

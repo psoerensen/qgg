@@ -230,8 +230,17 @@ getGRM <- function(GRMlist = NULL, ids = NULL, idsCLS = NULL, idsRWS = NULL, cls
 }
 
 
+#' Merge multiple GRMlist objects
+#' 
+#' @description
+#' Merge multiple GRMlist objects each with information about a 
+#' genomic rfelationship matrix stored on disk
+
+#' @param GRMlist list providing information about GRM matrix stored in binary files on disk
+
 #' @export
 #'
+
 
 mergeGRM <- function(GRMlist = NULL) {
   GRMlist <- do.call(function(...) mapply(c, ..., SIMPLIFY = FALSE), args = GRMlist)

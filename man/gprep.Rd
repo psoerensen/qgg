@@ -4,14 +4,21 @@
 \alias{gprep}
 \title{Prepare genotype data for all statistical analyses (initial step)}
 \usage{
-gprep(study = NULL, fnRAW = NULL, bedfiles = NULL, bimfiles = NULL,
-  famfiles = NULL, ids = NULL, rsids = NULL, overwrite = FALSE,
+gprep(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL,
+  fnLD = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL,
+  ids = NULL, rsids = NULL, overwrite = FALSE, msize = 100,
   ncores = 1)
 }
 \arguments{
+\item{Glist}{only provided if task="summary" or task="sparseld"}
+
+\item{task}{character specifying which task to perform ("prepare" is default, "summary", or "sparseld")}
+
 \item{study}{name of the study}
 
-\item{fnRAW}{path and .raw filename of the binary file used for storing genotypes on the disk}
+\item{fnRAW}{path and filename of the binary file .raw or .bed used for storing genotypes on the disk}
+
+\item{fnLD}{path and filename of the binary files .ld for storing sparse ld matrix on the disk}
 
 \item{bedfiles}{vector of names for the PLINK bed-files}
 
@@ -25,39 +32,73 @@ gprep(study = NULL, fnRAW = NULL, bedfiles = NULL, bimfiles = NULL,
 
 \item{overwrite}{logical if TRUE overwite binary genotype file}
 
+\item{msize}{number of markers used in compuation of sparseld}
+
 \item{ncores}{number of cores used to process the genotypes}
 }
 \value{
-Returns a list structure with information about genotypes
+Returns a list structure (Glist) with information about genotypes
 }
 \description{
-All functions in qgg relies on a simple data infrastructure that takes five main input sources; 
-phenotype data (y), covariate data (X), genotype data (G or Glist), a genomic relationship 
+All functions in qgg relies on a simple data infrastructure that takes five main input sources;
+phenotype data (y), covariate data (X), genotype data (G or Glist), a genomic relationship
 matrix (GRM or GRMlist) and genetic marker sets (sets).
 
-The genotypes are stored in a matrix (n x m (individuals x markers)) in memory (G) or in a 
-binary file on disk (Glist). 
+The genotypes are stored in a matrix (n x m (individuals x markers)) in memory (G) or in a
+binary file on disk (Glist).
 
 It is only for small data sets that the genotype matrix (G) can stored in memory. For large data
-sets the genotype matrix has to stored in a binary file on disk (Glist). Glist is as a list 
+sets the genotype matrix has to stored in a binary file on disk (Glist). Glist is as a list
 structure that contains information about the genotypes in the binary file.
 
-The gprep function prepares the Glist, and is required for downstream analyses of large-scale 
-genetic data. Typically, the Glist is prepared once, and saved as an *.Rdata-file. 
+The gprep function prepares the Glist, and is required for downstream analyses of large-scale
+genetic data. Typically, the Glist is prepared once, and saved as an *.Rdata-file.
 
-The gprep function reads genotype information from binary PLINK files, and creates the Glist 
-object that contains general information about the genotypes such as reference alleles, 
-allele frequencies and missing genotypes, and construct a binary file on the disk that contains 
+The gprep function reads genotype information from binary PLINK files, and creates the Glist
+object that contains general information about the genotypes such as reference alleles,
+allele frequencies and missing genotypes, and construct a binary file on the disk that contains
 the genotypes as allele counts of the alternative allele (memory usage = (n x m)/4 bytes).
 
-The Glist structure is used as input parameter for a number of qgg core functions including: 
-1) construction of genomic relationship matrices (grm), 2) estimating genomic parameters (greml), 
-3) single marker association analyses (lma or mlma), 4) gene set enrichment analyses (gsea), 
-and 5) genomic prediction from genotypes and phenotypes (gsolve) or genotypes and summary statistics (gscore).
+The gprep function can also be used to prepare sparse ld matrices.
+The r2 metric used is the pairwise correlation between markers (allele count alternative allele)
+in a specified region of the genome. The marker genotype is allele count of the alternative allele
+which is assumed to be centered and scaled.
+
+The Glist structure is used as input parameter for a number of qgg core functions including:
+1) construction of genomic relationship matrices (grm), 2) construction of sparse ld matrices,
+3) estimating genomic parameters (greml), 4) single marker association analyses (lma or mlma),
+5) gene set enrichment analyses (gsea), and 6) genomic prediction from genotypes
+and phenotypes (gsolve) or genotypes and summary statistics (gscore).
 }
 \examples{
-#Glist <- gprep( bedfiles, bimfiles, study, path, additional arguments...)
-#W <- getW( Glist, ids, rsids, additional arguments...)
+
+\dontrun{
+# Download 1000G Plink files
+
+url <- "https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz"
+download.file(url=url,dest="./1000G_Phase3_plinkfiles.tgz")
+
+cmd <- "tar -xvzf 1000G_Phase3_plinkfiles.tgz"
+system(cmd)
+
+# Prepare Glist
+
+bedfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".bed",sep="")
+bimfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".bim",sep="")
+famfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".fam",sep="")
+
+fnRAW <- "./1000G.raw"
+
+Glist <- gprep(study="1000G", fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles,
+               famfiles=famfiles, overwrite=TRUE)
+
+
+Glist <- gprep(Glist=Glist, task="summary")
+
+fnLD <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".ld",sep="")
+Glist <- gprep( task="sparseld", Glist=Glist, fnLD=fnLD, msize=200, ncores=4)
+
+}
 }
 \author{
 Peter Soerensen

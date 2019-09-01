@@ -4,29 +4,25 @@
 \alias{gscore}
 \title{Genomic prediction based on single marker summary statistics}
 \usage{
-gscore(Glist = NULL, S = NULL, ids = NULL, rsids = NULL,
-  rws = NULL, cls = NULL, scaled = TRUE, msize = 100, ncores = 1)
+gscore(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE,
+  impute = TRUE, msize = 100, ncores = 1)
 }
 \arguments{
 \item{Glist}{list of information about genotype matrix}
 
-\item{S}{matrix of single marker effects}
+\item{stat}{matrix of single marker effects}
 
 \item{ids}{vector of individuals used in the analysis}
 
-\item{rsids}{vector marker rsids used in the analysis}
+\item{scale}{logical if TRUE the genotype markers have been scale to mean zero and variance one}
 
-\item{rws}{rows in genotype matrix used in the analysis}
-
-\item{cls}{columns in genotype matrix used in the analysis}
-
-\item{scaled}{logical if TRUE the genotype markers have been scaled to mean zero and variance one}
+\item{impute}{logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)}
 
 \item{msize}{number of genotype markers used for batch processing}
 
 \item{ncores}{number of cores used in the analysis}
 }
 \description{
-The gscore function is used for genomic predictions based on single marker summary statistics 
+The gscore function is used for genomic predictions based on single marker summary statistics
 (coefficients, log-odds ratios, z-scores) and observed genotypes.
 }

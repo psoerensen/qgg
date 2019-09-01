@@ -4,11 +4,14 @@
 \alias{getW}
 \title{Extract elements from genotype matrix (W) stored on disk}
 \usage{
-getW(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL,
-  cls = NULL, impute = FALSE, scale = FALSE, allele = NULL)
+getW(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
+  rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
+  allele = NULL)
 }
 \arguments{
 \item{Glist}{only provided if task="summary" or task="sparseld"}
+
+\item{bedfiles}{vector of name for the PLINK bed-file}
 
 \item{ids}{vector of ids in W to be extracted}
 

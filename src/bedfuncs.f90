@@ -467,14 +467,12 @@
 
   ! output rawfile
   nchar=index(fnRAW, '.raw')
-  !if (nchar>0) then
+  if (nchar>0) then
    filename2(1:(nchar+3)) = fnRAW(1:(nchar+3)) // C_NULL_CHAR
    if (append==0) mode2 =  'wb' // C_NULL_CHAR
-   !if (append==0) fp2 = fopen(filename2, mode2)
    if (append==1) mode2 =  'ab' // C_NULL_CHAR
-   !if (append==1) fp2 = fopen(filename2, mode2)
-   fp2 = fopen(filename2, mode2)
-  !endif
+  endif
+  fp2 = fopen(filename2, mode2)
   
   nbytes14 = nbytes
   offset14 = offset
@@ -964,7 +962,6 @@
   e(rws)=y(rws)
   do it=1,nit
     g=0.0D0
-    open(unit=13,file=fnRAW(1:(nchar+3)), status='old', form='unformatted', access='direct', recl=nbytes)
     do i=1,nc
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14

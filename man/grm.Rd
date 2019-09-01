@@ -5,12 +5,14 @@
 \title{Computing the genomic relationship matrix (GRM)}
 \usage{
 grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
-  rws = NULL, cls = NULL, W = NULL, method = "add",
-  scaled = TRUE, msize = 100, ncores = 1, fnG = NULL,
-  overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm")
+  rws = NULL, cls = NULL, W = NULL, method = "add", scale = TRUE,
+  msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE,
+  returnGRM = FALSE, miss = 0, task = "grm")
 }
 \arguments{
 \item{Glist}{list providing information about genotypes stored on disk}
+
+\item{GRMlist}{list providing information about GRM matrix stored in binary files on disk}
 
 \item{ids}{vector of individuals used for computing GRM}
 
@@ -24,6 +26,8 @@ grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
 
 \item{method}{indicator of method used for computing GRM: additive (add, default), dominance (dom) or epistasis (epi-pairs or epi-hadamard (all genotype markers))}
 
+\item{scale}{logical if TRUE the genotypes in Glist has been scaled to mean zero and variance one}
+
 \item{msize}{number of genotype markers used for batch processing}
 
 \item{ncores}{number of cores used to compute the GRM}
@@ -35,19 +39,22 @@ grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
 \item{returnGRM}{logical if TRUE function returns the GRM matrix to the R environment}
 
 \item{miss}{the missing code (miss=0 is default) used for missing values in the genotype data}
+
+\item{task}{either computation of GRM (task="grm"  which is default) or eigenvalue decomposition of GRM (task="eigen")}
 }
 \value{
 Returns a genomic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
 }
 \description{
-The grm function is used to compute a genomic relationship matrix (GRM) based on all, 
-or a subset of marker genotypes. GRM for additive, and non-additive (dominance and 
-epistasis) genetic models can be constructed. The output of the grm function can either be a 
-within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that 
+The grm function is used to compute a genomic relationship matrix (GRM) based on all,
+or a subset of marker genotypes. GRM for additive, and non-additive (dominance and
+epistasis) genetic models can be constructed. The output of the grm function can either be a
+within-memory GRM object (n x n matrix), or a GRM-list which is a list structure that
 contains information about the GRM stored in a binary file on the disk.
 }
 \examples{
 
+\dontrun{
 # Simulate data
 W <- matrix(rnorm(20000000), ncol = 10000)
 	colnames(W) <- as.character(1:ncol(W))
@@ -58,6 +65,9 @@ GRM <- grm(W = W)
 
 # Eigen value decompostion GRM
 eig <- grm(GRM=GRM, task="eigen")
+
+}
+
 }
 \author{
 Peter Soerensen

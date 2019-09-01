@@ -6,7 +6,7 @@
 \usage{
 lma(y = NULL, X = NULL, W = NULL, Glist = NULL, fit = NULL,
   statistic = "mastor", ids = NULL, rsids = NULL, msize = 100,
-  scaled = TRUE)
+  scale = TRUE)
 }
 \arguments{
 \item{y}{vector or matrix of phenotypes}
@@ -27,37 +27,39 @@ lma(y = NULL, X = NULL, W = NULL, Glist = NULL, fit = NULL,
 
 \item{msize}{number of genotype markers used for batch processing}
 
-\item{scaled}{logical if TRUE the genotypes have been scaled to mean zero and variance one}
+\item{scale}{logical if TRUE the genotypes have been scaled to mean zero and variance one}
 }
 \value{
-Returns a dataframe (if number of traits = 1) else a list including 
-\item{coef}{single marker coefficients} 
+Returns a dataframe (if number of traits = 1) else a list including
+\item{coef}{single marker coefficients}
 \item{se}{standard error of coefficients}
 \item{stat}{single marker test statistic}
 \item{p}{p-value}
 }
 \description{
-The function lma performs single marker association analysis between genotype markers and the phenotype 
+The function lma performs single marker association analysis between genotype markers and the phenotype
 either based on linear model analysis (LMA) or mixed linear model analysis (MLMA).
 
-The basic MLMA approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide 
-sample structure, 2) estimating the contribution of the GRM to phenotypic variance using a random effects model 
-(with or without additional fixed effects) and 3) computing association statistics that account for this component 
+The basic MLMA approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide
+sample structure, 2) estimating the contribution of the GRM to phenotypic variance using a random effects model
+(with or without additional fixed effects) and 3) computing association statistics that account for this component
 on phenotypic variance.
 
-MLMA methods are the method of choice when conducting association mapping in the presence of sample structure, 
-including geographic population structure, family relatedness and/or cryptic relatedness. MLMA methods prevent 
-false positive associations and increase power. The general recommendation when using MLMA is to exclude candidate 
-markers from the GRM. This can be efficiently implemented via a leave-one-chromosome-out analysis. 
-Further, it is recommend that analyses of randomly ascertained quantitative traits should include all markers 
-(except for the candidate marker and markers in LD with the candidate marker) in the GRM, except as follows. 
-First, the set of markers included in the GRM can be pruned by LD to reduce running time (with association 
-statistics still computed for all markers). Second, genome-wide significant markers of large effect should be 
-conditioned out as fixed effects or as an additional random effect (if a large number of associated markers). 
-Third, when population stratification is less of a concern, it may be useful using the top associated markers 
+MLMA methods are the method of choice when conducting association mapping in the presence of sample structure,
+including geographic population structure, family relatedness and/or cryptic relatedness. MLMA methods prevent
+false positive associations and increase power. The general recommendation when using MLMA is to exclude candidate
+markers from the GRM. This can be efficiently implemented via a leave-one-chromosome-out analysis.
+Further, it is recommend that analyses of randomly ascertained quantitative traits should include all markers
+(except for the candidate marker and markers in LD with the candidate marker) in the GRM, except as follows.
+First, the set of markers included in the GRM can be pruned by LD to reduce running time (with association
+statistics still computed for all markers). Second, genome-wide significant markers of large effect should be
+conditioned out as fixed effects or as an additional random effect (if a large number of associated markers).
+Third, when population stratification is less of a concern, it may be useful using the top associated markers
 selected based on the global maximum from out-of sample predictive accuracy.
 }
 \examples{
+
+\dontrun{
 
 # Simulate data
 W <- matrix(rnorm(20000000), ncol = 10000)
@@ -84,6 +86,8 @@ maLM <- lma(y=y,X=X,W = W)
 
 head(maMLM)
 head(maLM)
+
+}
 
 }
 \references{

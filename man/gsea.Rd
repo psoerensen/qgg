@@ -4,13 +4,24 @@
 \alias{gsea}
 \title{Gene set enrichment analysis}
 \usage{
-gsea(stat = NULL, sets = NULL, threshold = 0.05, method = "sum",
-  nperm = 1000, ncores = 1)
+gsea(stat = NULL, sets = NULL, Glist = NULL, W = NULL,
+  fit = NULL, g = NULL, e = NULL, threshold = 0.05,
+  method = "sum", nperm = 1000, ncores = 1)
 }
 \arguments{
 \item{stat}{vector or matrix of single marker statistics (e.g. coefficients, t-statistics, p-values)}
 
 \item{sets}{list of marker sets - names corresponds to row names in stat}
+
+\item{Glist}{list providing information about genotypes stored on disk}
+
+\item{W}{matrix of centered and scaled genotypes (used if method = cvat or score)}
+
+\item{fit}{list object obtained from a linear mixed model fit using the greml function}
+
+\item{g}{vector (or matrix) of genetic effects obtained from a linear mixed model fit (GBLUP of GFBLUP)}
+
+\item{e}{vector (or matrix) of residual effects obtained from a linear mixed model fit (GBLUP of GFBLUP)}
 
 \item{threshold}{used if method='hyperg' (threshold=0.05 is default)}
 
@@ -19,82 +30,86 @@ gsea(stat = NULL, sets = NULL, threshold = 0.05, method = "sum",
 \item{nperm}{number of permutations used for obtaining an empirical p-value}
 
 \item{ncores}{number of cores used in the analysis}
-
-\item{W}{matrix of centered and scaled genotypes (used if method = cvat or score)}
-
-\item{fit}{list object obtained from a linear mixed model fit using the greml function}
-
-\item{g}{vector (or matrix) of genetic effects obtained from a linear mixed model fit (GBLUP of GFBLUP)}
-
-\item{s}{vector (or list) of single marker effects obtained from a linear mixed model fit (GBLUP of GFBLUP)}
 }
 \value{
-Returns a dataframe or a list including 
-\item{stat}{marker set test statistics} 
+Returns a dataframe or a list including
+\item{stat}{marker set test statistics}
 \item{m}{number of markers in the set}
 \item{p}{enrichment p-value for marker set}
 }
 \description{
-The function gsea can perform several different gene set enrichment analyses. The general procedure is to obtain 
-single marker statistics (e.g. summary statistics), from which it is possible to compute and evaluate a test statistic 
-for a set of genetic markers that measures a joint degree of association between the marker set and the phenotype. 
-The marker set is defined by a genomic feature such as genes, biological pathways, gene interactions, 
+The function gsea can perform several different gene set enrichment analyses. The general procedure is to obtain
+single marker statistics (e.g. summary statistics), from which it is possible to compute and evaluate a test statistic
+for a set of genetic markers that measures a joint degree of association between the marker set and the phenotype.
+The marker set is defined by a genomic feature such as genes, biological pathways, gene interactions,
 gene expression profiles etc.
 
-Currently, four types of gene set enrichment analyses can be conducted with gsea; sum-based, count-based, 
-score-based, and our own developed method, the covariance association test (CVAT). For details and comparisons of 
+Currently, four types of gene set enrichment analyses can be conducted with gsea; sum-based, count-based,
+score-based, and our own developed method, the covariance association test (CVAT). For details and comparisons of
 test statistics consult doi:10.1534/genetics.116.189498.
 
-The sum test is based on the sum of all marker summary statistics located within the feature set. The single marker 
-summary statistics can be obtained from linear model analyses (from PLINK or using the qgg lma approximation), 
-or from single or multiple component REML analyses (GBLUP or GFBLUP) from the greml function. The sum test is powerful 
-if the genomic feature harbors many genetic markers that have small to moderate effects. 
+The sum test is based on the sum of all marker summary statistics located within the feature set. The single marker
+summary statistics can be obtained from linear model analyses (from PLINK or using the qgg lma approximation),
+or from single or multiple component REML analyses (GBLUP or GFBLUP) from the greml function. The sum test is powerful
+if the genomic feature harbors many genetic markers that have small to moderate effects.
 
-The count-based method is based on counting the number of markers within a genomic feature that show association 
-(or have single marker p-value below a certain threshold) with the phenotype. Under the null hypothesis (that the 
-associated markers are picked at random from the total number of markers, thus, no enrichment of markers in any 
+The count-based method is based on counting the number of markers within a genomic feature that show association
+(or have single marker p-value below a certain threshold) with the phenotype. Under the null hypothesis (that the
+associated markers are picked at random from the total number of markers, thus, no enrichment of markers in any
 genomic feature) it is assumed that the observed count statistic is a realization from a hypergeometric distribution.
 
-The score-based approach is based on the product between the scaled genotypes in a genomic feature and the residuals 
-from the liner mixed model (obtained from greml). 
+The score-based approach is based on the product between the scaled genotypes in a genomic feature and the residuals
+from the liner mixed model (obtained from greml).
 
-The covariance association test (CVAT) is derived from the fit object from greml (GBLUP or GFBLUP), and measures 
-the covariance between the total genomic effects for all markers and the genomic effects of the markers within the 
-genomic feature. 
+The covariance association test (CVAT) is derived from the fit object from greml (GBLUP or GFBLUP), and measures
+the covariance between the total genomic effects for all markers and the genomic effects of the markers within the
+genomic feature.
 
-The distribution of the test statistics obtained from the sum-based, score-based and CVAT is unknown, therefore 
+The distribution of the test statistics obtained from the sum-based, score-based and CVAT is unknown, therefore
 a circular permutation approach is used to obtain an empirical distribution of test statistics.
 }
 \examples{
 
- 
+\dontrun{
+
  # Simulate data
  W <- matrix(rnorm(20000000), ncol = 10000)
  colnames(W) <- as.character(1:ncol(W))
  rownames(W) <- as.character(1:nrow(W))
  y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
- 
+
  # Create model
  data <- data.frame(y = y, mu = 1)
  fm <- y ~ 0 + mu
  X <- model.matrix(fm, data = data)
- 
+
  # Single marker association analyses
  ma <- lma(y=y,X=X,W=W)
- 
- # Create marker sets
- f <- factor(rep(1:100,each=100), levels=1:100) 
- sets <- split(as.character(1:10000),f=f) 
 
- # Set test based on sums 
+ # Create marker sets
+ f <- factor(rep(1:100,each=100), levels=1:100)
+ sets <- split(as.character(1:10000),f=f)
+
+ # Set test based on sums
  mma <- gsea(stat = ma[,"stat"]**2, sets = sets, method = "sum", nperm = 10000)
  head(mma)
- 
- # Set test based on hyperG 
+
+ # Set test based on hyperG
  mma <- gsea(stat = ma[,"p"], sets = sets, method = "hyperg", threshold = 0.05)
  head(mma)
- 
- 
+
+ G <- grm(W=W)
+ fit <- greml(y=y, X=X, GRM=list(G=G), theta=c(0.1,0.4), ncores=4)
+
+ # Set test based on cvat
+ mma <- gsea(W=W,fit = fit, sets = sets, nperm = 1000, method="cvat")
+ head(mma)
+
+ # Set test based on score
+ mma <- gsea(W=W,fit = fit, sets = sets, nperm = 1000, method="score")
+ head(mma)
+
+}
 }
 \author{
 Peter Soerensen
