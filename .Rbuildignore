@@ -4,3 +4,5 @@
 ^_pkgdown\.yml$
 ^README\.Rmd$
 ^README-.*\.png$
+^CRAN-RELEASE$
+^cran-comments\.md$

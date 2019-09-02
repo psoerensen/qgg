@@ -1,3 +1,15 @@
+## Resubmission
+This is a resubmission. 
+
+There were two notes. 
+
+Note 1 relates to the package is a new submission which is correct
+
+Note 2 was related to 'cran-comments.md' not being ignored. 
+
+This has now been fixed by adding '^cran-comments\.md$' to the .Rbuildignore file.
+
+
 ###########################################################################
 ## Test Platform (using devtools::rhub_check)
 ###########################################################################
