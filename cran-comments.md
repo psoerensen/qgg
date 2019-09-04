@@ -1,4 +1,17 @@
 ## Resubmission
+This is a resubmission where I have:
+
+* Removed capital letters in description text.
+* Added more details about the package functionality in the DESCRIPTION file including some references.
+* Unwrapped test examples and ensured they can be executed in less than 5 sec.
+* Ensured that examples only use 1 core.
+* Ensured that functions can use files not in working directory.
+* Ensured that test examples only write/save files if the user has specified a directory. 
+* Included a small data set in inst/extdata.
+
+
+
+## Resubmission
 This is a resubmission. 
 
 There were two notes. 

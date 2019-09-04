@@ -8,7 +8,7 @@
 #' Genomic prediction models implemented using Bayesian Methods (small data).
 #' The models are implemented using empirical Bayesian methods. The hyperparameters of the dispersion parameters of the Bayesian model can
 #' be obtained from prior information or estimated by maximum likelihood, and conditional on these, the model is fitted using
-#' Markov chain Monte Carlo. These functions are currently under development and tuture release will be able to handle large data sets.
+#' Markov chain Monte Carlo. These functions are currently under development and future release will be able to handle large data sets.
 #'
 #'
 #' @param y is a matrix of phenotypes
@@ -32,7 +32,7 @@
 #'
 #' # Simulate data and test functions
 #'
-#' W <- matrix(rnorm(10000000),nrow=1000)
+#' W <- matrix(rnorm(100000),nrow=1000)
 #' set1 <- sample(1:ncol(W),5)
 #' set2 <- sample(1:ncol(W),5)
 #' sets <- list(set1,set2)
@@ -40,13 +40,11 @@
 #' e <- rnorm(nrow(W),mean=0,sd=1)
 #' y <- g + e
 #'
-#' \dontrun{
-#' gbayes(y=y, W=W, method="blasso", nsamp=100)
-#' gbayes(y=y, W=W, method="ssvs", nsamp=100)
-#' gbayes(y=y, W=W, method="blr", nsets=7, nsamp=100)
-#' gbayes(y=y, W=W, method="ssvs", sets=sets, nsamp=100)
-#' gbayes(y=y, W=W, method="blasso", sets=sets, nsamp=100)
-#' }
+#' gbayes(y=y, W=W, method="blasso", nsamp=10)
+#' gbayes(y=y, W=W, method="ssvs", nsamp=10)
+#' gbayes(y=y, W=W, method="blr", nsets=7, nsamp=10)
+#' gbayes(y=y, W=W, method="ssvs", sets=sets, nsamp=10)
+#' gbayes(y=y, W=W, method="blasso", sets=sets, nsamp=10)
 
 
 #'

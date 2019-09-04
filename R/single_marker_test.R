@@ -64,19 +64,23 @@
 
 #' @examples
 #'
-#' \dontrun{
-#'
 #' # Simulate data
-#' W <- matrix(rnorm(20000000), ncol = 10000)
+#' W <- matrix(rnorm(1000000), ncol = 1000)
 #' 	colnames(W) <- as.character(1:ncol(W))
 #' 	rownames(W) <- as.character(1:nrow(W))
-#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
+#' y <- rowSums(W[, 1:10]) + rowSums(W[, 501:510]) + rnorm(nrow(W))
 #'
 #' # Create model
 #' data <- data.frame(y = y, mu = 1)
 #' fm <- y ~ 0 + mu
 #' X <- model.matrix(fm, data = data)
+#' 
+#' # Linear model analyses and single marker association test
+#' maLM <- lma(y=y,X=X,W = W)
 #'
+#' head(maLM)
+#'
+#' \dontrun{
 #' # Compute GRM
 #' GRM <- grm(W = W)
 #'
@@ -86,14 +90,10 @@
 #' # Single marker association test
 #' maMLM <- lma(fit = fit, W = W)
 #'
-#' # Linear model analyses and single marker association test
-#' maLM <- lma(y=y,X=X,W = W)
-#'
 #' head(maMLM)
-#' head(maLM)
 #'
 #' }
-#'
+#' 
 #' @export
 #'
 

@@ -35,20 +35,20 @@
 
 #' @examples
 #'
-#' \dontrun{
 #' # Simulate data
-#' W <- matrix(rnorm(20000000), ncol = 10000)
+#' W <- matrix(rnorm(1000000), ncol = 1000)
 #' 	colnames(W) <- as.character(1:ncol(W))
 #' 	rownames(W) <- as.character(1:nrow(W))
 #'
 #' # Compute GRM
 #' GRM <- grm(W = W)
 #'
+#' \dontrun{
+#' 
 #' # Eigen value decompostion GRM
 #' eig <- grm(GRM=GRM, task="eigen")
 #'
 #' }
-#'
 
 #' @export
 #'

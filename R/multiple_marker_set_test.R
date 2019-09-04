@@ -57,13 +57,12 @@
 
 #' @examples
 #'
-#' \dontrun{
 #'
 #'  # Simulate data
-#'  W <- matrix(rnorm(20000000), ncol = 10000)
+#'  W <- matrix(rnorm(1000000), ncol = 1000)
 #'  colnames(W) <- as.character(1:ncol(W))
 #'  rownames(W) <- as.character(1:nrow(W))
-#'  y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
+#'  y <- rowSums(W[, 1:10]) + rowSums(W[, 501:510]) + rnorm(nrow(W))
 #'
 #'  # Create model
 #'  data <- data.frame(y = y, mu = 1)
@@ -74,8 +73,8 @@
 #'  ma <- lma(y=y,X=X,W=W)
 #'
 #'  # Create marker sets
-#'  f <- factor(rep(1:100,each=100), levels=1:100)
-#'  sets <- split(as.character(1:10000),f=f)
+#'  f <- factor(rep(1:100,each=10), levels=1:100)
+#'  sets <- split(as.character(1:1000),f=f)
 #'
 #'  # Set test based on sums
 #'  mma <- gsea(stat = ma[,"stat"]**2, sets = sets, method = "sum", nperm = 10000)
@@ -85,8 +84,9 @@
 #'  mma <- gsea(stat = ma[,"p"], sets = sets, method = "hyperg", threshold = 0.05)
 #'  head(mma)
 #'
+#' \dontrun{
 #'  G <- grm(W=W)
-#'  fit <- greml(y=y, X=X, GRM=list(G=G), theta=c(0.1,0.4), ncores=4)
+#'  fit <- greml(y=y, X=X, GRM=list(G=G), theta=c(10,1))
 #'
 #'  # Set test based on cvat
 #'  mma <- gsea(W=W,fit = fit, sets = sets, nperm = 1000, method="cvat")

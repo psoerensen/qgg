@@ -65,13 +65,12 @@
 
 #' @examples
 #'
-#' \dontrun{
 #'
 #' # Simulate data
-#' W <- matrix(rnorm(20000000), ncol = 10000)
+#' W <- matrix(rnorm(1000000), ncol = 1000)
 #' 	colnames(W) <- as.character(1:ncol(W))
 #' 	rownames(W) <- as.character(1:nrow(W))
-#' y <- rowSums(W[, 1:10]) + rowSums(W[, 1001:1010]) + rnorm(nrow(W))
+#' y <- rowSums(W[, 1:10]) + rowSums(W[, 501:510]) + rnorm(nrow(W))
 #'
 #' # Create model
 #' data <- data.frame(y = y, mu = 1)
@@ -83,6 +82,8 @@
 #'
 #' # REML analyses
 #' fitG <- greml(y = y, X = X, GRM = list(GRM))
+#'
+#' \dontrun{
 #'
 #' # REML analyses and cross validation
 #'

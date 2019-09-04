@@ -59,6 +59,17 @@
 
 #' @examples
 #'
+#' bedfiles <- system.file("extdata", "sample_22.bed", package = "qgg")
+#' bimfiles <- system.file("extdata", "sample_22.bim", package = "qgg")
+#' famfiles <- system.file("extdata", "sample_22.fam", package = "qgg")
+#' 
+#' fnRAW <- tempfile(fileext=".raw")
+#' 
+#' Glist <- gprep(study="1000G", fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles,
+#'                famfiles=famfiles, overwrite=TRUE)
+#' 
+#' file.remove(fnRAW)
+#' 
 #' \dontrun{
 #' # Download 1000G Plink files
 #'
@@ -79,11 +90,6 @@
 #' Glist <- gprep(study="1000G", fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles,
 #'                famfiles=famfiles, overwrite=TRUE)
 #'
-#'
-#' Glist <- gprep(Glist=Glist, task="summary")
-#'
-#' fnLD <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".ld",sep="")
-#' Glist <- gprep( task="sparseld", Glist=Glist, fnLD=fnLD, msize=200, ncores=4)
 #'
 #' }
 

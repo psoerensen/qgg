@@ -37,9 +37,8 @@
 
 #' @examples
 #'
-#' \dontrun{
 #' # Simulate data
-#' W <- matrix(rnorm(20000000), ncol = 10000)
+#' W <- matrix(rnorm(1000000), ncol = 1000)
 #' 	colnames(W) <- as.character(1:ncol(W))
 #' 	rownames(W) <- as.character(1:nrow(W))
 #' m <- ncol(W)
@@ -57,7 +56,6 @@
 #' # BLUP of single marker effects and total genomic effects based on Gauss-Seidel procedure
 #' fit <- gsolve( y=y, X=X, W=W, lambda=lambda)
 #'
-#' }
 
 
 
