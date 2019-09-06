@@ -2,13 +2,22 @@
 This is a resubmission where I have:
 
 * Removed capital letters in description text.
-* Added more details about the package functionality in the DESCRIPTION file including some references.
+* Added more details about the package functionality in the DESCRIPTION file including a reference.
 * Unwrapped test examples and ensured they can be executed in less than 5 sec.
 * Ensured that examples only use 1 core.
 * Ensured that functions can use files not in working directory.
-* Ensured that test examples only write/save files if the user has specified a directory. 
 * Included a small data set in inst/extdata.
 
+There was a note about:
+
+  Possibly mis-spelled words in DESCRIPTION:
+    al (14:14)
+    et (14:11)
+    heritability (13:281)
+    qgg (13:18)
+    Rohde (14:5)
+
+I believe these are not mis-spelled.
 
 
 ## Resubmission
