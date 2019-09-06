@@ -805,7 +805,7 @@
   integer(c_int) :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc),nchars
   real(real64) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
   character(len=nchars, kind=c_char) :: fnRAW
-  character(len=1000, kind=c_char) :: fnG, filename
+  character(len=1000, kind=c_char) :: fnG, filename,filename1
   character(len=20, kind=c_char) :: mode
   type(c_ptr):: fp
   integer(c_int) :: cfres 
@@ -816,9 +816,9 @@
   mode =  'r' // C_NULL_CHAR
   fp = fopen(filename, mode)
   cfres=fgets_char(filename,1000,fp)
-  nchar=index(filename, '.raw')
-  if(nchar==0) nchar=index(filename, '.bed')
-  fnRAW(1:nchars) = filename(1:(nchar+3)) 
+  nchar=index(filename(1:nchars), '.raw')
+  if(nchar==0) nchar=index(filename(1:nchars), '.bed')
+  fnRAW(1:nchars) = filename(1:nchars) 
   cfres=fgets_char(filename,1000,fp)
   nchar=index(filename, '.grm')
   fnG(1:nchars) = filename(1:(nchar+3)) 
@@ -880,8 +880,8 @@
 
   nchar=index(fnG, '.grm')
   mode =  'wb' // C_NULL_CHAR
-  filename = fnG(1:(nchar+3)) // C_NULL_CHAR
-  fp = fopen(filename, mode)
+  filename1 = fnG(1:(nchar+3)) // C_NULL_CHAR
+  fp = fopen(filename1, mode)
   do j=1,size(G,1)
     if (gmodel<4) w = G(1:size(G,1),j)
     if (gmodel==4) w = G(1:size(G,1),j)**2
