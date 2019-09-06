@@ -244,7 +244,7 @@
     mode =  'r' // C_NULL_CHAR
     fp = fopen(filename, mode)
     do i=1,nr-1
-      cfres=fgets_char(filename,100,fp)
+      cfres=fgets_char(filename,1000,fp)
       nchar=index(filename, '.grm')
       rfnames(i) = filename(1:(nchar+3)) 
     enddo
