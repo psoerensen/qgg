@@ -1,4 +1,4 @@
-PKG_FCFLAGS= $(SHLIB_OPENMP_FFLAGS) -std=f2008 -lto -fcheck=bounds -c
+PKG_FCFLAGS= $(SHLIB_OPENMP_FFLAGS) 
 PKG_LIBS= $(SHLIB_OPENMP_CFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) -fopenmp
 
 all: $(SHLIB) clean
