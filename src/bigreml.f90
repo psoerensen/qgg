@@ -221,7 +221,7 @@
     integer(int32) :: n,nf,nr,maxit,ngr,indx(n),ncores,nchar
     real(real64) :: tol
     real(real64)  :: y(n),X(n,nf),theta(nr)
-    character(len=1000) :: rfnames(nr-1)
+    character(len=1000, kind=c_char)::  rfnames(nr-1)
     
     ! local variables
     integer(int32) :: i,j,it
