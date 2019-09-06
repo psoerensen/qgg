@@ -422,10 +422,10 @@
   implicit none
   
   integer(c_int) :: m,cls(m),nbytes,append,ncharbed,ncharraw  
-  character(len=ncharbed, kind=c_char) :: fnBED!, filename1
-  character(len=ncharraw, kind=c_char) :: fnRAW!, filename2
+  character(len=ncharbed, kind=c_char) :: fnBED, filename1
+  character(len=ncharraw, kind=c_char) :: fnRAW, filename2
   character(len=20, kind=c_char) :: mode, mode1, mode2
-  character(len=1000, kind=c_char) :: filename,filename1,filename2, filename3,filename4
+  character(len=1000, kind=c_char) :: filename,filename3,filename4
 
   integer(kind=c_int8_t) :: raw(nbytes), magic(3)
   integer(c_int) :: i,offset,nchar
