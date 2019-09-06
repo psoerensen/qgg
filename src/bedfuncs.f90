@@ -422,10 +422,10 @@
   implicit none
   
   integer(c_int) :: m,cls(m),nbytes,append,ncharbed,ncharraw  
-  character(len=ncharbed, kind=c_char) :: fnBED, filename1
-  character(len=ncharraw, kind=c_char) :: fnRAW, filename2
+  character(len=ncharbed, kind=c_char) :: fnBED
+  character(len=ncharraw, kind=c_char) :: fnRAW
   character(len=20, kind=c_char) :: mode, mode1, mode2
-  character(len=1000, kind=c_char) :: filename,filename3,filename4
+  character(len=1000, kind=c_char) :: filename,filename1,filename2, filename3,filename4
 
   integer(kind=c_int8_t) :: raw(nbytes), magic(3)
   integer(c_int) :: i,offset,nchar
@@ -446,9 +446,8 @@
 
   ! input file
   offset=3
-  nchar=index(fnBED, '.bed')
   mode1 =  'rb' // C_NULL_CHAR
-  filename1(1:ncharbed) = fnBED(1:ncharbed) // C_NULL_CHAR
+  filename1 = fnBED(1:ncharbed) // C_NULL_CHAR
   fp1 = fopen(filename1, mode1)
   cfres=fread(magic,1,3,fp1)
 
@@ -466,7 +465,7 @@
   ! output rawfile
   nchar=index(fnRAW, '.raw')
   if (nchar>0) then
-   filename2(1:ncharraw) = fnRAW(1:ncharraw) // C_NULL_CHAR
+   filename2 = fnRAW(1:ncharraw) // C_NULL_CHAR
    if (append==0) mode2 =  'wb' // C_NULL_CHAR
    if (append==1) mode2 =  'ab' // C_NULL_CHAR
   endif
