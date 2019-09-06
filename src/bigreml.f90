@@ -20,13 +20,11 @@
 
     implicit none
     public
-    real(real64), allocatable :: V(:,:),P(:,:),G(:,:)
-    integer(int32), allocatable :: indxg(:)
-    integer(int32) :: ng
+    real(c_double), allocatable :: V(:,:),P(:,:),G(:,:)
+    integer(c_int), allocatable :: indxg(:)
+    integer(c_int) :: ng
     integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
     integer(c_int):: cfres, nbytes
-    character(len=1000, kind=c_char) :: filename
-    character(len=20, kind=c_char) :: mode
 
     
     end module global
@@ -51,25 +49,25 @@
     function crossprod(a,b) result(c)
     implicit none
     external dgemm
-    real(real64), dimension(:,:), intent(in)  :: a,b
-    real(real64) :: c(size(a,1),size(b,2))
+    real(c_double), dimension(:,:), intent(in)  :: a,b
+    real(c_double) :: c(size(a,1),size(b,2))
     call dgemm('n', 'n', size(a,1), size(b,2), size(a,2), 1.0D0, a, size(a,1), b, size(a,2), 0.0D0, c, size(a,1))
     end function crossprod
 
     function matvec(a,b) result(c)
     implicit none
     external dgemm
-    real(real64), dimension(:,:), intent(in)  :: a
-    real(real64), dimension(:), intent(in)  :: b
-    real(real64) :: c(size(a,1))
+    real(c_double), dimension(:,:), intent(in)  :: a
+    real(c_double), dimension(:), intent(in)  :: b
+    real(c_double) :: c(size(a,1))
     call dgemm('n', 'n', size(a,1), 1, size(a,2), 1.0D0, a, size(a,1), b, size(a,2), 0.0D0, c, size(a,1))
     end function matvec
 
     function diag(a) result(b)
     implicit none
-    real(real64), dimension(:,:), intent(in)  :: a
-    real(real64) :: b(size(a,1))
-    integer(int32) :: i
+    real(c_double), dimension(:,:), intent(in)  :: a
+    real(c_double) :: b(size(a,1))
+    integer(c_int) :: i
     do i=1,size(a,1)
       b(i) = a(i,i)
     enddo
@@ -78,9 +76,9 @@
     function inverse(a) result(b)
     implicit none
     external dpotrf, dpotri
-    real(real64), dimension(:,:), intent(in)  :: a
-    real(real64) :: b(size(a,1),size(a,2))
-    integer(int32) :: info,i,j
+    real(c_double), dimension(:,:), intent(in)  :: a
+    real(c_double) :: b(size(a,1),size(a,2))
+    integer(c_int) :: info,i,j
     info=0
     call dpotrf('U',size(a,1),a,size(a,1),info)             ! cholesky decompostion of a
     call dpotri('U',size(a,1),a,size(a,1),info)             ! inverse of a
@@ -97,9 +95,9 @@
     function readG(row,fp) result(gr)
     implicit none
     type(c_ptr), value :: fp
-    integer(int32), intent(in) :: row
-    integer(int32) :: i
-    real(real64) :: gr(size(V,1)),grw(ng)
+    integer(c_int), intent(in) :: row
+    integer(c_int) :: i
+    real(c_double) :: gr(size(V,1)),grw(ng)
     i14=row
     pos14 = (i14-1)*nbytes14 
     cfres=cseek(fp,pos14,0)            
@@ -133,8 +131,8 @@
     subroutine chol(a)
     implicit none
     external dpotrf
-    real(real64), dimension(:,:), intent(inout)  :: a
-    integer(int32) :: info,i,j
+    real(c_double), dimension(:,:), intent(inout)  :: a
+    integer(c_int) :: info,i,j
     info=0
     call dpotrf('U',size(a,1),a,size(a,1),info)             ! cholesky decompostion of a
     ! copy to lower
@@ -148,8 +146,8 @@
     subroutine chol2inv(a)
     implicit none
     external dpotri
-    real(real64), dimension(:,:), intent(inout)  :: a
-    integer(int32) :: info,i,j
+    real(c_double), dimension(:,:), intent(inout)  :: a
+    integer(c_int) :: info,i,j
     info=0
     call dpotri('U',size(a,1),a,size(a,1),info)             ! inverse of a
     ! copy to lower
@@ -163,20 +161,22 @@
 
     subroutine computeV(weights,fnames)
     implicit none
-    integer(int32) :: i,j,r
-    real(real64), dimension(:),intent(in) :: weights
-    real(real64) :: gr(size(V,1))
+    integer(c_int) :: i,j,r
+    real(c_double), dimension(:),intent(in) :: weights
+    real(c_double) :: gr(size(V,1))
     character(len=*, kind=c_char), dimension(:),intent(in) :: fnames
- 
+    character(len=1000, kind=c_char) :: filename4
+    character(len=20, kind=c_char) :: mode
+
     type(c_ptr):: fp
 
     do r=1,size(weights)
 
     if (r<size(weights)) then
 
-    filename = trim(adjustl(fnames(r))) // C_NULL_CHAR
+    filename4 = trim(adjustl(fnames(r))) // C_NULL_CHAR
     mode =  'rb' // C_NULL_CHAR
-    fp = fopen(filename, mode)
+    fp = fopen(filename4, mode)
 
     do i=1,size(V,1)
       gr = readG(indxg(i),fp)
@@ -218,20 +218,25 @@
     implicit none
 
     ! input and output variables
-    integer(int32) :: n,nf,nr,maxit,ngr,indx(n),ncores,nchar
-    real(real64) :: tol
-    real(real64)  :: y(n),X(n,nf),theta(nr)
+    integer(c_int) :: n,nf,nr,maxit,ngr,indx(n),ncores,nchar
+    real(c_double) :: tol
+    real(c_double)  :: y(n),X(n,nf),theta(nr)
     character(len=1000, kind=c_char)::  rfnames(nr-1)
+    character(len=1000, kind=c_char) :: filename1,filename2,filename3
+    character(len=20, kind=c_char) :: mode
+
     
     ! local variables
-    integer(int32) :: i,j,it
-    real(real64) :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr)
-    real(real64) :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1),varb(nf,nf) 
-    real(real64) :: llik, ldV, ldXVX, yPy
+    integer(c_int) :: i,j,it
+    real(c_double) :: theta0(nr),ai(nr,nr),s(nr),trPG(nr),trVG(nr),delta(nr),b(nf),u(n,nr)
+    real(c_double) :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1),varb(nf,nf) 
+    real(c_double) :: llik, ldV, ldXVX, yPy
 
     type(c_ptr):: fileunit(nr-1), fp
     
-    
+    if (c_double /= kind(1.0d0))  &
+    error stop 'Default REAL isn''t interoperable with FLOAT!!'
+
     ! allocate variables
     allocate(indxg(n))
  
@@ -240,13 +245,13 @@
 
     nbytes14 = int(8.0d0*dble(ng),kind=c_int64_t) 
 
-    filename = 'param.qgg' // C_NULL_CHAR
+    filename1 = 'param.qgg' // C_NULL_CHAR
     mode =  'r' // C_NULL_CHAR
-    fp = fopen(filename, mode)
+    fp = fopen(filename1, mode)
     do i=1,nr-1
-      cfres=fgets_char(filename,1000,fp)
-      nchar=index(filename, '.grm')
-      rfnames(i) = filename(1:(nchar+3)) 
+      cfres=fgets_char(filename2,1000,fp)
+      nchar=index(filename2, '.grm')
+      rfnames(i) = filename2(1:(nchar+3)) 
     enddo
     cfres=fclose(fp)
 
@@ -284,9 +289,9 @@
     trVG(nr) = sum(diag(V))  ! residual effects
 
     do i=1,nr-1
-      filename = trim(adjustl(rfnames(i))) // C_NULL_CHAR
+      filename3 = trim(adjustl(rfnames(i))) // C_NULL_CHAR
       mode =  'rb' // C_NULL_CHAR
-      fileunit(i) = fopen(filename, mode)
+      fileunit(i) = fopen(filename3, mode)
     enddo
 
     do j=1,n
