@@ -241,6 +241,7 @@ fbed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = 
       PACKAGE = "qgg"
     )
     print(paste("Finished processing bedfile:", bedfiles[chr]))
+    file.remove("param.qgg")
   }
 }
 
@@ -263,7 +264,7 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   af <- nmiss <- n0 <- n1 <- n2 <- rep(0, nc)
 
   write.table(as.character(fnRAW), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
-  
+
   qc <- .Fortran("summarybed",
     n = as.integer(n),
     nr = as.integer(nr),
@@ -281,7 +282,8 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     ncores = as.integer(ncores),
     PACKAGE = "qgg"
   )
-
+  file.remove("param.qgg")
+  
   qc$hom <- (qc$n0 + qc$n2) / (qc$nr - qc$nmiss)
   qc$het <- qc$n1 / (qc$nr - qc$nmiss)
   qc$maf <- qc$af
@@ -314,6 +316,9 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 #' @param scale logical if TRUE the genotype markers have been scale to mean zero and variance one
 #' @param impute logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)
 #' @param allele vector of alleles to be extracted
+
+#' @export
+#'
 
 getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
                      rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
@@ -394,6 +399,7 @@ getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
   )$W
   rownames(W) <- ids
   colnames(W) <- rsids
+  file.remove("param.qgg")
   return(W)
 }
 

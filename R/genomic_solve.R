@@ -351,6 +351,7 @@ fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL,
     sd = as.double(sdw),
     PACKAGE = "qgg"
   )
+  file.remove("param.qgg")
   return(fit)
 }
 
@@ -441,6 +442,6 @@ gscore <- function(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE, impute =
     ncores = as.integer(ncores),
     PACKAGE = "qgg"
   )$prs
-
+  file.remove("param.qgg")
   return(prs)
 }

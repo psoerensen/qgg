@@ -65,6 +65,7 @@
 
 #' @examples
 #'
+#' \dontrun{
 #'
 #' # Simulate data
 #' W <- matrix(rnorm(1000000), ncol = 1000)
@@ -83,7 +84,6 @@
 #' # REML analyses
 #' fitG <- greml(y = y, X = X, GRM = list(GRM))
 #'
-#' \dontrun{
 #'
 #' # REML analyses and cross validation
 #'
@@ -329,6 +329,7 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
 
   fnr <- paste(paste(sample(letters, 10, replace = TRUE), collapse = ""), ".qgg", sep = "")
   write.table(as.character(rfnames), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
+  file.remove("param.qgg")
   
 
   fit <- .Fortran("reml",

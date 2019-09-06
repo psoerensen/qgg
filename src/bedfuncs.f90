@@ -699,11 +699,11 @@
   
   implicit none
   
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,g(n),grws(nr),ncores,nchars 
-  real(real64) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
-  character(len=nchars, kind=c_char) :: fnRAW, filename1
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchars 
+  real(real64) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc),g(n),grws(nr)
+  character(len=nchars, kind=c_char) :: fnRAW
   character(len=20, kind=c_char) :: mode, mode1
-  character(len=1000, kind=c_char) :: filename
+  character(len=1000, kind=c_char) :: filename, filename1
   type(c_ptr):: fp, fp1
   integer(c_int) :: cfres 
 
@@ -714,14 +714,13 @@
 
   integer(c_int), external :: omp_get_thread_num
 
-  call omp_set_num_threads(ncores)
 
   filename = 'param.qgg' // C_NULL_CHAR
   mode =  'r' // C_NULL_CHAR
   fp = fopen(filename, mode)
   cfres=fgets_char(filename,1000,fp)
-  nchar=index(filename, '.raw')
-  if(nchar==0) nchar=index(filename, '.bed')
+  nchar=index(filename(1:nchars), '.raw')
+  if(nchar==0) nchar=index(filename(1:nchars), '.bed')
   fnRAW(1:nchars) = filename(1:(nchar+3)) 
   cfres=fclose(fp)
 
@@ -740,45 +739,54 @@
   filename1 = fnRAW(1:(nchar+3)) // C_NULL_CHAR
   mode1 =  'rb' // C_NULL_CHAR
 
+
+  call omp_set_num_threads(ncores)
+
   ! process serial
-  if (ncores==1) then
+  !if (ncores==1) then
     fp1 = fopen(filename1, mode1)
     do i=1,nc 
       i14=cls(i)
       pos14 = offset14 + (i14-1)*nbytes14
       cfres=cseek(fp1,pos14,0)            
       cfres=fread(raw(1:nbytes),1,nbytes,fp1)
-      g = raw2int(n,nbytes,raw)
+      !g = raw2int(n,nbytes,raw)
+      !grws = g(rws)
+      !nmiss(i)=dble(count(grws==3))
+      !n0(i)=dble(count(grws==0))
+      !n1(i)=dble(count(grws==1)) 
+      !n2(i)=dble(count(grws==2))
+      g = raw2real(n,nbytes,raw)
       grws = g(rws)
-      nmiss(i)=dble(count(grws==3))
-      n0(i)=dble(count(grws==0))
-      n1(i)=dble(count(grws==1)) 
-      n2(i)=dble(count(grws==2))
+      nmiss(i)=dble(count(grws==3.0D0))
+      n0(i)=dble(count(grws==0.0D0))
+      n1(i)=dble(count(grws==1.0D0)) 
+      n2(i)=dble(count(grws==2.0D0))
       if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
     enddo 
     cfres=fclose(fp1)
-  endif
+  !endif
 
   ! process parallel
-  if (ncores>1) then
-    fp1 = fopen(filename1, mode1)
-    !$omp parallel do private(i,i14,pos14,raw,g,grws)
-    do i=1,nc 
-      i14=cls(i)
-      pos14 = offset14 + (i14-1)*nbytes14
-      cfres=cseek(fp1,pos14,0)            
-      cfres=fread(raw(1:nbytes),1,nbytes,fp1)
-      g = raw2int(n,nbytes,raw)
-      grws = g(rws)
-      nmiss(i)=dble(count(grws==3))
-      n0(i)=dble(count(grws==0))
-      n1(i)=dble(count(grws==1)) 
-      n2(i)=dble(count(grws==2))
-      if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
-    enddo 
-    !$omp end parallel do
-    cfres=fclose(fp1)
-  endif
+  !if (ncores>1) then
+  !  fp1 = fopen(filename1, mode1)
+  !  !$omp parallel do private(i,i14,pos14,raw,g,grws)
+  !  do i=1,nc 
+  !    i14=cls(i)
+  !    pos14 = offset14 + (i14-1)*nbytes14
+  !    cfres=cseek(fp1,pos14,0)            
+  !    cfres=fread(raw(1:nbytes),1,nbytes,fp1)
+  !    g = raw2int(n,nbytes,raw)
+  !    grws = g(rws)
+  !    nmiss(i)=dble(count(grws==3))
+  !    n0(i)=dble(count(grws==0))
+  !    n1(i)=dble(count(grws==1)) 
+  !    n2(i)=dble(count(grws==2))
+  !    if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
+  !  enddo 
+  !  !$omp end parallel do
+  !  cfres=fclose(fp1)
+  !endif
 
 
 

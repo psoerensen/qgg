@@ -149,6 +149,7 @@ computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
       # G = matrix(as.double(0),nrow=nr,ncol=nr),
       PACKAGE = "qgg"
     )
+    file.remove("param.qgg")
     if (!returnGRM) return(GRMlist)
     if (returnGRM) {
       GRM <- getGRM(GRMlist = GRMlist, ids = GRMlist$idsG)
