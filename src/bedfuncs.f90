@@ -439,18 +439,16 @@
   mode =  'r' // C_NULL_CHAR
   fp = fopen(filename, mode)
   cfres=fgets_char(filename3,1000,fp)
-  nchar=index(filename3, '.bed')
-  fnBED(1:ncharbed) = filename3(1:(nchar+3)) 
+  fnBED(1:ncharbed) = filename3(1:ncharbed) 
   cfres=fgets_char(filename4,1000,fp)
-  nchar=index(filename4, '.raw')
-  fnRAW(1:ncharraw) = filename4(1:(nchar+3)) 
+  fnRAW(1:ncharraw) = filename4(1:ncharraw) 
   cfres=fclose(fp)
 
   ! input file
   offset=3
   nchar=index(fnBED, '.bed')
   mode1 =  'rb' // C_NULL_CHAR
-  filename1(1:(nchar+3)) = fnBED(1:(nchar+3)) // C_NULL_CHAR
+  filename1(1:ncharbed) = fnBED(1:ncharbed) // C_NULL_CHAR
   fp1 = fopen(filename1, mode1)
   cfres=fread(magic,1,3,fp1)
 
@@ -468,7 +466,7 @@
   ! output rawfile
   nchar=index(fnRAW, '.raw')
   if (nchar>0) then
-   filename2(1:(nchar+3)) = fnRAW(1:(nchar+3)) // C_NULL_CHAR
+   filename2(1:ncharraw) = fnRAW(1:ncharraw) // C_NULL_CHAR
    if (append==0) mode2 =  'wb' // C_NULL_CHAR
    if (append==1) mode2 =  'ab' // C_NULL_CHAR
   endif
