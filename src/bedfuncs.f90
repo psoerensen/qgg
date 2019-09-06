@@ -740,7 +740,7 @@
   call omp_set_num_threads(ncores)
 
   ! process serial
-  !if (ncores==1) then
+  if (ncores==1) then
     fp1 = fopen(filename1, mode1)
     do i=1,nc 
       i14=cls(i)
@@ -762,28 +762,28 @@
       if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
     enddo 
     cfres=fclose(fp1)
-  !endif
+  endif
 
   ! process parallel
-  !if (ncores>1) then
-  !  fp1 = fopen(filename1, mode1)
-  !  !$omp parallel do private(i,i14,pos14,raw,g,grws)
-  !  do i=1,nc 
-  !    i14=cls(i)
-  !    pos14 = offset14 + (i14-1)*nbytes14
-  !    cfres=cseek(fp1,pos14,0)            
-  !    cfres=fread(raw(1:nbytes),1,nbytes,fp1)
-  !    g = raw2int(n,nbytes,raw)
-  !    grws = g(rws)
-  !    nmiss(i)=dble(count(grws==3))
-  !    n0(i)=dble(count(grws==0))
-  !    n1(i)=dble(count(grws==1)) 
-  !    n2(i)=dble(count(grws==2))
-  !    if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
-  !  enddo 
-  !  !$omp end parallel do
-  !  cfres=fclose(fp1)
-  !endif
+  if (ncores>1) then
+    fp1 = fopen(filename1, mode1)
+    !$omp parallel do private(i,i14,pos14,raw,g,grws)
+    do i=1,nc 
+      i14=cls(i)
+      pos14 = offset14 + (i14-1)*nbytes14
+      cfres=cseek(fp1,pos14,0)            
+      cfres=fread(raw(1:nbytes),1,nbytes,fp1)
+      g = raw2int(n,nbytes,raw)
+      grws = g(rws)
+      nmiss(i)=dble(count(grws==3))
+      n0(i)=dble(count(grws==0))
+      n1(i)=dble(count(grws==1)) 
+      n2(i)=dble(count(grws==2))
+      if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
+    enddo 
+    !$omp end parallel do
+    cfres=fclose(fp1)
+  endif
 
 
 
