@@ -43,7 +43,7 @@
 #' # Compute GRM
 #' GRM <- grm(W = W)
 #'
-#' \dontrun{
+#' \donttest{
 #' 
 #' # Eigen value decompostion GRM
 #' eig <- grm(GRM=GRM, task="eigen")

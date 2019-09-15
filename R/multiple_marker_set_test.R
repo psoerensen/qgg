@@ -84,7 +84,7 @@
 #'  mma <- gsea(stat = ma[,"p"], sets = sets, method = "hyperg", threshold = 0.05)
 #'  head(mma)
 #'
-#' \dontrun{
+#' \donttest{
 #'  G <- grm(W=W)
 #'  fit <- greml(y=y, X=X, GRM=list(G=G), theta=c(10,1))
 #'

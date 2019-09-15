@@ -65,7 +65,7 @@
 
 #' @examples
 #'
-#' \dontrun{
+#' \donttest{
 #'
 #' # Simulate data
 #' W <- matrix(rnorm(1000000), ncol = 1000)

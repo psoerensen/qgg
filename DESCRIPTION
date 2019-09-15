@@ -10,7 +10,7 @@ Authors@R: c(person("Peter", "Soerensen", email = "pso@mbg.au.dk",
                   person("Izel", "Fourie Soerensen", email = "izel.sorensen@gmail.com",
                   role = "aut"))
 Maintainer: Peter Soerensen <pso@mbg.au.dk>
-Description: The qgg package provides an infrastructure for efficient processing of large-scale genetic and phenotypic data including core functions for: 1) fitting linear mixed models, 2) constructing marker-based genomic relationship matrices, 3) estimating genetic parameters (heritability and correlation), 4) performing genomic prediction and genetic risk profiling, and 5) single or multi-marker association analyses.
+Description: Provides an infrastructure for efficient processing of large-scale genetic and phenotypic data including core functions for: 1) fitting linear mixed models, 2) constructing marker-based genomic relationship matrices, 3) estimating genetic parameters (heritability and correlation), 4) performing genomic prediction and genetic risk profiling, and 5) single or multi-marker association analyses.
     Rohde et al. (2019) <doi:10.1101/503631>.
 License: GPL-3
 Encoding: UTF-8

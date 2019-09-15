@@ -80,7 +80,7 @@
 #'
 #' head(maLM)
 #'
-#' \dontrun{
+#' \donttest{
 #' # Compute GRM
 #' GRM <- grm(W = W)
 #'

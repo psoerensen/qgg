@@ -70,7 +70,7 @@
 #' 
 #' file.remove(fnRAW)
 #' 
-#' \dontrun{
+#' \donttest{
 #' # Download 1000G Plink files
 #'
 #' url <- "https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz"
