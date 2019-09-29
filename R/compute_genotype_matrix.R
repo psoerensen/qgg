@@ -234,8 +234,8 @@ fbed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = 
       cls = as.integer(keep),
       nbytes = as.integer(nbytes),
       append = as.integer(append),
-      #fnBED = as.character(fnBED),
-      #fnRAW = as.character(fnRAW),
+      fnBEDCHAR = as.integer(unlist(sapply(as.character(fnBED),charToRaw),use.names=FALSE)),
+      fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
       ncharbed = nchar(as.character(fnBED)),
       ncharraw = nchar(as.character(fnRAW)),
       PACKAGE = "qgg"
@@ -277,7 +277,7 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     n1 = as.double(n1),
     n2 = as.double(n2),
     nbytes = as.integer(nbytes),
-    #fnRAW = as.character(fnRAW),
+    fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
     nchars = nchar(as.character(fnRAW)),
     ncores = as.integer(ncores),
     PACKAGE = "qgg"
@@ -393,7 +393,7 @@ getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
     direction = as.integer(direction),
     W = matrix(as.double(0), nrow = nr, ncol = nc),
     nbytes = as.integer(nbytes),
-    #fnRAW = as.character(fnRAW),
+    fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
     nchars = nchar(as.character(fnRAW)),
     PACKAGE = "qgg"
   )$W
@@ -445,7 +445,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
       direction = as.integer(direction[[j]]),
       W = matrix(as.double(0), nrow = nr, ncol = nc),
       nbytes = as.integer(nbytes),
-      #fnRAW = as.character(fnRAW),
+      fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
       nchars = nchar(as.character(fnRAW)),
       PACKAGE = "qgg"
     )$W

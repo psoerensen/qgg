@@ -206,7 +206,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !    subroutine reml(n,nf,nr,tol,maxit,ncores,fnr,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
-    subroutine reml(n,nf,nr,tol,maxit,ncores,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
+    subroutine reml(n,nf,nr,tol,maxit,ncores,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG,ncharsg,fnGCHAR)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     use global
@@ -218,7 +218,7 @@
     implicit none
 
     ! input and output variables
-    integer(c_int) :: n,nf,nr,maxit,ngr,indx(n),ncores,nchar
+    integer(c_int) :: n,nf,nr,maxit,ngr,indx(n),ncores,nchar,ncharsg(nr-1),fnGCHAR(nr-1,1000)
     real(c_double) :: tol
     real(c_double)  :: y(n),X(n,nf),theta(nr)
     character(len=1000, kind=c_char)::  rfnames(nr-1)
@@ -254,6 +254,16 @@
       rfnames(i) = filename2(1:(nchar+3)) 
     enddo
     cfres=fclose(fp)
+
+!!!!!!!!!!!!
+    do i=1,nr-1
+      nchar = ncharsg(i)
+      do j=1,nchar
+        filename2(j:j) = char(fnGCHAR(i,j))
+      enddo
+      rfnames(i) = filename2(1:nchar)
+    enddo
+!!!!!
 
     call omp_set_num_threads(ncores)
 

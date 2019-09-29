@@ -233,8 +233,8 @@
 
 
 !==============================================================================================================
-!  subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAW,nchars)
-  subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,nchars)
+  subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAWCHAR,nchars)
+!  subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,nchars)
 !==============================================================================================================
 
   use kinds 
@@ -244,11 +244,11 @@
    
   implicit none
   
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars,fnRAWCHAR(nchars) 
   real(real64) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
 
   character(len=nchars, kind=c_char) :: fnRAW
-  character(len=1000, kind=c_char) :: mode, filename
+  character(len=1000, kind=c_char) :: mode, filename, filename1
   
   integer(kind=c_int8_t) :: raw(nbytes,nc)
   integer(c_int) :: i,nchar,offset
@@ -266,6 +266,9 @@
   fnRAW(1:nchars) = filename(1:(nchar+3))
   cfres=fclose(fp)
 
+  do i=1,nchars
+    fnRAW(i:i) = char(fnRAWCHAR(i))
+  enddo
   
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -410,8 +413,8 @@
 !==============================================================================================================
      
 !==============================================================================================================
-!  subroutine bed2raw(m,cls,nbytes,append,fnBED,fnRAW,ncharbed,ncharraw)
-  subroutine bed2raw(m,cls,nbytes,append,ncharbed,ncharraw)
+  subroutine bed2raw(m,cls,nbytes,append,fnBEDCHAR,fnRAWCHAR,ncharbed,ncharraw)
+!  subroutine bed2raw(m,cls,nbytes,append,ncharbed,ncharraw)
 !==============================================================================================================
 
   use kinds 
@@ -421,7 +424,7 @@
   
   implicit none
   
-  integer(c_int) :: m,cls(m),nbytes,append,ncharbed,ncharraw  
+  integer(c_int) :: m,cls(m),nbytes,append,ncharbed,ncharraw,fnRAWCHAR(ncharraw),fnBEDCHAR(ncharbed)  
   character(len=ncharbed, kind=c_char) :: fnBED
   character(len=ncharraw, kind=c_char) :: fnRAW
   character(len=20, kind=c_char) :: mode, mode1, mode2
@@ -443,6 +446,13 @@
   cfres=fgets_char(filename4,1000,fp)
   fnRAW(1:ncharraw) = filename4(1:ncharraw) 
   cfres=fclose(fp)
+
+  do i=1,ncharraw
+    fnRAW(i:i) = char(fnRAWCHAR(i))
+  enddo
+  do i=1,ncharbed
+    fnBED(i:i) = char(fnBEDCHAR(i))
+  enddo
 
   ! input file
   offset=3
@@ -492,8 +502,8 @@
 
 
 !==============================================================================================================
-!  subroutine mpgrs(n,nr,rws,nc,cls,nbytes,fnRAW,nchars,nprs,s,prs,af,impute,direction,ncores)
-  subroutine mpgrs(n,nr,rws,nc,cls,nbytes,nchars,nprs,s,prs,af,impute,direction,ncores)
+  subroutine mpgrs(n,nr,rws,nc,cls,nbytes,fnRAWCHAR,nchars,nprs,s,prs,af,impute,direction,ncores)
+!  subroutine mpgrs(n,nr,rws,nc,cls,nbytes,nchars,nprs,s,prs,af,impute,direction,ncores)
 !==============================================================================================================
 
   use kinds 
@@ -505,7 +515,7 @@
   
   implicit none
   
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc),nchars
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc),nchars,fnRAWCHAR(nchars)
   real(real64) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
   real(real64) :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
   character(len=nchars, kind=c_char) :: fnRAW
@@ -530,6 +540,9 @@
   fnRAW(1:nchars) = filename(1:(nchar+3))
   cfres=fclose(fp)
 
+  do i=1,nchars
+    fnRAW(i:i) = char(fnRAWCHAR(i))
+  enddo
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -592,8 +605,8 @@
 !==============================================================================================================
 
 !==============================================================================================================
-!  subroutine gstat(n,nr,rws,nc,cls,nbytes,fnRAW,nchars,nt,s,yadj,setstat,af,impute,scale,direction,ncores)
-  subroutine gstat(n,nr,rws,nc,cls,nbytes,nchars,nt,s,yadj,setstat,af,impute,scale,direction,ncores)
+  subroutine gstat(n,nr,rws,nc,cls,nbytes,fnRAWCHAR,nchars,nt,s,yadj,setstat,af,impute,scale,direction,ncores)
+!  subroutine gstat(n,nr,rws,nc,cls,nbytes,nchars,nt,s,yadj,setstat,af,impute,scale,direction,ncores)
 !==============================================================================================================
 
   use kinds 
@@ -604,7 +617,7 @@
   
   implicit none
   
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc),nchars
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc),nchars,fnRAWCHAR(nchars)
   real(real64) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
   real(real64) :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
 
@@ -629,6 +642,9 @@
   fnRAW(1:nchars) = filename(1:(nchar+3))
   cfres=fclose(fp)
 
+  do i=1,nchars
+    fnRAW(i:i) = char(fnRAWCHAR(i))
+  enddo
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -685,8 +701,8 @@
 
 
 !==============================================================================================================
-!  subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAW,nchars,ncores)
-  subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,nchars,ncores)
+  subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAWCHAR,nchars,ncores)
+!  subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,nchars,ncores)
 !==============================================================================================================
 
   use kinds 
@@ -696,7 +712,7 @@
   
   implicit none
   
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchars 
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchars,fnRAWCHAR(nchars) 
   real(real64) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc),g(n),grws(nr)
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=20, kind=c_char) :: mode, mode1
@@ -720,6 +736,10 @@
   if(nchar==0) nchar=index(filename(1:nchars), '.bed')
   fnRAW(1:nchars) = filename(1:(nchar+3)) 
   cfres=fclose(fp)
+
+  do i=1,nchars
+    fnRAW(i:i) = char(fnRAWCHAR(i))
+  enddo
 
   offset=0
   nchar=index(fnRAW, '.bed')
@@ -791,8 +811,8 @@
 !==============================================================================================================
 
 !==============================================================================================================
-!  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,fnRAW,nchars,msize,ncores,fnG,gmodel)
-  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,nchars,msize,ncores,gmodel)
+  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,fnRAWCHAR,nchars,msize,ncores,fnGCHAR,ncharsg,gmodel)
+!  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,nchars,msize,ncores,gmodel)
 !==============================================================================================================
 
   use kinds 
@@ -802,7 +822,8 @@
   
   implicit none
   
-  integer(c_int) :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc),nchars
+  integer(c_int) :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc)
+  integer(c_int) :: nchars,ncharsg,fnRAWCHAR(nchars),fnGCHAR(ncharsg)
   real(real64) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: fnG, filename,filename1
@@ -821,8 +842,15 @@
   fnRAW(1:nchars) = filename(1:nchars) 
   cfres=fgets_char(filename,1000,fp)
   nchar=index(filename, '.grm')
-  fnG(1:nchars) = filename(1:(nchar+3)) 
+  fnG(1:nchar) = filename(1:(nchar+3)) 
   cfres=fclose(fp)
+
+  do i=1,nchars
+    fnRAW(i:i) = char(fnRAWCHAR(i))
+  enddo
+  do i=1,ncharsg
+    fnG(i:i) = char(fnGCHAR(i))
+  enddo
 
 
   G = 0.0D0
@@ -894,8 +922,8 @@
 
 
 !==============================================================================================================
-!  subroutine solvebed(n,nr,rws,nc,cls,scale,nbytes,fnRAW,nchars,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
-  subroutine solvebed(n,nr,rws,nc,cls,scale,nbytes,nchars,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
+  subroutine solvebed(n,nr,rws,nc,cls,scale,nbytes,fnRAWCHAR,nchars,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
+!  subroutine solvebed(n,nr,rws,nc,cls,scale,nbytes,nchars,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
 !==============================================================================================================
 
   use kinds 
@@ -905,7 +933,7 @@
 
   !implicit none
   
-  integer(c_int) :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset,nchars
+  integer(c_int) :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset,nchars,fnRAWCHAR(nchars)
   real(real64) :: y(n),e(n),raww(n),w(n),g(n)
   real(real64) :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
   real(real64) :: lhs,rhs,snew,tol
@@ -931,6 +959,10 @@
   if(nchar==0) nchar=index(filename, '.bed')
   fnRAW(1:nchars) = filename(1:(nchar+3))
   cfres=fclose(fp)
+
+  do i=1,nchars
+    fnRAW(i:i) = char(fnRAWCHAR(i))
+  enddo
 
   offset=0
   nchar=index(fnRAW, '.bed')

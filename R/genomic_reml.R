@@ -330,6 +330,16 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   fnr <- paste(paste(sample(letters, 10, replace = TRUE), collapse = ""), ".qgg", sep = "")
   write.table(as.character(rfnames), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
 
+  fnGCHAR = matrix(as.integer(0), nrow = nr-1, ncol = 1000)
+  ncharsg = rep(as.integer(0), length = nr-1)
+  for (i in 1:(nr-1)) {
+    nchars <- as.integer(nchar(as.character(rfnames[i])))       
+    fnGCHAR[i,1:nchars] <- as.integer(unlist(sapply(as.character(rfnames[i]),charToRaw),use.names=FALSE))
+    ncharsg[i] = nchars
+  }
+
+  # reml(n,nf,nr,tol,maxit,ncores,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG,ncharsg,fnGCHAR)
+
   fit <- .Fortran("reml",
     n = as.integer(n),
     nf = as.integer(nf),
@@ -353,6 +363,8 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
     llik = as.double(0),
     trPG = as.double(rep(0, nr)),
     trVG = as.double(rep(0, nr)),
+    ncharsg = as.integer(ncharsg),
+    fnGCHAR = matrix(as.integer(fnGCHAR), nrow = nr-1, ncol = 1000),
     PACKAGE = "qgg"
   )
   file.remove("param.qgg")

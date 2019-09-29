@@ -246,7 +246,7 @@ gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e
       direction = as.integer(direction),
       W = matrix(as.double(0), nrow = nr, ncol = nc),
       nbytes = as.integer(nbytes),
-      #fnRAW = as.character(fnRAW),
+      fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
       nchars = nchar(as.character(fnRAW)),
       PACKAGE = "qgg"
     )$W
