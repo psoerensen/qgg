@@ -70,28 +70,6 @@
 #' 
 #' file.remove(fnRAW)
 #' 
-#' \donttest{
-#' # Download 1000G Plink files
-#'
-#' url <- "https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz"
-#' download.file(url=url,dest="./1000G_Phase3_plinkfiles.tgz")
-#'
-#' cmd <- "tar -xvzf 1000G_Phase3_plinkfiles.tgz"
-#' system(cmd)
-#'
-#' # Prepare Glist
-#'
-#' bedfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".bed",sep="")
-#' bimfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".bim",sep="")
-#' famfiles <- paste("./1000G_EUR_Phase3_plink/1000G.EUR.QC.",1:22,".fam",sep="")
-#'
-#' fnRAW <- "./1000G.raw"
-#'
-#' Glist <- gprep(study="1000G", fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles,
-#'                famfiles=famfiles, overwrite=TRUE)
-#'
-#'
-#' }
 
 
 #' @export
