@@ -245,17 +245,16 @@
 
     nbytes14 = int(8.0d0*dble(ng),kind=c_int64_t) 
 
-    filename1 = 'param.qgg' // C_NULL_CHAR
-    mode =  'r' // C_NULL_CHAR
-    fp = fopen(filename1, mode)
-    do i=1,nr-1
-      cfres=fgets_char(filename2,1000,fp)
-      nchar=index(filename2, '.grm')
-      rfnames(i) = filename2(1:(nchar+3)) 
-    enddo
-    cfres=fclose(fp)
+    !filename1 = 'param.qgg' // C_NULL_CHAR
+    !mode =  'r' // C_NULL_CHAR
+    !fp = fopen(filename1, mode)
+    !do i=1,nr-1
+    !  cfres=fgets_char(filename2,1000,fp)
+    !  nchar=index(filename2, '.grm')
+    !  rfnames(i) = filename2(1:(nchar+3)) 
+    !enddo
+    !cfres=fclose(fp)
 
-!!!!!!!!!!!!
     do i=1,nr-1
       nchar = ncharsg(i)
       do j=1,nchar
@@ -263,7 +262,6 @@
       enddo
       rfnames(i) = filename2(1:nchar)
     enddo
-!!!!!
 
     call omp_set_num_threads(ncores)
 
