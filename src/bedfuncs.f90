@@ -787,18 +787,18 @@
   ! process parallel
   if (ncores>1) then
     fp1 = fopen(filename1, mode1)
-    !$omp parallel do private(i,i14,pos14,raw,g,grws)
+    !$omp parallel do private(i,i14,pos14,raw,g,grws,fp1,cfres)
     do i=1,nc 
       i14=cls(i)
       pos14 = offset14 + (i14-1)*nbytes14
       cfres=cseek(fp1,pos14,0)            
       cfres=fread(raw(1:nbytes),1,nbytes,fp1)
-      g = raw2int(n,nbytes,raw)
+      g = raw2real(n,nbytes,raw)
       grws = g(rws)
-      nmiss(i)=dble(count(grws==3))
-      n0(i)=dble(count(grws==0))
-      n1(i)=dble(count(grws==1)) 
-      n2(i)=dble(count(grws==2))
+      nmiss(i)=dble(count(grws==3.0D0))
+      n0(i)=dble(count(grws==0.0D0))
+      n1(i)=dble(count(grws==1.0D0)) 
+      n2(i)=dble(count(grws==2.0D0))
       if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
     enddo 
     !$omp end parallel do
