@@ -194,13 +194,14 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
     m <- Glist$m
     n <- Glist$n
     cls <- 1:m
-    if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
+    #if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
     m <- length(cls)
     rws <- 1:n
     if (!is.null(ids)) rws <- match(ids, Glist$ids)
     s <- se <- stat <- p <- matrix(NA, nrow = m, ncol = nt)
     rownames(s) <- rownames(se) <- rownames(stat) <- rownames(p) <- Glist$rsids
     colnames(s) <- colnames(se) <- colnames(stat) <- colnames(p) <- colnames(y)
+    if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
     sets <- split(cls, ceiling(seq_along(cls) / msize))
     nsets <- length(sets)
     for (i in 1:nsets) {
