@@ -438,14 +438,14 @@
   integer(c_int):: cfres
   type(c_ptr):: fp, fp1, fp2
   
-  filename = 'param.qgg' // C_NULL_CHAR
-  mode =  'r' // C_NULL_CHAR
-  fp = fopen(filename, mode)
-  cfres=fgets_char(filename3,1000,fp)
-  fnBED(1:ncharbed) = filename3(1:ncharbed) 
-  cfres=fgets_char(filename4,1000,fp)
-  fnRAW(1:ncharraw) = filename4(1:ncharraw) 
-  cfres=fclose(fp)
+  !filename = 'param.qgg' // C_NULL_CHAR
+  !mode =  'r' // C_NULL_CHAR
+  !fp = fopen(filename, mode)
+  !cfres=fgets_char(filename3,1000,fp)
+  !fnBED(1:ncharbed) = filename3(1:ncharbed) 
+  !cfres=fgets_char(filename4,1000,fp)
+  !fnRAW(1:ncharraw) = filename4(1:ncharraw) 
+  !cfres=fclose(fp)
 
   do i=1,ncharraw
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -531,14 +531,14 @@
 
   integer(c_int), external :: omp_get_thread_num
 
-  filename = 'param.qgg' // C_NULL_CHAR
-  mode =  'r' // C_NULL_CHAR
-  fp = fopen(filename, mode)
-  cfres=fgets_char(filename,1000,fp)
-  nchar=index(filename, '.raw')
-  if(nchar==0) nchar=index(filename, '.bed')
-  fnRAW(1:nchars) = filename(1:(nchar+3))
-  cfres=fclose(fp)
+  !filename = 'param.qgg' // C_NULL_CHAR
+  !mode =  'r' // C_NULL_CHAR
+  !fp = fopen(filename, mode)
+  !cfres=fgets_char(filename,1000,fp)
+  !nchar=index(filename, '.raw')
+  !if(nchar==0) nchar=index(filename, '.bed')
+  !fnRAW(1:nchars) = filename(1:(nchar+3))
+  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -633,14 +633,14 @@
 
   integer(c_int), external :: omp_get_thread_num
 
-  filename = 'param.qgg' // C_NULL_CHAR
-  mode =  'r' // C_NULL_CHAR
-  fp = fopen(filename, mode)
-  cfres=fgets_char(filename,1000,fp)
-  nchar=index(filename, '.raw')
-  if(nchar==0) nchar=index(filename, '.bed')
-  fnRAW(1:nchars) = filename(1:(nchar+3))
-  cfres=fclose(fp)
+  !filename = 'param.qgg' // C_NULL_CHAR
+  !mode =  'r' // C_NULL_CHAR
+  !fp = fopen(filename, mode)
+  !cfres=fgets_char(filename,1000,fp)
+  !nchar=index(filename, '.raw')
+  !if(nchar==0) nchar=index(filename, '.bed')
+  !fnRAW(1:nchars) = filename(1:(nchar+3))
+  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -728,14 +728,14 @@
   integer(c_int), external :: omp_get_thread_num
 
 
-  filename = 'param.qgg' // C_NULL_CHAR
-  mode =  'r' // C_NULL_CHAR
-  fp = fopen(filename, mode)
-  cfres=fgets_char(filename,1000,fp)
-  nchar=index(filename(1:nchars), '.raw')
-  if(nchar==0) nchar=index(filename(1:nchars), '.bed')
-  fnRAW(1:nchars) = filename(1:(nchar+3)) 
-  cfres=fclose(fp)
+  !filename = 'param.qgg' // C_NULL_CHAR
+  !mode =  'r' // C_NULL_CHAR
+  !fp = fopen(filename, mode)
+  !cfres=fgets_char(filename,1000,fp)
+  !nchar=index(filename(1:nchars), '.raw')
+  !if(nchar==0) nchar=index(filename(1:nchars), '.bed')
+  !fnRAW(1:nchars) = filename(1:(nchar+3)) 
+  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -833,17 +833,17 @@
 
   call omp_set_num_threads(ncores)
 
-  filename = 'param.qgg' // C_NULL_CHAR
-  mode =  'r' // C_NULL_CHAR
-  fp = fopen(filename, mode)
-  cfres=fgets_char(filename,1000,fp)
-  nchar=index(filename(1:nchars), '.raw')
-  if(nchar==0) nchar=index(filename(1:nchars), '.bed')
-  fnRAW(1:nchars) = filename(1:nchars) 
-  cfres=fgets_char(filename,1000,fp)
-  nchar=index(filename, '.grm')
-  fnG(1:nchar) = filename(1:(nchar+3)) 
-  cfres=fclose(fp)
+  !filename = 'param.qgg' // C_NULL_CHAR
+  !mode =  'r' // C_NULL_CHAR
+  !fp = fopen(filename, mode)
+  !cfres=fgets_char(filename,1000,fp)
+  !nchar=index(filename(1:nchars), '.raw')
+  !if(nchar==0) nchar=index(filename(1:nchars), '.bed')
+  !fnRAW(1:nchars) = filename(1:nchars) 
+  !cfres=fgets_char(filename,1000,fp)
+  !nchar=index(filename, '.grm')
+  !fnG(1:nchar) = filename(1:(nchar+3)) 
+  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -951,14 +951,14 @@
 
   if (scale==0) scale = 1
 
-  filename = 'param.qgg' // C_NULL_CHAR
-  mode =  'r' // C_NULL_CHAR
-  fp = fopen(filename, mode)
-  cfres=fgets_char(filename,1000,fp)
-  nchar=index(filename, '.raw')
-  if(nchar==0) nchar=index(filename, '.bed')
-  fnRAW(1:nchars) = filename(1:(nchar+3))
-  cfres=fclose(fp)
+  !filename = 'param.qgg' // C_NULL_CHAR
+  !mode =  'r' // C_NULL_CHAR
+  !fp = fopen(filename, mode)
+  !cfres=fgets_char(filename,1000,fp)
+  !nchar=index(filename, '.raw')
+  !if(nchar==0) nchar=index(filename, '.bed')
+  !fnRAW(1:nchars) = filename(1:(nchar+3))
+  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
