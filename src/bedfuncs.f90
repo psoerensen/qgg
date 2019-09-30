@@ -257,14 +257,14 @@
   integer(c_int):: cfres
   type(c_ptr):: fp
 
-  filename = 'param.qgg' // C_NULL_CHAR
-  mode =  'r' // C_NULL_CHAR
-  fp = fopen(filename, mode)
-  cfres=fgets_char(filename,1000,fp)
-  nchar=index(filename, '.raw')
-  if(nchar==0) nchar=index(filename, '.bed')
-  fnRAW(1:nchars) = filename(1:(nchar+3))
-  cfres=fclose(fp)
+  !filename = 'param.qgg' // C_NULL_CHAR
+  !mode =  'r' // C_NULL_CHAR
+  !fp = fopen(filename, mode)
+  !cfres=fgets_char(filename,1000,fp)
+  !nchar=index(filename, '.raw')
+  !if(nchar==0) nchar=index(filename, '.bed')
+  !fnRAW(1:nchars) = filename(1:(nchar+3))
+  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
