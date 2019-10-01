@@ -787,7 +787,7 @@
   ! process parallel
   if (ncores>1) then
     fp1 = fopen(filename1, mode1)
-    !$omp parallel do private(i,i14,pos14,raw,g,grws,fp1,cfres)
+    !$omp parallel do private(i,i14,pos14,raw,g,grws,cfres)
     do i=1,nc 
       i14=cls(i)
       pos14 = offset14 + (i14-1)*nbytes14
