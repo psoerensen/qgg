@@ -328,7 +328,7 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   if (!is.null(GRMlist)) indx <- match(ids, GRMlist$idsG)
 
   fnr <- paste(paste(sample(letters, 10, replace = TRUE), collapse = ""), ".qgg", sep = "")
-  write.table(as.character(rfnames), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
+  #write.table(as.character(rfnames), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
 
   fnGCHAR = matrix(as.integer(0), nrow = nr-1, ncol = 1000)
   ncharsg = rep(as.integer(0), length = nr-1)
@@ -367,7 +367,7 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
     fnGCHAR = matrix(as.integer(fnGCHAR), nrow = nr-1, ncol = 1000),
     PACKAGE = "qgg"
   )
-  file.remove("param.qgg")
+  #file.remove("param.qgg")
   
   fit$ids <- names(y)
   fit$yVy <- sum(y * fit$Vy)

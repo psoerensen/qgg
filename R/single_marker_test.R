@@ -184,12 +184,14 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
   if (!is.null(W)) {
     if (any(!ids == rownames(W))) stop("Some names of y does not match rownames of W")
     if (!is.null(X)) y <- residuals(lm(y ~ X))
+    if (is.null(X)) y <- residuals(lm(y ~ 1))
     res <- smlm(y = y, X = X, W = W)
     if (nt == 1) res <- as.matrix(as.data.frame(res))
   }
   if (!is.null(Glist)) {
     if (any(!ids %in% Glist$ids)) stop("Some names of y does not match names in Glist$ids")
     if (!is.null(X)) y <- as.matrix(residuals(lm(y ~ X)))
+    if (is.null(X)) y <- as.matrix(residuals(lm(y ~ 1)))
     nt <- ncol(y)
     m <- Glist$m
     n <- Glist$n

@@ -129,7 +129,7 @@ computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     if (OS == "windows") fnRAW <- tolower(gsub("/", "\\", fnRAW, fixed = T))
     if (OS == "windows") fnG <- gsub("/", "\\", fnG, fixed = T)
 
-    write.table(c(as.character(fnRAW),as.character(fnG)), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
+    #write.table(c(as.character(fnRAW),as.character(fnG)), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
     
     res <- .Fortran("grmbed",
       n = as.integer(n),
@@ -150,7 +150,7 @@ computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
       # G = matrix(as.double(0),nrow=nr,ncol=nr),
       PACKAGE = "qgg"
     )
-    file.remove("param.qgg")
+    #file.remove("param.qgg")
     if (!returnGRM) return(GRMlist)
     if (returnGRM) {
       GRM <- getGRM(GRMlist = GRMlist, ids = GRMlist$idsG)

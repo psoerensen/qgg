@@ -203,7 +203,7 @@ fbed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = 
       stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
     }
     close(bfBED)
-    write.table(c(as.character(fnBED),as.character(fnRAW)), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
+    #write.table(c(as.character(fnBED),as.character(fnRAW)), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
 
     append <- 1
     if (chr == 1) append <- 0
@@ -219,7 +219,7 @@ fbed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = 
       PACKAGE = "qgg"
     )
     print(paste("Finished processing bedfile:", bedfiles[chr]))
-    file.remove("param.qgg")
+    #file.remove("param.qgg")
   }
 }
 
@@ -241,7 +241,7 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   nc <- length(cls)
   af <- nmiss <- n0 <- n1 <- n2 <- rep(0, nc)
 
-  write.table(as.character(fnRAW), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
+  #write.table(as.character(fnRAW), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
 
   qc <- .Fortran("summarybed",
     n = as.integer(n),
@@ -260,7 +260,7 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     ncores = as.integer(ncores),
     PACKAGE = "qgg"
   )
-  file.remove("param.qgg")
+  #file.remove("param.qgg")
   
   qc$hom <- (qc$n0 + qc$n2) / (qc$nr - qc$nmiss)
   qc$het <- qc$n1 / (qc$nr - qc$nmiss)
@@ -359,7 +359,7 @@ getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
     ids <- as.character(fam[rws, 2])
     rsids <- as.character(bim[cls, 2])
   }
-  write.table(as.character(fnRAW), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
+  #write.table(as.character(fnRAW), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
   W <- .Fortran("readbed",
     n = as.integer(n),
     nr = as.integer(nr),
@@ -377,7 +377,7 @@ getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
   )$W
   rownames(W) <- ids
   colnames(W) <- rsids
-  file.remove("param.qgg")
+  #file.remove("param.qgg")
   return(W)
 }
 
