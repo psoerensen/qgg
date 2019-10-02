@@ -318,8 +318,8 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
 
   n <- length(y)
   nf <- ncol(X)
-  if (!is.null(G)) rfnames <- paste("G", 1:length(G), sep = "")
-  if (!is.null(G)) rfnames <- paste(getwd(), rfnames, sep = "/")
+  #if (!is.null(G)) rfnames <- paste("G", 1:length(G), sep = "")
+  #if (!is.null(G)) rfnames <- paste(getwd(), rfnames, sep = "/")
   if (!is.null(GRMlist)) rfnames <- GRMlist$fnG
   nr <- length(rfnames) + 1
   if (!is.null(G)) ngr <- nrow(G[[1]])

@@ -214,7 +214,7 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
       se[cls, ] <- res[[2]]
       stat[cls, ] <- res[[3]]
       p[cls, ] <- res[[4]]
-      print(paste("Finished block", i, "out of", nsets, "blocks"))
+      message(paste("Finished block", i, "out of", nsets, "blocks"))
     }
     cls <- unlist(sets)
     res <- list(coef = s[cls, ], se = se[cls, ], stat = stat[cls, ], p = p[cls, ])

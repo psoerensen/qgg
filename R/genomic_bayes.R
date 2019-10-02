@@ -172,7 +172,6 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
       mu[t] <- rnorm(1, mean = rhs / lhs, sd = 1 / sqrt(lhs))
     }
     mus[i, ] <- mu
-    print(i)
     for (t in 1:nt) {
       e <- y[, t] - mu[t] - rowSums(as.matrix(g$values[[t]]))
       p <- (1 / sqrt(2 * pi)) * exp(-0.5 * (e**2))
@@ -233,7 +232,6 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
     shl2 <- p + lshape0 # Park & Casella
     ratel2 <- sum(1 / (invtau2)) / 2 + lrate0 # Park & Casella
     lambda2 <- rgamma(n = 1, shape = shl2, rate = ratel2) # Park & Casella
-    print(lambda2)
     if (!is.null(lambda0)) lambda2 <- lambda0
 
     # sample sigma
@@ -244,9 +242,9 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
     sce <- sum(e**2) + sum((b * invtau2 * b))
     sigma2 <- sce / rchisq(n = 1, df = she)
     if (!is.null(sigma0)) sigma2 <- sigma0
-    print(c(sum(e**2), sum((b * (1 / invtau2) * b)), sum((1 / invtau2))))
-    plot(b)
-    print(c(i, mu, lambda2, sigma2, cor(y, X %*% b)))
+    #print(c(sum(e**2), sum((b * (1 / invtau2) * b)), sum((1 / invtau2))))
+    #plot(b)
+    #print(c(i, mu, lambda2, sigma2, cor(y, X %*% b)))
   }
 }
 
@@ -322,16 +320,16 @@ mcbr <- function(y = NULL, X = NULL, nc = NULL, l1 = NULL, l2 = NULL, phi = NULL
     # phi <- rep(0.0001,nc)
     rws <- as.numeric(names(table(g)))
     # phi[rws] <- table(g)/p
-    print(c(i, phi))
+    #print(c(i, phi))
 
     # sample sigma
     she <- n
     sce <- sum(e**2)
     sigma2 <- sce / rchisq(n = 1, df = she)
 
-    plot(b)
-    print(table(g))
-    print(c(mu, sigma2))
+    #plot(b)
+    #print(table(g))
+    #print(c(mu, sigma2))
   }
 }
 
@@ -389,20 +387,20 @@ hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = 0.001, g0 = NULL, nsamp =
       g0[j] <- samp$g0
       g1[j] <- samp$g1
       Xs[, j] <- X[, cls] %*% bset[[j]]
-      print(c("round", i, j, "g", set[[j]][gset[[j]] == 1]))
+      #print(c("round", i, j, "g", set[[j]][gset[[j]] == 1]))
     }
     h2 <- apply(Xs, 2, var)
-    print(c("h2", h2))
+    #print(c("h2", h2))
     h2 <- h2 / sum(h2)
-    print(c("h2", h2))
+    #print(c("h2", h2))
 
-    barplot(h2)
-    print("")
-    print(c("round", i, "gset", sapply(gset, sum)))
-    print(c("round", i, "mu, sigma2", c(mu, sigma2)))
-    print(c("round", i, "g0", g0))
-    print(c("round", i, "g1", g1))
-    print(c("round", i, "cor", c(cor(y, Xs), cor(y, rowSums(Xs)), cor(y, rowSums(Xs[, 1:2])))))
+    #barplot(h2)
+    #print("")
+    #print(c("round", i, "gset", sapply(gset, sum)))
+    #print(c("round", i, "mu, sigma2", c(mu, sigma2)))
+    #print(c("round", i, "g0", g0))
+    #print(c("round", i, "g1", g1))
+    #print(c("round", i, "cor", c(cor(y, Xs), cor(y, rowSums(Xs)), cor(y, rowSums(Xs[, 1:2])))))
   }
 }
 
@@ -533,7 +531,7 @@ ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior 
     scg00 <- sum((b**2)[g == 0]) + scg0
     dfg00 <- sum(1 - g) + dfg0 - 2
     g00 <- scg00 / rchisq(n = 1, df = dfg00, ncp = 0)
-    print(c(g1, g00))
+    #print(c(g1, g00))
     g0 <- g00
 
     # sample g
@@ -544,10 +542,10 @@ ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior 
     g[1:p] <- 0
     g[ratio > u] <- 1
 
-    print("")
-    print(c("round", i, (1:p)[g == 1]))
-    print(c("round", i, c(mu, sigma2, g1)))
-    print(c("round", i, b[g == 1]))
+    #print("")
+    #print(c("round", i, (1:p)[g == 1]))
+    #print(c("round", i, c(mu, sigma2, g1)))
+    #print(c("round", i, b[g == 1]))
   }
 }
 
@@ -566,7 +564,7 @@ bglasso <- function(y = NULL, X = NULL, g = NULL, nsamp = 100, hgprior = list(sc
   for (j in 1:ng) {
     g1[j] <- 1 / sum(g == j)
   }
-  print(g1)
+  #print(g1)
   # g1 <- c(1,0.000001)                     # initialize slab variance
 
   sce0 <- hgprior$sce0 # prior residual sums of squares
@@ -612,9 +610,9 @@ bglasso <- function(y = NULL, X = NULL, g = NULL, nsamp = 100, hgprior = list(sc
 
     # sample g
 
-    print("")
-    print(c("round", i, (1:nb)[g == 1]))
-    print(c("round", i, c(mu, sigma, g1)))
-    print(c("round", i, b[g == 1]))
+    #print("")
+    #print(c("round", i, (1:nb)[g == 1]))
+    #print(c("round", i, c(mu, sigma, g1)))
+    #print(c("round", i, b[g == 1]))
   }
 }

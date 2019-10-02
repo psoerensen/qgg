@@ -173,7 +173,7 @@ gsru <- function(y = NULL, X = NULL, W = NULL, sets = NULL, lambda = NULL, weigh
     sold <- s
     bold <- bnew
     if (nit == maxit) break
-    print(paste("Iteration", nit, "delta", delta))
+    message(paste("Iteration", nit, "delta", delta))
   }
   ghat <- W %*% s
   if (!is.null(X)) b <- (solve(t(X) %*% X) %*% t(X)) %*% (y - ghat) # initialize b
@@ -256,7 +256,7 @@ rsolve <- function(y = NULL, X = NULL, Glist = NULL, ids = NULL, rsids = NULL, s
     sold <- s
     bold <- bnew
     if (nit == maxit) break
-    print(paste("Iteration", nit, "delta", delta))
+    message(paste("Iteration", nit, "delta", delta))
   }
   names(s) <- rsids
   ghat <- rep(0, Glist$n)
@@ -388,8 +388,8 @@ gscore <- function(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE, impute =
   rsidsOK <- stat$rsids %in% Glist$rsids
   if (any(!rsidsOK)) {
     warning("Some variants not found in genotype files")
-    print(paste("Number of variants missing;", sum(!rsidsOK)))
-    print(paste("Number of variants used;", sum(!rsidsOK)))
+    message(paste("Number of variants missing;", sum(!rsidsOK)))
+    message(paste("Number of variants used;", sum(!rsidsOK)))
     stat <- stat[rsidsOK, ]
     stat$rsids <- as.character(stat$rsids)
     stat$alleles <- as.character(stat$alleles)

@@ -1,6 +1,14 @@
 ## Resubmission
 This is a resubmission where I have:
 
+* Corrected description text.
+* Removed print statements in functions.
+* Ensured that functions do not write in users home filespace by default.
+
+
+## Resubmission
+This is a resubmission where I have:
+
 * Removed capital letters in description text.
 * Added more details about the package functionality in the DESCRIPTION file including a reference.
 * Unwrapped test examples and ensured they can be executed in less than 5 sec.

@@ -117,7 +117,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
       Glist$position[[chr]] <- as.numeric(bim[, 4])
       Glist$rsids[[chr]] <- as.character(bim[, 2])
       Glist$chr[[chr]] <- as.character(bim[, 1])
-      print(paste("Finished processing bim file", bimfiles[chr]))
+      message(paste("Finished processing bim file", bimfiles[chr]))
     }
     Glist$study_rsids <- unlist(Glist$rsids)
     if (!is.null(rsids)) Glist$study_rsids <- as.character(rsids)
@@ -135,24 +135,24 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
     Glist$n <- length(Glist$ids)
     Glist$m <- length(Glist$rsids)
 
-    print("Preparing raw file")
+    message("Preparing raw file")
     writeRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, overwrite = overwrite) # write genotypes to .raw file
 
-    print("Computing allele frequencies, missingness")
+    message("Computing allele frequencies, missingness")
     Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
 
   if (task == "summary") {
-    print("Computing allele frequencies, missingness")
+    message("Computing allele frequencies, missingness")
     Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
 
   if (task == "sparseld") {
-    print("Computing ld")
+    message("Computing ld")
     Glist$msize <- msize
     Glist$fnLD <- fnLD
     if (is.null(fnLD)) Glist$fnLD <- gsub(".bed", ".ld", bedfiles)
@@ -187,7 +187,7 @@ fbed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = 
     if (!overwrite) stop(paste("fnRAW file allready exist"))
   }
   for (chr in 1:length(bedfiles)) {
-    print(paste("Processing bedfile:", bedfiles[chr]))
+    message(paste("Processing bedfile:", bedfiles[chr]))
     bim <- fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
     fam <- fread(input = famfiles[chr], header = FALSE, data.table = FALSE)
     n <- nrow(fam)
@@ -218,7 +218,7 @@ fbed2raw <- function(fnRAW = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = 
       ncharraw = nchar(as.character(fnRAW)),
       PACKAGE = "qgg"
     )
-    print(paste("Finished processing bedfile:", bedfiles[chr]))
+    message(paste("Finished processing bedfile:", bedfiles[chr]))
     #file.remove("param.qgg")
   }
 }
@@ -309,7 +309,7 @@ getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
     if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
     if (any(is.na(cls))) {
       warning(paste("some rsids not found in Glist"))
-      print(rsids[is.na(cls)])
+      message(rsids[is.na(cls)])
     }
     if (!is.null(allele)) allele <- allele[!is.na(cls)]
     cls <- cls[!is.na(cls)]
@@ -343,7 +343,7 @@ getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
     cls <- match(rsids, as.character(bim[, 2]))
     if (any(is.na(cls))) {
       warning(paste("some rsids not found in bimfiles"))
-      print(rsids[is.na(cls)])
+      message(rsids[is.na(cls)])
     }
     if (!is.null(allele)) allele <- allele[!is.na(cls)]
     cls <- cls[!is.na(cls)]
@@ -390,7 +390,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
   n <- Glist$n
   rws <- 1:n
   if (!is.null(ids)) rws <- match(ids, Glist$ids)
-  print(paste("Compute LD using individuals listed in ids"))
+  message(paste("Compute LD using individuals listed in ids"))
   nr <- length(rws)
   nbytes <- ceiling(n / 4)
   if (!is.null(chr)) rsids <- Glist$rsids[Glist$chr == chr]
@@ -448,7 +448,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, msize = 100, chr = NULL, rsids =
         writeBin(ld, bfLD, size = 8, endian = "little")
       }
     }
-    print(paste("Finished block", j, "chromosome", chr))
+    message(paste("Finished block", j, "chromosome", chr))
   }
   close(bfLD)
 }

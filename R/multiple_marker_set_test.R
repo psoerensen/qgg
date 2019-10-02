@@ -259,7 +259,7 @@ gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e
       we2 <- as.vector((t(W) %*% e)**2)
       setstat <- c(setstat, we2)
     }
-    print(paste("Finished block", j, "out of", nsets, "blocks"))
+    message(paste("Finished block", j, "out of", nsets, "blocks"))
   }
   return(setstat)
 }
@@ -313,7 +313,7 @@ adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, l
             }
           }
         }
-        print(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
+        message(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
       }
       if (method == "clumping") {
         pstat[indx1, i] <- 0
