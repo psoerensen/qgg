@@ -19,11 +19,11 @@ Imports:
     parallel,
     statmod,
     stats,
+    MCMCpack,
     MASS
 RoxygenNote: 6.1.1
 Suggests:
     knitr,
-    rmarkdown,
-    MCMCpack
+    rmarkdown
 URL: https://github.com/psoerensen/qgg
 BugReports: https://github.com/psoerensen/qgg/issues
