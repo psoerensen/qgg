@@ -597,7 +597,9 @@
   enddo 
   !$omp end parallel do
 
-  cfres=fclose(fp)
+  do i=1,ncores
+   cfres=fclose(fp(i))
+  enddo
 
   do i=1,nprs
     do j=1,ncores
