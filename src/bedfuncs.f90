@@ -234,7 +234,6 @@
 
 !==============================================================================================================
   subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAWCHAR,nchars)
-!  subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,nchars)
 !==============================================================================================================
 
   use kinds 
@@ -256,15 +255,6 @@
   integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
   integer(c_int):: cfres
   type(c_ptr):: fp
-
-  !filename = 'param.qgg' // C_NULL_CHAR
-  !mode =  'r' // C_NULL_CHAR
-  !fp = fopen(filename, mode)
-  !cfres=fgets_char(filename,1000,fp)
-  !nchar=index(filename, '.raw')
-  !if(nchar==0) nchar=index(filename, '.bed')
-  !fnRAW(1:nchars) = filename(1:(nchar+3))
-  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -414,7 +404,6 @@
      
 !==============================================================================================================
   subroutine bed2raw(m,cls,nbytes,append,fnBEDCHAR,fnRAWCHAR,ncharbed,ncharraw)
-!  subroutine bed2raw(m,cls,nbytes,append,ncharbed,ncharraw)
 !==============================================================================================================
 
   use kinds 
@@ -438,15 +427,6 @@
   integer(c_int):: cfres
   type(c_ptr):: fp, fp1, fp2
   
-  !filename = 'param.qgg' // C_NULL_CHAR
-  !mode =  'r' // C_NULL_CHAR
-  !fp = fopen(filename, mode)
-  !cfres=fgets_char(filename3,1000,fp)
-  !fnBED(1:ncharbed) = filename3(1:ncharbed) 
-  !cfres=fgets_char(filename4,1000,fp)
-  !fnRAW(1:ncharraw) = filename4(1:ncharraw) 
-  !cfres=fclose(fp)
-
   do i=1,ncharraw
     fnRAW(i:i) = char(fnRAWCHAR(i))
   enddo
@@ -503,7 +483,6 @@
 
 !==============================================================================================================
   subroutine mpgrs(n,nr,rws,nc,cls,nbytes,fnRAWCHAR,nchars,nprs,s,prs,af,impute,direction,ncores)
-!  subroutine mpgrs(n,nr,rws,nc,cls,nbytes,nchars,nprs,s,prs,af,impute,direction,ncores)
 !==============================================================================================================
 
   use kinds 
@@ -511,8 +490,6 @@
   use iso_c_binding
   use f2cio
 
- 
-  
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc),nchars,fnRAWCHAR(nchars)
@@ -528,17 +505,7 @@
 
   integer(c_int64_t) :: pos14, nbytes14, offset14,i14
 
-
   integer(c_int), external :: omp_get_thread_num
-
-  !filename = 'param.qgg' // C_NULL_CHAR
-  !mode =  'r' // C_NULL_CHAR
-  !fp = fopen(filename, mode)
-  !cfres=fgets_char(filename,1000,fp)
-  !nchar=index(filename, '.raw')
-  !if(nchar==0) nchar=index(filename, '.bed')
-  !fnRAW(1:nchars) = filename(1:(nchar+3))
-  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -559,7 +526,6 @@
    fp(i) = fopen(filename, mode)
   enddo
  
-
   ntotal=dble(nr)  
 
   call omp_set_num_threads(ncores)
@@ -612,7 +578,6 @@
 
 !==============================================================================================================
   subroutine gstat(n,nr,rws,nc,cls,nbytes,fnRAWCHAR,nchars,nt,s,yadj,setstat,af,impute,scale,direction,ncores)
-!  subroutine gstat(n,nr,rws,nc,cls,nbytes,nchars,nt,s,yadj,setstat,af,impute,scale,direction,ncores)
 !==============================================================================================================
 
   use kinds 
@@ -639,15 +604,6 @@
 
   integer(c_int), external :: omp_get_thread_num
 
-  !filename = 'param.qgg' // C_NULL_CHAR
-  !mode =  'r' // C_NULL_CHAR
-  !fp = fopen(filename, mode)
-  !cfres=fgets_char(filename,1000,fp)
-  !nchar=index(filename, '.raw')
-  !if(nchar==0) nchar=index(filename, '.bed')
-  !fnRAW(1:nchars) = filename(1:(nchar+3))
-  !cfres=fclose(fp)
-
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
   enddo
@@ -663,7 +619,6 @@
   filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
   mode =  'rb' // C_NULL_CHAR
   fp = fopen(filename, mode)
-
 
   ntotal=dble(nr)  
 
@@ -708,7 +663,6 @@
 
 !==============================================================================================================
   subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAWCHAR,nchars,ncores)
-!  subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,nchars,ncores)
 !==============================================================================================================
 
   use kinds 
@@ -718,12 +672,12 @@
   
   implicit none
   
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,nchars,fnRAWCHAR(nchars) 
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,thread,nchars,fnRAWCHAR(nchars) 
   real(real64) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc),g(n),grws(nr)
   character(len=nchars, kind=c_char) :: fnRAW
-  character(len=20, kind=c_char) :: mode, mode1
-  character(len=1000, kind=c_char) :: filename, filename1
-  type(c_ptr):: fp, fp1
+  character(len=20, kind=c_char) :: mode
+  character(len=1000, kind=c_char) :: filename
+  type(c_ptr):: fp(ncores)
   integer(c_int) :: cfres 
 
   integer(kind=c_int8_t) :: raw(nbytes)
@@ -732,16 +686,6 @@
   integer(c_int64_t) :: pos14, nbytes14, offset14,i14
 
   integer(c_int), external :: omp_get_thread_num
-
-
-  !filename = 'param.qgg' // C_NULL_CHAR
-  !mode =  'r' // C_NULL_CHAR
-  !fp = fopen(filename, mode)
-  !cfres=fgets_char(filename,1000,fp)
-  !nchar=index(filename(1:nchars), '.raw')
-  !if(nchar==0) nchar=index(filename(1:nchars), '.bed')
-  !fnRAW(1:nchars) = filename(1:(nchar+3)) 
-  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -759,58 +703,34 @@
   nmiss=0.0D0
   ntotal=dble(nr) 
 
-  filename1 = fnRAW(1:(nchar+3)) // C_NULL_CHAR
-  mode1 =  'rb' // C_NULL_CHAR
+  filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
+  mode =  'rb' // C_NULL_CHAR
 
+  do i =1,ncores
+   fp(i) = fopen(filename, mode)
+  enddo
 
   call omp_set_num_threads(ncores)
 
-  ! process serial
-  if (ncores==1) then
-    fp1 = fopen(filename1, mode1)
-    do i=1,nc 
-      i14=cls(i)
-      pos14 = offset14 + (i14-1)*nbytes14
-      cfres=cseek(fp1,pos14,0)            
-      cfres=fread(raw(1:nbytes),1,nbytes,fp1)
-      !g = raw2int(n,nbytes,raw)
-      !grws = g(rws)
-      !nmiss(i)=dble(count(grws==3))
-      !n0(i)=dble(count(grws==0))
-      !n1(i)=dble(count(grws==1)) 
-      !n2(i)=dble(count(grws==2))
-      g = raw2real(n,nbytes,raw)
-      grws = g(rws)
-      nmiss(i)=dble(count(grws==3.0D0))
-      n0(i)=dble(count(grws==0.0D0))
-      n1(i)=dble(count(grws==1.0D0)) 
-      n2(i)=dble(count(grws==2.0D0))
-      if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
-    enddo 
-    cfres=fclose(fp1)
-  endif
+  !$omp parallel do private(i,i14,pos14,raw,g,grws,thread,cfres)
+  do i=1,nc
+    thread=omp_get_thread_num()+1
+    i14=cls(i)
+    pos14 = offset14 + (i14-1)*nbytes14
+    cfres=cseek(fp(thread),pos14,0)            
+    cfres=fread(raw(1:nbytes),1,nbytes,fp(thread))
+    g = raw2real(n,nbytes,raw)
+    grws = g(rws)
+    nmiss(i)=dble(count(grws==3.0D0))
+    n0(i)=dble(count(grws==0.0D0))
+    n1(i)=dble(count(grws==1.0D0)) 
+    n2(i)=dble(count(grws==2.0D0))
+     if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
+  enddo 
 
-  ! process parallel
-  if (ncores>1) then
-    fp1 = fopen(filename1, mode1)
-    !$omp parallel do private(i,i14,pos14,raw,g,grws,cfres)
-    do i=1,nc 
-      i14=cls(i)
-      pos14 = offset14 + (i14-1)*nbytes14
-      cfres=cseek(fp1,pos14,0)            
-      cfres=fread(raw(1:nbytes),1,nbytes,fp1)
-      g = raw2real(n,nbytes,raw)
-      grws = g(rws)
-      nmiss(i)=dble(count(grws==3.0D0))
-      n0(i)=dble(count(grws==0.0D0))
-      n1(i)=dble(count(grws==1.0D0)) 
-      n2(i)=dble(count(grws==2.0D0))
-      if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
-    enddo 
-    !$omp end parallel do
-    cfres=fclose(fp1)
-  endif
-
+  do i =1,ncores
+    cfres=fclose(fp(i))
+  enddo
 
 
   end subroutine summarybed
@@ -818,7 +738,6 @@
 
 !==============================================================================================================
   subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,fnRAWCHAR,nchars,msize,ncores,fnGCHAR,ncharsg,gmodel)
-!  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,nchars,msize,ncores,gmodel)
 !==============================================================================================================
 
   use kinds 
@@ -832,24 +751,12 @@
   integer(c_int) :: nchars,ncharsg,fnRAWCHAR(nchars),fnGCHAR(ncharsg)
   real(real64) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
   character(len=nchars, kind=c_char) :: fnRAW
-  character(len=1000, kind=c_char) :: fnG, filename,filename1
+  character(len=1000, kind=c_char) :: fnG, filename
   character(len=20, kind=c_char) :: mode
   type(c_ptr):: fp
   integer(c_int) :: cfres 
 
   call omp_set_num_threads(ncores)
-
-  !filename = 'param.qgg' // C_NULL_CHAR
-  !mode =  'r' // C_NULL_CHAR
-  !fp = fopen(filename, mode)
-  !cfres=fgets_char(filename,1000,fp)
-  !nchar=index(filename(1:nchars), '.raw')
-  !if(nchar==0) nchar=index(filename(1:nchars), '.bed')
-  !fnRAW(1:nchars) = filename(1:nchars) 
-  !cfres=fgets_char(filename,1000,fp)
-  !nchar=index(filename, '.grm')
-  !fnG(1:nchar) = filename(1:(nchar+3)) 
-  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -857,7 +764,6 @@
   do i=1,ncharsg
     fnG(i:i) = char(fnGCHAR(i))
   enddo
-
 
   G = 0.0D0
   W1 = 0.0D0
@@ -914,8 +820,8 @@
 
   nchar=index(fnG, '.grm')
   mode =  'wb' // C_NULL_CHAR
-  filename1 = fnG(1:(nchar+3)) // C_NULL_CHAR
-  fp = fopen(filename1, mode)
+  filename = fnG(1:(nchar+3)) // C_NULL_CHAR
+  fp = fopen(filename, mode)
   do j=1,size(G,1)
     if (gmodel<4) w = G(1:size(G,1),j)
     if (gmodel==4) w = G(1:size(G,1),j)**2
@@ -929,7 +835,6 @@
 
 !==============================================================================================================
   subroutine solvebed(n,nr,rws,nc,cls,scale,nbytes,fnRAWCHAR,nchars,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
-!  subroutine solvebed(n,nr,rws,nc,cls,scale,nbytes,nchars,ncores,nit,lambda,tol,y,g,e,s,mean,sd)
 !==============================================================================================================
 
   use kinds 
@@ -937,7 +842,7 @@
   use iso_c_binding
   use f2cio
 
-  !implicit none
+  implicit none
   
   integer(c_int) :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset,nchars,fnRAWCHAR(nchars)
   real(real64) :: y(n),e(n),raww(n),w(n),g(n)
@@ -956,15 +861,6 @@
   call omp_set_num_threads(ncores)
 
   if (scale==0) scale = 1
-
-  !filename = 'param.qgg' // C_NULL_CHAR
-  !mode =  'r' // C_NULL_CHAR
-  !fp = fopen(filename, mode)
-  !cfres=fgets_char(filename,1000,fp)
-  !nchar=index(filename, '.raw')
-  !if(nchar==0) nchar=index(filename, '.bed')
-  !fnRAW(1:nchars) = filename(1:(nchar+3))
-  !cfres=fclose(fp)
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
