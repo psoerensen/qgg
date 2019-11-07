@@ -520,7 +520,7 @@
   real(real64) :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: mode, filename
-  type(c_ptr):: fp
+  type(c_ptr):: fp(ncores)
   integer(c_int) :: cfres 
 
   integer(kind=c_int8_t) :: raw(nbytes)
@@ -554,7 +554,11 @@
 
   filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
   mode =  'rb' // C_NULL_CHAR
-  fp = fopen(filename, mode)
+
+  do i=1,ncores
+   fp(i) = fopen(filename, mode)
+  enddo
+ 
 
   ntotal=dble(nr)  
 
@@ -568,8 +572,8 @@
     thread=omp_get_thread_num()+1
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
-    cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp)
+    cfres=cseek(fp(thread),pos14,0)            
+    cfres=fread(raw(1:nbytes),1,nbytes,fp(thread))
     gr = raw2real(n,nbytes,raw)
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
