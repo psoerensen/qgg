@@ -40,11 +40,9 @@
 #' e <- rnorm(nrow(W),mean=0,sd=1)
 #' y <- g + e
 #'
-#' gbayes(y=y, W=W, method="blasso", nsamp=10)
-#' gbayes(y=y, W=W, method="ssvs", nsamp=10)
-#' gbayes(y=y, W=W, method="blr", nsets=7, nsamp=10)
-#' gbayes(y=y, W=W, method="ssvs", sets=sets, nsamp=10)
-#' gbayes(y=y, W=W, method="blasso", sets=sets, nsamp=10)
+#' gbayes(y=y, W=W, method="blasso", nsamp=50)
+#' gbayes(y=y, W=W, method="ssvs", nsamp=50)
+#' gbayes(y=y, W=W, method="blr", nsets=7, nsamp=50)
 
 
 #'
@@ -53,9 +51,9 @@
 
 gbayes <- function(y = NULL, W = NULL, sets = NULL, h2 = NULL, nsets = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001,
                    method = "blasso", phi = c(0.999, 0.001)) {
-  if (method == "blasso") res <- blasso(y = y, X = W, nsamp = nsamp)
-  if (method == "blr") res <- mcbr(y = y, X = W, nc = nsets, nsamp = nsamp)
-  if (method == "ssvs") res <- ssvs(y = y, X = W, , p1 = phi[length(phi)], g0 = 0.0000001, nsamp = nsamp)
+  if (method == "blasso") res <- blasso(y = y, X = W, nsamp = nsamp, nburn = nburn)
+  if (method == "blr") res <- mcbr(y = y, X = W, nc = nsets, nsamp = nsamp, nburn = nburn)
+  if (method == "ssvs") res <- ssvs(y = y, X = W, , p1 = phi[length(phi)], g0 = 0.0000001, nsamp = nsamp, nburn = nburn)
   if (!is.null(sets)) {
     nsets <- length(sets)
     g <- rep(0, times = ncol(W))
@@ -64,8 +62,9 @@ gbayes <- function(y = NULL, W = NULL, sets = NULL, h2 = NULL, nsets = NULL, nsa
     }
     g[g == 0] <- nsets + 1
   }
-  if (method == "blasso" && !is.null(sets)) res <- bglasso(y = y, X = W, g = g, nsamp = nsamp)
-  if (method == "ssvs" && !is.null(sets)) res <- hssvs(y = y, X = W, set = sets, p1 = 0.01, g0 = 0.0000001, nsamp = nsamp)
+  if (method == "blasso" && !is.null(sets)) res <- bglasso(y = y, X = W, g = g, nsamp = nsamp, nburn = nburn)
+  if (method == "ssvs" && !is.null(sets)) res <- hssvs(y = y, X = W, set = sets, p1 = 0.01, g0 = 0.0000001, nsamp = nsamp, nburn = nburn)
+  return(res)
 }
 
 bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001) {
@@ -190,7 +189,7 @@ bgfm <- function(y = NULL, g = NULL, nsamp = 50, nburn = 10, nsave = 10000, tol 
 
 
 
-blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 100) {
+blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 100, nburn=10) {
   n <- length(y) # number of observations
   p <- ncol(X) # number of regression variables
   dxx <- colSums(X**2) # diagonal elements of the X'X matrix
@@ -205,6 +204,7 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
   e <- as.vector(y - mu - X %*% b) # initialize residuals
   sigma2 <- var(e) / 2 # initialize sigma2
 
+  bp <- rep(0,length(b)) 
   for (i in 1:nsamp) {
 
     # sample mu and update residuals
@@ -242,16 +242,15 @@ blasso <- function(y = NULL, X = NULL, lambda0 = NULL, sigma0 = NULL, nsamp = 10
     sce <- sum(e**2) + sum((b * invtau2 * b))
     sigma2 <- sce / rchisq(n = 1, df = she)
     if (!is.null(sigma0)) sigma2 <- sigma0
-    #print(c(sum(e**2), sum((b * (1 / invtau2) * b)), sum((1 / invtau2))))
-    #plot(b)
-    #print(c(i, mu, lambda2, sigma2, cor(y, X %*% b)))
+    if(i>nburn) bp <- bp + b
   }
+  return(bp/(nsamp-nburn))
 }
 
 
 
 
-mcbr <- function(y = NULL, X = NULL, nc = NULL, l1 = NULL, l2 = NULL, phi = NULL, nsamp = 100) {
+mcbr <- function(y = NULL, X = NULL, nc = NULL, l1 = NULL, l2 = NULL, phi = NULL, nsamp = 100, nburn = 10) {
   n <- length(y) # number of observations
   p <- ncol(X) # number of regression variables
 
@@ -280,6 +279,7 @@ mcbr <- function(y = NULL, X = NULL, nc = NULL, l1 = NULL, l2 = NULL, phi = NULL
 
   sigma2 <- var(e) / 2 # initialize sigma2
 
+  bp <- rep(0,length(b)) 
 
   for (i in 1:nsamp) {
 
@@ -327,17 +327,17 @@ mcbr <- function(y = NULL, X = NULL, nc = NULL, l1 = NULL, l2 = NULL, phi = NULL
     sce <- sum(e**2)
     sigma2 <- sce / rchisq(n = 1, df = she)
 
-    #plot(b)
-    #print(table(g))
-    #print(c(mu, sigma2))
+    if(i>nburn) bp <- bp + b
   }
+  return(bp/(nsamp-nburn))
+  
 }
 
 
 
 
 
-hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = 0.001, g0 = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
+hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = 0.001, g0 = NULL, nsamp = 100, nburn = 10, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
   n <- length(y) # number of observations
   p <- ncol(X) # number of regression variables
   dxx <- colSums(X**2) # diagonal elements of the X'X matrix
@@ -387,20 +387,9 @@ hssvs <- function(y = NULL, X = NULL, set = NULL, p1 = 0.001, g0 = NULL, nsamp =
       g0[j] <- samp$g0
       g1[j] <- samp$g1
       Xs[, j] <- X[, cls] %*% bset[[j]]
-      #print(c("round", i, j, "g", set[[j]][gset[[j]] == 1]))
     }
     h2 <- apply(Xs, 2, var)
-    #print(c("h2", h2))
     h2 <- h2 / sum(h2)
-    #print(c("h2", h2))
-
-    #barplot(h2)
-    #print("")
-    #print(c("round", i, "gset", sapply(gset, sum)))
-    #print(c("round", i, "mu, sigma2", c(mu, sigma2)))
-    #print(c("round", i, "g0", g0))
-    #print(c("round", i, "g1", g1))
-    #print(c("round", i, "cor", c(cor(y, Xs), cor(y, rowSums(Xs)), cor(y, rowSums(Xs[, 1:2])))))
   }
 }
 
@@ -467,7 +456,7 @@ hssvs_ssvs <- function(e = e, X = X, b = b, dxx = dxx, mu = mu, g = g, sigma2 = 
 
 
 
-ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
+ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, nburn= 10, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
   n <- length(y) # number of observations
   p <- ncol(X) # number of regression variables
   dxx <- colSums(X**2) # diagonal elements of the X'X matrix
@@ -493,6 +482,9 @@ ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior 
 
   Xs <- as.vector(X)
 
+  gpost <- rep(0,length(b))
+  bpost <- rep(0,length(b))
+  
   for (i in 1:nsamp) {
 
     # sample mu and update residuals
@@ -541,16 +533,22 @@ ssvs <- function(y = NULL, X = NULL, p1 = NULL, g0 = NULL, nsamp = 100, hgprior 
     u <- 1 / (1 - runif(p, 0, 1))
     g[1:p] <- 0
     g[ratio > u] <- 1
-
+   
+    gpost <- gpost + g 
+    bpost <- bpost + b 
+    
     #print("")
     #print(c("round", i, (1:p)[g == 1]))
     #print(c("round", i, c(mu, sigma2, g1)))
     #print(c("round", i, b[g == 1]))
   }
+  bpost <- bpost/nsamp
+  gpost <- gpost/nsamp
+  return(list(g=gpost,b=bpost))
 }
 
 
-bglasso <- function(y = NULL, X = NULL, g = NULL, nsamp = 100, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
+bglasso <- function(y = NULL, X = NULL, g = NULL, nsamp = 100, nburn = 10, hgprior = list(sce0 = 0.001, scg0 = 0.001, dfe0 = 4, dfg0 = 4)) {
   n <- length(y) # number of observations
   nb <- ncol(X) # number of regression variables
   ng <- length(unique(g)) # number of groups
