@@ -1,6 +1,13 @@
 ## Resubmission
 This is a resubmission where I have:
 
+* Changed maintainer email address.
+* Fixed minor bugs related to multi-core processing of bed files.
+
+
+## Resubmission
+This is a resubmission where I have:
+
 * Corrected Date Field.
 
 ## Resubmission
