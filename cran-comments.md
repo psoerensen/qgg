@@ -3,6 +3,7 @@ This is a resubmission where I have:
 
 * Changed maintainer email address.
 * Fixed minor bugs related to multi-core processing of bed files.
+* Removed knitr/rmarkdown from suggest.
 
 
 ## Resubmission
