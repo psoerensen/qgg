@@ -12,6 +12,122 @@
     end module kinds
 
 
+  module f2cio
+  
+  use iso_c_binding
+
+  implicit none
+  private
+  public :: fopen, fclose, fread, fwrite, fwrite_real, fread_real, fgets_char, cseek 
+
+     
+  interface
+
+     function fopen(filename, mode) bind(C,name='fopen')
+       !filename: file name to associate the file stream to 
+       !mode: null-terminated character string determining file access mode 
+       import
+       implicit none
+       type(c_ptr) fopen
+       character(kind=c_char), intent(in) :: filename(*)
+       character(kind=c_char), intent(in) :: mode(*)
+     end function fopen
+
+     function fclose(fp) bind(C,name='fclose')
+       !fp: the file stream to close 
+       import
+       implicit none
+       integer(c_int) fclose
+       type(c_ptr), value :: fp
+     end function fclose
+     
+     function fread(buffer,size,nbytes,fp) bind(C,name='fread')
+       ! buffer: pointer to the array where the read objects are stored 
+       ! size: size of each object in bytes 
+       ! count: the number of the objects to be read 
+       ! fp: the stream to read 
+       import
+       implicit none
+       integer(c_int) fread
+       integer(kind=c_int), value :: size
+       integer(kind=c_int), value :: nbytes
+       integer(kind=c_int8_t), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: fp
+     end function fread
+     
+     function cseek(fp,offset,origin) bind(C,name='fseek')
+       !fp: file stream to modify 
+       !offset: number of characters to shift the position relative to origin 
+       !origin: position to which offset is added (SEEK_SET, SEEK_CUR, SEEK_END) 
+       import
+       implicit none
+       integer(c_int) cseek
+       type(c_ptr), value :: fp
+       integer(kind=c_int64_t), value :: offset
+       integer(kind=c_int), value :: origin
+     end function cseek
+     
+     function fwrite(buffer,size,nbytes,fp) bind(C,name='fwrite')
+       ! buffer: pointer to the array where the write objects are stored 
+       ! size: size of each object in bytes 
+       ! count: the number of the objects to be written 
+       ! fp: the stream to write 
+       import
+       implicit none
+       integer(c_int) fwrite
+       integer(kind=c_int), value :: size
+       integer(kind=c_int), value :: nbytes
+       integer(kind=c_int8_t), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: fp
+     end function fwrite
+
+     function fwrite_real(buffer,size,nbytes,fp) bind(C,name='fwrite')
+       ! buffer: pointer to the array where the write objects are stored 
+       ! size: size of each object in bytes 
+       ! count: the number of the objects to be written 
+       ! fp: the stream to write 
+       import
+       implicit none
+       integer(c_int) fwrite_real
+       integer(kind=c_int), value :: size
+       integer(kind=c_int), value :: nbytes
+       real(c_double), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: fp
+     end function fwrite_real
+
+     function fread_real(buffer,size,nbytes,fp) bind(C,name='fread')
+       ! buffer: pointer to the array where the read objects are stored 
+       ! size: size of each object in bytes 
+       ! count: the number of the objects to be read 
+       ! fp: the stream to read 
+       import
+       implicit none
+       integer(c_int) fread_real
+       integer(kind=c_int), value :: size
+       integer(kind=c_int), value :: nbytes
+       real(kind=c_double), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: fp
+     end function fread_real
+
+     function fgets_char(buffer,nbytes,fp) bind(C,name='fgets')
+       ! buffer: pointer to the array where the read objects are stored 
+       ! count: the number of the objects to be read 
+       ! fp: the stream to read 
+       import
+       implicit none
+       integer(c_int) fgets_char
+       integer(kind=c_int), value :: nbytes
+       character(kind=c_char) :: buffer(1000) 
+       type(c_ptr), value :: fp
+     end function fgets_char
+
+
+
+  end interface
+     
+  end module f2cio
+
+
     module global
 
     use kinds
@@ -222,7 +338,7 @@
     real(c_double) :: tol
     real(c_double)  :: y(n),X(n,nf),theta(nr)
     character(len=1000, kind=c_char)::  rfnames(nr-1)
-    character(len=1000, kind=c_char) :: filename1,filename2,filename3
+    character(len=1000, kind=c_char) :: filename2,filename3
     character(len=20, kind=c_char) :: mode
 
     
@@ -232,7 +348,7 @@
     real(c_double) :: VX(n,nf),XVX(nf,nf),VXXVX(n,nf),Vy(n),Py(n),Pu(n,nr),gr(n,nr-1),varb(nf,nf) 
     real(c_double) :: llik, ldV, ldXVX, yPy
 
-    type(c_ptr):: fileunit(nr-1), fp
+    type(c_ptr):: fileunit(nr-1)
     
     if (c_double /= kind(1.0d0))  &
     error stop 'Default REAL isn''t interoperable with FLOAT!!'

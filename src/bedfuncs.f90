@@ -183,8 +183,8 @@
   integer(c_int), intent(in) :: nbytes,n
   integer(c_int8_t), intent(in) :: raw(nbytes)
   integer(c_int) :: i,j,k,rawbits
-  real(real64) :: w(n)
-  real(real64), dimension(4) :: rawcodes
+  real(c_double) :: w(n)
+  real(c_double), dimension(4) :: rawcodes
  
   rawcodes = (/ 0.0D0, 3.0D0, 1.0D0, 2.0D0 /)
   ! 00 01 10 11
@@ -211,8 +211,8 @@
   implicit none
 
   integer(c_int), intent(in) :: nr
-  real(real64), intent(in) :: g(nr)
-  real(real64) :: mean,sd,tol,nsize,w(nr)
+  real(c_double), intent(in) :: g(nr)
+  real(c_double) :: mean,sd,tol,nsize,w(nr)
 
   tol=0.00001D0
   w=g
@@ -244,10 +244,10 @@
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars,fnRAWCHAR(nchars) 
-  real(real64) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  real(c_double) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
 
   character(len=nchars, kind=c_char) :: fnRAW
-  character(len=1000, kind=c_char) :: mode, filename, filename1
+  character(len=1000, kind=c_char) :: mode, filename
   
   integer(kind=c_int8_t) :: raw(nbytes,nc)
   integer(c_int) :: i,nchar,offset
@@ -272,8 +272,8 @@
   mode =  'rb' // C_NULL_CHAR
   fp = fopen(filename, mode)
 
-  if (c_double /= kind(1.0d0))  &
-    error stop 'Default REAL isn''t interoperable with FLOAT!!'
+  !if (c_double /= kind(1.0d0))  &
+  !  error stop 'Default REAL isn''t interoperable with FLOAT!!'
 
   do i=1,nc
     i14=cls(i)
@@ -332,7 +332,7 @@
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
-  real(real64) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+  real(c_double) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
 
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: mode, filename
@@ -356,8 +356,8 @@
   mode =  'rb' // C_NULL_CHAR
   fp = fopen(filename, mode)
 
-  if (c_double /= kind(1.0d0))  &
-    error stop 'Default REAL isn''t interoperable with FLOAT!!'
+  !if (c_double /= kind(1.0d0))  &
+  !  error stop 'Default REAL isn''t interoperable with FLOAT!!'
 
   do i=1,nc
     i14=cls(i)
@@ -416,8 +416,8 @@
   integer(c_int) :: m,cls(m),nbytes,append,ncharbed,ncharraw,fnRAWCHAR(ncharraw),fnBEDCHAR(ncharbed)  
   character(len=ncharbed, kind=c_char) :: fnBED
   character(len=ncharraw, kind=c_char) :: fnRAW
-  character(len=20, kind=c_char) :: mode, mode1, mode2
-  character(len=1000, kind=c_char) :: filename,filename1,filename2, filename3,filename4
+  character(len=20, kind=c_char) :: mode1, mode2
+  character(len=1000, kind=c_char) :: filename1,filename2
 
   integer(kind=c_int8_t) :: raw(nbytes), magic(3)
   integer(c_int) :: i,offset,nchar
@@ -425,7 +425,7 @@
   integer(c_int64_t) :: pos14, nbytes14, offset14,i14
 
   integer(c_int):: cfres
-  type(c_ptr):: fp, fp1, fp2
+  type(c_ptr):: fp1, fp2
   
   do i=1,ncharraw
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -493,8 +493,8 @@
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nprs,ncores,thread,impute,direction(nc),nchars,fnRAWCHAR(nchars)
-  real(real64) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
-  real(real64) :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
+  real(c_double) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
+  real(c_double) :: prs(nr,nprs),s(nc,nprs),prsmp(nr,nprs,ncores)
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: mode, filename
   type(c_ptr):: fp(ncores)
@@ -589,8 +589,8 @@
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc),nchars,fnRAWCHAR(nchars)
-  real(real64) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
-  real(real64) :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
+  real(c_double) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
+  real(c_double) :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
 
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: mode, filename
@@ -673,7 +673,7 @@
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,thread,nchars,fnRAWCHAR(nchars) 
-  real(real64) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc),g(n),grws(nr)
+  real(c_double) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc),g(n),grws(nr)
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=20, kind=c_char) :: mode
   character(len=1000, kind=c_char) :: filename
@@ -749,7 +749,7 @@
   
   integer(c_int) :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc)
   integer(c_int) :: nchars,ncharsg,fnRAWCHAR(nchars),fnGCHAR(ncharsg)
-  real(real64) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
+  real(c_double) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: fnG, filename
   character(len=20, kind=c_char) :: mode
@@ -845,14 +845,14 @@
   implicit none
   
   integer(c_int) :: i,n,nr,nc,rws(nr),cls(nc),scale,nbytes,nit,it,ncores,nchar,offset,nchars,fnRAWCHAR(nchars)
-  real(real64) :: y(n),e(n),raww(n),w(n),g(n)
-  real(real64) :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
-  real(real64) :: lhs,rhs,snew,tol
+  real(c_double) :: y(n),e(n),raww(n),w(n),g(n)
+  real(c_double) :: dww(nc),s(nc),os(nc),lambda(nc),mean(nc),sd(nc)
+  real(c_double) :: lhs,rhs,snew,tol
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: mode, filename
   type(c_ptr):: fp
   integer(c_int) :: cfres 
-  real(real64), external  :: ddot
+  real(c_double), external  :: ddot
 
   integer(kind=c_int8_t) :: raw(nbytes)
  
@@ -944,7 +944,7 @@
   
   integer(c_int) :: m,nsets,msets(nsets),p(nsets),np,ncores   
   integer(c_int) :: i,j,k1,k2,maxm,thread,multicore   
-  real(real64) :: stat(m),setstat(nsets),u,pstat
+  real(c_double) :: stat(m),setstat(nsets),u,pstat
   integer(c_int), external :: omp_get_thread_num
 
   p=0
@@ -1008,7 +1008,7 @@
 
   external dsyev
   integer(c_int) :: n,l,info,ncores
-  real(real64) :: GRM(n,n),evals(n),work(n*(3+n/2))
+  real(c_double) :: GRM(n,n),evals(n),work(n*(3+n/2))
 
   call omp_set_num_threads(ncores)
 
