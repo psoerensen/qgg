@@ -63,12 +63,14 @@
 #' bimfiles <- system.file("extdata", "sample_22.bim", package = "qgg")
 #' famfiles <- system.file("extdata", "sample_22.fam", package = "qgg")
 #' 
-#' fnRAW <- tempfile(fileext=".raw")
+#' if(!grepl("^darwin", R.version$os)) {
+#'   fnRAW <- tempfile(fileext=".raw")
 #' 
-#' Glist <- gprep(study="1000G", fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles,
+#'   Glist <- gprep(study="1000G", fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles,
 #'                famfiles=famfiles, overwrite=TRUE)
 #' 
-#' file.remove(fnRAW)
+#'   file.remove(fnRAW)
+#' }
 #' 
 
 

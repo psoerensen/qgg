@@ -1,4 +1,15 @@
 ## Resubmission
+This is a resubmission where I have fixed the following issues encountered on CRAN checks:
+
+* Fixed issues related to using fortran modules when building in parallel.
+* Removed unused variables in fortran code.
+* Fixed issue with a type mismatch in fortran code (LTO).
+
+* The revised version passes check_for_cran() checks on all platforms.
+* There was a note about misspelling, but checked that spelling is correct. 
+
+
+## Resubmission
 This is a resubmission where I have:
 
 * Changed maintainer email address.
