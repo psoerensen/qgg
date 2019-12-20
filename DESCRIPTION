@@ -1,8 +1,8 @@
 Package: qgg
 Type: Package
 Title: Statistical Tools for Quantitative Genetic Analyses
-Version: 1.0.1
-Date: 2019-12-17
+Version: 1.0.2
+Date: 2019-12-20
 Authors@R: c(person("Peter", "Soerensen", email = "peter.sorensen@r-qgg.org",
                   role = c("aut", "cre")),
                   person("Palle", "Duun Rohde", email = "palle.d.rohde@mbg.au.dk",

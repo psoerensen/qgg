@@ -4,9 +4,7 @@ R_ARCH :=		--arch $(shell echo 'cat(.Platform$$r_arch)' | R --vanilla --slave)
 PKG_FCFLAGS= $(SHLIB_OPENMP_FFLAGS) 
 PKG_LIBS= $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CFLAGS) -fopenmp
 
-all: $(SHLIB) clean
+all: $(SHLIB) 
 
-clean:
-	rm -f *.o *.mod 
 
 

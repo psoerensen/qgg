@@ -2,8 +2,5 @@ PKG_FCFLAGS= $(SHLIB_OPENMP_FFLAGS)
 
 PKG_LIBS= $(SHLIB_OPENMP_CFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) -fopenmp -std=f2003
 
-all: $(SHLIB) clean
-
-clean:
-	rm -f *.o *.mod 
+all: $(SHLIB) 
 
