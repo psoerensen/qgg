@@ -4,16 +4,16 @@ This is a new submission where I have fixed the following issues encountered on 
 * Fixed additional issues related to build errors on fedora and solaris.
 * There was a note about misspelling, but checked that spelling is correct. 
 
-results for check_for_cran():
+Results for check_for_cran():
 https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-a540802ec69c4f638a151281ace10d04
 https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-373e5c42343c48668d01404dd245368c
 https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-ab63afc69f3e487abed63c0e2c2c619b
 https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-82f2343493d945f6afa08c1afed78a31
 
-results for check_on_solaris():
+Results for check_on_solaris():
 https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-bf9b0c0140514b7ca9d9ab757cffc034
 
-results for check_on_fedora():
+Results for check_on_fedora():
 https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-4af8e98b21b24a7383476a92e0c18600
 
 
