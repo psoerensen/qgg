@@ -12,7 +12,7 @@
     end module kinds
 
 
-  module f2cio
+  module f2ciobig
   
   use iso_c_binding
 
@@ -125,14 +125,14 @@
 
   end interface
      
-  end module f2cio
+  end module f2ciobig
 
 
     module global
 
     use kinds
     use iso_c_binding
-    use f2cio
+    use f2ciobig
 
     implicit none
     public
@@ -155,7 +155,7 @@
     use kinds
     use global
     use iso_c_binding
-    use f2cio
+    use f2ciobig
  
     implicit none
     
@@ -238,7 +238,7 @@
     use global
     use bigfuncs
     use iso_c_binding
-    use f2cio
+    use f2ciobig
     
     implicit none
     
@@ -329,7 +329,7 @@
     use bigsubs
     use bigfuncs
     use iso_c_binding
-    use f2cio
+    use f2ciobig
 
     implicit none
 
@@ -350,8 +350,8 @@
 
     type(c_ptr):: fileunit(nr-1)
     
-    if (c_double /= kind(1.0d0))  &
-    error stop 'Default REAL isn''t interoperable with FLOAT!!'
+    !if (c_double /= kind(1.0d0))  &
+    !error stop 'Default REAL isn''t interoperable with FLOAT!!'
 
     ! allocate variables
     allocate(indxg(n))
