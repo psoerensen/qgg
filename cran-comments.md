@@ -2,19 +2,22 @@
 This is a new submission where I have fixed the following issues encountered on CRAN checks:
 
 * Fixed additional issues related to build errors on fedora and solaris.
-* There was a note about misspelling, but checked that spelling is correct. 
-
+* There was a note about misspelling, but checked that spelling is correct.
+* There was a note that package was archived on CRAN due to "reported installation issued was ignored in update".
+* Clearly last updates did not fix the installation issues. 
+* New updates appear to have fixed previous installation issued which can be verified in the check links provided below.  
+ 
 Results for check_for_cran():
-https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-a540802ec69c4f638a151281ace10d04
-https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-373e5c42343c48668d01404dd245368c
-https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-ab63afc69f3e487abed63c0e2c2c619b
-https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-82f2343493d945f6afa08c1afed78a31
+   https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-1dcb3475744a4294b8114d6aa8936b98
+   https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-057edb786f4a4d6dbb9f449d9492dc9d
+   https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-37b08a62e5474ce6be940589d6f0ca1b
+   https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-5fe973bab2564cf39172fbded9fc5cc7
 
 Results for check_on_solaris():
-https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-bf9b0c0140514b7ca9d9ab757cffc034
+   https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-6759129787ba448880e6aa81de6044dc
 
 Results for check_on_fedora():
-https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-4af8e98b21b24a7383476a92e0c18600
+   https://builder.r-hub.io/status/qgg_1.0.2.tar.gz-36362d7179774f43b766b48b5f2eb752
 
 
 ## Submission
