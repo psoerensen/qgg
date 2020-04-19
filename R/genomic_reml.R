@@ -208,7 +208,7 @@ remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
       break
     }
   }
-  if (verbose) print(paste(c("Converged at Iteration:", it, "Theta:", round(theta, 2)), sep = ""))
+  if (it < maxit & verbose) print(paste(c("Converged at Iteration:", it, "Theta:", round(theta, 2)), sep = ""))
   V <- matrix(0, n, n)
   for (i in 1:np) {
     V <- V + G[[i]] * theta[i]
