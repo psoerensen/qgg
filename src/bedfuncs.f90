@@ -27,7 +27,7 @@
 
   implicit none
   private
-  public :: fopen, fclose, fread, fwrite, fwrite_real, fread_real, fgets_char, cseek 
+  public :: fopen, fclose, fcread, fcwrite, fwrite_real, fread_real, fgets_char, cseek 
 
      
   interface
@@ -50,19 +50,19 @@
        type(c_ptr), value :: fp
      end function fclose
      
-     function fread(buffer,size,nbytes,fp) bind(C,name='fread')
+     function fcread(buffer,size,nbytes,fp) bind(C,name='fread')
        ! buffer: pointer to the array where the read objects are stored 
        ! size: size of each object in bytes 
        ! count: the number of the objects to be read 
        ! fp: the stream to read 
        import
        implicit none
-       integer(c_int) fread
+       integer(c_int) fcread
        integer(kind=c_int), value :: size
        integer(kind=c_int), value :: nbytes
        integer(kind=c_int8_t), dimension(nbytes) :: buffer 
        type(c_ptr), value :: fp
-     end function fread
+     end function fcread
      
      function cseek(fp,offset,origin) bind(C,name='fseek')
        !fp: file stream to modify 
@@ -76,19 +76,19 @@
        integer(kind=c_int), value :: origin
      end function cseek
      
-     function fwrite(buffer,size,nbytes,fp) bind(C,name='fwrite')
+     function fcwrite(buffer,size,nbytes,fp) bind(C,name='fwrite')
        ! buffer: pointer to the array where the write objects are stored 
        ! size: size of each object in bytes 
        ! count: the number of the objects to be written 
        ! fp: the stream to write 
        import
        implicit none
-       integer(c_int) fwrite
+       integer(c_int) fcwrite
        integer(kind=c_int), value :: size
        integer(kind=c_int), value :: nbytes
        integer(kind=c_int8_t), dimension(nbytes) :: buffer 
        type(c_ptr), value :: fp
-     end function fwrite
+     end function fcwrite
 
      function fwrite_real(buffer,size,nbytes,fp) bind(C,name='fwrite')
        ! buffer: pointer to the array where the write objects are stored 
@@ -279,7 +279,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14 
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes,i),1,nbytes,fp)
+    cfres=fcread(raw(1:nbytes,i),1,nbytes,fp)
   enddo
   cfres=fclose(fp)
   
@@ -363,7 +363,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14 
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes,i),1,nbytes,fp)
+    cfres=fcread(raw(1:nbytes,i),1,nbytes,fp)
   enddo
   cfres=fclose(fp)
   
@@ -439,7 +439,7 @@
   mode1 =  'rb' // C_NULL_CHAR
   filename1 = fnBED(1:ncharbed) // C_NULL_CHAR
   fp1 = fopen(filename1, mode1)
-  cfres=fread(magic,1,3,fp1)
+  cfres=fcread(magic,1,3,fp1)
 
   ! output bedfile
   !nchar=index(fnRAW, '.bed')
@@ -447,7 +447,7 @@
   ! filename2(1:(nchar+3)) = fnRAW(1:(nchar+3)) // C_NULL_CHAR
   ! if (append==0) mode2 =  'wb' // C_NULL_CHAR
   ! if (append==0) fp2 = fopen(filename2, mode2)
-  ! if (append==0) cfres=fwrite(magic,1,3,fp2) 
+  ! if (append==0) cfres=fcwrite(magic,1,3,fp2) 
   ! if (append==1) mode2 =  'ab' // C_NULL_CHAR
   ! if (append==1) fp2 = fopen(filename2, mode2)
   !endif
@@ -468,8 +468,8 @@
     if(cls(i)==1) then
     i14=i
     pos14 = offset14 + (i14-1)*nbytes14
-    cfres=fread(raw,1,nbytes,fp1)
-    cfres=fwrite(raw,1,nbytes,fp2)
+    cfres=fcread(raw,1,nbytes,fp1)
+    cfres=fcwrite(raw,1,nbytes,fp2)
     endif
   enddo 
 
@@ -539,7 +539,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
     cfres=cseek(fp(thread),pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp(thread))
+    cfres=fcread(raw(1:nbytes),1,nbytes,fp(thread))
     gr = raw2real(n,nbytes,raw)
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
@@ -630,7 +630,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp)
+    cfres=fcread(raw(1:nbytes),1,nbytes,fp)
     gr = raw2real(n,nbytes,raw(1:nbytes))
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
@@ -718,7 +718,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
     cfres=cseek(fp(thread),pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp(thread))
+    cfres=fcread(raw(1:nbytes),1,nbytes,fp(thread))
     g = raw2real(n,nbytes,raw)
     grws = g(rws)
     nmiss(i)=dble(count(grws==3.0D0))
@@ -883,7 +883,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp)
+    cfres=fcread(raw(1:nbytes),1,nbytes,fp)
     raww = raw2real(n,nbytes,raw)
     where (raww<3.0D0)
       w = (raww-mean(i))/sd(i)
@@ -905,7 +905,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp)
+    cfres=fcread(raw(1:nbytes),1,nbytes,fp)
       raww = raw2real(n,nbytes,raw)
         where (raww<3.0D0)
         w = (raww-mean(i))/sd(i)

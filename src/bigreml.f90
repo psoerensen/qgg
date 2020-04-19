@@ -18,7 +18,7 @@
 
   implicit none
   private
-  public :: fopen, fclose, fread, fwrite, fwrite_real, fread_real, fgets_char, cseek 
+  public :: fopen, fclose, fcread, fcwrite, fwrite_real, fread_real, fgets_char, cseek 
 
      
   interface
@@ -41,19 +41,19 @@
        type(c_ptr), value :: fp
      end function fclose
      
-     function fread(buffer,size,nbytes,fp) bind(C,name='fread')
+     function fcread(buffer,size,nbytes,fp) bind(C,name='fread')
        ! buffer: pointer to the array where the read objects are stored 
        ! size: size of each object in bytes 
        ! count: the number of the objects to be read 
        ! fp: the stream to read 
        import
        implicit none
-       integer(c_int) fread
+       integer(c_int) fcread
        integer(kind=c_int), value :: size
        integer(kind=c_int), value :: nbytes
        integer(kind=c_int8_t), dimension(nbytes) :: buffer 
        type(c_ptr), value :: fp
-     end function fread
+     end function fcread
      
      function cseek(fp,offset,origin) bind(C,name='fseek')
        !fp: file stream to modify 
@@ -67,19 +67,19 @@
        integer(kind=c_int), value :: origin
      end function cseek
      
-     function fwrite(buffer,size,nbytes,fp) bind(C,name='fwrite')
+     function fcwrite(buffer,size,nbytes,fp) bind(C,name='fwrite')
        ! buffer: pointer to the array where the write objects are stored 
        ! size: size of each object in bytes 
        ! count: the number of the objects to be written 
        ! fp: the stream to write 
        import
        implicit none
-       integer(c_int) fwrite
+       integer(c_int) fcwrite
        integer(kind=c_int), value :: size
        integer(kind=c_int), value :: nbytes
        integer(kind=c_int8_t), dimension(nbytes) :: buffer 
        type(c_ptr), value :: fp
-     end function fwrite
+     end function fcwrite
 
      function fwrite_real(buffer,size,nbytes,fp) bind(C,name='fwrite')
        ! buffer: pointer to the array where the write objects are stored 
