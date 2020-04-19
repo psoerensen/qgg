@@ -202,7 +202,8 @@ remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
     delta <- abs(theta - theta0)
     theta <- theta0
     output <- c(1:10, seq(11, maxit, 5))
-    if (verbose & it < 10 | it %in% output) print(paste(c("Iteration:", it, "Theta:", round(theta, 2)), sep = ""))
+    #if (verbose & it < 10 | it %in% output) print(paste(c("Iteration:", it, "Theta:", round(theta, 2)), sep = ""))
+    if (verbose) print(paste(c("Iteration:", it, "Theta:", round(theta, 2)), sep = ""))
     if (it == maxit) {
       warning("Maximum number of iterations reached. Try increasing maxit.")
       break
