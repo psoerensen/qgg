@@ -1,4 +1,19 @@
 ## Submission
+This is a new submission where:
+
+* Dependencies on openmp is removed as required by CRAN.
+* There was a note about misspelling, but checked that spelling is correct.
+* There was a note that package was archived on CRAN due to the issues with openmp not being corrected in time.
+
+ 
+Results for check_for_cran():
+
+   https://builder.r-hub.io/status/qgg_1.0.3.tar.gz-bfc21379cb454b4891678639fe1de18c
+   https://builder.r-hub.io/status/qgg_1.0.3.tar.gz-44c5b58cf6b145baac2708f2ccef234d
+   https://builder.r-hub.io/status/qgg_1.0.3.tar.gz-6040ed0410ac47f2824f272a5caa67e6
+   https://builder.r-hub.io/status/qgg_1.0.3.tar.gz-b4c0e33aba66401fac860801337ae75e
+
+## Submission
 This is a new submission where I have fixed the following issues encountered on CRAN checks:
 
 * Fixed additional issues related to build errors on fedora and solaris.

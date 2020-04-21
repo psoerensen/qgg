@@ -89,10 +89,8 @@
 #'
 #' # Create marker sets
 #' setsGB <- list(A = colnames(W)) # gblup model
-#' setsGF <- list(C1 = colnames(W)[1:1000], C2 = colnames(W)[1001:2000],
-#'                C3 = colnames(W)[2000:10000]) # gfblup model
-#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[1001:1010],
-#'                C3 = colnames(W)[1:10000]) # true model
+#' setsGF <- list(C1 = colnames(W)[1:500], C2 = colnames(W)[501:1000]) # gfblup model
+#' setsGT <- list(C1 = colnames(W)[1:10], C2 = colnames(W)[501:510]) # true model
 #'
 #' GB <- lapply(setsGB, function(x) {grm(W = W[, x])})
 #' GF <- lapply(setsGF, function(x) {grm(W = W[, x])})
