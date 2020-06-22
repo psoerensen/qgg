@@ -271,9 +271,10 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
   for (i in 1:nv) {
     v <- validate[[i]]
     t <- (1:n)[-v]
-    fit <- remlr(y = y[t], X = X[t, ], G = lapply(G, function(x) {
+    try( fit <- remlr(y = y[t], X = X[t, ], G = lapply(G, function(x) {
       x[t, t]
-    }), verbose = verbose)
+    }), verbose = verbose))
+    if(!class(fit)=="try-error") {
     theta <- rbind(theta, as.vector(fit$theta))
     np <- length(fit$theta)
     ypred <- X[v, ] %*% fit$b
@@ -284,6 +285,7 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
     if (!is.atomic(validate)) res <- rbind(res, acc(yobs = yobs, ypred = ypred, typeoftrait = typeoftrait))
     yo <- c(yo, yobs)
     yp <- c(yp, ypred)
+    }
   }
 
   if (is.atomic(validate)) res <- matrix(acc(yobs = yo, ypred = yp, typeoftrait = typeoftrait), nrow = 1)

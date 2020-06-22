@@ -367,20 +367,87 @@ fsolve <- function(n = NULL, nr = NULL, rws = NULL, nc = NULL, cls = NULL,
 
 #' @param stat matrix of single marker effects
 #' @param Glist list of information about genotype matrix
+#' @param bedfiles name of the PLINK bed-files
+#' @param famfiles name of the PLINK fam-files
+#' @param bimfiles name of the PLINK bim-files
 #' @param ids vector of individuals used in the analysis
 #' @param scale logical if TRUE the genotype markers have been scale to mean zero and variance one
 #' @param impute logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)
 #' @param msize number of genotype markers used for batch processing
 #' @param ncores number of cores used in the analysis
 
+#' @author Peter Soerensen
+
+#' @examples
+#'
+
+#' bedfiles <- system.file("extdata", "sample_22.bed", package = "qgg")
+#' bimfiles <- system.file("extdata", "sample_22.bim", package = "qgg")
+#' famfiles <- system.file("extdata", "sample_22.fam", package = "qgg")
+#' 
+#' fnRAW <- tempfile(fileext=".raw")
+#' 
+#' Glist <- gprep(study="1000G", fnRAW=fnRAW, bedfiles=bedfiles, bimfiles=bimfiles,
+#'                famfiles=famfiles, overwrite=TRUE)
+#' 
+#' rsids <- Glist$rsids
+#' stat <- data.frame(rsids=Glist$rsids,alleles=Glist$a2, af=Glist$af, effect=rnorm(Glist$m))
+#' 
+#' W <- getW(Glist=Glist,rsids=Glist$rsids)
+#' pgs1 <- W%*%stat[,4]
+#' 
+#' pgs2 <- gscore(Glist = Glist, stat = stat) 
+#' 
+#' pgs3 <- gscore(bedfiles=bedfiles, stat = stat) 
+#' 
+#' pgs4 <- gscore(bedfiles=bedfiles,bimfiles=bimfiles,famfiles=famfiles, stat = stat) 
+#' 
+#' 
+#' cor(cbind(pgs1,pgs2,pgs3,pgs4))
+#'
+#' file.remove(fnRAW)
 
 
 #' @export
 #'
 
 
-gscore <- function(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
-
+gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
+  
+  if(sum(is.na(stat))>0) stop("stat object contains NAs") 
+  if(is.null(Glist) & is.null(bedfiles)) stop("Please provide Glist or bedfile")
+  
+  if (!is.null(bedfiles)) {
+    if(!file.exists(bedfiles)) stop(paste("bedfiles does not exists:"),bedfiles) 
+    Glist <- NULL
+    Glist$fnRAW <- bedfiles[1]
+    if (!is.null(bimfiles)) Glist$bimfiles <- bimfiles[1]
+    if (!is.null(famfiles)) Glist$famfiles <- famfiles[1]
+    if (is.null(bimfiles)) Glist$bimfiles <- gsub(".bed", ".bim", bedfiles[1])
+    if (is.null(famfiles)) Glist$famfiles <- gsub(".bed", ".fam", bedfiles[1])
+    if(!file.exists(Glist$famfiles)) stop(paste("famfiles does not exists:"),Glist$famfiles) 
+    if(!file.exists(Glist$bimfiles)) stop(paste("bimfiles does not exists:"),Glist$bimfiles) 
+    
+    # Read fam information
+    fam <- fread(input = Glist$famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+    Glist$ids <- as.character(fam[, 2])
+    if (any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
+    message(paste("Finished processing fam file", famfiles[1]))
+    
+    # Read bim information
+    bim <- fread(input = Glist$bimfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+    Glist$rsids <- as.character(bim[, 2])
+    Glist$a1 <- as.character(bim[, 5])
+    Glist$a2 <- as.character(bim[, 6])
+    Glist$position <- as.numeric(bim[, 4])
+    Glist$chr <- as.character(bim[, 1])
+    message(paste("Finished processing bim file", bimfiles[1]))
+    
+    Glist$n <- length(Glist$ids)
+    Glist$m <- length(Glist$rsids)
+    
+  }
+  
   # Prepase summary stat
   if (!sum(colnames(stat)[1:3] == c("rsids", "alleles", "af")) == 3) {
     stop("First three columns in data frame stat should be: rsids, alleles, af ")
@@ -389,7 +456,7 @@ gscore <- function(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE, impute =
   if (any(!rsidsOK)) {
     warning("Some variants not found in genotype files")
     message(paste("Number of variants missing;", sum(!rsidsOK)))
-    message(paste("Number of variants used;", sum(!rsidsOK)))
+    message(paste("Number of variants used;", sum(rsidsOK)))
     stat <- stat[rsidsOK, ]
     stat$rsids <- as.character(stat$rsids)
     stat$alleles <- as.character(stat$alleles)
@@ -400,48 +467,47 @@ gscore <- function(Glist = NULL, stat = NULL, ids = NULL, scale = TRUE, impute =
   colnames(S) <- colnames(stat)[-c(1:3)]
   rsids <- as.character(stat$rsids)
   af <- stat$af
-
+  
   # Prepare input data for mpgrs
   n <- Glist$n
   nbytes <- ceiling(n / 4)
   rws <- 1:n
   if (!is.null(ids)) rws <- match(ids, Glist$ids)
   nr <- length(rws)
-
+  
   cls <- match(rsids, Glist$rsids)
   nc <- length(cls)
-
+  
   direction <- as.integer(stat$alleles == Glist$a2[cls])
-
+  
   fnRAW <- as.character(Glist$fnRAW)
-
+  if(!file.exists(fnRAW)) stop(paste("Raw file does not exists:"),fnRAW) 
+  
   nprs <- ncol(S)
   prs <- matrix(0, nrow = nr, ncol = nprs)
   rownames(prs) <- Glist$ids[rws]
   colnames(prs) <- colnames(S)
-
+  
   m <- nrow(S)
-
-  #write.table(as.character(fnRAW), file = "param.qgg", quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
+  
 
   prs <- .Fortran("mpgrs",
-    n = as.integer(n),
-    nr = as.integer(nr),
-    rws = as.integer(rws),
-    nc = as.integer(nc),
-    cls = as.integer(cls),
-    nbytes = as.integer(nbytes),
-    fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
-    nchars = nchar(as.character(fnRAW)),
-    nprs = as.integer(nprs),
-    s = matrix(as.double(S), nrow = nc, ncol = nprs),
-    prs = matrix(as.double(0), nrow = nr, ncol = nprs),
-    af = as.double(af),
-    impute = as.integer(impute),
-    direction = as.integer(direction),
-    ncores = as.integer(ncores),
-    PACKAGE = "qgg"
+                  n = as.integer(n),
+                  nr = as.integer(nr),
+                  rws = as.integer(rws),
+                  nc = as.integer(nc),
+                  cls = as.integer(cls),
+                  nbytes = as.integer(nbytes),
+                  fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
+                  nchars = nchar(as.character(fnRAW)),
+                  nprs = as.integer(nprs),
+                  s = matrix(as.double(S), nrow = nc, ncol = nprs),
+                  prs = matrix(as.double(0), nrow = nr, ncol = nprs),
+                  af = as.double(af),
+                  impute = as.integer(impute),
+                  direction = as.integer(direction),
+                  ncores = as.integer(ncores),
+                  PACKAGE = "qgg"
   )$prs
-  #file.remove("param.qgg")
   return(prs)
 }
