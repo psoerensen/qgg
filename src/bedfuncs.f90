@@ -27,7 +27,7 @@
 
   implicit none
   private
-  public :: fopen, fclose, fread, fwrite, fwrite_real, fread_real, fgets_char, cseek 
+  public :: fopen, fclose, fread, fwrite, cseek 
 
      
   interface
@@ -60,7 +60,8 @@
        integer(c_int) fread
        integer(kind=c_int), value :: size
        integer(kind=c_int), value :: nbytes
-       integer(kind=c_int8_t), dimension(nbytes) :: buffer 
+       !integer(kind=c_int8_t), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: buffer 
        type(c_ptr), value :: fp
      end function fread
      
@@ -86,50 +87,10 @@
        integer(c_int) fwrite
        integer(kind=c_int), value :: size
        integer(kind=c_int), value :: nbytes
-       integer(kind=c_int8_t), dimension(nbytes) :: buffer 
+       !integer(kind=c_int8_t), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: buffer 
        type(c_ptr), value :: fp
      end function fwrite
-
-     function fwrite_real(buffer,size,nbytes,fp) bind(C,name='fwrite')
-       ! buffer: pointer to the array where the write objects are stored 
-       ! size: size of each object in bytes 
-       ! count: the number of the objects to be written 
-       ! fp: the stream to write 
-       import
-       implicit none
-       integer(c_int) fwrite_real
-       integer(kind=c_int), value :: size
-       integer(kind=c_int), value :: nbytes
-       real(c_double), dimension(nbytes) :: buffer 
-       type(c_ptr), value :: fp
-     end function fwrite_real
-
-     function fread_real(buffer,size,nbytes,fp) bind(C,name='fread')
-       ! buffer: pointer to the array where the read objects are stored 
-       ! size: size of each object in bytes 
-       ! count: the number of the objects to be read 
-       ! fp: the stream to read 
-       import
-       implicit none
-       integer(c_int) fread_real
-       integer(kind=c_int), value :: size
-       integer(kind=c_int), value :: nbytes
-       real(kind=c_double), dimension(nbytes) :: buffer 
-       type(c_ptr), value :: fp
-     end function fread_real
-
-     function fgets_char(buffer,nbytes,fp) bind(C,name='fgets')
-       ! buffer: pointer to the array where the read objects are stored 
-       ! count: the number of the objects to be read 
-       ! fp: the stream to read 
-       import
-       implicit none
-       integer(c_int) fgets_char
-       integer(kind=c_int), value :: nbytes
-       character(kind=c_char) :: buffer(1000) 
-       type(c_ptr), value :: fp
-     end function fgets_char
-
 
 
   end interface
@@ -249,7 +210,8 @@
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: mode, filename
   
-  integer(kind=c_int8_t) :: raw(nbytes,nc)
+  !integer(kind=c_int8_t) :: raw(nbytes,nc)
+  integer(kind=c_int8_t), target :: raw(nbytes,nc)
   integer(c_int) :: i,nchar,offset
 
   integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
@@ -279,7 +241,8 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14 
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes,i),1,nbytes,fp)
+    !cfres=fread(raw(1:nbytes,i),1,nbytes,fp)
+    cfres=fread(c_loc(raw(1:nbytes,i)),1,nbytes,fp)
   enddo
   cfres=fclose(fp)
   
@@ -317,7 +280,8 @@
 
   end subroutine readbed
 !==============================================================================================================
-     
+
+
 
 
 !==============================================================================================================
@@ -337,7 +301,7 @@
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: mode, filename
   
-  integer(kind=c_int8_t) :: raw(nbytes,nc)
+  integer(kind=c_int8_t), target :: raw(nbytes,nc)
   integer(c_int) :: i,nchar,offset
 
   integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
@@ -363,7 +327,8 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14 
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes,i),1,nbytes,fp)
+    !cfres=fread(raw(1:nbytes,i),1,nbytes,fp)
+    cfres=fread(c_loc(raw(1:nbytes,i)),1,nbytes,fp)
   enddo
   cfres=fclose(fp)
   
@@ -419,7 +384,7 @@
   character(len=20, kind=c_char) :: mode1, mode2
   character(len=1000, kind=c_char) :: filename1,filename2
 
-  integer(kind=c_int8_t) :: raw(nbytes), magic(3)
+  integer(kind=c_int8_t), target :: raw(nbytes), magic(3)
   integer(c_int) :: i,offset,nchar
 
   integer(c_int64_t) :: pos14, nbytes14, offset14,i14
@@ -439,7 +404,7 @@
   mode1 =  'rb' // C_NULL_CHAR
   filename1 = fnBED(1:ncharbed) // C_NULL_CHAR
   fp1 = fopen(filename1, mode1)
-  cfres=fread(magic,1,3,fp1)
+  cfres=fread(c_loc(magic),1,3,fp1)
 
   ! output bedfile
   !nchar=index(fnRAW, '.bed')
@@ -468,8 +433,8 @@
     if(cls(i)==1) then
     i14=i
     pos14 = offset14 + (i14-1)*nbytes14
-    cfres=fread(raw,1,nbytes,fp1)
-    cfres=fwrite(raw,1,nbytes,fp2)
+    cfres=fread(c_loc(raw),1,nbytes,fp1)
+    cfres=fwrite(c_loc(raw),1,nbytes,fp2)
     endif
   enddo 
 
@@ -500,7 +465,7 @@
   type(c_ptr):: fp(ncores)
   integer(c_int) :: cfres 
 
-  integer(kind=c_int8_t) :: raw(nbytes)
+  integer(kind=c_int8_t), target :: raw(nbytes)
   integer(c_int) :: i,j,nchar,offset
 
   integer(c_int64_t) :: pos14, nbytes14, offset14,i14
@@ -542,7 +507,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
     cfres=cseek(fp(thread),pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp(thread))
+    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread))
     gr = raw2real(n,nbytes,raw)
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
@@ -591,7 +556,7 @@
   
   implicit none
   
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,thread,impute,scale,direction(nc),nchars,fnRAWCHAR(nchars)
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nt,ncores,impute,scale,direction(nc),nchars,fnRAWCHAR(nchars)
   real(c_double) :: gsc(nr),gr(n),n0,n1,n2,nmiss,af(nc),ntotal
   real(c_double) :: yadj(nr,nt),s(nc,nt),setstat(nc,nt)
 
@@ -600,7 +565,7 @@
   type(c_ptr):: fp
   integer(c_int) :: cfres 
 
-  integer(kind=c_int8_t) :: raw(nbytes)
+  integer(kind=c_int8_t), target :: raw(nbytes)
   integer(c_int) :: i,j,nchar,offset
 
   integer(c_int64_t) :: pos14, nbytes14, offset14,i14
@@ -625,9 +590,8 @@
 
   ntotal=dble(nr)
 
-  ncores = 1  
-
   !call omp_set_num_threads(ncores)
+  if (ncores>1) ncores=1
 
   setstat=0.0d0
   !!$omp parallel do private(i,j,i14,pos14,raw,gr,gsc,nmiss,n0,n1,n2,thread)
@@ -635,7 +599,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp)
+    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp)
     gr = raw2real(n,nbytes,raw(1:nbytes))
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
@@ -685,12 +649,13 @@
   type(c_ptr):: fp(ncores)
   integer(c_int) :: cfres 
 
-  integer(kind=c_int8_t) :: raw(nbytes)
+  integer(kind=c_int8_t), target :: raw(nbytes)
   integer(c_int) :: i,nchar,offset
 
   integer(c_int64_t) :: pos14, nbytes14, offset14,i14
 
   !integer(c_int), external :: omp_get_thread_num
+  if (ncores>1) ncores=1
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -725,7 +690,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
     cfres=cseek(fp(thread),pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp(thread))
+    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread))
     g = raw2real(n,nbytes,raw)
     grws = g(rws)
     nmiss(i)=dble(count(grws==3.0D0))
@@ -756,7 +721,9 @@
   
   integer(c_int) :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc)
   integer(c_int) :: nchars,ncharsg,fnRAWCHAR(nchars),fnGCHAR(ncharsg)
-  real(c_double) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
+  !real(c_double) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
+  real(c_double) :: G(nr,nr), W1(nr,msize),W2(nr,msize), traceG
+  real(c_double), target :: w(nr)
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=1000, kind=c_char) :: fnG, filename
   character(len=20, kind=c_char) :: mode
@@ -764,6 +731,7 @@
   integer(c_int) :: cfres 
 
   !call omp_set_num_threads(ncores)
+  if (ncores>1) ncores=1
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -832,7 +800,7 @@
   do j=1,size(G,1)
     if (gmodel<4) w = G(1:size(G,1),j)
     if (gmodel==4) w = G(1:size(G,1),j)**2
-    cfres=fwrite_real(w,8,nr,fp)
+    cfres=fwrite(c_loc(w),8,nr,fp)
   enddo
   cfres=fclose(fp)
 
@@ -861,11 +829,12 @@
   integer(c_int) :: cfres 
   real(c_double), external  :: ddot
 
-  integer(kind=c_int8_t) :: raw(nbytes)
+  integer(kind=c_int8_t), target :: raw(nbytes)
  
   integer(c_int64_t) :: pos14,nbytes14,offset14,i14
 
   !call omp_set_num_threads(ncores)
+  if (ncores>1) ncores=1
 
   if (scale==0) scale = 1
 
@@ -890,7 +859,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp)
+    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp)
     raww = raw2real(n,nbytes,raw)
     where (raww<3.0D0)
       w = (raww-mean(i))/sd(i)
@@ -912,7 +881,7 @@
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(raw(1:nbytes),1,nbytes,fp)
+    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp)
       raww = raw2real(n,nbytes,raw)
         where (raww<3.0D0)
         w = (raww-mean(i))/sd(i)
@@ -957,7 +926,7 @@
   p=0
 
   multicore=0
-
+  thread=1
   !if (ncores>1) multicore=1
   if (ncores>1) multicore=0 ! because openmp no longer supported
  
@@ -1020,6 +989,7 @@
   real(c_double) :: GRM(n,n),evals(n),work(n*(3+n/2))
 
   !call omp_set_num_threads(ncores)
+  if (ncores>1) ncores=1
 
   info=0
   l=0

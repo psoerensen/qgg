@@ -1,6 +1,21 @@
 ## Submission
 This is a new submission where:
 
+* Fixed issue with LTO (in fortran 2 c interface) detected on solaris 
+* Added a few user requested features.
+* Check for CRAN was OK except for the window build related to data.table not available but assume this is a temporary error.
+
+ 
+Results for check_for_cran():
+   https://builder.r-hub.io/status/qgg_1.0.4.tar.gz-5c9f861803a94d4ab7bf4ed23efc2ec3
+   https://builder.r-hub.io/status/qgg_1.0.4.tar.gz-c3230d7bb1064c2b809cb31f08e3a067
+   https://builder.r-hub.io/status/qgg_1.0.4.tar.gz-b7914ccce695408a9dc01e3ec7682543
+   https://builder.r-hub.io/status/qgg_1.0.4.tar.gz-a31493d3a3f8461a90274493d12c78f9
+
+
+## Submission
+This is a new submission where:
+
 * Dependencies on openmp is removed as required by CRAN.
 * There was a note about misspelling, but checked that spelling is correct.
 * There was a note that package was archived on CRAN due to the issues with openmp not being corrected in time.

@@ -18,7 +18,7 @@
 
   implicit none
   private
-  public :: fopen, fclose, fread, fwrite, fwrite_real, fread_real, fgets_char, cseek 
+  public :: fopen, fclose, fread, fwrite, cseek 
 
      
   interface
@@ -51,7 +51,7 @@
        integer(c_int) fread
        integer(kind=c_int), value :: size
        integer(kind=c_int), value :: nbytes
-       integer(kind=c_int8_t), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: buffer 
        type(c_ptr), value :: fp
      end function fread
      
@@ -77,50 +77,9 @@
        integer(c_int) fwrite
        integer(kind=c_int), value :: size
        integer(kind=c_int), value :: nbytes
-       integer(kind=c_int8_t), dimension(nbytes) :: buffer 
+       type(c_ptr), value :: buffer 
        type(c_ptr), value :: fp
      end function fwrite
-
-     function fwrite_real(buffer,size,nbytes,fp) bind(C,name='fwrite')
-       ! buffer: pointer to the array where the write objects are stored 
-       ! size: size of each object in bytes 
-       ! count: the number of the objects to be written 
-       ! fp: the stream to write 
-       import
-       implicit none
-       integer(c_int) fwrite_real
-       integer(kind=c_int), value :: size
-       integer(kind=c_int), value :: nbytes
-       real(c_double), dimension(nbytes) :: buffer 
-       type(c_ptr), value :: fp
-     end function fwrite_real
-
-     function fread_real(buffer,size,nbytes,fp) bind(C,name='fread')
-       ! buffer: pointer to the array where the read objects are stored 
-       ! size: size of each object in bytes 
-       ! count: the number of the objects to be read 
-       ! fp: the stream to read 
-       import
-       implicit none
-       integer(c_int) fread_real
-       integer(kind=c_int), value :: size
-       integer(kind=c_int), value :: nbytes
-       real(kind=c_double), dimension(nbytes) :: buffer 
-       type(c_ptr), value :: fp
-     end function fread_real
-
-     function fgets_char(buffer,nbytes,fp) bind(C,name='fgets')
-       ! buffer: pointer to the array where the read objects are stored 
-       ! count: the number of the objects to be read 
-       ! fp: the stream to read 
-       import
-       implicit none
-       integer(c_int) fgets_char
-       integer(kind=c_int), value :: nbytes
-       character(kind=c_char) :: buffer(1000) 
-       type(c_ptr), value :: fp
-     end function fgets_char
-
 
 
   end interface
@@ -213,11 +172,12 @@
     type(c_ptr), value :: fp
     integer(c_int), intent(in) :: row
     integer(c_int) :: i
-    real(c_double) :: gr(size(V,1)),grw(ng)
+    real(c_double) :: gr(size(V,1))
+    real(c_double), target :: grw(ng)
     i14=row
     pos14 = (i14-1)*nbytes14 
     cfres=cseek(fp,pos14,0)            
-    cfres=fread_real(grw,8,ng,fp)
+    cfres=fread(c_loc(grw),8,ng,fp)
     do i=1,size(V,1)
       gr(i) = grw(indxg(i))
     enddo
@@ -321,7 +281,6 @@
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!    subroutine reml(n,nf,nr,tol,maxit,ncores,fnr,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG)
     subroutine reml(n,nf,nr,tol,maxit,ncores,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG,ncharsg,fnGCHAR)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -361,16 +320,6 @@
 
     nbytes14 = int(8.0d0*dble(ng),kind=c_int64_t) 
 
-    !filename1 = 'param.qgg' // C_NULL_CHAR
-    !mode =  'r' // C_NULL_CHAR
-    !fp = fopen(filename1, mode)
-    !do i=1,nr-1
-    !  cfres=fgets_char(filename2,1000,fp)
-    !  nchar=index(filename2, '.grm')
-    !  rfnames(i) = filename2(1:(nchar+3)) 
-    !enddo
-    !cfres=fclose(fp)
-
     do i=1,nr-1
       nchar = ncharsg(i)
       do j=1,nchar
@@ -380,6 +329,7 @@
     enddo
 
     !call omp_set_num_threads(ncores)
+    if (ncores>1) ncores=1
 
     do it = 1, maxit
     
