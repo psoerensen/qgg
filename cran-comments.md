@@ -1,6 +1,22 @@
 ## Submission
 This is a new submission where:
 
+* Fixed issue with module name multiple defined detected on solaris 
+* Check for CRAN was OK except for the window build related to data.table not available but assume this is a temporary error.
+* Check on solaris was OK.
+
+Results for check_on_solaris:
+https://builder.r-hub.io/status/qgg_1.0.4.tar.gz-032fd7d9e906414cb679bc79d54e66f7
+
+Results for check_for_cran():
+   https://builder.r-hub.io/status/qgg_1.0.4.tar.gz-23b75abdfecd459ea0141e9e58c65887
+   https://builder.r-hub.io/status/qgg_1.0.4.tar.gz-6a5bbd67917c468d802420182af4ce7d
+   https://builder.r-hub.io/status/qgg_1.0.4.tar.gz-187feeb12c2d45228f8b0c35317053e0
+   https://builder.r-hub.io/status/qgg_1.0.4.tar.gz-9be5d8e78be94214a5d8bc00ce476cf4
+
+## Submission
+This is a new submission where:
+
 * Fixed issue with LTO (in fortran 2 c interface) detected on solaris 
 * Added a few user requested features.
 * Check for CRAN was OK except for the window build related to data.table not available but assume this is a temporary error.

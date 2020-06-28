@@ -141,6 +141,8 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
 
     }
 
+    Glist$nchr <- length(Glist$bedfiles)
+    
     if (!is.null(Glist$fnRAW)) {
       Glist$study_rsids <- unlist(Glist$rsids)
       if (!is.null(rsids)) Glist$study_rsids <- as.character(rsids)

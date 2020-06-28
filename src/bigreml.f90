@@ -2,14 +2,14 @@
 ! module global
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    module kinds
+    module kindsbig
 
     implicit none
     
     integer, parameter :: real64 = selected_real_kind(15, 307)
     integer, parameter :: int32 = selected_int_kind(9)
 
-    end module kinds
+    end module kindsbig
 
 
   module f2ciobig
@@ -89,7 +89,7 @@
 
     module global
 
-    use kinds
+    use kindsbig
     use iso_c_binding
     use f2ciobig
 
@@ -111,7 +111,7 @@
 
     module bigfuncs
 
-    use kinds
+    use kindsbig
     use global
     use iso_c_binding
     use f2ciobig
@@ -194,7 +194,7 @@
     
     module bigsubs
 
-    use kinds
+    use kindsbig
     use global
     use bigfuncs
     use iso_c_binding
