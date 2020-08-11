@@ -683,13 +683,17 @@
 
   !call omp_set_num_threads(ncores)
 
+  cfres=cseek(fp(1),offset14,0)
+
   !!$omp parallel do private(i,i14,pos14,raw,g,grws,thread,cfres)
   do i=1,nc
     thread = 1 
     !thread=omp_get_thread_num()+1
-    i14=cls(i)
-    pos14 = offset14 + (i14-1)*nbytes14
-    cfres=cseek(fp(thread),pos14,0)            
+    if(i/=cls(i)) then
+      i14=cls(i)
+      pos14 = offset14 + (i14-1)*nbytes14
+      cfres=cseek(fp(thread),pos14,0)
+    endif        
     cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread))
     g = raw2real(n,nbytes,raw)
     grws = g(rws)
