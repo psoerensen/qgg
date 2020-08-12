@@ -332,7 +332,7 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 #' @export
 #'
 
-getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
+getW <- function(Glist = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
                      rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
                      allele = NULL) {
 
@@ -363,8 +363,8 @@ getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
 
   if (!is.null(bedfiles)) {
     fnRAW <- bedfiles
-    bimfiles <- gsub(".bed", ".bim", bedfiles)
-    famfiles <- gsub(".bed", ".fam", bedfiles)
+    if (is.null(bimfiles)) bimfiles <- gsub(".bed", ".bim", bedfiles)
+    if (is.null(famfiles)) famfiles <- gsub(".bed", ".fam", bedfiles)
     bim <- fread(
       input = bimfiles, header = FALSE, data.table = FALSE, showProgress = FALSE,
       colClasses = "character"
@@ -376,7 +376,8 @@ getW <- function(Glist = NULL, bedfiles = NULL, ids = NULL, rsids = NULL,
     n <- nrow(fam)
     m <- nrow(bim)
     nbytes <- ceiling(n / 4)
-    cls <- match(rsids, as.character(bim[, 2]))
+    if (is.null(cls)) cls <- 1:m
+    if (!is.null(rsids)) cls <- match(rsids, as.character(bim[, 2]))
     if (any(is.na(cls))) {
       warning(paste("some rsids not found in bimfiles"))
       message(rsids[is.na(cls)])
@@ -473,9 +474,9 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
   direction <- split(direction, ceiling(seq_along(direction) / msize))
   msets <- sapply(cls, length)
   nsets <- length(msets)
-  W1 <- matrix(logical(0), nrow = nr, ncol = msize)
-  W2 <- matrix(logical(0), nrow = nr, ncol = msize)
-  W3 <- matrix(logical(0), nrow = nr, ncol = msize)
+  W1 <- matrix(0, nrow = nr, ncol = msize)
+  W2 <- matrix(0, nrow = nr, ncol = msize)
+  W3 <- matrix(0, nrow = nr, ncol = msize)
   bfLD <- file(fnLD, "wb")
   for (j in 1:nsets) {
     nc <- length(cls[[j]])
