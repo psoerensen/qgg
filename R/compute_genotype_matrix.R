@@ -515,7 +515,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
       LD[is.na(LD)] <- 0
       for (k in 1:msets[j]) {
         ld <- as.vector(LD[k, k:(k + 2 * msize)])
-        writeBin(ld, bfLD, size = 8, endian = "little")
+        writeBin(ld, bfLD, size = 4, endian = "little")
       }
     }
     message(paste("Finished block", j, "chromosome", chr))
@@ -537,7 +537,7 @@ getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   
   nld <- as.integer(msize * 2 + 1)
   for (i in 1:mchr) {
-    ld <- readBin(bfLD, "double", n = nld, size = 8, endian = "little")
+    ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
     ld[msize + 1] <- 1
     cls <- which((ld**2) > r2) + i - 1
     ldSetsChr[[i]] <- rsidsLD[cls]
@@ -565,7 +565,7 @@ getLD <- function(Glist = NULL, chr = NULL) {
   fnLD <- Glist$fnLD[chr]
   bfLD <- file(fnLD, "rb")
   nld <- as.integer(mchr * (msize * 2 + 1))
-  ld <- readBin(bfLD, "double", n = nld, size = 8, endian = "little")
+  ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
   ld <- matrix(ld, nrow = mchr, byrow = TRUE)
   close(bfLD)
   ld[, msize + 1] <- 1
