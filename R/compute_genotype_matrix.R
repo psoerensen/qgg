@@ -507,9 +507,9 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
       }
     }
     if (j == nsets) {
-      W1 <- W2
-      W2 <- W3
-      W3 <- matrix(0, nrow = nr, ncol = msize)
+      W1 = W2
+      W2 = W3
+      W3 = matrix(0, nrow = nr, ncol = msize)
       LD <- t(crossprod(cbind(W1, W2, W3), W2))
       LD <- LD / (nr - 1) # nr-1 accounts for sample mean is estimated
       LD[is.na(LD)] <- 0
