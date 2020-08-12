@@ -480,9 +480,9 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
   bfLD <- file(fnLD, "wb")
   for (j in 1:nsets) {
     nc <- length(cls[[j]])
-    W1 <- W2
-    W2 <- W3
-    W3[, 1:nc] <- .Fortran("readbed",
+    W1 = W2
+    W2 = W3
+    W3[, 1:nc] = .Fortran("readbed",
       n = as.integer(n),
       nr = as.integer(nr),
       rws = as.integer(rws),
