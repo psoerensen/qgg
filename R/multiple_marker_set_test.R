@@ -280,9 +280,13 @@ gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e
 
 #' @export
 
-adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, ldSets = NULL, threshold = 1,
+adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r2 = 0.9, ldSets = NULL, threshold = 1,
                   method = "pruning") {
+  
+  if (any(is.na(stat))) stop(paste("NAs found in stat"))
+ 
   rsidsStat <- rownames(stat)
+  if (is.null(rsidsStat)) stop(paste("please provide names/rownames for stat"))
   if (statistics == "p-value") pstat <- stat[, "p"]
   pstat <- as.matrix(pstat)
   rownames(pstat) <- rsidsStat
@@ -290,12 +294,16 @@ adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, l
   if (method %in% c("pruning", "clumping")) {
     if (!is.null(ldSets)) nchr <- length(ldSets)
     if (!is.null(Glist)) nchr <- Glist$nchr
+    if (is.null(chr)) chromosomes <- 1:nchr
+    if (!is.null(chr)) chromosomes <- chr
+     
     for (i in 1:ncol(pstat)) {
       m <- length(rsidsStat)
       indx1 <- rep(T, m)
       indx2 <- rep(F, m)
-      for (chr in 1:nchr) {
+      for (chr in chromosomes) {
         if (!is.null(Glist)) {
+          message(paste("Pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
           setsChr <- getLDsets(Glist = Glist, r2 = r2, chr = chr)
           setsChr <- mapSets(sets = setsChr, rsids = rsidsStat)
         }
@@ -324,6 +332,7 @@ adjLD <- function(stat = NULL, statistics = "p-value", Glist = NULL, r2 = 0.9, l
     }
   }
   stat <- stat[!rowSums(pstat == 0) == ncol(pstat), ]
+  if (length(chromosomes)==1) stat <- stat[rownames(stat)%in%rsidsChr,]
   return(stat)
 }
 
