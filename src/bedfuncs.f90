@@ -500,14 +500,17 @@
   prs=0.0d0
   prsmp=0.0d0
 
+  cfres=cseek(fp(1),offset14,0)            
+
   !!$omp parallel do private(i,j,gr,gsc,nmiss,n0,n1,n2,thread,i14,pos14,raw,cfres)
   do i=1,nc
-    thread = 1
+    !thread = 1
     !thread=omp_get_thread_num()+1
-    i14=cls(i)
-    pos14 = offset14 + (i14-1)*nbytes14
-    cfres=cseek(fp(thread),pos14,0)            
+    !i14=cls(i)
+    !pos14 = offset14 + (i14-1)*nbytes14
+    !cfres=cseek(fp(thread),pos14,0)            
     cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread))
+    if(cls(i)==1) then
     gr = raw2real(n,nbytes,raw)
     gsc=gr(rws)
     nmiss=dble(count(gsc==3.0D0))  
@@ -526,8 +529,10 @@
     if(direction(i)==0) gsc=2.0D0-gsc
     if ( nmiss==ntotal ) gsc=0.0D0
     do j=1,nprs
-       if (s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
-    enddo  
+       !if (s(i,j)/=0.0d0) prsmp(1:nr,j,thread) = prsmp(1:nr,j,thread) + gsc*s(i,j)
+       if (s(i,j)/=0.0d0) prs(1:nr,j) = prs(1:nr,j) + gsc*s(i,j)
+    enddo
+    endif  
   enddo 
   !!$omp end parallel do
 
@@ -535,11 +540,11 @@
    cfres=fclose(fp(i))
   enddo
 
-  do i=1,nprs
-    do j=1,ncores
-      prs(1:nr,i) = prs(1:nr,i) + prsmp(1:nr,i,j)
-    enddo
-  enddo  
+  !do i=1,nprs
+  !  do j=1,ncores
+  !    prs(1:nr,i) = prs(1:nr,i) + prsmp(1:nr,i,j)
+  !  enddo
+  !enddo  
   
   end subroutine mpgrs
 !==============================================================================================================
