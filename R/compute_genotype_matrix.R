@@ -503,7 +503,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
     if (j > 1) {
       for (k in 1:msize) {
         ld <- as.vector(LD[k, k:(k + 2 * msize)])
-        writeBin(ld, bfLD, size = 4, endian = "little")
+        writeBin(ld, bfLD, size = 8, endian = "little")
       }
     }
     if (j == nsets) {
@@ -556,21 +556,22 @@ getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   return(ldSetsChr)
 }
 
-getLD <- function(Glist = NULL, chr = NULL) {
+getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
   msize <- Glist$msize
-  #rsidsChr <- Glist$rsids[Glist$chr == chr]
-  #if (!is.null(Glist$study_rsids)) rsidsChr <- rsidsChr[rsidsChr %in% Glist$study_rsids]
   rsidsChr <- Glist$rsidsLD[[chr]]
   mchr <- length(rsidsChr)
+  ld = matrix(0, ncol = mchr, nrow=(msize * 2 + 1))
+  colnames(ld) <- rsidsChr
+  rownames(ld) <- c(-(msize:1), 0, 1:msize)
   fnLD <- Glist$fnLD[chr]
   bfLD <- file(fnLD, "rb")
-  nld <- as.integer(mchr * (msize * 2 + 1))
-  ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
-  ld <- matrix(ld, nrow = mchr, byrow = TRUE)
+  nld <- as.integer(msize * 2 + 1)
+  k = 1
+  for (i in 1:mchr) {
+    ld[,i] = readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
+    #ld[msize + 1,i] <- 1
+  }
   close(bfLD)
-  ld[, msize + 1] <- 1
-  rownames(ld) <- rsidsChr
-  colnames(ld) <- c(-(msize:1), 0, 1:msize)
   return(ld)
 }
 
