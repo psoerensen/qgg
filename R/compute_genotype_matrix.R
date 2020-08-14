@@ -279,7 +279,6 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     nbytes = as.integer(nbytes),
     fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
     nchars = nchar(as.character(fnRAW)),
-    ncores = as.integer(ncores),
     PACKAGE = "qgg"
   )
   qc$hom <- (qc$n0 + qc$n2) / (qc$nr - qc$nmiss)
