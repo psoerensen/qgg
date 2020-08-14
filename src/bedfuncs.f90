@@ -678,8 +678,8 @@
       cfres=cseek(fp(thread),pos14,0)
     !endif        
     cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread))
-    !g = raw2real(n,nbytes,raw)
-    gint = raw2int(n,nbytes,raw)
+    g = raw2real(n,nbytes,raw)
+    !gint = raw2int(n,nbytes,raw)
     !grws = g(rws)
     !nmiss(i)=dble(count(grws==3.0D0))
     !n0(i)=dble(count(grws==0.0D0))
