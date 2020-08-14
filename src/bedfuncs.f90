@@ -671,9 +671,9 @@
     thread = 1 
     !thread=omp_get_thread_num()+1
     !if(i/=cls(i)) then
-      i14=cls(i)
-      pos14 = offset14 + (i14-1)*nbytes14
-      cfres=cseek(fp(thread),pos14,0)
+    !  i14=cls(i)
+    !  pos14 = offset14 + (i14-1)*nbytes14
+    !  cfres=cseek(fp(thread),pos14,0)
     !endif        
     cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread))
     g = raw2real(n,nbytes,raw)
