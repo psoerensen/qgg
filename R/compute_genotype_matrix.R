@@ -137,7 +137,8 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
       Glist$chr[[chr]] <- as.character(bim[, 1])
       message(paste("Finished processing bim file", bimfiles[chr]))
 
-      if (is.null(Glist$fnRAW)) Glist <- summaryRAW(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
+      #if (is.null(Glist$fnRAW)) Glist <- summaryRAW(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
+      if (is.null(Glist$fnRAW)) Glist <- freqBED(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
 
     }
 
@@ -170,8 +171,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
 
   if (task == "summary") {
     message("Computing allele frequencies, missingness")
-    #Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
-    Glist <- freqRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
