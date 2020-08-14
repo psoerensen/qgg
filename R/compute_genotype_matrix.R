@@ -138,7 +138,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
       message(paste("Finished processing bim file", bimfiles[chr]))
 
       #if (is.null(Glist$fnRAW)) Glist <- summaryRAW(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
-      if (is.null(Glist$fnRAW)) Glist <- freqBED(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
+      if (is.null(Glist$fnRAW)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
 
     }
 
@@ -314,7 +314,7 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 }
 
 
-freqBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, chr = NULL, ncores = 1) {
+summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, chr = NULL, ncores = 1) {
 
   n <- Glist$n
   m <- Glist$m
