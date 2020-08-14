@@ -675,8 +675,8 @@
       pos14 = offset14 + (i14-1)*nbytes14
       cfres=cseek(fp(thread),pos14,0)
     !endif        
-    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread)) ! this is very slow c_loc(raw(1:nbytes)) 
-    !cfres=fread(c_loc(raw),1,nbytes,fp(thread))
+    !cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread)) ! this is very slow c_loc(raw(1:nbytes)) 
+    cfres=fread(c_loc(raw),1,nbytes,fp(thread))
     !g = raw2real(n,nbytes,raw)
     !grws = g(rws)
     !nmiss(i)=dble(count(grws==3.0D0))
