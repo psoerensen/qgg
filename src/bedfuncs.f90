@@ -612,7 +612,7 @@
 
 
 !==============================================================================================================
-  subroutine freqbed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAWCHAR,nchars,ncores)
+  subroutine freqbed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAWCHAR,nchars)
 !==============================================================================================================
 
   use kinds 
@@ -622,21 +622,18 @@
   
   implicit none
   
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,thread,nchars,fnRAWCHAR(nchars)
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nchars,fnRAWCHAR(nchars)
   real(c_double) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc),g(n),grws(nr)
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=20, kind=c_char) :: mode
   character(len=1000, kind=c_char) :: filename
-  type(c_ptr):: fp(ncores)
+  type(c_ptr):: fp
   integer(c_int) :: cfres 
 
   integer(kind=c_int8_t), target :: raw(nbytes)
   integer(c_int) :: i,nchar,offset
 
   integer(c_int64_t) :: pos14, nbytes14, offset14,i14
-
-  !integer(c_int), external :: omp_get_thread_num
-  if (ncores>1) ncores=1
 
   do i=1,nchars
     fnRAW(i:i) = char(fnRAWCHAR(i))
@@ -659,25 +656,15 @@
   filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
   mode =  'rb' // C_NULL_CHAR
 
-  ncores = 1
-  do i=1,ncores
-   fp(i) = fopen(filename, mode)
-  enddo
+  fp = fopen(filename, mode)
+  
+  cfres=cseek(fp,offset14,0)
 
-  !call omp_set_num_threads(ncores)
-
-  cfres=cseek(fp(1),offset14,0)
-
-  !!$omp parallel do private(i,i14,pos14,raw,g,grws,thread,cfres)
   do i=1,nc
-    thread = 1 
-    !thread=omp_get_thread_num()+1
-    !if(i/=cls(i)) then
-      i14=cls(i)
-      pos14 = offset14 + (i14-1)*nbytes14
-      cfres=cseek(fp(thread),pos14,0)
-    !endif        
-    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread))
+    i14=cls(i)
+    pos14 = offset14 + (i14-1)*nbytes14
+    cfres=cseek(fp,pos14,0)
+    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp)
     g = raw2real(n,nbytes,raw)
     grws = g(rws)
     nmiss(i)=dble(count(grws==3.0D0))
@@ -687,10 +674,8 @@
     if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
   enddo 
 
-  do i =1,ncores
-    cfres=fclose(fp(i))
-  enddo
-
+  cfres=fclose(fp)
+  
 
   end subroutine freqbed
 !==============================================================================================================
