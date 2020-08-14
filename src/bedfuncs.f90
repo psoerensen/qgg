@@ -612,7 +612,7 @@
 
 
 !==============================================================================================================
-  subroutine summarybed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAWCHAR,nchars,ncores)
+  subroutine freqbed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAWCHAR,nchars,ncores)
 !==============================================================================================================
 
   use kinds 
@@ -622,7 +622,7 @@
   
   implicit none
   
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,thread,nchars,fnRAWCHAR(nchars),gint(n)
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,thread,nchars,fnRAWCHAR(nchars)
   real(c_double) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc),g(n),grws(nr)
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=20, kind=c_char) :: mode
@@ -679,83 +679,18 @@
     !endif        
     cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread))
     g = raw2real(n,nbytes,raw)
-    !gint = raw2int(n,nbytes,raw)
-    !grws = g(rws)
-    !nmiss(i)=dble(count(grws==3.0D0))
-    !n0(i)=dble(count(grws==0.0D0))
-    !n1(i)=dble(count(grws==1.0D0)) 
-    !n2(i)=dble(count(grws==2.0D0))
-    !if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
+    grws = g(rws)
+    nmiss(i)=dble(count(grws==3.0D0))
+    n0(i)=dble(count(grws==0.0D0))
+    n1(i)=dble(count(grws==1.0D0)) 
+    n2(i)=dble(count(grws==2.0D0))
+    if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
   enddo 
 
   do i =1,ncores
     cfres=fclose(fp(i))
   enddo
 
-
-  end subroutine summarybed
-!==============================================================================================================
-
-!==============================================================================================================
-  subroutine freqbed(n,nr,rws,nc,cls,af,nmiss,n0,n1,n2,nbytes,fnRAWCHAR,nchars)
-!==============================================================================================================
-
-  use kinds 
-  use bedfuncs 
-  use iso_c_binding
-  use f2cio
-  
-  implicit none
-  
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,nchars,fnRAWCHAR(nchars),g(n),grws(nr) 
-  real(c_double) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc)
-  character(len=nchars, kind=c_char) :: fnRAW
-  character(len=20, kind=c_char) :: mode
-  character(len=1000, kind=c_char) :: filename
-  type(c_ptr):: fp
-  integer(c_int) :: cfres 
-
-  integer(kind=c_int8_t), target :: raw(nbytes)
-  integer(c_int) :: i,nchar,offset
-
-  integer(c_int64_t) :: pos14,nbytes14,offset14,i14
-
-  do i=1,nchars
-    fnRAW(i:i) = char(fnRAWCHAR(i))
-  enddo
-
-  offset=0
-  nchar=index(fnRAW, '.bed')
-  if(nchar>0) offset=3
-  if(nchar==0) nchar=index(fnRAW, '.raw')
-
-  nbytes14 = nbytes
-  offset14 = offset
-
-  af=0.0D0
-  nmiss=0.0D0
-  ntotal=dble(nr) 
-
-  filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
-  mode =  'rb' // C_NULL_CHAR
-
-  fp = fopen(filename, mode)
-
-  cfres=cseek(fp,offset14,0)
-
-  do i=1,nc
-    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp)
-    g = raw2int(n,nbytes,raw)
-    grws = g(rws)
-    nmiss(i)=dble(count(grws==3))
-    n0(i)=dble(count(grws==0))
-    n1(i)=dble(count(grws==1)) 
-    n2(i)=dble(count(grws==2))
-     if ( nmiss(i)<ntotal ) af(i)=(n1(i)+2.0D0*n2(i))/(2.0D0*(ntotal-nmiss(i)))
-  enddo 
-
-  cfres=fclose(fp)
-  
 
   end subroutine freqbed
 !==============================================================================================================
