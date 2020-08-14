@@ -622,7 +622,7 @@
   
   implicit none
   
-  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,thread,nchars,fnRAWCHAR(nchars) 
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,ncores,thread,nchars,fnRAWCHAR(nchars),gint(n)
   real(c_double) :: n0(nc),n1(nc),n2(nc),ntotal,af(nc),nmiss(nc),g(n),grws(nr)
   character(len=nchars, kind=c_char) :: fnRAW
   character(len=20, kind=c_char) :: mode
@@ -677,9 +677,9 @@
       pos14 = offset14 + (i14-1)*nbytes14
       cfres=cseek(fp(thread),pos14,0)
     !endif        
-    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread)) ! this is very slow c_loc(raw(1:nbytes)) 
-    !cfres=fread(c_loc(raw),1,nbytes,fp(thread))
+    cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread))
     !g = raw2real(n,nbytes,raw)
+    gint = raw2int(n,nbytes,raw)
     !grws = g(rws)
     !nmiss(i)=dble(count(grws==3.0D0))
     !n0(i)=dble(count(grws==0.0D0))
