@@ -569,7 +569,7 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
   k = 1
   for (i in 1:mchr) {
     ld[,i] = readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
-    #ld[msize + 1,i] <- 1
+    ld[msize + 1,i] <- 1
   }
   close(bfLD)
   return(ld)
