@@ -652,7 +652,9 @@
 
   af=0.0D0
   nmiss=0.0D0
-  ntotal=dble(nr) 
+  ntotal=dble(nr)
+  g=0.0D0 
+  grws=0.0D0 
 
   filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
   mode =  'rb' // C_NULL_CHAR
@@ -677,7 +679,7 @@
     !endif        
     cfres=fread(c_loc(raw(1:nbytes)),1,nbytes,fp(thread)) ! this is very slow c_loc(raw(1:nbytes)) 
     !cfres=fread(c_loc(raw),1,nbytes,fp(thread))
-    g = raw2real(n,nbytes,raw)
+    !g = raw2real(n,nbytes,raw)
     grws = g(rws)
     nmiss(i)=dble(count(grws==3.0D0))
     n0(i)=dble(count(grws==0.0D0))
