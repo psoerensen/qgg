@@ -15,8 +15,7 @@ extern void F77_NAME(psets)(int *m, double *stat, int *nsets, double *setstat, i
 extern void F77_NAME(readbed)(int *n, int *nr, int *rws, int *nc, int *cls, int *impute, int *scale, int *direction, double *W, int *nbytes, int *nchars, int *fnRAWCHAR);
 extern void F77_NAME(reml)(int *n, int *nf, int *nr, double *tol, int *maxit, int *ncores, int *ngr, int *indx, double *y, double *X, double *theta, double *ai, double *b, double *varb, double *u, double *Vy, double *Py, double *llik, double *trPG, double *trVG, int *ncharsg, int *fnGCHAR);
 extern void F77_NAME(solvebed)(int *n, int *nr, int *rws, int *nc, int *cls, int *scale, int *nbytes, int *fnRAWCHAR, int *nchars, int *ncores, int *nit, double *lambda, double *tol, double *y, double *g, double *e, double *s, double *mean, double *sd);
-extern void F77_NAME(summarybed)(int *n, int *nr, int *rws, int *nc, int *cls, double *af, double *nmiss, double *n0, double *n1, double *n2, int *nbytes, int *fnRAWCHAR, int *nchars, int *ncores);
-extern void F77_NAME(freqbed)(int *n, int *nr, int *rws, int *nc, int *cls, double *af, double *nmiss, double *n0, double *n1, double *n2, int *nbytes, int *fnRAWCHAR, int *nchars);
+extern void F77_NAME(freqbed)(int *n, int *nr, int *rws, int *nc, int *cls, double *af, double *nmiss, double *n0, double *n1, double *n2, int *nbytes, int *fnRAWCHAR, int *nchars, int *ncores);
 
 
 
@@ -30,8 +29,7 @@ static const R_FortranMethodDef FortranEntries[] = {
     {"readbed",    (DL_FUNC) &F77_NAME(readbed),    12},
     {"reml",       (DL_FUNC) &F77_NAME(reml),       22},
     {"solvebed",   (DL_FUNC) &F77_NAME(solvebed),   19},
-    {"summarybed", (DL_FUNC) &F77_NAME(summarybed), 14},
-    {"freqbed", (DL_FUNC) &F77_NAME(summarybed), 13},
+    {"freqbed", (DL_FUNC) &F77_NAME(freqbed), 14},
     {NULL, NULL, 0}
 };
 
