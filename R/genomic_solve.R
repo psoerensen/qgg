@@ -527,7 +527,6 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
                      af = as.double(af),
                      impute = as.integer(impute),
                      direction = as.integer(direction),
-                     ncores = as.integer(ncores),
                      PACKAGE = "qgg"
      )$prs
      
