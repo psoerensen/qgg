@@ -170,7 +170,8 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnRAW = NULL, fn
 
   if (task == "summary") {
     message("Computing allele frequencies, missingness")
-    Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    #Glist <- summaryRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
+    Glist <- freqRAW(Glist = Glist, ids = ids, rsids = Glist$rsids, ncores = ncores)
     Glist$af1 <- 1 - Glist$af
     Glist$af2 <- Glist$af
   }
@@ -280,6 +281,78 @@ summaryRAW <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
     nchars = nchar(as.character(fnRAW)),
     ncores = as.integer(ncores),
+    PACKAGE = "qgg"
+  )
+  qc$hom <- (qc$n0 + qc$n2) / (qc$nr - qc$nmiss)
+  qc$het <- qc$n1 / (qc$nr - qc$nmiss)
+  qc$maf <- qc$af
+  qc$maf[qc$maf > 0.5] <- 1 - qc$maf[qc$maf > 0.5]
+  
+  if(!is.null(chr)) {
+    Glist$nmiss[[chr]] <- qc$nmiss
+    Glist$af[[chr]] <- qc$af
+    Glist$maf[[chr]] <- qc$maf
+    Glist$hom[[chr]] <- qc$hom
+    Glist$het[[chr]] <- qc$het
+    Glist$n0[[chr]] <- qc$n0
+    Glist$n1[[chr]] <- qc$n1
+    Glist$n2[[chr]] <- qc$n2
+  }
+
+  if(is.null(chr)) {
+    Glist$nmiss <- qc$nmiss
+    Glist$af <- qc$af
+    Glist$maf <- qc$maf
+    Glist$hom <- qc$hom
+    Glist$het <- qc$het
+    Glist$n0 <- qc$n0
+    Glist$n1 <- qc$n1
+    Glist$n2 <- qc$n2
+  }
+
+  return(Glist)
+}
+
+
+freqBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, chr = NULL, ncores = 1) {
+
+  n <- Glist$n
+  m <- Glist$m
+  if(!is.null(chr)) m <- Glist$mchr[chr]
+  
+  nbytes <- ceiling(n / 4)
+
+  rws <- 1:n
+  if (!is.null(ids)) rws <- match(ids, Glist$ids)
+  if (!is.null(Glist$study_ids)) rws <- match(Glist$study_ids, Glist$ids)
+  nr <- length(rws)
+
+  if (is.null(cls)) cls <- 1:m
+  if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
+  nc <- length(cls)
+
+  af <- nmiss <- n0 <- n1 <- n2 <- rep(0, nc)
+
+  fnRAW <- Glist$fnRAW
+  if(!is.null(chr)) fnRAW <- Glist$bedfiles[chr]
+  
+  OS <- .Platform$OS.type
+  if (OS == "windows") fnRAW <- tolower(gsub("/", "\\", fnRAW, fixed = T))
+
+  qc <- .Fortran("freqbed",
+    n = as.integer(n),
+    nr = as.integer(nr),
+    rws = as.integer(rws),
+    nc = as.integer(nc),
+    cls = as.integer(cls),
+    af = as.double(af),
+    nmiss = as.double(nmiss),
+    n0 = as.double(n0),
+    n1 = as.double(n1),
+    n2 = as.double(n2),
+    nbytes = as.integer(nbytes),
+    fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
+    nchars = nchar(as.character(fnRAW)),
     PACKAGE = "qgg"
   )
   qc$hom <- (qc$n0 + qc$n2) / (qc$nr - qc$nmiss)
