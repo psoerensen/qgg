@@ -503,7 +503,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
     if (j > 1) {
       for (k in 1:msize) {
         ld <- as.vector(LD[k, k:(k + 2 * msize)])
-        writeBin(ld, bfLD, size = 8, endian = "little")
+        writeBin(ld, bfLD, size = 4, endian = "little")
       }
     }
     if (j == nsets) {
