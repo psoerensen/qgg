@@ -174,7 +174,6 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g
 }
 
 
-
 gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum") {
   m <- length(stat)
   nsets <- length(sets)
@@ -183,19 +182,26 @@ gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum
     sum(stat[x])
   })
 
-  res <- .Fortran("psets",
-    m = as.integer(m),
-    stat = as.double(stat),
-    nsets = as.integer(nsets),
-    setstat = as.double(setstat),
-    msets = as.integer(msets),
-    p = as.integer(rep(0, nsets)),
-    np = as.integer(np),
-    ncores = as.integer(ncores),
-    PACKAGE = "qgg"
-  )
+#  res <- .Fortran("psets",
+#    m = as.integer(m),
+#    stat = as.double(stat),
+#    nsets = as.integer(nsets),
+#    setstat = as.double(setstat),
+#    msets = as.integer(msets),
+#    p = as.integer(rep(0, nsets)),
+#    np = as.integer(np),
+#    ncores = as.integer(ncores),
+#    PACKAGE = "qgg"
+#  )
+#  p <- res$p / np
 
-  p <- res$p / np
+  p <- psets( msets = msets,
+              setstat = setstat,
+              stat = stat,
+              np = np)
+  p <- p/np 
+
+  return(p)
 }
 
 
@@ -235,21 +241,27 @@ gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e
   for (j in 1:nsets) {
     nc <- length(cls[[j]])
     direction <- rep(1, nc)
-    W <- .Fortran("readbed",
-      n = as.integer(n),
-      nr = as.integer(nr),
-      rws = as.integer(rws),
-      nc = as.integer(nc),
-      cls = as.integer(cls[[j]]),
-      impute = as.integer(impute),
-      scale = as.integer(scale),
-      direction = as.integer(direction),
-      W = matrix(as.double(0), nrow = nr, ncol = nc),
-      nbytes = as.integer(nbytes),
-      fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
-      nchars = nchar(as.character(fnRAW)),
-      PACKAGE = "qgg"
-    )$W
+
+#    W <- .Fortran("readbed",
+#      n = as.integer(n),
+#      nr = as.integer(nr),
+#      rws = as.integer(rws),
+#      nc = as.integer(nc),
+#      cls = as.integer(cls[[j]]),
+#      impute = as.integer(impute),
+#      scale = as.integer(scale),
+#      direction = as.integer(direction),
+#      W = matrix(as.double(0), nrow = nr, ncol = nc),
+#      nbytes = as.integer(nbytes),
+#      fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
+#      nchars = nchar(as.character(fnRAW)),
+#      PACKAGE = "qgg"
+#    )$W
+
+# Check this again - should be getW using a bedfile
+      W <- getW(Glist = Glist, rws = rws, cls = cls, scale = scale)
+# End check this again
+
     if (method == "cvat") {
       s <- crossprod(W / nc, Py) * Sg
       Ws <- t(t(W) * as.vector(s))

@@ -1,5 +1,5 @@
 ####################################################################################################################
-#    Module 5: LMM marker association test
+#    Module 1: LMM marker association test
 ####################################################################################################################
 #'
 #' Single marker association analysis using linear models or linear mixed models

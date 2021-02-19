@@ -1,18 +1,18 @@
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!==============================================================================================================
 ! module global
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!==============================================================================================================
 
-    module kindsbig
+    module kinds
 
     implicit none
     
     integer, parameter :: real64 = selected_real_kind(15, 307)
     integer, parameter :: int32 = selected_int_kind(9)
 
-    end module kindsbig
+    end module kinds
 
 
-  module f2ciobig
+  module f2cio
   
   use iso_c_binding
 
@@ -84,14 +84,81 @@
 
   end interface
      
-  end module f2ciobig
+  end module f2cio
+
+  module bedfuncs
+
+  use iso_c_binding
+  use kinds 
+
+  implicit none
+    
+  contains
+
+ 
+  !============================================
+  function raw2real(n,nbytes,raw) result(w)
+  !============================================
+
+  implicit none
+  integer(c_int), intent(in) :: nbytes,n
+  integer(c_int8_t), intent(in) :: raw(nbytes)
+  integer(c_int) :: i,j,k,rawbits
+  real(c_double) :: w(n)
+  real(c_double), dimension(4) :: rawcodes
+ 
+  rawcodes = (/ 0.0D0, 3.0D0, 1.0D0, 2.0D0 /)
+  ! 00 01 10 11
+    
+  w=0.0D0
+  k=0
+  do i=1,nbytes 
+    do j=0,6,2
+      k = k + 1
+      rawbits = ibits(raw(i), j, 2)
+      w(k) = rawcodes(rawbits+1)
+      if (k==n) exit 
+    enddo
+    if (k==n) exit
+  enddo
+
+  end function raw2real
+
+
+  !============================================
+  function scalew(nr,g) result(w)
+  !============================================
+
+  implicit none
+
+  integer(c_int), intent(in) :: nr
+  real(c_double), intent(in) :: g(nr)
+  real(c_double) :: mean,sd,tol,nsize,w(nr)
+
+  tol=0.00001D0
+  w=g
+  nsize=dble(count(w<3.0D0))
+  mean=sum(w, mask=w<3.0D0)/nsize
+  where(w<3.0D0) 
+    w=w-mean
+  elsewhere
+    w=0.0D0
+  end where
+  sd=sqrt(sum(w**2)/(nsize-1))
+  if(sd>tol) w=w/sd
+  if(sd<tol) w=0.0D0
+
+  end function scalew
+
+  end module bedfuncs
+
 
 
     module global
 
-    use kindsbig
+    use kinds
     use iso_c_binding
-    use f2ciobig
+    use f2cio
 
     implicit none
     public
@@ -105,16 +172,16 @@
     end module global
 
     
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!==============================================================================================================
 ! module funcs
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!==============================================================================================================
 
     module bigfuncs
 
-    use kindsbig
+    use kinds
     use global
     use iso_c_binding
-    use f2ciobig
+    use f2cio
  
     implicit none
     
@@ -188,17 +255,17 @@
     end module bigfuncs
     
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!==============================================================================================================
 ! module subs
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!==============================================================================================================
     
     module bigsubs
 
-    use kindsbig
+    use kinds
     use global
     use bigfuncs
     use iso_c_binding
-    use f2ciobig
+    use f2cio
     
     implicit none
     
@@ -280,15 +347,15 @@
     end module bigsubs
 
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!==============================================================================================================
     subroutine reml(n,nf,nr,tol,maxit,ncores,ngr,indx,y,X,theta,ai,b,varb,u,Vy,Py,llik,trPG,trVG,ncharsg,fnGCHAR)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!==============================================================================================================
 
     use global
     use bigsubs
     use bigfuncs
     use iso_c_binding
-    use f2ciobig
+    use f2cio
 
     implicit none
 
@@ -449,5 +516,221 @@
     deallocate(indxg) 
  
     end subroutine reml
-    
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!==============================================================================================================
+
+
+
+!==============================================================================================================
+  subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAW,nchars)
+!==============================================================================================================
+
+  use kinds 
+  use bedfuncs 
+  use iso_c_binding
+  use f2cio
+   
+  implicit none
+  
+  integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
+  real(c_double) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
+
+  character(len=nchars, kind=c_char) :: fnRAW
+  character(len=1000, kind=c_char) :: mode, filename
+  
+  integer(kind=c_int8_t), target :: raw(nbytes,nc)
+  integer(c_int) :: i,nchar,offset
+
+  integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
+  integer(c_int):: cfres
+  type(c_ptr):: fp
+
+  offset=0
+  nchar=index(fnRAW, '.bed')
+  if(nchar>0) offset=3
+  if(nchar==0) nchar=index(fnRAW, '.raw')
+
+  nbytes14 = nbytes
+  offset14 = offset
+
+  filename = fnRAW(1:(nchar+3)) // C_NULL_CHAR
+  mode =  'rb' // C_NULL_CHAR
+  fp = fopen(filename, mode)
+
+  !if (c_double /= kind(1.0d0))  &
+  !  error stop 'Default REAL isn''t interoperable with FLOAT!!'
+
+  do i=1,nc
+    i14=cls(i)
+    pos14 = offset14 + (i14-1)*nbytes14 
+    cfres=cseek(fp,pos14,0)            
+    !cfres=fread(raw(1:nbytes,i),1,nbytes,fp)
+    cfres=fread(c_loc(raw(1:nbytes,i)),1,nbytes,fp)
+  enddo
+  cfres=fclose(fp)
+  
+  ntotal=dble(nr)  
+
+  W=0.0D0  
+  do i=1,nc
+    gr = raw2real(n,nbytes,raw(1:nbytes,i))
+    if (impute==0) then
+      if(direction(i)==0) gr=2.0D0-gr
+      where(gr==3.0D0) gr=0.0D0
+      where(gr==-1.0D0) gr=0.0D0
+      W(1:nr,i) = gr(rws)
+    endif
+    if (impute==3) then
+      if(direction(i)==0) gr=2.0D0-gr
+      where(gr==-1.0D0) gr=3.0D0
+      W(1:nr,i) = gr(rws)
+    endif
+    if (impute==1) then
+      af=0.0D0
+      gsc=gr(rws)
+      nmiss=dble(count(gsc==3.0D0))
+      n0=dble(count(gsc==0.0D0))
+      n1=dble(count(gsc==1.0D0)) 
+      n2=dble(count(gsc==2.0D0))
+      if ( nmiss<ntotal ) af=(n1+2.0D0*n2)/(2.0D0*(ntotal-nmiss))
+      W(1:nr,i) = gr(rws)
+      where(W(1:nr,i)==3.0D0) W(1:nr,i)=2.0D0*af
+      if(direction(i)==0) W(1:nr,i)=2.0D0-W(1:nr,i)
+      if (scale==1) W(1:nr,i)=scalew(nr,W(1:nr,i))
+      if ( nmiss==ntotal ) W(1:nr,i)=0.0D0
+    endif
+  enddo 
+
+  end subroutine readbed
+!==============================================================================================================
+   
+
+!==============================================================================================================
+  subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,fnRAWCHAR,nchars,msize,ncores,fnGCHAR,ncharsg,gmodel)
+!==============================================================================================================
+
+  use kinds 
+  use bedfuncs 
+  use iso_c_binding
+  use f2cio
+  
+  implicit none
+  
+  integer(c_int) :: i,j,n,nr,nc,rws(nr),cls1(nc),cls2(nc),impute,scale,nbytes,ncores,msize,nchar,ncw,gmodel,direction(nc)
+  integer(c_int) :: nchars,ncharsg,fnRAWCHAR(nchars),fnGCHAR(ncharsg)
+  !real(c_double) :: G(nr,nr), W1(nr,msize),W2(nr,msize), w(nr), traceG
+  real(c_double) :: G(nr,nr), W1(nr,msize),W2(nr,msize), traceG
+  real(c_double), target :: w(nr)
+  character(len=nchars, kind=c_char) :: fnRAW
+  character(len=1000, kind=c_char) :: fnG, filename
+  character(len=20, kind=c_char) :: mode
+  type(c_ptr):: fp
+  integer(c_int) :: cfres 
+
+  !call omp_set_num_threads(ncores)
+  if (ncores>1) ncores=1
+
+  do i=1,nchars
+    fnRAW(i:i) = char(fnRAWCHAR(i))
+  enddo
+  do i=1,ncharsg
+    fnG(i:i) = char(fnGCHAR(i))
+  enddo
+
+  G = 0.0D0
+  W1 = 0.0D0
+  W2 = 0.0D0
+  w=0.0d0
+
+  impute=1
+  direction=1 
+
+  do i=1,nc,msize
+
+    if((i+msize-1)<nc) ncw = size(cls1(i:(i+msize-1)))
+    if((i+msize-1)>=nc) ncw = size(cls1(i:nc))          
+  
+    select case (gmodel)
+
+      case (1) ! additive 
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW,nchars)
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
+      case (2) ! dominance
+      scale=2
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW,nchars)
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
+      case (3) ! epistasis
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW,nchars)
+      call readbed(n,nr,rws,ncw,cls2(i:(i+ncw-1)),impute,scale,direction,W2(:,1:ncw),nbytes,fnRAW,nchars)
+      do j=1,ncw
+        W1(:,j) = W1(:,j)*W2(:,j)
+      enddo
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
+      case (4) ! epistasis hadamard 
+      call readbed(n,nr,rws,ncw,cls1(i:(i+ncw-1)),impute,scale,direction,W1(:,1:ncw),nbytes,fnRAW,nchars)
+      call dsyrk('u', 'n', nr, ncw, 1.0D0, W1(:,1:ncw), nr, 1.0D0, G, nr)
+
+    end select
+  
+  enddo
+ 
+  traceG = 0.0D0
+  do i=1,size(G,1)
+      traceG = traceG + G(i,i)
+  enddo
+  traceG = traceG/dble(nr) 
+ 
+  do i=1,size(G,1)
+    do j=i,size(G,1)
+      G(i,j) = G(i,j)/traceG
+      G(j,i) = G(i,j)
+    enddo
+  enddo
+
+  nchar=index(fnG, '.grm')
+  mode =  'wb' // C_NULL_CHAR
+  filename = fnG(1:(nchar+3)) // C_NULL_CHAR
+  fp = fopen(filename, mode)
+  do j=1,size(G,1)
+    if (gmodel<4) w = G(1:size(G,1),j)
+    if (gmodel==4) w = G(1:size(G,1),j)**2
+    cfres=fwrite(c_loc(w),8,nr,fp)
+  enddo
+  cfres=fclose(fp)
+
+  end subroutine grmbed
+!==============================================================================================================
+
+
+!==============================================================================================================
+  subroutine eiggrm(n,GRM,evals,ncores)
+!==============================================================================================================
+! calls the LAPACK diagonalization subroutine dsyev       
+!  input:  G(n,n) = real symmetric matrix to be diagonalized
+!            n  = size of G                               
+!  output: G(n,n) = orthonormal eigenvectors of G           
+!        eig(n) = eigenvalues of G in ascending order     
+!==============================================================================================================
+  use kinds 
+  use iso_c_binding
+
+  implicit none
+
+  external dsyev
+  integer(c_int) :: n,l,info,ncores
+  real(c_double) :: GRM(n,n),evals(n),work(n*(3+n/2))
+
+  !call omp_set_num_threads(ncores)
+  if (ncores>1) ncores=1
+
+  info=0
+  l=0
+
+  l=n*(3+n/2)
+  call dsyev('V','U',n,GRM,n,evals,work,l,info)
+
+  end subroutine eiggrm
+!==============================================================================================================
+
