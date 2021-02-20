@@ -268,6 +268,9 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
   nv <- length(validate)
   typeoftrait <- "quantitative"
   if (nlevels(factor(y)) == 2) typeoftrait <- "binary"
+  
+  ghat <- vector(mode="list",length=nv)
+  
   for (i in 1:nv) {
     v <- validate[[i]]
     t <- (1:n)[-v]
@@ -278,14 +281,18 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
     theta <- rbind(theta, as.vector(fit$theta))
     np <- length(fit$theta)
     ypred <- X[v, ] %*% fit$b
+    ghatv <- NULL
     for (j in 1:(np - 1)) {
       ypred <- ypred + G[[j]][v, t] %*% fit$Py * fit$theta[j]
+      ghatv <- cbind(ghatv, G[[j]][v, t] %*% fit$Py * fit$theta[j])
     }
     yobs <- y[v]
     if (!is.atomic(validate)) res <- rbind(res, acc(yobs = yobs, ypred = ypred, typeoftrait = typeoftrait))
     yo <- c(yo, yobs)
     yp <- c(yp, ypred)
     }
+    colnames(ghatv) <- names(G)
+    ghat[[i]] <- ghatv
   }
 
   if (is.atomic(validate)) res <- matrix(acc(yobs = yo, ypred = yp, typeoftrait = typeoftrait), nrow = 1)
@@ -304,7 +311,7 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
     coef <- lm(yo ~ yp)$coef
     abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
   }
-  return(list(accuracy = res, theta = theta, yobs = yo, ypred = yp))
+  return(list(accuracy = res, theta = theta, yobs = yo, ypred = yp, ghat=ghat))
 }
 
 
