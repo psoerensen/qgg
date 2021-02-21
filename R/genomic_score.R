@@ -177,3 +177,58 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      
      return(grs)
 }
+
+
+neff <- function(seb=NULL,af=NULL,Vy=1) {
+  seb2 <- seb**2
+  vaf <- 2*af*(1-af)
+  neff <- round(median(Vy/(vaf*seb2)))
+  return(neff)
+}
+
+# compute r-squared
+rsq <- function(h2=NULL,me=NULL,n=NULL) {
+  phi <- me/n
+  rsq <- (phi + h2 - sqrt((phi+h2)**2 - 4*phi*h2**2))/(2*phi)
+  rsq
+}
+
+
+adjustB <- function(h2=NULL, rg=null, b=NULL, m=NULL, n=NULL, me=60000, method="ols") {
+  
+  if(is.null(b)) stop("Marker effect matrix b is missing")
+  if(is.null(h2)) stop("Heritability vector h2 is missing")
+  if(is.null(rg)) stop("Correlation matrix rg is missing")
+  cnames <- colnames(b)
+  m <- nrow(b)
+  
+  # compute r2
+  r2 <- rsq(h2=h2,me=me,n=n)
+  
+  # V_sblup
+  if (method=="blup") VS <- diag(r2/m)
+  if (method=="ols") VS <- diag(h2/m + 1/n)
+  nt <- ncol(VS)
+  for(i in 1:nt) {
+    for(j in i:nt) {
+      if(!i==j) {
+        if (method=="blup") VS[i,j] <- (rg[i,j]*r2[i]*r2[j])/(sqrt(h2[i]*h2[j])/m)
+        if (method=="ols") VS[i,j] <- rg[i,j]*sqrt(h2[i])*sqrt(h2[j])/m
+        VS[j,i] <- VS[i,j]
+      }
+    }
+  }
+  # C_sblup
+  CS <- matrix(0,nt,nt)
+  for(i in 1:nt) {
+    for(j in 1:nt) {
+      if (method=="blup") CS[i,j] <- (rg[i,j]*r2[j]*sqrt(h2[i])/sqrt(h2[j]))/m
+      if (method=="ols") CS[i,j] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
+    }
+  }
+  invVS <- solve(VS)
+  weights <- invVS%*%CS
+  b <- t(tcrossprod(weights,b))
+  colnames(b) <- cnames
+  return(b)
+}
