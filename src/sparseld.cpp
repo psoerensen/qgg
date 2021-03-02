@@ -34,9 +34,11 @@ std::vector<int> pruneld( const char* file,
       long int offset = i0*nbytes*4;
       fseek( file_stream, offset, SEEK_SET );
       nbytes_read = fread( buffer, sizeof(float), nbytes, file_stream );
-      
+      if (nbytes_read != nbytes) {
+        std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+      }
       int k0=0;
-      for ( int j = 0; j < nbytes; j++) {
+      for ( size_t j = 0; j < nbytes; j++) {
         int k1 = i0 - ldsize + k0;
         if (k1>=0 && k1<m && k1!=i0) {
           float r2ij=buffer[j]*buffer[j];
@@ -79,7 +81,10 @@ std::vector<std::vector<std::vector<int>>> pruneldmat( const char* file,
   float *buffer = (float *) malloc( nbytes*4 );
   for ( int i = 0; i < m; i++) {
     nbytes_read = fread( buffer, sizeof(float), nbytes, file_stream );
-    for ( int j = 0; j < nbytes; j++) {
+    if (nbytes_read != nbytes) {
+      std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+    }
+    for ( size_t j = 0; j < nbytes; j++) {
       ld[i][j] = buffer[j];
     }
   }
@@ -107,7 +112,7 @@ std::vector<std::vector<std::vector<int>>> pruneldmat( const char* file,
         if(mask1[j]==0 && mask2[j]==0 && p[t1][j]<threshold[t2]) {
           mask2[j]=1;
           int k0=0;
-          for ( int k = 0; k < nbytes; k++) {
+          for ( size_t k = 0; k < nbytes; k++) {
             int k1 = j - ldsize + k0;
             if (k1>=0 && k1<m && k1!=j) {
               float r2ij=ld[j][k]*ld[j][k];

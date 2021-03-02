@@ -37,6 +37,9 @@ std::vector<float> grsbed( const char* file,
     long int offset = (cls[i]-1)*nbytes + 3;
     fseek( file_stream, offset, SEEK_SET );
     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
+    if (nbytes_read != nbytes) {
+      std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+    }
     int j = 0;
     map[0] = b[i]*2.0;
     map[1] = 2.0*af[i]*b[i];
@@ -92,8 +95,10 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
     long int offset = (cls[i]-1)*nbytes + 3;
     fseek( file_stream, offset, SEEK_SET );
     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
+    if (nbytes_read != nbytes) {
+      std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+    }
     int j = 0; 
-    
     for (size_t k = 0; k < nbytes; k++) {
       buf_k = buffer[k];
       for (int pos = 0; pos < 4; pos++, j++) {

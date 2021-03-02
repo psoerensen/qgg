@@ -42,7 +42,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   double vara0=vara;
   
   double rhs, lhs, bnew, conv, diff, mu;
-  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1;
+  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
   double ssb, sse, ssb_prior, sse_prior, dfb, dfe, chi2;
   double xtau, tau, lambda_tau, mu_tau, z, z2, u;
   
@@ -130,7 +130,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
         like0 = like0*(1.0-pi); 
         like1 = like1*pi;
         p0 = like0/(like0+like1); 
-        p1 = like1/(like0+like1);
+        //p1 = like1/(like0+like1);
         d[i]=0;
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
@@ -301,7 +301,7 @@ std::vector<std::vector<double>>  fbayes(  std::vector<double> y,
   double vara0=vara;
   
   double rhs, lhs, bnew, conv, diff, mu;
-  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1;
+  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
   double yy, ssb, sse, ssg, ssb_prior, sse_prior, dfb, dfe, chi2;
   double xtau, tau, lambda_tau, mu_tau, z, z2, u;
   
@@ -428,7 +428,7 @@ std::vector<std::vector<double>>  fbayes(  std::vector<double> y,
         like0 = like0*(1.0-pi); 
         like1 = like1*pi;
         p0 = like0/(like0+like1); 
-        p1 = like1/(like0+like1);
+        //p1 = like1/(like0+like1);
         d[i]=0;
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
@@ -610,7 +610,7 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
   double vara0=vara;
   
   double rhs, lhs, bnew, conv, diff;
-  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1;
+  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
   double yy, ssb, sse, ssg, ssb_prior, sse_prior, dfb, dfe, chi2;
   double xtau, tau, lambda_tau, mu_tau, z, z2, u;
   
@@ -741,7 +741,7 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
         like0 = like0*(1.0-pi); 
         like1 = like1*pi;
         p0 = like0/(like0+like1); 
-        p1 = like1/(like0+like1);
+        //p1 = like1/(like0+like1);
         d[i]=0;
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
