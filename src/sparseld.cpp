@@ -49,6 +49,8 @@ std::vector<int> pruneld( const char* file,
     }
   }
   free( buffer );
+  fclose( file_stream );
+
   
   return mask2;
 }
@@ -89,6 +91,7 @@ std::vector<std::vector<std::vector<int>>> pruneldmat( const char* file,
     }
   }
   free( buffer );
+  fclose( file_stream );
   
   for ( int t1 = 0; t1 < np; t1++) {
     
