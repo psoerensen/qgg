@@ -98,7 +98,8 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
     # Read fam information
     fam <- fread(input = famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
     Glist$ids <- as.character(fam[, 2])
-    Glist$study_ids <- Glist$ids
+    #Glist$study_ids <- Glist$ids
+    Glist$study_ids <- NULL
     Glist$n <- length(Glist$ids)
     if (!is.null(ids)) {
       if (any(!ids %in% as.character(fam[, 2]))) warning(paste("some ids not found in famfiles"))
@@ -136,9 +137,9 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
       Glist$mchr[chr] <- length(Glist$rsids[[chr]]) 
       Glist$chr[[chr]] <- as.character(bim[, 1])
       message(paste("Finished processing bim file", bimfiles[chr]))
-
       if (is.null(Glist$fnBED)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
-
+      message(paste("Finished processing bed file", bedfiles[chr]))
+      
     }
 
     Glist$nchr <- length(Glist$bedfiles)
@@ -411,7 +412,8 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
     W1 = W2
     W2 = W3
     W3 <- .Call("_qgg_readW", Glist$bedfiles[chr], Glist$n, cls[[j]], af[[j]])
-    W3 <- W3[rws,1:nc]     
+    W3 <- scale(W3)
+    if(j == nsets) W3 <- cbind(W3[rws,],matrix(0, nrow = nr, ncol = msize-nc))     
     LD <- t(crossprod(cbind(W1, W2, W3), W2))
     LD <- LD / (nr - 1) 
     LD[is.na(LD)] <- 0
