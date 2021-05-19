@@ -66,6 +66,7 @@ std::vector<std::vector<double>> solvebed( const char* file,
     }
   }
   free( buffer );
+  fclose( file_stream );
   
   
   std::cout << "  " << "\n";
@@ -182,6 +183,7 @@ std::vector<std::vector<std::vector<double>>> mtsolvebed( const char* file,
     }
   }
   free( buffer );
+  fclose( file_stream );
   
   
   std::cout << "  " << "\n";
