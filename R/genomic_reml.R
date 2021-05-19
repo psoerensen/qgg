@@ -257,46 +257,82 @@ remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   ))
 }
 
-
 cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, validate = NULL,
                    maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE,
                    makeplots = FALSE) {
+  
   n <- length(y)
-  theta <- yobs <- ypred <- yo <- yp <- NULL
+  theta <- NULL
+  #theta <- yobst <- yobsv <- ypredt <- ypredv <- NULL
+  #yot <- ypt <- yft <- yat <- yrt <- yov <- ypv <- yfv <- yav <- yrv <- NULL
   res <- NULL
+  
   if (is.matrix(validate)) validate <- as.data.frame(validate)
   nv <- length(validate)
-  typeoftrait <- "quantitative"
-  if (nlevels(factor(y)) == 2) typeoftrait <- "binary"
   
-  ghat <- vector(mode="list",length=nv)
+  typeoftrait <- "quantitative"
+  
+  if (nlevels(factor(y)) == 2) typeoftrait <- "binary"
+
+  #training <- validation <- NULL
+  training <- validation <- vector(mode="list",length=nv)
+  #ghatt <- ghatv <- vector(mode="list",length=nv)
   
   for (i in 1:nv) {
-    v <- validate[[i]]
-    t <- (1:n)[-v]
+    v <- validate[[i]] # index for validation
+    t <- (1:n)[-v] # index for training
     try( fit <- remlr(y = y[t], X = X[t, ], G = lapply(G, function(x) {
       x[t, t]
     }), verbose = verbose))
-    if(!class(fit)=="try-error") {
-    theta <- rbind(theta, as.vector(fit$theta))
-    np <- length(fit$theta)
-    ypred <- X[v, ] %*% fit$b
-    ghatv <- NULL
-    for (j in 1:(np - 1)) {
-      ypred <- ypred + G[[j]][v, t] %*% fit$Py * fit$theta[j]
-      ghatv <- cbind(ghatv, G[[j]][v, t] %*% fit$Py * fit$theta[j])
-    }
-    yobs <- y[v]
-    if (!is.atomic(validate)) res <- rbind(res, acc(yobs = yobs, ypred = ypred, typeoftrait = typeoftrait))
-    yo <- c(yo, yobs)
-    yp <- c(yp, ypred)
-    }
-    colnames(ghatv) <- names(G)
-    ghat[[i]] <- ghatv
-  }
 
-  if (is.atomic(validate)) res <- matrix(acc(yobs = yo, ypred = yp, typeoftrait = typeoftrait), nrow = 1)
+    
+    if(!class(fit)=="try-error") {
+      theta <- rbind(theta, as.vector(fit$theta))
+      np <- length(fit$theta)
+      ypredt <- X[t, ] %*% fit$b # fixed for training
+      ypredv <- X[v, ] %*% fit$b # fixed for validation
+      ghattrain <- ghatval <- NULL # random for training and validation
+      for (j in 1:(np - 1)) {
+        ypredt <- ypredt + G[[j]][t, t] %*% fit$Py * fit$theta[j]  # fixed + random for training
+        ghattrain <- cbind(ghattrain, G[[j]][t, t] %*% fit$Py * fit$theta[j]) # random for validation
+        ypredv <- ypredv + G[[j]][v, t] %*% fit$Py * fit$theta[j] # fixed + random for validation
+        ghatval <- cbind(ghatval, G[[j]][v, t] %*% fit$Py * fit$theta[j]) # random for validation
+      }
+      yobst <- y[t] # observation for training
+      yobsv <- y[v] # observation for validation
+      
+      if (!is.atomic(validate)) res <- rbind(res, acc(yobs = yobsv, ypred = ypredv, typeoftrait = typeoftrait))
+      #yot <- c(yot, yobst)
+      #ypt <- c(ypt, ypredt)
+      #yov <- c(yov, yobsv)
+      #ypv <- c(ypv, ypredv)
+
+      yft <- X[t, ] %*% fit$b # compute fixed effects for training
+      yfv <- X[v, ] %*% fit$b # compute fixed effects for validation
+      yat <- yobst - yft # compute phenotype adjusted for fixed effects for training
+      yav <- yobsv - yfv # compute phenotype adjusted for fixed effects for validation
+      yrt <- yobst - ypredt # compute residuals for training
+      yrv <- yobsv - ypredv # compute residuals for validation
+      
+      training[[i]]  <- cbind(yobst, ypredt, yft, yat, yrt, ghattrain)
+      validation[[i]]  <- cbind(yobsv, ypredv, yfv, yav, yrv, ghatval)
+      colnames(training[[i]]) <- colnames(validation[[i]]) <- c("yobs", "ypred", "yfix", "yadj", "yres", names(G))
+    }
+    
+    #colnames(ghattrain) <- colnames(ghatval) <- names(G)
+    #colnames(ghatval) <- names(G)
+    #ghatt[[i]] <- ghattrain
+    #ghatv[[i]] <- ghatval
+    
+  }
+  
+  
+  # PSO this should be left out  
+  #  if (is.atomic(validate)) res <- matrix(acc(yobs = yov, ypred = ypv, typeoftrait = typeoftrait), nrow = 1)
+  # END PSO this should be left out  
+  
   # if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp,typeoftrait=typeoftrait),nrow=1)
+  
   res <- as.data.frame(res)
   names(res) <- c("Corr", "R2", "Nagel R2", "AUC", "intercept", "slope", "MSPE")
   if (is.null(names(G))) names(G) <- paste("G", 1:(np - 1), sep = "")
@@ -311,8 +347,68 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
     coef <- lm(yo ~ yp)$coef
     abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
   }
-  return(list(accuracy = res, theta = theta, yobs = yo, ypred = yp, ghat=ghat))
-}
+  
+  # return(list(accuracy = res, theta = theta, yobst = yot, ypredt = ypt, yrest = yrest, ghatt=ghatt, yobsv = yov, ypredv = ypv, yresv = yresv, ghatv=ghatv))
+  #return(list(accuracy = res, theta = theta, training = training, validation = validation, ghatt=ghatt, ghatv=ghatv))
+  return(list(accuracy = res, theta = theta, training = training, validation = validation))
+  
+}  
+
+# cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, validate = NULL,
+#                    maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE,
+#                    makeplots = FALSE) {
+#   n <- length(y)
+#   theta <- yobs <- ypred <- yo <- yp <- NULL
+#   res <- NULL
+#   if (is.matrix(validate)) validate <- as.data.frame(validate)
+#   nv <- length(validate)
+#   typeoftrait <- "quantitative"
+#   if (nlevels(factor(y)) == 2) typeoftrait <- "binary"
+#   
+#   ghat <- vector(mode="list",length=nv)
+#   
+#   for (i in 1:nv) {
+#     v <- validate[[i]]
+#     t <- (1:n)[-v]
+#     try( fit <- remlr(y = y[t], X = X[t, ], G = lapply(G, function(x) {
+#       x[t, t]
+#     }), verbose = verbose))
+#     if(!class(fit)=="try-error") {
+#     theta <- rbind(theta, as.vector(fit$theta))
+#     np <- length(fit$theta)
+#     ypred <- X[v, ] %*% fit$b
+#     ghatv <- NULL
+#     for (j in 1:(np - 1)) {
+#       ypred <- ypred + G[[j]][v, t] %*% fit$Py * fit$theta[j]
+#       ghatv <- cbind(ghatv, G[[j]][v, t] %*% fit$Py * fit$theta[j])
+#     }
+#     yobs <- y[v]
+#     if (!is.atomic(validate)) res <- rbind(res, acc(yobs = yobs, ypred = ypred, typeoftrait = typeoftrait))
+#     yo <- c(yo, yobs)
+#     yp <- c(yp, ypred)
+#     }
+#     colnames(ghatv) <- names(G)
+#     ghat[[i]] <- ghatv
+#   }
+# 
+#   if (is.atomic(validate)) res <- matrix(acc(yobs = yo, ypred = yp, typeoftrait = typeoftrait), nrow = 1)
+#   # if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp,typeoftrait=typeoftrait),nrow=1)
+#   res <- as.data.frame(res)
+#   names(res) <- c("Corr", "R2", "Nagel R2", "AUC", "intercept", "slope", "MSPE")
+#   if (is.null(names(G))) names(G) <- paste("G", 1:(np - 1), sep = "")
+#   colnames(theta) <- c(names(G), "E")
+#   theta <- as.data.frame(round(theta, 3))
+#   if (makeplots) {
+#     layout(matrix(1:4, ncol = 2))
+#     boxplot(res$Corr, main = "Predictive Ability", ylab = "Correlation")
+#     boxplot(res$MSPE, main = "Prediction Error", ylab = "MSPE")
+#     boxplot(theta, main = "Estimates", ylab = "Variance")
+#     plot(y = yo, x = yp, xlab = "Predicted", ylab = "Observed")
+#     coef <- lm(yo ~ yp)$coef
+#     abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
+#   }
+#   return(list(accuracy = res, theta = theta, yobs = yo, ypred = yp, ghat=ghat))
+# }
 
 
 ####################################################################################################################
