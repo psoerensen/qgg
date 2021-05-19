@@ -60,6 +60,7 @@ IntegerMatrix   readbed( const char* file,
   }
   
   free( buffer );
+  fclose( file_stream );
   
   return X;
 }
@@ -123,6 +124,7 @@ NumericMatrix readW( const char* file,
     }
   }
   free( buffer );
+  fclose( file_stream );
   return W;
 }
 
@@ -182,6 +184,7 @@ std::vector<std::vector<float>> getWlist( const char* file,
     }
   }
   free( buffer );
+  fclose( file_stream );
   return g;
 }
 
@@ -236,6 +239,7 @@ IntegerMatrix freqbed( const char* file,
     }
   }
   free( buffer );
+  fclose( file_stream );
   
   return X;
 }
@@ -302,6 +306,7 @@ std::vector<std::vector<std::vector<float>>> summarybed( const char* file,
     
   }
   free( buffer );
+  fclose( file_stream );
   
   std::vector<std::vector<std::vector<float>>> result;
   result.resize(2);
@@ -320,3 +325,7 @@ std::vector<std::vector<std::vector<float>>> summarybed( const char* file,
   return result;
   
 }
+
+
+
+
