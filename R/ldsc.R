@@ -91,37 +91,55 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4) {
 
 
 #' @export
-ldsc <- function(Glist=NULL, lscore=NULL, b=NULL, seb=NULL, p=NULL, n=NULL, sets=NULL, intercept=TRUE, what="h2") {
+ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, p=NULL, n=NULL, sets=NULL, intercept=TRUE, what="h2") {
   if(!is.null(Glist) & is.null(lscore) ) lscore <- unlist(Glist$lscore)
-  lscore <- lscore[rownames(b)]
-  nt <- ncol(b)
+  
+  if(!is.null(z)) nt <- ncol(z)
+  
+  if(!is.null(b)) {
+    nt <- ncol(b)
+    for (t in 1:nt) {
+      z <- cbind(z,(b[,t]/seb[,t]))
+    }
+  }  
+
+  lscore <- lscore[rownames(z)]
   if(is.null(n)) {
-    n <- rep(0,nt)
+    n <- NULL
+    if(is.null(seb)) stop("Please provide n or alternatively seb")
     for ( t in 1:nt) {
-      if(is.null(n)) n
-      n[t] <- neff(seb[,t],af[,t])
+      n <- c(n,neff(seb[,t],af[,t]))
     }
   }
   maxZ2 <- max(0.001 * max(n), 80)
   h2 <- NULL
   for ( t in 1:nt) {
-    z2 <- (b[,t]/seb[,t])**2
-    rws <- z2<800
-    if(intercept) X <- cbind(1,n[t]*lscore[rws]/sum(rws))
-    if(!intercept) X <- matrix(n[t]*lscore[rws]/sum(rws),ncol=1)
-    y <- z2[rws]
+    #z2 <- (b[,t]/seb[,t])**2
+    z2 <- z[,t]**2
+    z2 <- z2[!is.na(z2)] 
+    z2 <- z2[z2<800]
+    if(intercept) X <- cbind(1,n[t]*lscore[names(z2)]/length(z2))
+    if(!intercept) X <- matrix(n[t]*lscore[names(z2)]/length(z2),ncol=1)
+    y <- z2
     XtX <- crossprod(X)
     Xy <- crossprod(X,y)
-    h2 <- c(h2,solve(XtX, Xy))
+    h2_ldsc <- solve(XtX, Xy)
+    if(intercept){
+      if(h2_ldsc[2]<0) h2_ldsc[2] <- NA
+    }
+    if(!intercept){
+      if(h2_ldsc[1]<0) h2_ldsc[1] <- NA
+    }
+    h2 <- c(h2,h2_ldsc)
   }
   if(intercept) {
     h2 <- matrix(h2,ncol=2,byrow=TRUE)
-    rownames(h2) <- colnames(b)
+    rownames(h2) <- colnames(z)
     colnames(h2) <- c("intercept","h2")
   }
   if(!intercept) {
     h2 <- matrix(h2,ncol=1,byrow=TRUE)
-    rownames(h2) <- colnames(b)
+    rownames(h2) <- colnames(z)
     colnames(h2) <- "h2"
   }
   result <- h2
@@ -130,10 +148,14 @@ ldsc <- function(Glist=NULL, lscore=NULL, b=NULL, seb=NULL, p=NULL, n=NULL, sets
     rownames(rg) <- colnames(rg) <- colnames(b)
     for (t1 in 1:nt) {
       for (t2 in t1:nt) {
-        Z1 <- (b[,t1]/seb[,t1])
-        Z2 <- (b[,t2]/seb[,t2])
-        Z2_1 <- (b[,t1]/seb[,t1])**2
-        Z2_2 <- (b[,t2]/seb[,t2])**2
+        #Z1 <- (b[,t1]/seb[,t1])
+        #Z2 <- (b[,t2]/seb[,t2])
+        #Z2_1 <- (b[,t1]/seb[,t1])**2
+        #Z2_2 <- (b[,t2]/seb[,t2])**2
+        Z1 <- z[,t1]
+        Z2 <- z[,t2]
+        Z2_1 <- Z1**2
+        Z2_2 <- Z2**2
         rws1 <- Z2_1<maxZ2
         rws2 <- Z2_2<maxZ2
         rws <- rws1 & rws2
@@ -142,12 +164,13 @@ ldsc <- function(Glist=NULL, lscore=NULL, b=NULL, seb=NULL, p=NULL, n=NULL, sets
         y <- Z1[rws]*Z2[rws]
         XtX <- crossprod(X)
         Xy <- crossprod(X,y)
-        if(intercept) rg[t1,t2] <- solve(XtX, Xy)[2]/(sqrt(h2[t1,2])*sqrt(h2[t2,2]))
-        if(!intercept) rg[t1,t2] <- solve(XtX, Xy)[2]/(sqrt(h2[t1])*sqrt(h2[t2]))
+        if(intercept & !any(is.na(h2[c(t1,t2),2]))) rg[t1,t2] <- solve(XtX, Xy)[2]/(sqrt(h2[t1,2])*sqrt(h2[t2,2]))
+        if(!intercept & !any(is.na(h2[c(t1,t2)]))) rg[t1,t2] <- solve(XtX, Xy)[2]/(sqrt(h2[t1])*sqrt(h2[t2]))
       }
       if(intercept) rg[t1,t1] <- h2[t1,2]
       if(!intercept) rg[t1,t1] <- h2[t1]
     }
+    rownames(rg) <- colnames(rg) <- colnames(z)
     result <- rg
   }
   return(result)
