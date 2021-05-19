@@ -56,6 +56,7 @@ std::vector<float> grsbed( const char* file,
     }
   }
   free( buffer );
+  fclose( file_stream );
   
   return grs;
 }
@@ -120,6 +121,7 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
     
   }
   free( buffer );
+  fclose( file_stream );
   
   return grs;
 }
