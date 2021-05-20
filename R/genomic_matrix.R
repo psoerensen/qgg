@@ -158,10 +158,12 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
     Glist$fnLD <- fnLD
     if (is.null(fnLD)) Glist$fnLD <- gsub(".bed", ".ld", Glist$bedfiles)
     Glist$rsidsLD <- vector(mode = "list", length = length(Glist$fnLD))
+    Glist$lscore <- vector(mode = "list", length = length(Glist$fnLD))
     if (is.null(ids)) ids <- Glist$ids
     for( chr in 1:length(Glist$fnLD)) {
       Glist <- sparseLD(Glist = Glist, fnLD = Glist$fnLD[chr], msize = msize, chr = chr, rsids = rsids,
         ids = ids, ncores = 1)
+      Glist$lscore[[chr]] <- ldscore( Glist=Glist, chr=chr) 
     }
   }
 
