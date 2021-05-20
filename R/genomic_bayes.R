@@ -244,9 +244,9 @@ plotgbayes <- function(fit=NULL, causal=NULL) {
      if(!is.list(fit[[1]])) {
           layout(matrix(1:6,nrow=3,ncol=2))
           plot(fit[[1]],ylab="Posterior", xlab="Marker", main="Marker effect", frame.plot=FALSE)  
-          if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),,col="red", pch=4, cex=2, lwd=3 )
-          plot(fit[[2]],ylab="Posterio mean", xlab="Marker", main="Marker indicator", frame.plot=FALSE)  
-          if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),,col="red", pch=4, cex=2, lwd=3 )
+          if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
+          plot(fit[[2]],ylab="Posterior mean", xlab="Marker", main="Marker indicator", frame.plot=FALSE)  
+          if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
           hist(fit[[6]],xlab="Posterior", main="Pi")  
           hist(fit[[4]],xlab="Posterior", main="Marker variance")  
           hist(fit[[5]],xlab="Posterior", main="Residual variance")  
