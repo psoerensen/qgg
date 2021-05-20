@@ -6,16 +6,16 @@
 
 using namespace Rcpp;
 
-// readbed
-IntegerMatrix readbed(const char* file, int n, std::vector<int> cls);
-RcppExport SEXP _qgg_readbed(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP) {
+// readG
+IntegerMatrix readG(const char* file, int n, std::vector<int> cls);
+RcppExport SEXP _qgg_readG(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
-    rcpp_result_gen = Rcpp::wrap(readbed(file, n, cls));
+    rcpp_result_gen = Rcpp::wrap(readG(file, n, cls));
     return rcpp_result_gen;
 END_RCPP
 }

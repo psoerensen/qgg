@@ -4,7 +4,7 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-IntegerMatrix   readbed( const char* file, 
+IntegerMatrix   readG( const char* file, 
                          int n, 
                          std::vector<int> cls) {
   

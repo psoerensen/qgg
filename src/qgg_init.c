@@ -29,7 +29,7 @@ extern SEXP _qgg_rcpparma_bothproducts(SEXP);
 extern SEXP _qgg_rcpparma_hello_world();
 extern SEXP _qgg_rcpparma_innerproduct(SEXP);
 extern SEXP _qgg_rcpparma_outerproduct(SEXP);
-extern SEXP _qgg_readbed(SEXP, SEXP, SEXP);
+extern SEXP _qgg_readG(SEXP, SEXP, SEXP);
 extern SEXP _qgg_riwishart(SEXP, SEXP);
 extern SEXP _qgg_rwishart(SEXP, SEXP);
 extern SEXP _qgg_sbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -57,7 +57,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_qgg_rcpparma_hello_world",  (DL_FUNC) &_qgg_rcpparma_hello_world,   0},
     {"_qgg_rcpparma_innerproduct", (DL_FUNC) &_qgg_rcpparma_innerproduct,  1},
     {"_qgg_rcpparma_outerproduct", (DL_FUNC) &_qgg_rcpparma_outerproduct,  1},
-    {"_qgg_readbed",               (DL_FUNC) &_qgg_readbed,                3},
+    {"_qgg_readG",               (DL_FUNC) &_qgg_readG,                3},
     {"_qgg_riwishart",             (DL_FUNC) &_qgg_riwishart,              2},
     {"_qgg_rwishart",              (DL_FUNC) &_qgg_rwishart,               2},
     {"_qgg_sbayes",                (DL_FUNC) &_qgg_sbayes,                16},
