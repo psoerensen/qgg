@@ -240,7 +240,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
 #' @export
 #'
 
-plotgbayes <- function(fit=NULL) {
+plotgbayes <- function(fit=NULL, causal=NULL) {
      if(!is.list(fit[[1]])) {
           layout(matrix(1:6,nrow=3,ncol=2))
           plot(fit[[1]],ylab="Posterior", xlab="Marker", main="Marker effect", frame.plot=FALSE)  
