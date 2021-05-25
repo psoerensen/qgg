@@ -102,6 +102,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                             updatePi = updatePi,
                             nit=nit,
                             method=as.integer(method)) 
+               names(fit[[1]]) <- colnames(W)
+               names(fit) <- c("b","p","mu","B","E","Pi")
           } 
           
 
@@ -125,6 +127,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                              updatePi = updatePi,
                              nit=nit,
                              method=as.integer(method)) 
+               names(fit[[1]]) <- colnames(W)
+               names(fit) <- c("b","p","mu","B","E","Pi")
           }
           
           
@@ -169,7 +173,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                         updatePi = updatePi,
                         n=n,
                         nit=nit,
-                        method=as.integer(method)) 
+                        method=as.integer(method))
+          names(fit[[1]]) <- rownames(LD)
+          names(fit) <- c("b","p","mu","B","E","Pi")
      }
      
      
