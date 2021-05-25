@@ -122,7 +122,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
     Glist$n0 <- vector(mode = "list", length = nfiles)
     Glist$n1 <- vector(mode = "list", length = nfiles)
     Glist$n2 <- vector(mode = "list", length = nfiles)
-    Glist$cls <- vector(mode = "list", length = nfiles)
+#    Glist$cls <- vector(mode = "list", length = nfiles)
 
     for (chr in 1:length(bedfiles)) {
       bim <- fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
@@ -271,6 +271,36 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 #      fwrite(fam_combined, file.name=fnFAM)
 # }
 
+
+#' Extract elements from genotype matrix (W) stored on disk
+#'
+#' @description
+#' Extract elements from genotype matrix W (whole or subset) stored on disk.
+
+#' @param Glist list structure with information about genotypes stored on disk
+#' @param bedfiles vector of name for the PLINK bed-file
+#' @param ids vector of ids in W to be extracted
+#' @param rsids vector of rsids in W to be extracted
+#' @param rws vector of rows in W to be extracted
+#' @param cls vector of columns in W to be extracted
+#' @param scale logical if TRUE the genotype markers have been scale to mean zero and variance one
+#' @param impute logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)
+
+#' @export
+#'
+
+getG <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
+                 rws = NULL, cls = NULL, impute = TRUE, scale = FALSE) {
+
+if(!is.null(chr)) bedfiles <- Glist$bedfiles[chr]
+if(is.null(cls)) cls <-  1:Glist$mchr[chr]
+af <- Glist$af[[chr]][cls]
+if(scale) W <- .Call("_qgg_readW", bedfiles, Glist$n,cls,af)
+if(!scale) W <- .Call("_qgg_readG", bedfiles, Glist$n,cls)
+colnames(W) <- Glist$rsids[[chr]][cls]
+rownames(W) <- Glist$ids
+return(W)
+}
 
 
 #' Extract elements from genotype matrix (W) stored on disk
