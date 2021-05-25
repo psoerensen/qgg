@@ -143,6 +143,18 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, p=NULL, n=NU
     colnames(h2) <- "h2"
   }
   result <- h2
+  
+  #---------------------------------#
+  # Block Jackknife to estimate h2 SE
+  if(SE==TRUE){
+    if(intercept==TRUE){
+      
+    }
+  }
+      
+  
+  
+  
   if(what=="correlation") {
     rg <- matrix(0,nt,nt)
     rownames(rg) <- colnames(rg) <- colnames(b)
