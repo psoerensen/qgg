@@ -32,6 +32,7 @@ acc <- function(yobs = NULL, ypred = NULL, typeoftrait = "quantitative") {
   if (typeoftrait == "binary") r2nag <- rnag(yobs = yobs, ypred = ypred)
   res <- round(c(pa, r2, r2nag, aurc, intercept, slope, mspe), 3)
   names(res) <- c("Corr", "R2", "Nagel R2", "AUC", "intercept", "slope", "MSPE")
+  if(typeoftrait == "quantitative") res <- res[-c(3:4)]
   return(res)
 }
 
