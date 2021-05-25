@@ -52,14 +52,22 @@
 #' @export
 #'
 
-gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
+gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = fit, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
      
      if ( !is.null(Glist))  {
+          prs <- NULL
+          if(is.null(stat) & !is.null(fit)) {
+            stat <- data.frame(rsids=names(fit$b), alleles=NA, af=NA, effect=fit$b)
+            rownames(stat) <- names(fit$b)
+          }
           for (chr in 1:length(Glist$bedfiles)) {
-               prschr <- run_gscore(bedfiles=Glist$bedfiles[chr], bimfiles=Glist$bimfiles[chr], famfiles=Glist$famfiles[chr], stat = stat, 
-                                    ids = ids, scale = scale, impute = impute, msize = msize, ncores = ncores)
-               if (chr==1) prs <- prschr
-               if (chr>1) prs <- prs + prschr
+               if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
+                 prschr <- run_gscore(bedfiles=Glist$bedfiles[chr], bimfiles=Glist$bimfiles[chr], famfiles=Glist$famfiles[chr], stat = stat, 
+                                      ids = ids, scale = scale, impute = impute, msize = msize, ncores = ncores)
+                 if (is.null(prs)) prs <- prschr
+                 if (!is.null(prs)) prs <- prs + prschr
+                 
+               }
           }
      }
      if ( !is.null(bedfiles))  {
@@ -72,7 +80,7 @@ gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, st
 
 run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
      
-     if(sum(is.na(stat))>0) stop("stat object contains NAs") 
+     if(sum(is.na(stat[,-c(2:3)]))>0) stop("stat object contains NAs") 
      if(is.null(Glist) & is.null(bedfiles)) stop("Please provide Glist or bedfile")
      
      if (!is.null(bedfiles)) {
@@ -133,13 +141,19 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      nr <- length(rws)
      cls <- match(rsids, Glist$rsids)
      nc <- length(cls)
-     direction <- as.integer(stat$alleles == Glist$a2[cls])
+     #direction <- as.integer(stat$alleles == Glist$a2[cls])
+     if(any(!is.na(stat$alleles))) {
+       flipped <- !stat$alleles == Glist$a2[cls]
+       S[flipped,] <- -S[flipped,]  
+     }
      
      if(!file.exists(Glist$bedfiles)) stop(paste("bed file does not exists:"),Glist$bedfiles) 
      
 
      # single core
      if(ncores==1) {
+          message(paste("Processing bed file", Glist$bedfiles))
+       
           Slist <- vector(ncol(S),mode="list")
           for (j in 1:ncol(S)) {
                Slist[[j]] <- S[,j]
