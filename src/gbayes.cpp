@@ -250,13 +250,15 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   }
   
   // Summarize results
-  std::vector<std::vector<double>> result(6);
+  std::vector<std::vector<double>> result(8);
   result[0].resize(m);
   result[1].resize(m);
   result[2].resize(nit);
   result[3].resize(nit);
   result[4].resize(nit);
   result[5].resize(nit);
+  result[6].resize(n);
+  result[7].resize(n);
   
   for (int i=0; i < m; i++) {
     result[0][i] = b_post_mean[i]/nit;
@@ -267,6 +269,10 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     result[3][i] = varb_post[i];
     result[4][i] = vare_post[i];
     result[5][i] = pi_post[i];
+  }
+  for (int i=0; i < n; i++) {
+    result[6][i] = y[i]- mu - e[i];
+    result[7][i] = e[i];
   }
   
   return result;
