@@ -66,7 +66,8 @@ std::vector<float> grsbed( const char* file,
 std::vector<std::vector<float>> mtgrsbed( const char* file, 
                                           int n, 
                                           std::vector<int> cls, 
-                                          std::vector<float> af, 
+                                          std::vector<float> af,
+                                          bool scale,
                                           std::vector<std::vector<float>> b) {
   
   
@@ -85,12 +86,19 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
   std::vector<int> map(4);
   std::vector<float> mapt(4);
   std::vector<std::vector<float>> grs(nt, std::vector<float>(n, 0.0));
+
+  ////////////////////////////////////////////////////////////////////////
+  //  00 01 10 11         bit level  corresponds to
+  //  0  1  2  3          xij level  corresponds to
+  //  2  NA  1  0         number of copies of first allele in bim file
+  ////////////////////////////////////////////////////////////////////////
   
   map[0] = 0;
   map[1] = 1;
   map[2] = 2;
   map[3] = 3;
   
+
   for (int i = 0; i < m; i++) {
     // cls[i] is 1-based
     long int offset = (cls[i]-1)*nbytes + 3;
@@ -110,15 +118,21 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
       }
     }
     for ( int t = 0; t < nt; t++) {
-      mapt[0] = b[t][i]*2.0;
-      mapt[1] = 2.0*af[i]*b[t][i];
-      mapt[2] = b[t][i];
-      mapt[3] = 0.0;
+      if(scale) {
+        mapt[0] = b[t][i]*(2.0 - 2.0*af[i]);
+        mapt[1] = 0.0;
+        mapt[2] = b[t][i]*(1.0 - 2.0*af[i]);
+        mapt[3] = -b[t][i]*(2.0*af[i]);
+      } else {
+        mapt[0] = b[t][i]*2.0;
+        mapt[1] = 2.0*af[i]*b[t][i];
+        mapt[2] = b[t][i];
+        mapt[3] = 0.0;
+      }
       for ( int j = 0; j < n; j++) {
         grs[t][j] = grs[t][j] + mapt[x[j]];
       }
     }
-    
   }
   free( buffer );
   fclose( file_stream );
