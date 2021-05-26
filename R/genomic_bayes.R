@@ -228,6 +228,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                          updateE=updateE,
                          nit=nit,
                          method=as.integer(method))
+          names(fit) <- c("b","p","mu","B","E","rho","g","e")
+          
           
      }
      
