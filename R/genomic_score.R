@@ -57,7 +57,12 @@ gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, st
      if ( !is.null(Glist))  {
           prs <- NULL
           if(is.null(stat) & !is.null(fit)) {
-            stat <- data.frame(rsids=names(fit$b), alleles=NA, af=NA, effect=fit$b)
+            rsids <- unlist(Glist$rsids)
+            af <- unlist(Glist$af)
+            alleles <- unlist(Glist$a2)
+            cls <- match(names(fit$b),rsids)
+            if(any(is.na(cls))) stop("Missing rsids")
+            stat <- data.frame(rsids=names(fit$b), alleles=alleles[cls], af=af[cls], effect=fit$b)
             rownames(stat) <- names(fit$b)
           }
           for (chr in 1:length(Glist$bedfiles)) {
@@ -78,7 +83,7 @@ gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, st
 }
 
 
-run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
+run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = scale, impute = TRUE, msize = 100, ncores = 1) {
      
      if(sum(is.na(stat[,-c(2:3)]))>0) stop("stat object contains NAs") 
      if(is.null(Glist) & is.null(bedfiles)) stop("Please provide Glist or bedfile")
@@ -140,6 +145,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      if (!is.null(ids)) rws <- match(ids, Glist$ids)
      nr <- length(rws)
      cls <- match(rsids, Glist$rsids)
+     #af <- Glist$af[cls]
      nc <- length(cls)
      #direction <- as.integer(stat$alleles == Glist$a2[cls])
      if(any(!is.na(stat$alleles))) {
@@ -159,7 +165,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
                Slist[[j]] <- S[,j]
           }
           #af <- 1-Glist$af[cls]
-          grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls, af, Slist)
+          grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls, af, scale, Slist)
           grs <- as.matrix(as.data.frame(grs[[1]]))
           rownames(grs) <- Glist$ids
           colnames(grs) <- colnames(S)
@@ -179,7 +185,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
                Slist[[j]] <- lapply(seq_len(ncol(S)), function(i) S[rwsS[[j]],i])
           }
           
-          grslist <- mclapply(1:length(cls), function(set) { .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls[[set]], af[[set]], Slist[[set]]  ) }, mc.cores = ncores)
+          grslist <- mclapply(1:length(cls), function(set) { .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls[[set]], af[[set]], scale, Slist[[set]]  ) }, mc.cores = ncores)
           grs <- as.matrix(as.data.frame(grslist[[1]]))
           for (j in 2:length(grslist)) {
                grs <- grs + as.matrix(as.data.frame(grslist[[j]]))      
