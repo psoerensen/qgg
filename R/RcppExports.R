@@ -37,8 +37,8 @@ grsbed <- function(file, n, cls, af, b) {
     .Call(`_qgg_grsbed`, file, n, cls, af, b)
 }
 
-mtgrsbed <- function(file, n, cls, af, b) {
-    .Call(`_qgg_mtgrsbed`, file, n, cls, af, b)
+mtgrsbed <- function(file, n, cls, af, scale, b) {
+    .Call(`_qgg_mtgrsbed`, file, n, cls, af, scale, b)
 }
 
 mmult <- function(A, B) {
