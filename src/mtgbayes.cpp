@@ -451,7 +451,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   
   // Summarize results
   std::vector<std::vector<std::vector<double>>> result;
-  result.resize(6);
+  result.resize(8);
   
   result[0].resize(nt);
   result[1].resize(nt);
@@ -459,6 +459,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   result[3].resize(nt);
   result[4].resize(nt);
   result[5].resize(nt);
+  result[6].resize(nt);
+  result[7].resize(nt);
   
   for (int t=0; t < nt; t++) {
     result[0][t].resize(m);
@@ -467,12 +469,18 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
     result[3][t].resize(nit);
     result[4][t].resize(nit);
     result[5][t].resize(nt);
+    result[6][t].resize(n);
+    result[7][t].resize(n);
   }
   
   for (int t=0; t < nt; t++) {
     for (int i=0; i < m; i++) {
       result[0][t][i] = b_post_mean[t][i]/nit;
       result[1][t][i] = d_post_mean[t][i]/nit;
+    }
+    for (int i=0; i < n; i++) {
+      result[6][t][i] = y[t][i] - mu[t] - e[t][i];
+      result[7][t][i] = e[t][i];
     }
   }
   
