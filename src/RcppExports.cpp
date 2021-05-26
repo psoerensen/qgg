@@ -168,8 +168,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // mtgrsbed
-std::vector<std::vector<float>> mtgrsbed(const char* file, int n, std::vector<int> cls, std::vector<float> af, std::vector<std::vector<float>> b);
-RcppExport SEXP _qgg_mtgrsbed(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP, SEXP bSEXP) {
+std::vector<std::vector<float>> mtgrsbed(const char* file, int n, std::vector<int> cls, std::vector<float> af, bool scale, std::vector<std::vector<float>> b);
+RcppExport SEXP _qgg_mtgrsbed(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP, SEXP scaleSEXP, SEXP bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -177,8 +177,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
     Rcpp::traits::input_parameter< std::vector<float> >::type af(afSEXP);
+    Rcpp::traits::input_parameter< bool >::type scale(scaleSEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<float>> >::type b(bSEXP);
-    rcpp_result_gen = Rcpp::wrap(mtgrsbed(file, n, cls, af, b));
+    rcpp_result_gen = Rcpp::wrap(mtgrsbed(file, n, cls, af, scale, b));
     return rcpp_result_gen;
 END_RCPP
 }
