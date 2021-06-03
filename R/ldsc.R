@@ -91,7 +91,7 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4) {
 
 
 #' @export
-ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, p=NULL, n=NULL, sets=NULL, intercept=TRUE, what="h2") {
+ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, p=NULL, n=NULL, sets=NULL, intercept=TRUE, what="h2", SE.h2=TRUE, SE.rg=TRUE, blk=200) {
   if(!is.null(Glist) & is.null(lscore) ) lscore <- unlist(Glist$lscore)
   
   if(!is.null(z)) nt <- ncol(z)
@@ -114,10 +114,9 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, p=NULL, n=NU
   maxZ2 <- max(0.001 * max(n), 80)
   h2 <- NULL
   for ( t in 1:nt) {
-    #z2 <- (b[,t]/seb[,t])**2
     z2 <- z[,t]**2
     z2 <- z2[!is.na(z2)] 
-    z2 <- z2[z2<800]
+    z2 <- z2[z2<maxZ2]
     if(intercept) X <- cbind(1,n[t]*lscore[names(z2)]/length(z2))
     if(!intercept) X <- matrix(n[t]*lscore[names(z2)]/length(z2),ncol=1)
     y <- z2
@@ -146,15 +145,61 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, p=NULL, n=NU
   
   #---------------------------------#
   # Block Jackknife to estimate h2 SE
-  if(SE==TRUE){
+  if(SE.h2==TRUE){
     if(intercept==TRUE){
-      
+      P <- SE <- matrix(0,ncol=1,nrow=nt)
+        for ( t in 1:nt) {
+          z2 <- z[,t]**2
+          z2 <- z2[!is.na(z2)]
+          z2 <- z2[z2<maxZ2]
+          X <- cbind(1,n[t]*lscore[names(z2)]/length(z2))
+          y <- z2
+          XtX <- crossprod(X)
+          Xy <- crossprod(X,y)
+          
+          idx <- split(1:length(y), cut(1:length(y), blk, labels=F))
+          
+          h2.jack <- numeric(blk)
+          for(i in 1:length(idx)){
+            XtX.idx <- crossprod(X[idx[[i]],])
+            Xy.idx <- crossprod(X[idx[[i]],],y[idx[[i]]])
+            h2.jack[i] <- solve(XtX-XtX.idx, Xy-Xy.idx)[2]
+          }
+          SE[t,1] <- sqrt(mean((h2.jack - mean(h2.jack))^2)*(blk - 1))
+          P[t,1] <- pchisq((h2[t,2]/SE[t,])^2, df = 1, lower.tail = FALSE)
+        }
+        h2 <- cbind(h2,SE,P)
+        colnames(h2)[3:4] <- c("SE","P")
+        result <- h2
+    }
+    if(intercept==FALSE){
+      P <- SE <- matrix(0,ncol=1,nrow=nt)
+        for ( t in 1:nt) {
+          z2 <- z[,t]**2
+          z2 <- z2[!is.na(z2)]
+          z2 <- z2[z2<maxZ2]
+          X <- matrix(n[t]*lscore[names(z2)]/length(z2),ncol=1)
+          y <- z2
+          XtX <- crossprod(X)
+          Xy <- crossprod(X,y)
+          
+          idx <- split(1:length(y), cut(1:length(y), blk, labels=F))
+          
+          h2.jack <- numeric(blk)
+          for(i in 1:length(idx)){
+            XtX.idx <- crossprod(X[idx[[i]],])
+            Xy.idx <- crossprod(X[idx[[i]],],y[idx[[i]]])
+            h2.jack[i] <- solve(XtX-XtX.idx, Xy-Xy.idx)[1]
+          }
+          SE[t,1] <- sqrt(mean((h2.jack - mean(h2.jack))^2)*(blk - 1))
+          P[t,1] <- pchisq((h2[t,1]/SE[t,])^2, df = 1, lower.tail = FALSE)
+        }
+        h2 <- cbind(h2,SE,P)
+        colnames(h2)[2:3] <- c("SE","P")
+        result <- h2
     }
   }
-      
-  
-  
-  
+   
   if(what=="correlation") {
     rg <- matrix(0,nt,nt)
     rownames(rg) <- colnames(rg) <- colnames(b)
@@ -181,6 +226,7 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, p=NULL, n=NU
       }
       if(intercept) rg[t1,t1] <- h2[t1,2]
       if(!intercept) rg[t1,t1] <- h2[t1]
+      rg[t2,t1] <- rg[t1,t2]
     }
     rownames(rg) <- colnames(rg) <- colnames(z)
     result <- rg
