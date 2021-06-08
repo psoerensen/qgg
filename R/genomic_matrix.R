@@ -197,7 +197,12 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   nmiss <- freq[2,]
   hom <- (freq[1,] + freq[4,]) / (freq[1,] + freq[3,] + freq[4,])
   het <- (freq[3,]) / (freq[1,] + freq[3,] + freq[4,])
-  af <- (2*freq[1,] + freq[3,])/(2*freq[1,] + 2*freq[3,] + 2*freq[4,])
+  #af <- (2*freq[1,] + freq[3,])/(2*freq[1,] + 2*freq[3,] + 2*freq[4,])
+  nalleles <- 2*(n-nmiss)
+  af <- 2*freq[1,] + freq[3,]
+  af[nalleles>0] <- af[nalleles>0]/nalleles[nalleles>0]
+  af[nalleles==0] <- 0.5
+  
   maf <- af
   maf[maf > 0.5] <- 1 - maf[maf > 0.5]
   if(!is.null(chr)) {
