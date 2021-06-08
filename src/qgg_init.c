@@ -10,7 +10,7 @@
 
 
 /* .Call calls */
-extern SEXP _qgg_bayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _qgg_bayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_cp(SEXP);
 extern SEXP _qgg_fbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_freqbed(SEXP, SEXP, SEXP);
@@ -32,13 +32,13 @@ extern SEXP _qgg_rcpparma_outerproduct(SEXP);
 extern SEXP _qgg_readG(SEXP, SEXP, SEXP);
 extern SEXP _qgg_riwishart(SEXP, SEXP);
 extern SEXP _qgg_rwishart(SEXP, SEXP);
-extern SEXP _qgg_sbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _qgg_sbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_solvebed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_summarybed(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_qgg_bayes",                 (DL_FUNC) &_qgg_bayes,                 15},
+    {"_qgg_bayes",                 (DL_FUNC) &_qgg_bayes,                 17},
     {"_qgg_cp",                    (DL_FUNC) &_qgg_cp,                     1},
     {"_qgg_fbayes",                (DL_FUNC) &_qgg_fbayes,                16},
     {"_qgg_freqbed",               (DL_FUNC) &_qgg_freqbed,                3},
@@ -60,7 +60,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_qgg_readG",               (DL_FUNC) &_qgg_readG,                3},
     {"_qgg_riwishart",             (DL_FUNC) &_qgg_riwishart,              2},
     {"_qgg_rwishart",              (DL_FUNC) &_qgg_rwishart,               2},
-    {"_qgg_sbayes",                (DL_FUNC) &_qgg_sbayes,                16},
+    {"_qgg_sbayes",                (DL_FUNC) &_qgg_sbayes,                19},
     {"_qgg_solvebed",              (DL_FUNC) &_qgg_solvebed,               8},
     {"_qgg_summarybed",            (DL_FUNC) &_qgg_summarybed,             5},
     {NULL, NULL, 0}
