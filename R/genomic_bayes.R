@@ -57,8 +57,8 @@
 #'
 
 gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                   vara=NULL, varb=NULL, vare=NULL, lambda=NULL, scaleY=TRUE,
-                   h2=NULL, pi=NULL, updateB=FALSE, updateE=FALSE, updatePi=FALSE, models=NULL,
+                   vara=NULL, varb=NULL, vare=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
+                   h2=NULL, pi=NULL, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
                    nub=4, nue=4, nit=100, method="mixed", algorithm="default") {
      
      method <- match(method, c("blup","mixed","bayesA","blasso","bayesC")) - 1
@@ -68,6 +68,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
      if(is.list(y)) nt <- length(y)
      
      if(nt==1 && !algorithm=="sbayes") {
+          ids <- NULL
+          if(is.matrix(y)) ids <- rownames(y)
+          if(is.vector(y)) ids <- names(y)
           
           if(scaleY) y <- as.vector(scale(y)) 
           
@@ -85,6 +88,10 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
           if(is.null(lambda)) lambda <- rep(vare/varb,m)
           if(is.null(vara)) vara <- vare*h2
           
+          if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
+          if(is.null(sse_prior)) sse_prior <- nue*vare
+          
+          
           if(algorithm=="default") {
                fit <- .Call("_qgg_bayes",
                             y=y, 
@@ -95,6 +102,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                             vara = vara,
                             varb = varb,
                             vare = vare,
+                            ssb_prior=ssb_prior,
+                            sse_prior=sse_prior,
                             nub=nub,
                             nue=nue,
                             updateB = updateB,
@@ -103,7 +112,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                             nit=nit,
                             method=as.integer(method)) 
                names(fit[[1]]) <- colnames(W)
-               names(fit) <- c("b","p","mu","B","E","Pi","g","e")
+               fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
+               names(fit[[7]]) <- names(fit[[8]]) <- ids
+               names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
           } 
           
 
@@ -137,12 +148,26 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
      } 
      
      if(algorithm=="sbayes") {
-          
+
+       
+       ids <- NULL
+       if(is.matrix(y)) ids <- rownames(y)
+       if(is.vector(y)) ids <- names(y)
+       
+       if(scaleY) y <- as.vector(scale(y)) 
+  
+       wy <- as.vector(crossprod(W,y))           
+       yy <- sum((y-mean(y))**2)
+
+       n <-nrow(W)       
+                 
           if(!is.null(W) && is.null(LD)) {
                n <- nrow(W)
-               LD <- crossprod(W)/(n-1)
+               LD <- crossprod(W)
+               #LD <- crossprod(W)/(n-1)
           }    
-          
+
+                 
           m <- ncol(LD)
           
           if(is.null(pi)) pi <- 0.01
@@ -154,26 +179,31 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
           if(is.null(lambda)) lambda <- rep(vare/varb,m)
           if(is.null(vara)) vara <- vare*h2
           
-          wy <- b*n
-          b <- rep(0,m)
-          if(!is.null(badj)) b <- badj 
+          if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
+          if(is.null(sse_prior)) sse_prior <- nue*vare
           
-          fit <- sbayes(wy=wy, 
-                        LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
-                        b = b,
-                        lambda = lambda,
-                        pi = pi,
-                        vara = vara,
-                        varb = varb,
-                        vare = vare,
-                        nub=nub,
-                        nue=nue,
-                        updateB = updateB,
-                        updateE = updateE,
-                        updatePi = updatePi,
-                        n=n,
-                        nit=nit,
-                        method=as.integer(method))
+          if(is.null(b)) b <- rep(0,m)
+
+          fit <- .Call("_qgg_sbayes",
+                       wy=wy, 
+                       LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
+                       b = b,
+                       lambda = lambda,
+                       yy = yy,
+                       pi = pi,
+                       vara = vara,
+                       varb = varb,
+                       vare = vare,
+                       ssb_prior=ssb_prior,
+                       sse_prior=sse_prior,
+                       nub=nub,
+                       nue=nue,
+                       updateB = updateB,
+                       updateE = updateE,
+                       updatePi = updatePi,
+                       n=n,
+                       nit=nit,
+                       method=as.integer(method))
           names(fit[[1]]) <- rownames(LD)
           names(fit) <- c("b","p","mu","B","E","Pi")
      }
@@ -214,20 +244,20 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
           }
           if(is.null(varb)) varb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
           
-          
-          fit <- mtbayes(y=y, 
-                         W=split(W, rep(1:ncol(W), each = nrow(W))), 
-                         b=b,
-                         B = varb,
-                         E = vare,
-                         models=models,
-                         pi=pi,
-                         nub=nub,
-                         nue=nue,
-                         updateB=updateB,
-                         updateE=updateE,
-                         nit=nit,
-                         method=as.integer(method))
+          fit <- .Call("_qgg_mtbayes",
+                       y=y, 
+                       W=split(W, rep(1:ncol(W), each = nrow(W))), 
+                       b=b,
+                       B = varb,
+                       E = vare,
+                       models=models,
+                       pi=pi,
+                       nub=nub,
+                       nue=nue,
+                       updateB=updateB,
+                       updateE=updateE,
+                       nit=nit,
+                       method=as.integer(method))
           names(fit) <- c("b","p","mu","B","E","rho","g","e")
           
           
@@ -253,8 +283,10 @@ plotBayes <- function(fit=NULL, causal=NULL) {
           layout(matrix(1:6,nrow=3,ncol=2))
           plot(fit[[1]],ylab="Posterior", xlab="Marker", main="Marker effect", frame.plot=FALSE)  
           if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
-          plot(fit[[2]],ylab="Posterior mean", xlab="Marker", main="Marker indicator", frame.plot=FALSE)  
+          #plot(fit[[2]],ylab="Posterior mean", xlab="Marker", pch="✈",,main="Marker indicator", frame.plot=FALSE)  
+          plot(fit[[2]],ylab="Posterior mean", xlab="Marker", main="Marker indicator", ylim=c(0,1), frame.plot=FALSE)  
           if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
+          #if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch="✈", cex=2, lwd=3 )
           hist(fit[[6]],xlab="Posterior", main="Pi")  
           hist(fit[[4]],xlab="Posterior", main="Marker variance")  
           hist(fit[[5]],xlab="Posterior", main="Residual variance")  
