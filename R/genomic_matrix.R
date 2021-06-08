@@ -304,6 +304,7 @@ if(scale) W <- .Call("_qgg_readW", bedfiles, Glist$n,cls,af)
 if(!scale) W <- .Call("_qgg_readG", bedfiles, Glist$n,cls)
 colnames(W) <- Glist$rsids[[chr]][cls]
 rownames(W) <- Glist$ids
+if(!is.null(rws)) W <- W[rws,]
 return(W)
 }
 
