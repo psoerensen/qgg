@@ -185,42 +185,48 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, ids = NULL, rsids = 
     if (any(!ids == rownames(W))) stop("Some names of y does not match rownames of W")
     if (!is.null(X)) y <- residuals(lm(y ~ X))
     if (is.null(X)) y <- residuals(lm(y ~ 1))
-    res <- smlm(y = y, X = X, W = W)
-    if (nt == 1) res <- as.matrix(as.data.frame(res))
+    ma <- smlm(y = y, X = X, W = W)
+    if (nt == 1) ma <- as.matrix(as.data.frame(ma))
   }
   if (!is.null(Glist)) {
     if (any(!ids %in% Glist$ids)) stop("Some names of y does not match names in Glist$ids")
     if (!is.null(X)) y <- as.matrix(residuals(lm(y ~ X)))
     if (is.null(X)) y <- as.matrix(residuals(lm(y ~ 1)))
     nt <- ncol(y)
-    m <- Glist$m
-    n <- Glist$n
-    cls <- 1:m
-    #if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
-    m <- length(cls)
-    rws <- 1:n
-    if (!is.null(ids)) rws <- match(ids, Glist$ids)
-    s <- se <- stat <- p <- matrix(NA, nrow = m, ncol = nt)
-    rownames(s) <- rownames(se) <- rownames(stat) <- rownames(p) <- Glist$rsids
-    colnames(s) <- colnames(se) <- colnames(stat) <- colnames(p) <- colnames(y)
-    if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
-    sets <- split(cls, ceiling(seq_along(cls) / msize))
-    nsets <- length(sets)
-    for (i in 1:nsets) {
-      cls <- sets[[i]]
-      W <- getW(Glist = Glist, rws = rws, cls = cls, scale = scale)
-      res <- smlm(y = y, X = X, W = W)
-      s[cls, ] <- res[[1]]
-      se[cls, ] <- res[[2]]
-      stat[cls, ] <- res[[3]]
-      p[cls, ] <- res[[4]]
-      message(paste("Finished block", i, "out of", nsets, "blocks"))
+    ma <- vector(length=Glist$nchr,mode="list")
+    for (chr in 1:Glist$nchr) {
+      message(paste("Processing chromosome:", chr, "out of", Glist$nchr, "chromosomes"))
+      m <- Glist$mchr[chr]
+      n <- Glist$n
+      cls <- 1:m
+      #if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
+      m <- length(cls)
+      rws <- 1:n
+      if (!is.null(ids)) rws <- match(ids, Glist$ids)
+      s <- se <- stat <- p <- matrix(NA, nrow = m, ncol = nt)
+      rownames(s) <- rownames(se) <- rownames(stat) <- rownames(p) <- Glist$rsids[[chr]]
+      colnames(s) <- colnames(se) <- colnames(stat) <- colnames(p) <- colnames(y)
+      if (!is.null(rsids)) cls <- match(rsids, Glist$rsids[[chr]])
+      sets <- split(cls, ceiling(seq_along(cls) / msize))
+      nsets <- length(sets)
+      for (i in 1:nsets) {
+        cls <- sets[[i]]
+        W <- getG(Glist, chr=chr, scale=scale, cls=cls)
+        #W <- getW(Glist = Glist, rws = rws, cls = cls, scale = scale)
+        res <- smlm(y = y, X = X, W = W[rws,])
+        s[cls, ] <- res[[1]]
+        se[cls, ] <- res[[2]]
+        stat[cls, ] <- res[[3]]
+        p[cls, ] <- res[[4]]
+        #message(paste("Finished block", i, "out of", nsets, "blocks"))
+      }
+      cls <- unlist(sets)
+      ma[[chr]] <- list(b = s[cls, ], seb = se[cls, ], stat = stat[cls, ], p = p[cls, ])
+      if (nt == 1) ma[[chr]] <- as.matrix(as.data.frame(ma[[chr]]))
     }
-    cls <- unlist(sets)
-    res <- list(coef = s[cls, ], se = se[cls, ], stat = stat[cls, ], p = p[cls, ])
-    if (nt == 1) res <- as.matrix(as.data.frame(res))
+
   }
-  return(res)
+  return(ma)
 }
 
 
@@ -245,6 +251,6 @@ smlm <- function(y = NULL, X = NULL, W = NULL) {
   se <- sqrt(sse / dfe) / sqrt(ww)
   tt <- coef / se
   ptt <- 2 * pt(-abs(tt), df = dfe)
-  res <- list(s = coef, se = se, stat = tt, p = ptt)
+  res <- list(b = coef, seb = se, stat = tt, p = ptt)
   return(res)
 }
