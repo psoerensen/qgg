@@ -60,10 +60,10 @@ gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, st
             rsids <- unlist(Glist$rsids)
             af <- unlist(Glist$af)
             alleles <- unlist(Glist$a2)
-            cls <- match(names(fit$b),rsids)
+            cls <- match(names(fit$bm),rsids)
             if(any(is.na(cls))) stop("Missing rsids")
-            stat <- data.frame(rsids=names(fit$b), alleles=alleles[cls], af=af[cls], effect=fit$b)
-            rownames(stat) <- names(fit$b)
+            stat <- data.frame(rsids=names(fit$bm), alleles=alleles[cls], af=af[cls], effect=fit$b)
+            rownames(stat) <- names(fit$bm)
           }
           for (chr in 1:length(Glist$bedfiles)) {
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
