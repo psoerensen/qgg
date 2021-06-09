@@ -316,3 +316,24 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
      return(neff)
 }
 
+sortedSets <- function(o = NULL, msize = 500) {
+  m <- length(o)
+  sets <- vector(length=m,mode="list") 
+  for (i in 1:m){
+    sets[[i]] <- c((i-msize):(i-1),i:(i+msize))
+    sets[[i]] <- sets[[i]][sets[[i]]>0]
+    sets[[i]] <- sets[[i]][sets[[i]]<(m+1)]
+  }
+  
+  indices <- 1:m
+  keep <- rep(TRUE,m)
+  osets <- NULL
+  for (i in 1:m) {
+    if(keep[o[i]]){
+      keep[sets[[ o[i] ]]] <- FALSE
+      osets <- c(osets,o[i])
+    }
+  }
+  if(any(!indices%in%unique(unlist(sets[osets])))) stop("Some markers not in sets")
+  return(sets[osets])
+}
