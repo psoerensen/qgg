@@ -205,7 +205,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                        nit=nit,
                        method=as.integer(method))
           names(fit[[1]]) <- rownames(LD)
-          names(fit) <- c("b","p","mu","B","E","Pi")
+          #names(fit) <- c("b","p","mu","B","E","Pi")
+          names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
      }
      
      
