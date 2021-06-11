@@ -250,7 +250,8 @@ IntegerMatrix freqbed( const char* file,
 std::vector<std::vector<std::vector<float>>> summarybed( const char* file, 
                                                          int n, 
                                                          std::vector<int> cls,
-                                                         std::vector<float> af, 
+                                                         std::vector<float> af,
+                                                         std::vector<std::vector<float>> weights,
                                                          std::vector<std::vector<float>> y) {
   
   FILE *file_stream = fopen( file, "rb" );
@@ -286,10 +287,14 @@ std::vector<std::vector<std::vector<float>>> summarybed( const char* file,
       std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
     }
     int j = 0; 
-    map[0] = 2.0 - 2.0*af[i];
+    //map[0] = 2.0 - 2.0*af[i];
+    //map[1] = 0.0;
+    //map[2] = 1.0 - 2.0*af[i];
+    //map[3] = -2.0*af[i];
+    map[0] = (2.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
     map[1] = 0.0;
-    map[2] = 1.0 - 2.0*af[i];
-    map[3] = -2.0*af[i];
+    map[2] = (1.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
+    map[3] = (-2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
     for (size_t k = 0; k < nbytes; k++) {
       buf_k = buffer[k];
       for (int pos = 0; pos < 4; pos++, j++) {
@@ -300,7 +305,11 @@ std::vector<std::vector<std::vector<float>>> summarybed( const char* file,
       }
     }
     for (int t = 0; t < nt; t++) {
-      xx[t][i] = std::inner_product(std::begin(x), std::end(x), std::begin(x), 0.0);
+      //xx[t][i] = std::inner_product(std::begin(x), std::end(x), std::begin(x), 0.0);
+      xx[t][i] = 0.0;
+      for (int j = 0; j < n; j++) {
+        xx[t][i] = xx[t][i] + x[j]*x[j]*weights[t][j];
+      }
       xy[t][i] = std::inner_product(std::begin(x), std::end(x), std::begin(y[t]), 0.0);
     }
     
