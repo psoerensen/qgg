@@ -25,6 +25,7 @@
 
 
 #' @author Peter Soerensen
+#' @author Palle Duun Rohde
 
 #' @examples
 #'
