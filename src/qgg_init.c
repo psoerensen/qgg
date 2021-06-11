@@ -34,7 +34,7 @@ extern SEXP _qgg_riwishart(SEXP, SEXP);
 extern SEXP _qgg_rwishart(SEXP, SEXP);
 extern SEXP _qgg_sbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_solvebed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _qgg_summarybed(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _qgg_summarybed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 
 static const R_CallMethodDef CallEntries[] = {
@@ -62,7 +62,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_qgg_rwishart",              (DL_FUNC) &_qgg_rwishart,               2},
     {"_qgg_sbayes",                (DL_FUNC) &_qgg_sbayes,                19},
     {"_qgg_solvebed",              (DL_FUNC) &_qgg_solvebed,               8},
-    {"_qgg_summarybed",            (DL_FUNC) &_qgg_summarybed,             5},
+    {"_qgg_summarybed",            (DL_FUNC) &_qgg_summarybed,             6},
     {NULL, NULL, 0}
 };
 
