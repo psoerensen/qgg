@@ -308,6 +308,54 @@ if(!is.null(rws)) W <- W[rws,]
 return(W)
 }
 
+#' @export
+#'
+
+cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
+                 rws = NULL, cls = NULL, impute = TRUE, scale = TRUE) {
+  
+  if(is.null(cls)) cls <- 1:Glist$mchr[chr]
+  af <- Glist$af[[chr]][cls]
+  ids <- NULL
+  if(is.matrix(y)) ids <- rownames(y)
+  if(is.vector(y)) ids <- names(y)
+  if(is.vector(y)) y <- as.matrix(y)
+  for (i in 1:ncol(y)) {
+    y[,i] <- y[,i] - mean(y[,i])
+  }
+  dfe <- nrow(y)-1
+  weights <- list(rep(1.0,nrow(y)))
+  rws <- match(ids,Glist$ids)
+  if(any(is.na(rws))) stop("Some ids in y does not match individuals in Glist$ids")
+  if(!is.null(ids) & any(duplicated(ids)) ) {
+    ylist <- apply(y,2,function(x){ split(x,f=factor(ids))})
+    weights <- lapply(ylist,function(x){sapply(x,length)}) 
+    y <- lapply(ylist,function(x){sapply(x,sum)}) 
+  }
+  if(!is.list(y)) y <- list(y)
+  #if(!length(y)==Glist$n) stop("Length of y does not match number of individuals in Glist$n")
+  covs <- .Call("_qgg_summarybed", 
+                Glist$bedfiles[chr], 
+                n=Glist$n,
+                cls=cls,
+                af=af,
+                weights=weights,
+                y=y)
+  covs <- c(covs,list(NULL),list(NULL),list(NULL),list(NULL))
+  for ( i in 1:length(covs[[1]])) {
+    names(covs[[1]][[i]]) <- Glist$rsids[[chr]][cls]
+    names(covs[[2]][[i]]) <- Glist$rsids[[chr]][cls]
+    covs[[3]][[i]] <- (covs[[2]][[i]]/covs[[1]][[i]])
+    covs[[4]][[i]] <- 1/sqrt(covs[[1]][[i]])
+    covs[[5]][[i]] <- (covs[[2]][[i]]/covs[[1]][[i]])*sqrt(covs[[1]][[i]])
+    ptt <- 2 * pt(-abs(covs[[5]][[i]]), df = dfe)
+    covs[[6]][[i]] <- ptt
+  }
+  names(covs) <- c("XX","Xy","b","seb","tstat","p")
+  return(covs)
+}
+
+
 
 #' Extract elements from genotype matrix (W) stored on disk
 #'
