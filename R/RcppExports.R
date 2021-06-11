@@ -17,8 +17,8 @@ freqbed <- function(file, n, cls) {
     .Call(`_qgg_freqbed`, file, n, cls)
 }
 
-summarybed <- function(file, n, cls, af, y) {
-    .Call(`_qgg_summarybed`, file, n, cls, af, y)
+summarybed <- function(file, n, cls, af, weights, y) {
+    .Call(`_qgg_summarybed`, file, n, cls, af, weights, y)
 }
 
 bayes <- function(y, W, b, lambda, pi, vara, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, method) {
