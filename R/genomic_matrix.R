@@ -299,12 +299,20 @@ getG <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, fam
 
 if(!is.null(chr)) bedfiles <- Glist$bedfiles[chr]
 if(is.null(cls)) cls <-  1:Glist$mchr[chr]
+if (!is.null(rsids)) cls <- match(rsids, Glist$rsids[[chr]])
+if (any(is.na(cls))) {
+  warning(paste("some rsids not found in Glist"))
+  message(rsids[is.na(cls)])
+}
+cls <- cls[!is.na(cls)]
+
 af <- Glist$af[[chr]][cls]
 if(scale) W <- .Call("_qgg_readW", bedfiles, Glist$n,cls,af)
 if(!scale) W <- .Call("_qgg_readG", bedfiles, Glist$n,cls)
 colnames(W) <- Glist$rsids[[chr]][cls]
 rownames(W) <- Glist$ids
 if(!is.null(rws)) W <- W[rws,]
+if(is.integer(impute)) W[W==impute] <- impute
 return(W)
 }
 
