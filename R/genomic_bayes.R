@@ -58,7 +58,7 @@
 
 gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                    vara=NULL, varb=NULL, vare=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
-                   h2=NULL, pi=NULL, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
+                   h2=NULL, pi=0.001, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
                    nub=4, nue=4, nit=100, method="mixed", algorithm="default") {
      
      method <- match(method, c("blup","mixed","bayesA","blasso","bayesC")) - 1
@@ -74,12 +74,21 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
           
           if(scaleY) y <- as.vector(scale(y)) 
           
-          if(is.null(pi)) pi <- 0.01
+          if(is.null(pi)) pi <- 0.001
           
           if(is.null(h2)) h2 <- 0.5
           
           n <- nrow(W)
           m <- ncol(W)
+          
+          if(is.null(ids)) warning("No names/rownames provided for y")
+          if(is.null(rownames(W))) warning("No names/rownames provided for W")
+          if(!is.null(ids) & !is.null(rownames(W))) {
+            if(any(is.na(match(ids,rownames(W))))) stop("Names/rownames for y does match rownames for W")
+                                  
+          }
+
+          
           
           if(is.null(b)) b <- rep(0,m)
           e=y-mean(y)
@@ -148,41 +157,42 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
      } 
      
      if(algorithm=="sbayes") {
-
+       
        
        ids <- NULL
        if(is.matrix(y)) ids <- rownames(y)
        if(is.vector(y)) ids <- names(y)
        
        if(scaleY) y <- as.vector(scale(y)) 
-  
+       
        wy <- as.vector(crossprod(W,y))           
        yy <- sum((y-mean(y))**2)
-
+       
        n <-nrow(W)       
-                 
-          if(!is.null(W) && is.null(LD)) {
-               n <- nrow(W)
-               LD <- crossprod(W)
-               #LD <- crossprod(W)/(n-1)
-          }    
-
-                 
-          m <- ncol(LD)
-          
-          if(is.null(pi)) pi <- 0.01
-          
-          if(is.null(h2)) h2 <- 0.5
-          
-          if(is.null(vare)) vare <- 1
-          if(is.null(varb)) varb <- (vare/m)*h2
-          if(is.null(lambda)) lambda <- rep(vare/varb,m)
-          if(is.null(vara)) vara <- vare*h2
-          
-          if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
-          if(is.null(sse_prior)) sse_prior <- nue*vare
-          
-          if(is.null(b)) b <- rep(0,m)
+       
+       if(!is.null(W) && is.null(LD)) {
+         n <- nrow(W)
+         LD <- crossprod(W)
+         #LD <- crossprod(W)/(n-1)
+       }    
+       
+       
+       m <- ncol(LD)
+       
+       if(is.null(pi)) pi <- 0.01
+       
+       if(is.null(h2)) h2 <- 0.5
+       
+       if(is.null(vare)) vare <- 1
+       if(is.null(varb)) varb <- (vare/m)*h2
+       if(is.null(lambda)) lambda <- rep(vare/varb,m)
+       if(is.null(vara)) vara <- vare*h2
+       
+       if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
+       if(is.null(sse_prior)) sse_prior <- nue*vare
+       
+       if(is.null(b)) b <- rep(0,m)
+       
 
           fit <- .Call("_qgg_sbayes",
                        wy=wy, 
@@ -219,6 +229,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
           m <- ncol(W)
           
           if(scaleY) y <- lapply(y,function(x){as.vector(scale(x))})
+          if(!scaleY) y <- lapply(y,function(x){x-mean(x) })
           
           
           if(is.null(b)) b <- lapply(1:nt,function(x){rep(0,m)}) 
@@ -227,6 +238,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                models <- rep(list(0:1), nt)
                models <- t(do.call(expand.grid, models))
                models <- split(models, rep(1:ncol(models), each = nrow(models)))
+               pi <- c(0.999,rep(0.001,length(models)-1)) 
           } 
           if(is.character(models)) {
                if(models=="restrictive") {
@@ -235,22 +247,31 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                }
           }
           
-          if(is.null(pi)) {
-               pi <- c(0.99,rep(0.01,length(models)-1)) 
-          }
+          #if(is.null(pi)) {
+          #     pi <- c(0.999,rep(0.001,length(models)-1)) 
+          #}
           
           if(is.null(h2)) h2 <- 0.005
           if(is.null(vare)) {
                vare <- diag(sapply(y,var))
           }
           if(is.null(varb)) varb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
+          #if(is.null(varb)) varb <- (vare*h2)/(m*pi[length(models)])
+          if(is.null(vara)) vara <- vare*h2
           
+          #if(is.null(ssb_prior)) ssb_prior <-  diag((nub-2.0)/nub * (vara/(m*pi[length(models)])))
+          if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(m*pi[length(models)]))
+          if(is.null(sse_prior)) sse_prior <- diag(nue*vare)
+          
+                  
           fit <- .Call("_qgg_mtbayes",
                        y=y, 
                        W=split(W, rep(1:ncol(W), each = nrow(W))), 
                        b=b,
                        B = varb,
                        E = vare,
+                       ssb_prior=split(ssb_prior, rep(1:ncol(ssb_prior), each = nrow(ssb_prior))),
+                       sse_prior=sse_prior,
                        models=models,
                        pi=pi,
                        nub=nub,
