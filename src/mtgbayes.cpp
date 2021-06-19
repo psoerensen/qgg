@@ -94,6 +94,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
                                                          std::vector<std::vector<double>> b,
                                                          arma::mat B,
                                                          arma::mat E,
+                                                         std::vector<std::vector<double>> ssb_prior,
+                                                         std::vector<double> sse_prior,
                                                          std::vector<std::vector<int>> models,
                                                          std::vector<double> pi,
                                                          double nub,
@@ -123,8 +125,9 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   std::vector<std::vector<double>> ww(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<int>> d(nt, std::vector<int>(m, 0));
   
-  std::vector<double> mu(nt), rhs(nt), conv(nt), sse_prior(nt);
-  std::vector<std::vector<double>> ssb_prior(nt, std::vector<double>(nt, 0.0)); 
+  std::vector<double> mu(nt), rhs(nt), conv(nt);
+  //std::vector<double> sse_prior(nt);
+  //std::vector<std::vector<double>> ssb_prior(nt, std::vector<double>(nt, 0.0)); 
   
   std::vector<double> pmodel(nmodels), pcum(nmodels), loglik(nmodels);
   
@@ -144,12 +147,12 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   
   // Prior variance and degrees of freedom
   dfe = n + nue;
-  for (int t1 = 0; t1 < nt; t1++) {
-    for (int t2 = 0; t2 < nt; t2++) {
-      ssb_prior[t1][t2] = (nub-2.0)/nub * B(t1,t2);
-    }
-    sse_prior[t1] = nue*E(t1,t1);
-  }
+  //for (int t1 = 0; t1 < nt; t1++) {
+  //  for (int t2 = 0; t2 < nt; t2++) {
+  //    ssb_prior[t1][t2] = (nub-2.0)/nub * B(t1,t2);
+  //  }
+  //  sse_prior[t1] = nue*E(t1,t1);
+  //}
 
   
   // Initialize variables
