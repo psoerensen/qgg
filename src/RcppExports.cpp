@@ -237,8 +237,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // mtbayes
-std::vector<std::vector<std::vector<double>>> mtbayes(std::vector<std::vector<double>> y, std::vector<std::vector<double>> W, std::vector<std::vector<double>> b, arma::mat B, arma::mat E, std::vector<std::vector<int>> models, std::vector<double> pi, double nub, double nue, bool updateB, bool updateE, int nit, int method);
-RcppExport SEXP _qgg_mtbayes(SEXP ySEXP, SEXP WSEXP, SEXP bSEXP, SEXP BSEXP, SEXP ESEXP, SEXP modelsSEXP, SEXP piSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP nitSEXP, SEXP methodSEXP) {
+std::vector<std::vector<std::vector<double>>> mtbayes(std::vector<std::vector<double>> y, std::vector<std::vector<double>> W, std::vector<std::vector<double>> b, arma::mat B, arma::mat E, std::vector<std::vector<double>> ssb_prior, std::vector<double> sse_prior, std::vector<std::vector<int>> models, std::vector<double> pi, double nub, double nue, bool updateB, bool updateE, int nit, int method);
+RcppExport SEXP _qgg_mtbayes(SEXP ySEXP, SEXP WSEXP, SEXP bSEXP, SEXP BSEXP, SEXP ESEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP modelsSEXP, SEXP piSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP nitSEXP, SEXP methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -247,6 +247,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type b(bSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type E(ESEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type ssb_prior(ssb_priorSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type sse_prior(sse_priorSEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<int>> >::type models(modelsSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type pi(piSEXP);
     Rcpp::traits::input_parameter< double >::type nub(nubSEXP);
@@ -255,7 +257,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type updateE(updateESEXP);
     Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
-    rcpp_result_gen = Rcpp::wrap(mtbayes(y, W, b, B, E, models, pi, nub, nue, updateB, updateE, nit, method));
+    rcpp_result_gen = Rcpp::wrap(mtbayes(y, W, b, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, nit, method));
     return rcpp_result_gen;
 END_RCPP
 }
