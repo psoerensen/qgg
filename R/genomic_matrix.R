@@ -331,6 +331,11 @@ cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NU
   for (i in 1:ncol(y)) {
     y[,i] <- y[,i] - mean(y[,i])
   }
+  if(is.null(ids)) warning("No names/rownames provided for y")
+  if(!is.null(ids)) {
+    if(any(is.na(match(ids,Glist$ids))))  stop("Names/rownames for y does match rownames for W")
+    if(any(is.na(Glist$ids%in%ids)))  stop("Names/rownames for y does match rownames for W")
+  }
   dfe <- nrow(y)-1
   weights <- list(rep(1.0,nrow(y)))
   rws <- match(ids,Glist$ids)
