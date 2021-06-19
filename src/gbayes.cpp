@@ -820,6 +820,8 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
     }
     varb_post[it] = varb;
     
+    
+    
     // Sample residual variance
     if(updateE) {
       ssg = 0.0;
