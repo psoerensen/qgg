@@ -251,7 +251,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
           #     pi <- c(0.999,rep(0.001,length(models)-1)) 
           #}
           
-          if(is.null(h2)) h2 <- 0.005
+          if(is.null(h2)) h2 <- 0.5
           if(is.null(vare)) {
                vare <- diag(sapply(y,var))
           }
@@ -261,7 +261,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
           
           #if(is.null(ssb_prior)) ssb_prior <-  diag((nub-2.0)/nub * (vara/(m*pi[length(models)])))
           if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(m*pi[length(models)]))
-          if(is.null(sse_prior)) sse_prior <- diag(nue*vare)
+          #if(is.null(sse_prior)) sse_prior <- diag(nue*vare)
+          if(is.null(sse_prior)) sse_prior <- nue*vare
           
                   
           fit <- .Call("_qgg_mtbayes",
@@ -271,18 +272,25 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                        B = varb,
                        E = vare,
                        ssb_prior=split(ssb_prior, rep(1:ncol(ssb_prior), each = nrow(ssb_prior))),
-                       sse_prior=sse_prior,
+                       sse_prior=split(sse_prior, rep(1:ncol(sse_prior), each = nrow(sse_prior))),
+                       #                       sse_prior=sse_prior,
                        models=models,
                        pi=pi,
                        nub=nub,
                        nue=nue,
                        updateB=updateB,
                        updateE=updateE,
+                       updatePi=updatePi,
                        nit=nit,
                        method=as.integer(method))
-          names(fit) <- c("b","p","mu","B","E","rho","g","e")
-          
-          
+          fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
+          fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
+          colnames(fit[[6]]) <- rownames(fit[[6]]) <- paste0("T",1:nt)
+          colnames(fit[[7]]) <- rownames(fit[[7]]) <- paste0("T",1:nt)
+          fit[[13]] <- fit[[13]][[1]]
+          fit[[14]] <- fit[[14]][[1]]
+          names(fit) <- c("bm","dm","mu","Bm","Em","rg","re","g","e","b","B","E","pi","pim")
+
      }
      
      return(fit)
