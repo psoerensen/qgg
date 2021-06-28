@@ -57,8 +57,8 @@ riwishart <- function(df, S) {
     .Call(`_qgg_riwishart`, df, S)
 }
 
-mtbayes <- function(y, W, b, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, nit, method) {
-    .Call(`_qgg_mtbayes`, y, W, b, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, nit, method)
+mtbayes <- function(y, W, b, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, nit, method) {
+    .Call(`_qgg_mtbayes`, y, W, b, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, nit, method)
 }
 
 solvebed <- function(file, n, cls, nit, af, b, lambda, y) {
