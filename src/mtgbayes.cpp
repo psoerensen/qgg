@@ -95,13 +95,14 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
                                                          arma::mat B,
                                                          arma::mat E,
                                                          std::vector<std::vector<double>> ssb_prior,
-                                                         std::vector<double> sse_prior,
+                                                         std::vector<std::vector<double>> sse_prior,
                                                          std::vector<std::vector<int>> models,
                                                          std::vector<double> pi,
                                                          double nub,
                                                          double nue,
                                                          bool updateB,
                                                          bool updateE,
+                                                         bool updatePi,
                                                          int nit,
                                                          int method) {
   
@@ -113,9 +114,9 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   int m = W.size();
   int nmodels = models.size();
   
-  Rcout << "Number of traits: " << nt << "\n";
-  Rcout << "Number of individuals: " << m << "\n";
-  Rcout << "Number of markers: " << m << "\n";
+  //Rcout << "Number of traits: " << nt << "\n";
+  //Rcout << "Number of individuals: " << m << "\n";
+  //Rcout << "Number of markers: " << m << "\n";
   
   
   double ssb, sse, dfb, dfe, chi2, u, logliksum, psum, detC, diff;
@@ -129,16 +130,18 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   //std::vector<double> sse_prior(nt);
   //std::vector<std::vector<double>> ssb_prior(nt, std::vector<double>(nt, 0.0)); 
   
-  std::vector<double> pmodel(nmodels), pcum(nmodels), loglik(nmodels);
-  
+  std::vector<double> pmodel(nmodels), pcum(nmodels), loglik(nmodels), cmodel(nmodels);
+  std::vector<double> pi_post_mean(nmodels);
   
   std::vector<std::vector<double>> b_post_mean(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> d_post_mean(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> vare_post(nt, std::vector<double>(nit, 0.0));
   std::vector<std::vector<double>> varb_post(nt, std::vector<double>(nit, 0.0));
   std::vector<std::vector<double>> rhob_post_mean(nt, std::vector<double>(nt, 0.0));
+  std::vector<std::vector<double>> rhoe_post_mean(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> mu_post(nt, std::vector<double>(nit, 0.0));
   
+  std::vector<double> x2t(m);
   std::vector<std::vector<double>> x2(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> wy(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> r(nt, std::vector<double>(m, 0.0));
@@ -165,7 +168,11 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
     }
   }
   
-  
+  for (int i = 0; i < nmodels; i++) {
+    cmodel[i] = 1.0;
+    pi_post_mean[i] = 0.0;
+  }
+    
   // Mean adjust y
   for ( int t = 0; t < nt; t++) {
     mu[t] = std::accumulate(y[t].begin(), y[t].end(), 0.0)/n;
@@ -185,10 +192,16 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       x2[t][i] = (wy[t][i]/ww[t][i])*(wy[t][i]/ww[t][i]);
     }
   }
+  for ( int i = 0; i < m; i++) {
+    x2t[i] = 0.0;
+    for ( int t = 0; t < nt; t++) { 
+      x2t[i] = x2t[i] + x2[t][i];
+    }
+  }
   std::iota(order.begin(), order.end(), 0);
   std::sort(  std::begin(order), 
               std::end(order),
-              [&](int i1, int i2) { return x2[0][i1] > x2[0][i2]; } );
+              [&](int i1, int i2) { return x2t[i1] > x2t[i2]; } );
 
     
   // Initialize (co)variance matrices
@@ -200,9 +213,9 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
 
   // Start Gibbs sampler
   
-  Rcout << "  " << "\n";
-  Rcout << "Starting Gibbs sampler" << "\n";
-  Rcout << "  " << "\n";
+  //Rcout << "  " << "\n";
+  //Rcout << "Starting Gibbs sampler" << "\n";
+  //Rcout << "  " << "\n";
   
   std::random_device rd;
   unsigned int seed;
@@ -334,6 +347,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
             break;
           }
         }
+        cmodel[mselect] = cmodel[mselect] + 1.0; 
         
         // Sample beta
         for ( int t = 0; t < nt; t++) { 
@@ -373,6 +387,16 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
         }
         
       }
+      
+      if(updatePi) {
+      for (int k = 0; k<nmodels ; k++) {
+        std::gamma_distribution<double> rgamma(cmodel[k],1.0);
+        double rg = rgamma(gen);
+        pi[k] = rg/(double)m;
+        pi_post_mean[k] = pi_post_mean[k] + pi[k];
+      }
+      std::fill(cmodel.begin(), cmodel.end(), 1.0);
+      }
     }
     
     
@@ -391,7 +415,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
                 dfb = dfb + 1.0;
               }
             }
-            Sb(t1,t2) = ssb + ssb_prior[t1][t1];
+            Sb(t1,t2) = ssb + ssb_prior[t1][t2];
           } 
           if (t1!=t2) {
             for (int i=0; i < m; i++) {
@@ -407,7 +431,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       int dfSb = dfb/nt + nub;
       //arma::mat B = rinvwish(dfSb, Sb);
       //arma::mat B = riwish(dfSb, Sb);
-      arma::mat B = riwishart(dfSb, Sb);
+      //arma::mat B = riwishart(dfSb, Sb);
+      B = riwishart(dfSb, Sb);
       
       for (int t = 0; t < nt; t++) {
         varb_post[t][it] = B(t,t);
@@ -423,19 +448,55 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
     
     // Sample residual variance
     if(updateE) {
-      //Rcout << "Sampling residual variance: " << it + 1 << "\n";
-      arma::mat E(nt,nt, fill::zeros);
-      for ( int t = 0; t < nt; t++) {
-        sse = 0.0;
-        for ( int j = 0; j < n; j++) {
-          sse = sse + e[t][j]*e[t][j];
+      
+      // version 1
+      // arma::mat E(nt,nt, fill::zeros);
+      // for ( int t = 0; t < nt; t++) {
+      //   sse = 0.0;
+      //   for ( int j = 0; j < n; j++) {
+      //     sse = sse + e[t][j]*e[t][j];
+      //   }
+      //   std::chi_squared_distribution<double> rchisq_e(dfe);
+      //   chi2 = rchisq_e(gen);
+      //   vare_post[t][it] = (sse + sse_prior[t][t])/chi2;
+      //   E(t,t) = (sse + sse_prior[t][t])/chi2;
+      // }
+      // arma::mat Ei = arma::inv(E);
+      // end version 1
+      
+      // version 2
+      arma::mat Se(nt,nt, fill::zeros);
+      for ( int t1 = 0; t1 < nt; t1++) {
+        for ( int t2 = t1; t2 < nt; t2++) {
+          sse = 0.0;
+          for ( int j = 0; j < n; j++) {
+            sse = sse + e[t1][j]*e[t2][j];
+          }
+          Se(t1,t2) = sse + sse_prior[t1][t2];
+          if (t1!=t2) {
+            Se(t1,t2) = Se(t2,t1);
+          }
+          //std::chi_squared_distribution<double> rchisq_e(dfe);
+          //chi2 = rchisq_e(gen);
+          //vare_post[t][it] = (sse + sse_prior[t])/chi2;
+          //E(t,t) = (sse + sse_prior[t][t])/chi2;
         }
-        std::chi_squared_distribution<double> rchisq_e(dfe);
-        chi2 = rchisq_e(gen);
-        vare_post[t][it] = (sse + sse_prior[t])/chi2;
-        E(t,t) = (sse + sse_prior[t])/chi2;
       }
+      int dfSe = dfe/nt + nue;
+      //arma::mat E = riwishart(dfSe, Se);
+      E = riwishart(dfSe, Se);
       arma::mat Ei = arma::inv(E);
+      for (int t = 0; t < nt; t++) {
+        vare_post[t][it] = E(t,t);
+      }
+      for (int t1 = 0; t1 < nt; t1++) {
+        for (int t2 = 0; t2 < nt; t2++) {
+          rhoe_post_mean[t1][t2] = rhoe_post_mean[t1][t2] + E(t1,t2)/(sqrt(E(t1,t1))*sqrt(E(t2,t2)));
+        } 
+      } 
+      
+      // end version 2
+      
     }
     
     
@@ -448,13 +509,13 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       mu_post[t][it] = mu[t];
     }
     
-    Rcout << "Finished iteration: " << it + 1 << "\n";
+    //Rcout << "Finished iteration: " << it + 1 << "\n";
 
   }
   
   // Summarize results
   std::vector<std::vector<std::vector<double>>> result;
-  result.resize(8);
+  result.resize(14);
   
   result[0].resize(nt);
   result[1].resize(nt);
@@ -464,6 +525,12 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   result[5].resize(nt);
   result[6].resize(nt);
   result[7].resize(nt);
+  result[8].resize(nt);
+  result[9].resize(nt);
+  result[10].resize(nt);
+  result[11].resize(nt);
+  result[12].resize(nt);
+  result[13].resize(nt);
   
   for (int t=0; t < nt; t++) {
     result[0][t].resize(m);
@@ -472,18 +539,25 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
     result[3][t].resize(nit);
     result[4][t].resize(nit);
     result[5][t].resize(nt);
-    result[6][t].resize(n);
+    result[6][t].resize(nt);
     result[7][t].resize(n);
+    result[8][t].resize(n);
+    result[9][t].resize(m);
+    result[10][t].resize(nt);
+    result[11][t].resize(nt);
+    result[12][t].resize(nmodels);
+    result[13][t].resize(nmodels);
   }
   
   for (int t=0; t < nt; t++) {
     for (int i=0; i < m; i++) {
       result[0][t][i] = b_post_mean[t][i]/nit;
       result[1][t][i] = d_post_mean[t][i]/nit;
+      result[9][t][i] = b[t][i];
     }
     for (int i=0; i < n; i++) {
-      result[6][t][i] = y[t][i] - mu[t] - e[t][i];
-      result[7][t][i] = e[t][i];
+      result[7][t][i] = y[t][i] - mu[t] - e[t][i];
+      result[8][t][i] = e[t][i];
     }
   }
   
@@ -497,11 +571,20 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   for (int t1=0; t1 < nt; t1++) {
     for (int t2=0; t2 < nt; t2++) {
       result[5][t1][t2] = rhob_post_mean[t1][t2]/nit;
+      result[6][t1][t2] = rhoe_post_mean[t1][t2]/nit;
+      result[10][t1][t2] = B(t1,t2);
+      result[10][t2][t1] = B(t2,t1);
+      result[11][t1][t2] = E(t1,t2);
+      result[11][t2][t1] = E(t2,t1);
     }
   }
-  
+  for (int t=0; t < nt; t++) {
+    for (int i=0; i < nmodels; i++) {
+      result[12][t][i] = pi[i];
+      result[13][t][i] = pi_post_mean[i]/nit;
+    }
+  }  
   return result;
-  
 
 }
 
