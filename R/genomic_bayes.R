@@ -257,12 +257,13 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
           }
           if(is.null(varb)) varb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
           #if(is.null(varb)) varb <- (vare*h2)/(m*pi[length(models)])
-          if(is.null(vara)) vara <- vare*h2
+          if(is.null(vara)) vara <- diag(diag(vare))*h2
           
           #if(is.null(ssb_prior)) ssb_prior <-  diag((nub-2.0)/nub * (vara/(m*pi[length(models)])))
-          if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(m*pi[length(models)]))
+          #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(m*pi[length(models)]))
+          if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
           #if(is.null(sse_prior)) sse_prior <- diag(nue*vare)
-          if(is.null(sse_prior)) sse_prior <- nue*vare
+          if(is.null(sse_prior)) sse_prior <- nue*diag(diag(vare))
           
                   
           fit <- .Call("_qgg_mtbayes",
@@ -273,7 +274,6 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                        E = vare,
                        ssb_prior=split(ssb_prior, rep(1:ncol(ssb_prior), each = nrow(ssb_prior))),
                        sse_prior=split(sse_prior, rep(1:ncol(sse_prior), each = nrow(sse_prior))),
-                       #                       sse_prior=sse_prior,
                        models=models,
                        pi=pi,
                        nub=nub,
@@ -287,9 +287,14 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
           fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
           colnames(fit[[6]]) <- rownames(fit[[6]]) <- paste0("T",1:nt)
           colnames(fit[[7]]) <- rownames(fit[[7]]) <- paste0("T",1:nt)
+          fit[[11]] <- matrix(unlist(fit[[11]]), ncol = nt, byrow = TRUE)
+          fit[[12]] <- matrix(unlist(fit[[12]]), ncol = nt, byrow = TRUE)
+          colnames(fit[[11]]) <- rownames(fit[[11]]) <- paste0("T",1:nt)
+          colnames(fit[[12]]) <- rownames(fit[[12]]) <- paste0("T",1:nt)
           fit[[13]] <- fit[[13]][[1]]
           fit[[14]] <- fit[[14]][[1]]
-          names(fit) <- c("bm","dm","mu","Bm","Em","rg","re","g","e","b","B","E","pi","pim")
+          fit[[15]] <- fit[[15]][[1]]
+          names(fit) <- c("bm","dm","mu","Bm","Em","rg","re","g","e","b","B","E","pi","pim","order")
 
      }
      
@@ -325,12 +330,41 @@ plotBayes <- function(fit=NULL, causal=NULL) {
      if(is.list(fit[[1]])) {
           layout(matrix(1:4,2,2))
           matplot(as.data.frame(fit[[1]]),ylab="Marker effect", frame.plot=FALSE)  
+          if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="green", pch=4, cex=2, lwd=3 )
           matplot(as.data.frame(fit[[2]]),ylab="Marker indicator", frame.plot=FALSE)  
+          if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="green", pch=4, cex=2, lwd=3 )
           matplot(as.data.frame(fit[[4]]),ylab="Marker variance", frame.plot=FALSE)  
           matplot(as.data.frame(fit[[5]]),ylab="Residual variance", frame.plot=FALSE)  
      } 
      
 }
+
+gsim <- function(nt=1,W=NULL,n=1000,m=1000) {
+  if(is.null(W)) {
+    W <- matrix(runif(n),ncol=1)
+    for (i in 2:m) {
+      W <- cbind(W,scale(W[,i-1]) + runif(n))  
+    }
+  }
+  y <- e <- vector(length=nt,mode="list")
+  names(y) <- paste0("D",1:nt)
+  set0 <- sample(1:ncol(W),2)
+  set1 <- b1 <- g1 <- vector(length=nt,mode="list")
+  g <- NULL
+  for (i in 1:nt){
+    b0 <- sample(c(0.5,-0.5,1,-1),2)
+    g0 <- W[,set0]%*%b0
+    set1[[i]] <- sample(1:ncol(W),2)
+    b1[[i]] <- sample(c(0.5,-0.5,1,-1),length(set1[[i]]))
+    g1[[i]] <- W[,set1[[i]]]%*%b1[[i]]
+    e[[i]] <- rnorm(nrow(W),mean=0,sd=1)
+    y[[i]] <- g0+g1[[i]]+e[[i]]
+    g <- cbind(g,g0+g1[[i]])
+  }
+  colnames(g) <- paste0("D",1:nt) 
+  return( list( y=y,W=W, e=e,g=g,b0=b0,b1=b1,set0=set0,set1=set1,causal=c(set0,unlist(set1))))
+}
+
 
 splitWithOverlap <- function(vec, seg.length, overlap) {
      starts = seq(1, length(vec), by=seg.length-overlap)
