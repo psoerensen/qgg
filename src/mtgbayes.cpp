@@ -188,7 +188,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       for (int j = 0; j < n; j++) {
         r[t][i] = r[t][i] + W[i][j]*e[t][j];
       }
-      wy[t][i]=r[t][i];
+      r[t][i] = ww[t][i]*b[t][i];
+      wy[t][i] = r[t][i];
       x2[t][i] = (wy[t][i]/ww[t][i])*(wy[t][i]/ww[t][i]);
     }
   }
@@ -226,9 +227,14 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
     for ( int t = 0; t < nt; t++) {
       conv[t] = 0.0;
     }
+
+    //arma::mat Ei = arma::inv(E);
+    //arma::mat Bi = arma::inv(B);
     
     // Sample marker effects (Mixed)
     if (method==1) {
+      
+
       for ( int i = 0; i < m; i++) {
         
         // Compute rhs                     
@@ -294,7 +300,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
         
         // Compute lhs
         for ( int k = 0; k < nmodels; k++) {
-          C = Bi;
+          arma::mat C = Bi;
           for ( int t1 = 0; t1 < nt; t1++) {
             if(models[k][t1]==1) {
               C(t1,t1) = C(t1,t1) + ww[t1][i]*Ei(t1,t1);       
@@ -353,7 +359,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
         for ( int t = 0; t < nt; t++) { 
           d[t][i] = models[mselect][t];
         }
-        C = Bi;
+        arma::mat C = Bi;
         for ( int t1 = 0; t1 < nt; t1++) {
           if(models[mselect][t1]==1) {
             C(t1,t1) = C(t1,t1) + ww[t1][i]*Ei(t1,t1);       
@@ -432,7 +438,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       //arma::mat B = rinvwish(dfSb, Sb);
       //arma::mat B = riwish(dfSb, Sb);
       //arma::mat B = riwishart(dfSb, Sb);
-      B = riwishart(dfSb, Sb);
+      arma::mat B = riwishart(dfSb, Sb);
       
       for (int t = 0; t < nt; t++) {
         varb_post[t][it] = B(t,t);
@@ -482,9 +488,10 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           //E(t,t) = (sse + sse_prior[t][t])/chi2;
         }
       }
-      int dfSe = dfe/nt + nue;
+      //int dfSe = dfe + nue;
+      int dfSe = dfe + nue;
       //arma::mat E = riwishart(dfSe, Se);
-      E = riwishart(dfSe, Se);
+      arma::mat E = riwishart(dfSe, Se);
       arma::mat Ei = arma::inv(E);
       for (int t = 0; t < nt; t++) {
         vare_post[t][it] = E(t,t);
@@ -515,7 +522,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   
   // Summarize results
   std::vector<std::vector<std::vector<double>>> result;
-  result.resize(14);
+  result.resize(15);
   
   result[0].resize(nt);
   result[1].resize(nt);
@@ -531,6 +538,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   result[11].resize(nt);
   result[12].resize(nt);
   result[13].resize(nt);
+  result[14].resize(nt);
   
   for (int t=0; t < nt; t++) {
     result[0][t].resize(m);
@@ -547,6 +555,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
     result[11][t].resize(nt);
     result[12][t].resize(nmodels);
     result[13][t].resize(nmodels);
+    result[14][t].resize(m);
   }
   
   for (int t=0; t < nt; t++) {
@@ -554,6 +563,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       result[0][t][i] = b_post_mean[t][i]/nit;
       result[1][t][i] = d_post_mean[t][i]/nit;
       result[9][t][i] = b[t][i];
+      result[14][t][i] = order[i];
     }
     for (int i=0; i < n; i++) {
       result[7][t][i] = y[t][i] - mu[t] - e[t][i];
@@ -573,9 +583,9 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       result[5][t1][t2] = rhob_post_mean[t1][t2]/nit;
       result[6][t1][t2] = rhoe_post_mean[t1][t2]/nit;
       result[10][t1][t2] = B(t1,t2);
-      result[10][t2][t1] = B(t2,t1);
+      //result[10][t2][t1] = B(t2,t1);
       result[11][t1][t2] = E(t1,t2);
-      result[11][t2][t1] = E(t2,t1);
+      //result[11][t2][t1] = E(t2,t1);
     }
   }
   for (int t=0; t < nt; t++) {
