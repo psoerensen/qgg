@@ -23,7 +23,7 @@ Imports: Rcpp (>= 1.0.5),
     stats,
     MCMCpack,
     MASS
-LinkingTo: Rcpp, RcppArmadillo, RcppDist
+LinkingTo: Rcpp, RcppArmadillo, RcppDist, data.table
 RoxygenNote: 7.1.1
 URL: https://github.com/psoerensen/qgg
 BugReports: https://github.com/psoerensen/qgg/issues
