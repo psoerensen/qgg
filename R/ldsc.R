@@ -7,51 +7,60 @@
 #' The ldsc function is used for LDSC analysis
 #'
 #' @param Glist list of information about genotype matrix stored on disk
-#' @param lscore vector of LD scores (optional)
+#' @param lscore vector of LD scores (optional as LD scores are stored within Glist)
 #' @param z matrix of z statistics for n traits
-#' @param b matrix of marker effects for n traits
-#' @param seb matrix of standard errors of marker effects for n traits
-
-#' @param rsids vector of marker rsids used in the analysis
-#' @param ids vector of individuals used in the analysis
-#' @param lambda overall shrinkage factor
-#' @param weights vector of single marker weights used in BLUP
-#' @param method used in solver (currently only methods="gsru": gauss-seidel with resiudal update)
-#' @param maxit maximum number of iterations used in the Gauss-Seidel procedure
-#' @param tol tolerance, i.e. the maximum allowed difference between two consecutive iterations of the solver to declare convergence
-#' @param sets	list containing marker sets rsids
-#' @param scale logical if TRUE the genotypes in Glist will be scaled to mean zero and variance one
-#' @param ncores number of cores used in the analysis
-
-
+#' @param b matrix of marker effects for n traits if z matrix not is given
+#' @param seb matrix of standard errors of marker effects for n traits if z matrix not is given
+#' @param n vector of sample sizes for the traits (element i corresponds to column vector i in z matrix)
+#' @param interept logical if TRUE the LD score regression includes intercept
+#' @param what either computation of heritability (what="h2") or genetic correlation between traits (what="rg")
+#' @param SE.h2 logical if TRUE standard errors and significance for the heritability estimates are computed using a block jackknife approach
+#' @param SE.rg logical if TRUE standard errors and significance for the genetic correlations are computed using a block jackknife approach
+#' @param blk numeric size of the blocks used in the jackknife estimation of standard error (default = 200)
+#'
+#' @return Returns a matrix of heritability estimates when what="h2", and if SE.h2=TRUE standard errors (SE) and significance levels (P) are returned. 
+#'         If what="rg" an n-by-n matrix of correlations is returned where the diagonal elements being h2 estimates. 
+#'         If SE.rg=TRUE a list is returned with n-by-n matrices of genetic correlations, estimated standard errors and significance levels.
+#'
 #' @author Peter Soerensen
 #' @author Palle Duun Rohde
-
+#'
 #' @examples
 #'
-#' # Simulate data
-#' W <- matrix(rnorm(1000000), ncol = 1000)
-#' 	colnames(W) <- as.character(1:ncol(W))
-#' 	rownames(W) <- as.character(1:nrow(W))
-#' m <- ncol(W)
-#' causal <- sample(1:ncol(W),50)
-#' y <- rowSums(W[,causal]) + rnorm(nrow(W),sd=sqrt(50))
+#' #Simulate data
+#' W1 <- getG(Glist, chr=1, scale=TRUE)
+#' W2 <- getG(Glist, chr=2, scale=TRUE)
 #'
-#' X <- model.matrix(y~1)
+#' W <- cbind(W1,W2)
+#' causal <- sample(1:ncol(W),5)
 #'
-#' Sg <- 50
-#' Se <- 50
-#' h2 <- Sg/(Sg+Se)
-#' lambda <- Se/(Sg/m)
-#' lambda <- m*(1-h2)/h2
+#' b1 <- rnorm(length(causal))
+#' b2 <- rnorm(length(causal))
+#' y1 <- W[, causal]%*%b1 + rnorm(nrow(W))
+#' y2 <- W[, causal]%*%b2 + rnorm(nrow(W))
 #'
-#' # BLUP of single marker effects and total genomic effects based on Gauss-Seidel procedure
-#' fit <- gsolve( y=y, X=X, W=W, lambda=lambda)
+# # Create model
+#' data1 <- data.frame(y = y1, mu = 1)
+#' data2 <- data.frame(y = y2, mu = 1)
+#' X1 <- model.matrix(y ~ 0 + mu, data = data1)
+#' X2 <- model.matrix(y ~ 0 + mu, data = data2)
 #'
+#' # Linear model analyses and single marker association test
+#' maLM1 <- lma(y=y1, X=X1,W = W)
+#' maLM2 <- lma(y=y2,X=X2,W = W)
+#' 
+#' # Compute heritability and genetic correlations for trait 1 and 2
+#' z1 <- maLM1[,"stat"]
+#' z2 <- maLM2[,"stat"]
+#'
+#'z <- cbind(z1=z1,z2=z2)
+#'
+#'h2 <- ldsc(Glist, z=z, n=c(500,500), what="h2")
+#'rg <- ldsc(Glist, z=z, n=c(500,500), what="rg")
 #'
 #' @export 
 
-ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, p=NULL, n=NULL, sets=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
+ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
      if(!is.null(Glist) & is.null(lscore) ) lscore <- unlist(Glist$lscore)
      
      if(!is.null(z)) nt <- ncol(z)
@@ -130,7 +139,7 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, p=NULL, n=NU
                     }
                     h2 <- cbind(h2,SE,P)
                     colnames(h2)[3:4] <- c("SE","P")
-                    h2[h2[,2]>1,2] <- h2[h2[,2]>1,3] <-  h2[h2[,2]>1,4] <- NA
+                    h2[h2[,2]<0,2] <- h2[h2[,2]<0,3] <-  h2[h2[,2]<0,4] <- NA
                     result <- h2
                }
                if(intercept==FALSE){
@@ -157,14 +166,14 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, p=NULL, n=NU
                     }
                     h2 <- cbind(h2,SE,P)
                     colnames(h2)[2:3] <- c("SE","P")
-                    h2[h2[,1]>1,1] <- h2[h2[,1]>1,2] <-  h2[h2[,1]>1,3] <- NA
+                    h2[h2[,1]<0,1] <- h2[h2[,1]<0,2] <-  h2[h2[,1]<0,3] <- NA
                     result <- h2
                }
           }
          
 
      
-     if(what=="correlation") {
+     if(what=="rg") {
           rg <- matrix(0,nt,nt)
           rownames(rg) <- colnames(rg) <- colnames(z)
           for (t1 in 1:nt) {
