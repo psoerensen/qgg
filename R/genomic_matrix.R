@@ -96,7 +96,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
     if (is.null(famfiles)) Glist$famfiles <- gsub(".bed", ".fam", bedfiles)
 
     # Read fam information
-    fam <- fread(input = famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+    fam <- data.table::fread(input = famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
     Glist$ids <- as.character(fam[, 2])
     #Glist$study_ids <- Glist$ids
     Glist$study_ids <- NULL
@@ -125,10 +125,10 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
 #    Glist$cls <- vector(mode = "list", length = nfiles)
 
     for (chr in 1:length(bedfiles)) {
-      bim <- fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
+      bim <- data.table::fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
       rsidsBIM <- as.character(bim[, 2])
       if (!is.null(rsids)) bim <- droplevels(bim[rsidsBIM %in% rsids, ])
-      fam <- fread(input = famfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
+      fam <- data.table::fread(input = famfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
       if (any(!Glist$ids %in% as.character(fam[, 2]))) stop(paste("some ids not found in famfiles"))
       Glist$a1[[chr]] <- as.character(bim[, 5])
       Glist$a2[[chr]] <- as.character(bim[, 6])
@@ -239,8 +239,8 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 #      bim_combined <- NULL
 #      for (chr in 1:length(bedfiles)) {
 #           message(paste("Processing bedfile:", bedfiles[chr]))
-#           bim <- fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
-#           fam <- fread(input = famfiles[chr], header = FALSE, data.table = FALSE)
+#           bim <- data.table::fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
+#           fam <- data.table::fread(input = famfiles[chr], header = FALSE, data.table = FALSE)
 #           n <- nrow(fam)
 #           m <- nrow(bim)
 #           rsidsBIM <- as.character(bim[, 2])
@@ -417,11 +417,11 @@ getW <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, fam
   if (!is.null(bedfiles)) {
     if (is.null(bimfiles)) bimfiles <- gsub(".bed", ".bim", bedfiles)
     if (is.null(famfiles)) famfiles <- gsub(".bed", ".fam", bedfiles)
-    bim <- fread(
+    bim <- data.table::fread(
       input = bimfiles, header = FALSE, data.table = FALSE, showProgress = FALSE,
       colClasses = "character"
     )
-    fam <- fread(
+    fam <- data.table::fread(
       input = famfiles, header = FALSE, data.table = FALSE, showProgress = FALSE,
       colClasses = "character"
     )
@@ -471,14 +471,14 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
      Glist <- NULL
      Glist$fnBED <- bedfiles
 
-     bim <- fread(input = bimfiles, header = FALSE, data.table = FALSE, colClasses = "character")
+     bim <- data.table::fread(input = bimfiles, header = FALSE, data.table = FALSE, colClasses = "character")
      Glist$a1 <- as.character(bim[, 5])
      Glist$a2 <- as.character(bim[, 6])
      Glist$position <- as.numeric(bim[, 4])
      Glist$rsids <- as.character(bim[, 2])
      Glist$chr <- as.character(bim[, 1])
 
-     fam <- fread(input = famfiles, header = FALSE, data.table = FALSE, colClasses = "character")
+     fam <- data.table::fread(input = famfiles, header = FALSE, data.table = FALSE, colClasses = "character")
      Glist$n <- nrow(fam)
      Glist$ids <- as.character(fam[, 2])
      if (any(!ids %in% as.character(fam[, 2]))) stop(paste("some ids not found in famfiles"))
