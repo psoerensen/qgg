@@ -27,3 +27,4 @@ LinkingTo: Rcpp, RcppArmadillo, RcppDist
 RoxygenNote: 7.1.1
 URL: https://github.com/psoerensen/qgg
 BugReports: https://github.com/psoerensen/qgg/issues
+
