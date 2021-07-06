@@ -359,6 +359,7 @@ cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NU
     y <- ylist
   }
   if(!is.list(y)) y <- list(y)
+  if(!file.exists(Glist$bedfiles[chr])) stop(paste("Bedfile:", Glist$bedfiles[chr],"does not exist"))
   #if(!length(y)==Glist$n) stop("Length of y does not match number of individuals in Glist$n")
   covs <- .Call("_qgg_summarybed", 
                 Glist$bedfiles[chr], 
@@ -374,7 +375,8 @@ cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NU
     covs[[3]][[i]] <- (covs[[2]][[i]]/covs[[1]][[i]])
     covs[[4]][[i]] <- 1/sqrt(covs[[1]][[i]])
     covs[[5]][[i]] <- (covs[[2]][[i]]/covs[[1]][[i]])*sqrt(covs[[1]][[i]])
-    ptt <- 2 * pt(-abs(covs[[5]][[i]]), df = dfe)
+    #ptt <- 2 * pt(-abs(covs[[5]][[i]]), df = dfe)
+    ptt <- 2 * pt(-abs(covs[[5]][[i]]), df = dfe - 2)
     covs[[6]][[i]] <- ptt
   }
   names(covs) <- c("XX","Xy","b","seb","tstat","p")
