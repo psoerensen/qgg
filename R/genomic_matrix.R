@@ -192,13 +192,15 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   #  0  1  2  3          xij level  corresponds to
   #  2  NA  1  0         number of copies of first allele in bim file
   ######################################################################
-  
-  freq <- .Call("_qgg_freqbed", Glist$bedfiles[chr], Glist$n, cls)
+  mask <- rep(0,n)
+  mask[rws] <- 1
+  freq <- .Call("_qgg_freqbed", Glist$bedfiles[chr], Glist$n, mask, cls)
   nmiss <- freq[2,]
   hom <- (freq[1,] + freq[4,]) / (freq[1,] + freq[3,] + freq[4,])
   het <- (freq[3,]) / (freq[1,] + freq[3,] + freq[4,])
   #af <- (2*freq[1,] + freq[3,])/(2*freq[1,] + 2*freq[3,] + 2*freq[4,])
-  nalleles <- 2*(n-nmiss)
+  #nalleles <- 2*(n-nmiss)
+  nalleles <- 2*(nr-nmiss)
   af <- 2*freq[1,] + freq[3,]
   af[nalleles>0] <- af[nalleles>0]/nalleles[nalleles>0]
   af[nalleles==0] <- 0.5
@@ -344,6 +346,17 @@ cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NU
     ylist <- apply(y,2,function(x){ split(x,f=factor(ids))})
     weights <- lapply(ylist,function(x){sapply(x,length)}) 
     y <- lapply(ylist,function(x){sapply(x,sum)}) 
+  }
+  if(!is.null(ids) & !any(duplicated(ids)) ) {
+    weights <- rep(0.0,Glist$n)
+    weights[rws] <- 1.0
+    weights <- list(weights)
+    ylist <- apply(y,2,function(x){ 
+      y0 <- rep(0.0,Glist$n)
+      y0[rws] <- x
+      y0
+      })
+    y <- ylist
   }
   if(!is.list(y)) y <- list(y)
   #if(!length(y)==Glist$n) stop("Length of y does not match number of individuals in Glist$n")
