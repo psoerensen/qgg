@@ -193,6 +193,7 @@ std::vector<std::vector<float>> getWlist( const char* file,
 // [[Rcpp::export]]
 IntegerMatrix freqbed( const char* file, 
                        int n, 
+                       std::vector<int> mask,
                        std::vector<int> cls) {
   
   FILE *file_stream = fopen( file, "rb" );
@@ -232,7 +233,7 @@ IntegerMatrix freqbed( const char* file,
       buf_k = buffer[k];
       for (int pos = 0; pos < 4; pos++, j++) {
         if (j < n) {
-          X(map[buf_k & 3], i) +=  1;
+          if(mask[j]==1) X(map[buf_k & 3], i) +=  1;
           buf_k = buf_k >> 2;
         } 
       }
