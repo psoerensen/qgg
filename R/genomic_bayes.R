@@ -117,6 +117,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          cls <- splitWithOverlap(cls[o],1000,0)
          sets <- splitWithOverlap((1:m)[o],1000,0)
          dm <- bm <- rep(0,m)
+         names(dm) <- names(bm) <- names(mlogp)
          varem <- varbm <- pim <- vector(length=length(sets),mode="list")
          
          for (i in 1:length(sets)) {
