@@ -56,7 +56,7 @@
 #' @export
 #'
 
-gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
+gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                    vara=NULL, varb=NULL, vare=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
                    nub=4, nue=4, nit=100, method="mixed", algorithm="default") {
@@ -103,14 +103,24 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, b=NULL, badj=NU
        for (chr in chromosomes) {
          covs <- cvs(y=e,Glist=Glist,chr=chr)
          mlogp <- -log10(covs$p[[1]])
+         if(any(is.na(mlogp))) {
+           print(paste("Number of marker removed:",sum(is.na(mlogp))))
+           mlogp <- mlogp[!is.na(mlogp)]
+         }
+         if(!is.null(rsids)) {
+           print(paste("Number of markers used:",sum(names(mlogp)%in%rsids),"from chromosome;",chr))
+           mlogp <- mlogp[names(mlogp)%in%rsids]
+         }
+         cls <- match(names(mlogp),Glist$rsids[[chr]])
          m <- length(mlogp) 
          o <- order(mlogp,decreasing=TRUE)
-         sets <- splitWithOverlap(o,1000,0)
+         cls <- splitWithOverlap(cls[o],1000,0)
+         sets <- splitWithOverlap((1:m)[o],1000,0)
          dm <- bm <- rep(0,m)
          varem <- varbm <- pim <- vector(length=length(sets),mode="list")
          
          for (i in 1:length(sets)) {
-           W <- getG(Glist, chr=chr, scale=TRUE, rws=rws, cls=sets[[i]])
+           W <- getG(Glist, chr=chr, scale=TRUE, rws=rws, cls=cls[[i]])
            LD <- crossprod(W)
            fitset <- sbayes(y=e, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
                             vara=vara, varb=varb, vare=vare, 
