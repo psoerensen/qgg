@@ -48,15 +48,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // freqbed
-IntegerMatrix freqbed(const char* file, int n, std::vector<int> cls);
-RcppExport SEXP _qgg_freqbed(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP) {
+IntegerMatrix freqbed(const char* file, int n, std::vector<int> mask, std::vector<int> cls);
+RcppExport SEXP _qgg_freqbed(SEXP fileSEXP, SEXP nSEXP, SEXP maskSEXP, SEXP clsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type mask(maskSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
-    rcpp_result_gen = Rcpp::wrap(freqbed(file, n, cls));
+    rcpp_result_gen = Rcpp::wrap(freqbed(file, n, mask, cls));
     return rcpp_result_gen;
 END_RCPP
 }
