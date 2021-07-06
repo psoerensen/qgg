@@ -13,8 +13,8 @@ getWlist <- function(file, n, cls, af) {
     .Call(`_qgg_getWlist`, file, n, cls, af)
 }
 
-freqbed <- function(file, n, cls) {
-    .Call(`_qgg_freqbed`, file, n, cls)
+freqbed <- function(file, n, mask, cls) {
+    .Call(`_qgg_freqbed`, file, n, mask, cls)
 }
 
 summarybed <- function(file, n, cls, af, weights, y) {
