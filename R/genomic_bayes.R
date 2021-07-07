@@ -404,7 +404,9 @@ bayes <- function(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
   if(is.null(b)) b <- rep(0,m)
   e=y-mean(y)
   if(is.null(vare)) vare <- var(e)
-  if(is.null(varb)) varb <- (vare/m)*h2
+  if(method<4 && is.null(varb)) varb <- (vare*h2)/m
+  if(method==4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
+  #if(is.null(varb)) varb <- (vare/m)*h2
   if(is.null(lambda)) lambda <- rep(vare/varb,m)
   if(is.null(vara)) vara <- vare*h2
   
@@ -499,11 +501,14 @@ sbayes <- function(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
   if(is.null(h2)) h2 <- 0.5
   
   if(is.null(vare)) vare <- 1
-  if(is.null(varb)) varb <- (vare/m)*h2
+  #if(is.null(varb)) varb <- (vare/m)*h2
+  if(method<4 && is.null(varb)) varb <- (vare*h2)/m
+  if(method==4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
   if(is.null(lambda)) lambda <- rep(vare/varb,m)
   if(is.null(vara)) vara <- vare*h2
   
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
+  #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
   if(is.null(sse_prior)) sse_prior <- nue*vare
   
   if(is.null(b)) b <- rep(0,m)
