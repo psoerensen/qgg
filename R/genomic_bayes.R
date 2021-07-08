@@ -122,13 +122,13 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          dm <- bm <- rep(0,m)
          names(dm) <- names(bm) <- names(mlogp)
          varem <- varbm <- pim <- vector(length=length(sets),mode="list")
-         g <- NULL
+         g <- rep(0,Glist$n)
          for (i in 1:length(sets)) {
-           W <- getG(Glist, chr=chr, scale=TRUE, rws=rws, cls=cls[[i]])
-           #W <- getG(Glist, chr=chr, scale=TRUE, cls=cls[[i]])
-           #LD <- crossprod(W[rws,])
-           LD <- crossprod(W)
-           fitset <- sbayes(y=e, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
+           #W <- getG(Glist, chr=chr, scale=TRUE, rws=rws, cls=cls[[i]])
+           #LD <- crossprod(W)
+           W <- getG(Glist, chr=chr, scale=TRUE, cls=cls[[i]])
+           LD <- crossprod(W[rws,])
+           fitset <- sbayes(y=e, X=X, W=W[rws,], b=b, badj=badj, seb=seb, LD=LD, n=n,
                             vara=vara, varb=varb, vare=vare, 
                             ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=FALSE,
                             #ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
@@ -149,8 +149,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        }
        fit$g <- g
        fit$e <- e
-       #fit$acc <- acc(yobs=y,ypred=g[rws])
-       fit$acc <- acc(yobs=y,ypred=g)
+       fit$acc <- acc(yobs=y,ypred=g[rws,])
      }
      
           
