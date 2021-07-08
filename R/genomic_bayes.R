@@ -122,17 +122,19 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          dm <- bm <- rep(0,m)
          names(dm) <- names(bm) <- names(mlogp)
          varem <- varbm <- pim <- vector(length=length(sets),mode="list")
-         
+         g <- NULL
          for (i in 1:length(sets)) {
            W <- getG(Glist, chr=chr, scale=TRUE, rws=rws, cls=cls[[i]])
-           LD <- crossprod(W)
-           fitset <- sbayes(y=e, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
+           LD <- crossprod(W[rws,])
+           fitset <- sbayes(y=e, X=X, W=W[rws,], b=b, badj=badj, seb=seb, LD=LD, n=n,
                             vara=vara, varb=varb, vare=vare, 
                             ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=FALSE,
                             #ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                             h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                            nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
-           e <- e - crossprod(t(W),fitset$b)
+                            nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)
+           gset <- crossprod(t(W),fitset$b)
+           g <- g + gset
+           e <- e - gset[rws]
            dm[sets[[i]]] <- fitset$dm
            bm[sets[[i]]] <- fitset$bm
            varem[[i]] <- fitset$E
@@ -143,9 +145,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          #fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim, e=e, g=y-e)
          fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim)
        }
-       fit$g <- y-e
+       fit$g <- g
        fit$e <- e
-       fit$acc <- acc(yobs=y,ypred=g)
+       fit$acc <- acc(yobs=y,ypred=g[rws])
      }
      
           
