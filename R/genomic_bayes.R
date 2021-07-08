@@ -101,7 +101,10 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        e <- y
        
        for (chr in chromosomes) {
-         covs <- cvs(y=e,Glist=Glist,chr=chr)
+         rsidsCVS <- Glist$rsids[[chr]][Glist$rsids[[chr]]%in%rsids]
+         clsCVS <- match(rsidsCVS,Glist$rsids[[chr]])
+         clsCVS <- clsCVS[!is.na(clsCVS)]
+         covs <- cvs(y=e,Glist=Glist,chr=chr, cls=clsCVS)
          mlogp <- -log10(covs$p[[1]])
          if(any(is.na(mlogp))) {
            print(paste("Number of marker removed:",sum(is.na(mlogp))))
@@ -125,7 +128,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
            LD <- crossprod(W)
            fitset <- sbayes(y=e, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
                             vara=vara, varb=varb, vare=vare, 
-                            ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
+                            ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=FALSE,
+                            #ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                             h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
                             nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
            e <- e - crossprod(t(W),fitset$b)
