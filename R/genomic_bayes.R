@@ -136,7 +136,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
                             nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)
            gset <- crossprod(t(W),fitset$b)
            g <- g + gset
-           e <- e - gset
+           e <- e - gset[rws,]
            dm[sets[[i]]] <- fitset$dm
            bm[sets[[i]]] <- fitset$bm
            varem[[i]] <- fitset$E
