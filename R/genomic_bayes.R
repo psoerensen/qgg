@@ -124,7 +124,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          varem <- varbm <- pim <- vector(length=length(sets),mode="list")
          g <- NULL
          for (i in 1:length(sets)) {
-           W <- getG(Glist, chr=chr, scale=TRUE, rws=rws, cls=cls[[i]])
+           #W <- getG(Glist, chr=chr, scale=TRUE, rws=rws, cls=cls[[i]])
+           W <- getG(Glist, chr=chr, scale=TRUE, cls=cls[[i]])
            LD <- crossprod(W[rws,])
            fitset <- sbayes(y=e, X=X, W=W[rws,], b=b, badj=badj, seb=seb, LD=LD, n=n,
                             vara=vara, varb=varb, vare=vare, 
