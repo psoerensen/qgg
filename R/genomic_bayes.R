@@ -140,9 +140,12 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
            pim[[i]] <- fitset$Pi
            print(paste("Finished segment:",i,"out of",length(sets),"segments on chromosome:",chr))
          }
-         fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim, e=e, g=y-e)
+         #fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim, e=e, g=y-e)
+         fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim)
        }
-       
+       fit$g <- g
+       fit$e <- e
+       fit$acc <- acc(yobs=y,ypred=g)
      }
      
           
