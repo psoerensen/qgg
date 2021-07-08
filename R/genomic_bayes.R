@@ -99,6 +99,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        
 
        e <- y
+       g <- rep(0,Glist$n)
        
        for (chr in chromosomes) {
          rsidsCVS <- Glist$rsids[[chr]][Glist$rsids[[chr]]%in%rsids]
@@ -122,7 +123,6 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          dm <- bm <- rep(0,m)
          names(dm) <- names(bm) <- names(mlogp)
          varem <- varbm <- pim <- vector(length=length(sets),mode="list")
-         g <- rep(0,Glist$n)
          for (i in 1:length(sets)) {
            #W <- getG(Glist, chr=chr, scale=TRUE, rws=rws, cls=cls[[i]])
            #LD <- crossprod(W)
@@ -147,10 +147,10 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          #fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim, e=e, g=y-e)
          fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim)
        }
-       fit$g <- g
-       fit$e <- e
-       fit$acc <- acc(yobs=y,ypred=g[rws,])
      }
+     fit$g <- g
+     fit$e <- e
+     fit$acc <- acc(yobs=y,ypred=g[rws,])
      
           
      return(fit)
