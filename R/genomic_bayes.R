@@ -128,7 +128,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
            #W <- getG(Glist, chr=chr, scale=TRUE, cls=cls[[i]])
            #LD <- crossprod(W[rws,])
            LD <- crossprod(W)
-           fitset <- sbayes(y=e, X=X, W=W[rws,], b=b, badj=badj, seb=seb, LD=LD, n=n,
+           fitset <- sbayes(y=e, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
                             vara=vara, varb=varb, vare=vare, 
                             ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=FALSE,
                             #ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
