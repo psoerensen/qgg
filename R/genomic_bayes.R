@@ -150,6 +150,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim)
        }
        fit$g <- g[rws,]
+       fit$gtrain <- g[rws,]
+       fit$gtest <- g[-rws,]
        fit$e <- e
      }
 
