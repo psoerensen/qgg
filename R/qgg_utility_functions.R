@@ -21,7 +21,7 @@ rnag <- function(yobs = NULL, ypred = NULL) {
 }
 
 acc <- function(yobs = NULL, ypred = NULL, typeoftrait = "quantitative") {
-  fit <- lm(ypred ~ yobs)
+  fit <- lm(yobs ~ ypred)
   r2 <- summary(fit)$r.squared
   pa <- cor(ypred, yobs)
   mspe <- sum((ypred - yobs)^2) / length(yobs)

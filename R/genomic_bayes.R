@@ -61,7 +61,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
                    h2=NULL, pi=0.001, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
                    nub=4, nue=4, nit=100, method="mixed", algorithm="default") {
      
-     method <- match(method, c("blup","mixed","bayesA","blasso","bayesC")) - 1
+     methods <- c("blup","mixed","bayesA","blasso","bayesC")
+     method <- match(method, methods) - 1
      if( !sum(method%in%c(0:4))== 1 ) stop("Method specified not valid") 
      
      nt <- 1
@@ -79,11 +80,11 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
                                                                       h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
                                                                       nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
      
-     if(nt>1) fit <- mtbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                             vara=vara, varb=varb, vare=vare, 
-                             ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-                             h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                             nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) 
+     if(nt>1 && is.null(Glist)) fit <- mtbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
+                                               vara=vara, varb=varb, vare=vare, 
+                                               ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
+                                               h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
+                                               nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) 
      
      if(nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
        
@@ -102,7 +103,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        g <- rep(0,Glist$n)
        
        for (chr in chromosomes) {
-         rsidsCVS <- Glist$rsids[[chr]][Glist$rsids[[chr]]%in%rsids]
+         rsidsCVS <- Glist$rsids[[chr]]
+         if(!is.null(rsids)) rsidsCVS <- Glist$rsids[[chr]][Glist$rsids[[chr]]%in%rsids]
          clsCVS <- match(rsidsCVS,Glist$rsids[[chr]])
          clsCVS <- clsCVS[!is.na(clsCVS)]
          covs <- cvs(y=e,Glist=Glist,chr=chr, cls=clsCVS)
@@ -147,11 +149,13 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          #fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim, e=e, g=y-e)
          fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim)
        }
+       fit$g <- g[rws,]
+       fit$e <- e
      }
-     fit$g <- g
-     fit$e <- e
-     fit$acc <- acc(yobs=y,ypred=g[rws,])
-     
+
+
+     #fit$acc <- acc(yobs=y,ypred=fit$g)
+     fit$method <- methods[method+1]
           
      return(fit)
      
@@ -546,6 +550,8 @@ sbayes <- function(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
                nit=nit,
                method=as.integer(method))
   names(fit[[1]]) <- rownames(LD)
+  if(!is.null(W)) fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
+  names(fit[[7]]) <- ids
   names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
 
   return(fit)
@@ -679,6 +685,20 @@ plotBayes <- function(fit=NULL, causal=NULL) {
      } 
      
 }
+
+#'
+#' @export
+#'
+
+plotCvs <- function(fit=NULL, causal=NULL) {
+  
+  layout(matrix(1:length(fit$p),ncol=1))
+  for (i in 1:length(fit$p)) {
+    plot(-log10(fit$p[[i]]),ylab="mlogP", xlab="Marker", main="Marker effect", frame.plot=FALSE)  
+    if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
+  }
+}
+
 
 gsim <- function(nt=1,W=NULL,n=1000,m=1000) {
   if(is.null(W)) {

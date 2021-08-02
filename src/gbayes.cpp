@@ -880,7 +880,7 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
     }
     
     // Sample pi
-    if(updatePi) {
+    if(method==4 && updatePi) {
       double count1 = dfb + 1.0;
       std::gamma_distribution<double> rgamma1(count1,1.0);
       double rg1 = rgamma1(gen);
