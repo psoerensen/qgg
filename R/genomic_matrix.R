@@ -204,6 +204,11 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   af <- 2*freq[1,] + freq[3,]
   af[nalleles>0] <- af[nalleles>0]/nalleles[nalleles>0]
   af[nalleles==0] <- 0.5
+  tol_upper <- 0.99999
+  tol_lower <- 0.00001
+  af[af>tol_upper] <- tol_upper
+  af[af<tol_lower] <- tol_lower
+
   
   maf <- af
   maf[maf > 0.5] <- 1 - maf[maf > 0.5]
