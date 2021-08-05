@@ -138,7 +138,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
                             #ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                             h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
                             nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)
-           gset <- crossprod(t(W),fitset$b)
+           gset <- crossprod(t(W),fitset$bm)
            g <- g + gset
            e <- e - gset[rws,]
            dm[sets[[i]]] <- fitset$dm
@@ -527,7 +527,7 @@ sbayes <- function(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
   if(is.null(vara)) vara <- vare*h2
   
   #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
+  if(is.null(ssb_prior))-
   if(is.null(sse_prior)) sse_prior <- nue*vare
   
   if(is.null(b)) b <- rep(0,m)
