@@ -141,7 +141,7 @@ gsru <- function(y = NULL, X = NULL, W = NULL, sets = NULL, lambda = NULL, weigh
   delta <- 1
   while (delta > tol) {
     nit <- nit + 1
-    for (i i-n 1:nsets) {
+    for (i in 1:nsets) {
       rws <- sets[[i]]
       lhs <- dww[rws] + lambda[rws] # form lhs
       rhs <- crossprod(W[, rws], e) + dww[rws] * s[rws] # form rhs with y corrected by other effects
