@@ -527,7 +527,7 @@ sbayes <- function(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
   if(is.null(vara)) vara <- vare*h2
   
   #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
-  if(is.null(ssb_prior))-
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
   if(is.null(sse_prior)) sse_prior <- nue*vare
   
   if(is.null(b)) b <- rep(0,m)
