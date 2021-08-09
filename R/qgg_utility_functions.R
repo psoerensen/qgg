@@ -1,4 +1,3 @@
-
 auc <- function(yobs = NULL, ypred = NULL) {
   n0 <- length(yobs[yobs == 0])
   n1 <- length(yobs[yobs == 1])
@@ -71,4 +70,18 @@ fastlm <- function(y = NULL, X = NULL, sets = NULL) {
   fit <- list(coef = coef, se = se, stat = stat, p = p, ftest = ftest, yhat = yhat)
 
   return(fit)
+}
+
+hwe <- function(Glist=NULL){
+  HWE <- vector(length(Glist$n0),mode="list")
+  for(CHR in 1:length(Glist$n0)){
+    obs <- cbind(Glist$n0[[CHR]],Glist$n1[[CHR]],Glist$n2[[CHR]])
+    freq <- (2*obs[,1] + obs[,2]) / (2*rowSums(obs))
+    exp <- cbind(rowSums(obs)*freq**2,2*rowSums(obs)*freq*(1-freq) ,rowSums(obs)*(1-freq)**2)
+    chi <- rowSums((obs - exp)^2/exp)
+    p <- pchisq(chi,1,lower.tail=F)
+    names(p) <- Glist$rsids[[CHR]]
+    HWE[[CHR]] <- p
+   }
+  return(HWE)
 }
