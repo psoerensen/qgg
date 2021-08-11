@@ -126,7 +126,7 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
         mapt[0] = b[t][i]*(2.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
         mapt[1] = 0.0;
         mapt[2] = b[t][i]*(1.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
-        mapt[3] = -b[t][i]*(-2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
+        mapt[3] = -b[t][i]*(2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
         
       } else {
         mapt[0] = b[t][i]*2.0;
