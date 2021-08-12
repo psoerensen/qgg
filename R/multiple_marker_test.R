@@ -195,7 +195,7 @@ gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum
 #  )
 #  p <- res$p / np
 
-  p <- psets( msets = msets,
+  p <- .Call("_qgg_psets", msets = msets,
               setstat = setstat,
               stat = stat,
               np = np)
