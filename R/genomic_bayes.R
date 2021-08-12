@@ -189,9 +189,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
                                    updateB=updateB, 
                                    updateE=updateE, 
                                    updatePi=updatePi)
-             b[clsLD[[chr]][[i]]] <- fitset$b
-             bmchr[clsLD[[chr]][[i]]] <- fitset$bm
-             dmchr[clsLD[[chr]][[i]]] <- fitset$dm
+             b[Glist$clsLD[[chr]][[i]]] <- fitset$b
+             bmchr[Glist$clsLD[[chr]][[i]]] <- fitset$bm
+             dmchr[Glist$clsLD[[chr]][[i]]] <- fitset$dm
            }
          }
          bm[[chr]] <- cbind(bm[[chr]], bmchr)
