@@ -159,7 +159,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        
        if(is.null(chr)) chromosomes <- 1:Glist$nchr
        if(!is.null(chr)) chromosomes <- chr
-       fit <- vector(length=length(chromosomes),mode="list")
+       covs <- vector(length=length(chromosomes),mode="list")
        names(fit) <- chromosomes
        
        
