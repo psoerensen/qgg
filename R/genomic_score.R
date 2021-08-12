@@ -52,7 +52,7 @@
 #' @export
 #'
 
-gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
+gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
      
      if ( !is.null(Glist))  {
           prs <- NULL
@@ -65,7 +65,9 @@ gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, st
             stat <- data.frame(rsids=names(fit$bm), alleles=alleles[cls], af=af[cls], effect=fit$b)
             rownames(stat) <- names(fit$bm)
           }
-          for (chr in 1:length(Glist$bedfiles)) {
+          if (!is.null(chr)) chromosomes <- chr
+          if (is.null(chr)) chromosomes <- 1:length(Glist$bedfiles)
+          for (chr in chromosomes) {
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                  prschr <- run_gscore(bedfiles=Glist$bedfiles[chr], bimfiles=Glist$bimfiles[chr], famfiles=Glist$famfiles[chr], stat = stat, 
                                       ids = ids, scale = scale, impute = impute, msize = msize, ncores = ncores)
@@ -126,12 +128,12 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      }
      rsidsOK <- stat$rsids %in% Glist$rsids
      if (any(!rsidsOK)) {
-          warning("Some variants not found in genotype files")
-          message(paste("Number of variants missing;", sum(!rsidsOK)))
-          message(paste("Number of variants used;", sum(rsidsOK)))
-          stat <- stat[rsidsOK, ]
-          stat$rsids <- as.character(stat$rsids)
-          stat$alleles <- as.character(stat$alleles)
+       warning("Some variants not found in genotype files")
+       message(paste("Number of variants used:", sum(rsidsOK)))
+       message(paste("Number of variants missing:", sum(!rsidsOK)))
+       stat <- stat[rsidsOK, ]
+       stat$rsids <- as.character(stat$rsids)
+       stat$alleles <- as.character(stat$alleles)
      }
      S <- stat[, -c(1:3)]
      if (is.vector(S)) S <- as.matrix(S)
@@ -149,6 +151,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      nc <- length(cls)
      #direction <- as.integer(stat$alleles == Glist$a2[cls])
      if(any(!is.na(stat$alleles))) {
+       warning("Some variants appear to be flipped => changing sign of variant effect for those variants ")
        flipped <- !stat$alleles == Glist$a2[cls]
        S[flipped,] <- -S[flipped,]  
      }
