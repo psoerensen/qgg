@@ -59,7 +59,8 @@
 gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                    vara=NULL, varb=NULL, vare=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
-                   nub=4, nue=4, nit=100, method="mixed", algorithm="default") {
+                   nub=4, nue=4, nit=100, nit_local=NULL,nit_global=NULL,
+                   method="mixed", algorithm="default") {
      
      methods <- c("blup","mixed","bayesA","blasso","bayesC")
      method <- match(method, methods) - 1
@@ -165,8 +166,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        
        e <- y
        
-       nit_local <- 100
-       nit_global <- as.integer(nit/nit_local)
+       if(is.null(nit_local)) nit_local <- 500
+       if(is.null(nit_local)) nit_global <- as.integer(nit/nit_local)
        for (chr in 1:Glist$nchr){
          yy <- sum((e-mean(e))**2)
          n <- length(e)
