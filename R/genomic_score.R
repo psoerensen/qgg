@@ -52,7 +52,7 @@
 #' @export
 #'
 
-gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = fit, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
+gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
      
      if ( !is.null(Glist))  {
           prs <- NULL
@@ -166,7 +166,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
           }
           #af <- 1-Glist$af[cls]
           grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls, af, scale, Slist)
-          grs <- as.matrix(as.data.frame(grs[[1]]))
+          grs <- as.matrix(as.data.frame(grs))
           rownames(grs) <- Glist$ids
           colnames(grs) <- colnames(S)
      }
