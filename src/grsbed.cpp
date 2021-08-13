@@ -130,9 +130,9 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
         
       } else {
         mapt[0] = b[t][i]*2.0;
-        mapt[1] = 2.0*af[i]*b[t][i];
+        mapt[1] = 0.0;
         mapt[2] = b[t][i];
-        mapt[3] = 0.0;
+        mapt[3] = 2.0*af[i]*b[t][i];
       }
       for ( int j = 0; j < n; j++) {
         grs[t][j] = grs[t][j] + mapt[x[j]];
