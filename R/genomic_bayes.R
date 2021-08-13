@@ -167,7 +167,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        e <- y
        
        if(is.null(nit_local)) nit_local <- 500
-       if(is.null(nit_local)) nit_global <- as.integer(nit/nit_local)
+       if(is.null(nit_global)) nit_global <- as.integer(nit/nit_local)
        for (chr in chromosomes){
          yy <- sum((e-mean(e))**2)
          n <- length(e)
