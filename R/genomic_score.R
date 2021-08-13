@@ -56,15 +56,15 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
      
      if ( !is.null(Glist))  {
           prs <- NULL
-          if(is.null(stat) & !is.null(fit)) {
-            rsids <- unlist(Glist$rsids)
-            af <- unlist(Glist$af)
-            alleles <- unlist(Glist$a2)
-            cls <- match(names(fit$bm),rsids)
-            if(any(is.na(cls))) stop("Missing rsids")
-            stat <- data.frame(rsids=names(fit$bm), alleles=alleles[cls], af=af[cls], effect=fit$b)
-            rownames(stat) <- names(fit$bm)
-          }
+          # if(is.null(stat) & !is.null(fit)) {
+          #   rsids <- unlist(Glist$rsids)
+          #   af <- unlist(Glist$af)
+          #   alleles <- unlist(Glist$a2)
+          #   cls <- match(names(fit$bm),rsids)
+          #   if(any(is.na(cls))) stop("Missing rsids")
+          #   stat <- data.frame(rsids=names(fit$bm), alleles=alleles[cls], af=af[cls], effect=fit$b)
+          #   rownames(stat) <- names(fit$bm)
+          # }
           if (!is.null(chr)) chromosomes <- chr
           if (is.null(chr)) chromosomes <- 1:length(Glist$bedfiles)
           for (chr in chromosomes) {
@@ -146,17 +146,14 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      # Prepare input data for mpgrs
      rws <- 1:Glist$n
      if (!is.null(ids)) rws <- match(ids, Glist$ids)
-     nr <- length(rws)
      cls <- match(rsids, Glist$rsids)
-     #af <- Glist$af[cls]
-     nc <- length(cls)
-     #direction <- as.integer(stat$alleles == Glist$a2[cls])
      if(any( !stat$alleles == Glist$a2[cls] )) {
        warning("Some variants appear to be flipped => changing sign of variant effect for those variants ")
        flipped <- !stat$alleles == Glist$a2[cls]
        S[flipped,] <- -S[flipped,]  
      }
-     
+     print(head(S))
+     print(head(af))
      if(!file.exists(Glist$bedfiles)) stop(paste("bed file does not exists:"),Glist$bedfiles) 
      
 
@@ -169,7 +166,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
                Slist[[j]] <- S[,j]
           }
           #af <- 1-Glist$af[cls]
-          if(scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles, n=Glist$n, cls=cls, af=af, scale=TRUE, Slist)
+          if(scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls, af, scale, Slist)
           if(!scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles, n=Glist$n, cls=cls, af=af, scale=FALSE, Slist)
           grs <- as.matrix(as.data.frame(grs))
           rownames(grs) <- Glist$ids
