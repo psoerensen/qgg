@@ -118,7 +118,7 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
       map[0] = 2.0;
       map[1] = - 2.0*af[i];
       map[2] = 1.0 ;
-      map[3] = -2.0*af[i]/sqrtf(2.0*af[i]*(1.0-af[i]));
+      map[3] = 0.0;
     }
     for (size_t k = 0; k < nbytes; k++) {
       buf_k = buffer[k];
