@@ -109,17 +109,17 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
       std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
     }
     int j = 0; 
-    if(scale) {
+    //if(scale) {
       map[0] = (2.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
       map[1] = 0.0;
       map[2] = (1.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
       map[3] = (-2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
-    } else {
-      map[0] = 2.0;
-      map[1] = - 2.0*af[i];
-      map[2] = 1.0 ;
-      map[3] = 0.0;
-    }
+    //} else {
+    //  map[0] = 2.0;
+    //  map[1] = - 2.0*af[i];
+    //  map[2] = 1.0 ;
+    //  map[3] = 0.0;
+    //}
     for (size_t k = 0; k < nbytes; k++) {
       buf_k = buffer[k];
       for (int pos = 0; pos < 4; pos++, j++) {
@@ -130,17 +130,6 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
       }
     }
     for ( int t = 0; t < nt; t++) {
-      //if(scale) {
-        //mapt[0] = b[t][i]*(2.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
-        //mapt[1] = b[t][i]*(-2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
-        //mapt[2] = b[t][i]*(1.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
-        //mapt[3] = 0.0;
-      //} else {
-      //  mapt[0] = b[t][i]*2.0;
-      //  mapt[1] = -2.0*af[i]*b[t][i];
-      //  mapt[2] = b[t][i];
-      //  mapt[3] =0.0;
-      //}
       for ( int j = 0; j < n; j++) {
         grs[t][j] = grs[t][j] + b[t][i]*x[j];
       }
