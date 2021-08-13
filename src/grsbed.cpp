@@ -120,15 +120,14 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
     for ( int t = 0; t < nt; t++) {
       if(scale) {
         mapt[0] = b[t][i]*(2.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
-        mapt[1] = 0.0;
+        mapt[1] = b[t][i]*(-2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
         mapt[2] = b[t][i]*(1.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
-        mapt[3] = -b[t][i]*(2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
-        
+        mapt[3] = 0.0;
       } else {
         mapt[0] = b[t][i]*2.0;
-        mapt[1] = 0.0;
+        mapt[1] = -2.0*af[i]*b[t][i];
         mapt[2] = b[t][i];
-        mapt[3] =-2.0*af[i]*b[t][i];
+        mapt[3] =0.0;
       }
       for ( int j = 0; j < n; j++) {
         grs[t][j] = grs[t][j] + mapt[x[j]];
