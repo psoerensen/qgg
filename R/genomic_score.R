@@ -168,7 +168,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
                Slist[[j]] <- S[,j]
           }
           #af <- 1-Glist$af[cls]
-          grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls, af, scale, Slist)
+          grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles, n=Glist$n, cls=cls, af=af, scale=scale, Slist)
           grs <- as.matrix(as.data.frame(grs))
           rownames(grs) <- Glist$ids
           colnames(grs) <- colnames(S)
