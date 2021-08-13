@@ -80,12 +80,10 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
   size_t nbytes = ( n + 3 ) / 4;
   
   unsigned char buf_k; 
-  //std::vector<int> x(n); 
   std::vector<float> x(n); 
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
   
   std::vector<float> map(4);
-  //std::vector<float> mapt(4);
   std::vector<std::vector<float>> grs(nt, std::vector<float>(n, 0.0));
 
   ////////////////////////////////////////////////////////////////////////
@@ -94,11 +92,6 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
   //  2  NA  1  0         number of copies of first allele in bim file
   ////////////////////////////////////////////////////////////////////////
   
-  //map[0] = 0;
-  //map[1] = 1;
-  //map[2] = 2;
-  //map[3] = 3;
-
 
   for (int i = 0; i < m; i++) {
     // cls[i] is 1-based
@@ -109,17 +102,17 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
       std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
     }
     int j = 0; 
-    //if(scale) {
+    if(scale) {
       map[0] = (2.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
       map[1] = 0.0;
       map[2] = (1.0 - 2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
       map[3] = (-2.0*af[i])/sqrtf(2.0*af[i]*(1.0-af[i]));
-    //} else {
-    //  map[0] = 2.0;
-    //  map[1] = - 2.0*af[i];
-    //  map[2] = 1.0 ;
-    //  map[3] = 0.0;
-    //}
+    } else {
+      map[0] = 2.0;
+      map[1] = - 2.0*af[i];
+      map[2] = 1.0 ;
+      map[3] = 0.0;
+    }
     for (size_t k = 0; k < nbytes; k++) {
       buf_k = buffer[k];
       for (int pos = 0; pos < 4; pos++, j++) {
