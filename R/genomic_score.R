@@ -150,7 +150,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      #af <- Glist$af[cls]
      nc <- length(cls)
      #direction <- as.integer(stat$alleles == Glist$a2[cls])
-     if(any(!is.na(stat$alleles))) {
+     if(any( !stat$alleles == Glist$a2[cls] )) {
        warning("Some variants appear to be flipped => changing sign of variant effect for those variants ")
        flipped <- !stat$alleles == Glist$a2[cls]
        S[flipped,] <- -S[flipped,]  
