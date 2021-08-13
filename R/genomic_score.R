@@ -123,8 +123,8 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      }
      
      # Prepase summary stat
-     if (!sum(colnames(stat)[1:3] == c("rsids", "alleles", "af")) == 3) {
-          stop("First three columns in data frame stat should be: rsids, alleles, af ")
+     if (!sum(colnames(stat)[1:4] == c("chr",,"rsids", "alleles", "af")) == 4) {
+          stop("First three columns in data frame stat should be: chr, rsids, alleles, af ")
      }
      rsidsOK <- stat$rsids %in% Glist$rsids
      if (any(!rsidsOK)) {
@@ -135,10 +135,10 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
        stat$rsids <- as.character(stat$rsids)
        stat$alleles <- as.character(stat$alleles)
      }
-     S <- stat[, -c(1:3)]
+     S <- stat[, -c(1:4)]
      if (is.vector(S)) S <- as.matrix(S)
      S <- apply(S, 2, as.numeric)
-     colnames(S) <- colnames(stat)[-c(1:3)]
+     colnames(S) <- colnames(stat)[-c(1:4)]
      rsids <- as.character(stat$rsids)
      af <- stat$af
      
