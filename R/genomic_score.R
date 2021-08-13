@@ -127,6 +127,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
           stop("First three columns in data frame stat should be: chr, rsids, alleles, af ")
      }
      rsidsOK <- stat$rsids %in% Glist$rsids
+     
      if (any(!rsidsOK)) {
        warning("Some variants not found in genotype files")
        message(paste("Number of variants used:", sum(rsidsOK)))
@@ -147,7 +148,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      if (!is.null(ids)) rws <- match(ids, Glist$ids)
      nr <- length(rws)
      cls <- match(rsids, Glist$rsids)
-     af <- Glist$af[cls]
+     #af <- Glist$af[cls]
      nc <- length(cls)
      #direction <- as.integer(stat$alleles == Glist$a2[cls])
      if(any( !stat$alleles == Glist$a2[cls] )) {
