@@ -147,7 +147,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      if (!is.null(ids)) rws <- match(ids, Glist$ids)
      nr <- length(rws)
      cls <- match(rsids, Glist$rsids)
-     #af <- Glist$af[cls]
+     af <- Glist$af[cls]
      nc <- length(cls)
      #direction <- as.integer(stat$alleles == Glist$a2[cls])
      if(any( !stat$alleles == Glist$a2[cls] )) {
