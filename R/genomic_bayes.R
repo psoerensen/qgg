@@ -176,7 +176,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          wy <- covs[[chr]]$Xy[[1]]
          for (iter in 1:nit_global) {
            b <- bmchr <- dmchr <- rep(0,Glist$mchr[chr])
-           print(paste("Fit sbayes for chromosome:",chr))
+           print(paste("Fit", methods[method+1],"for chromosome:",chr))
            for (i in 1:length(Glist$clsLD[[chr]])) {
              fitset <- sbayes_yywy(yy=yy, wy=wy[ Glist$clsLD[[chr]][[i]] ],
                                    b=b[ Glist$clsLD[[chr]][[i]] ], 
