@@ -123,7 +123,7 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      }
      
      # Prepase summary stat
-     if (!sum(colnames(stat)[1:4] == c("chr",,"rsids", "alleles", "af")) == 4) {
+     if (!sum(colnames(stat)[1:4] == c("chr","rsids", "alleles", "af")) == 4) {
           stop("First three columns in data frame stat should be: chr, rsids, alleles, af ")
      }
      rsidsOK <- stat$rsids %in% Glist$rsids
