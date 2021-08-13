@@ -161,14 +161,14 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        if(is.null(chr)) chromosomes <- 1:Glist$nchr
        if(!is.null(chr)) chromosomes <- chr
        
-       bm <- dm <- covs <- vector(length=Glist$nchr,mode="list")
-       names(covs) <- names(bm) <- names(dm) <- chromosomes
+       bm <- dm <- covs <- vector(length=1:Glist$nchr,mode="list")
+       names(covs) <- names(bm) <- names(dm) <- 1:Glist$nchr
        
        e <- y
        
        if(is.null(nit_local)) nit_local <- 500
        if(is.null(nit_local)) nit_global <- as.integer(nit/nit_local)
-       for (chr in 1:Glist$nchr){
+       for (chr in chromosomes){
          yy <- sum((e-mean(e))**2)
          n <- length(e)
          print(paste("Computing summary statistics for chromosome:",chr))
