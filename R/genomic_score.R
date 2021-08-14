@@ -71,8 +71,8 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                  prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
                                       ids = ids, scale = scale, ncores = ncores)
-                 if (is.null(prs)) prs <- prschr
-                 if (!is.null(prs)) prs <- prs + prschr
+                 if (chr==chromosomes[1]) prs <- prschr
+                 if (!chr==chromosomes[1]) prs <- prs + prschr
                  
                }
           }
