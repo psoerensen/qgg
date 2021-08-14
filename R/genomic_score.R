@@ -69,8 +69,8 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
           if (is.null(chr)) chromosomes <- 1:length(Glist$bedfiles)
           for (chr in chromosomes) {
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
-                 prschr <- run_gscore(bedfiles=Glist$bedfiles[chr], bimfiles=Glist$bimfiles[chr], famfiles=Glist$famfiles[chr], stat = stat, 
-                                      ids = ids, scale = scale, impute = impute, msize = msize, ncores = ncores)
+                 prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
+                                      ids = ids, scale = scale, ncores = ncores)
                  if (is.null(prs)) prs <- prschr
                  if (!is.null(prs)) prs <- prs + prschr
                  
@@ -87,7 +87,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
 
 run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = scale, impute = TRUE, msize = 100, ncores = 1) {
      
-     if(sum(is.na(stat[,-c(2:3)]))>0) stop("stat object contains NAs") 
+     if(sum(is.na(stat))>0) stop("stat object contains NAs") 
      if(is.null(Glist) & is.null(bedfiles)) stop("Please provide Glist or bedfile")
      
      if (!is.null(bedfiles)) {
@@ -110,26 +110,27 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
           
           # Read bim information
           bim <- data.table::fread(input = Glist$bimfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
-          Glist$rsids <- as.character(bim[, 2])
-          Glist$a1 <- as.character(bim[, 5])
-          Glist$a2 <- as.character(bim[, 6])
-          Glist$position <- as.numeric(bim[, 4])
+          Glist$rsids <- list(as.character(bim[, 2]))
+          Glist$a1 <- list(as.character(bim[, 5]))
+          Glist$a2 <- list(as.character(bim[, 6]))
+          Glist$position <- list(as.numeric(bim[, 4]))
           Glist$chr <- as.character(bim[, 1])
           message(paste("Finished processing bim file", bimfiles[1]))
           
           Glist$n <- length(Glist$ids)
           Glist$m <- length(Glist$rsids)
-          
+          chr <- 1
      }
+     
      
      # Prepase summary stat
      if (!sum(colnames(stat)[1:4] == c("chr","rsids", "alleles", "af")) == 4) {
           stop("First three columns in data frame stat should be: chr, rsids, alleles, af ")
      }
-     rsidsOK <- stat$rsids %in% Glist$rsids
+     rsidsOK <- stat$rsids %in% Glist$rsids[[chr]]
      
      if (any(!rsidsOK)) {
-       warning("Some variants not found in genotype files")
+       #warning("Some variants not found in genotype files")
        message(paste("Number of variants used:", sum(rsidsOK)))
        message(paste("Number of variants missing:", sum(!rsidsOK)))
        stat <- stat[rsidsOK, ]
@@ -146,14 +147,12 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      # Prepare input data for mpgrs
      rws <- 1:Glist$n
      if (!is.null(ids)) rws <- match(ids, Glist$ids)
-     cls <- match(rsids, Glist$rsids)
-     if(any( !stat$alleles == Glist$a2[cls] )) {
+     cls <- match(rsids, Glist$rsids[[chr]])
+     if(any( !stat$alleles == Glist$a2[[chr]][cls] )) {
        warning("Some variants appear to be flipped => changing sign of variant effect for those variants ")
-       flipped <- !stat$alleles == Glist$a2[cls]
+       flipped <- !stat$alleles == Glist$a2[[chr]][cls]
        S[flipped,] <- -S[flipped,]  
      }
-     print(head(S))
-     print(head(af))
      if(!file.exists(Glist$bedfiles)) stop(paste("bed file does not exists:"),Glist$bedfiles) 
      
 
@@ -165,7 +164,8 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
           for (j in 1:ncol(S)) {
                Slist[[j]] <- S[,j]
           }
-          #af <- 1-Glist$af[cls]
+          cls <- match(stat$rsids, Glist$rsids[[chr]])
+          af <- stat$af
           if(scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls, af, scale, Slist)
           if(!scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles, n=Glist$n, cls=cls, af=af, scale=FALSE, Slist)
           grs <- do.call(cbind, grs)
@@ -175,28 +175,28 @@ run_gscore <- function(Glist = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL
      }
 
           
-     # multicore     
-     if(ncores>1) {
-          size <- ceiling(length(cls)/ncores)
-          af <- 1-Glist$af[cls]
-          af <- split(af, ceiling(seq_along(af) / size))
-          cls <- split(cls, ceiling(seq_along(cls) / size))
-          rwsS <- nrow(S)
-          rwsS <- split(rwsS, ceiling(seq_along(rwsS) / size))
-          Slist <- vector(length(rwsS),mode="list")
-          for (j in 1:length(rwsS)) {
-               Slist[[j]] <- lapply(seq_len(ncol(S)), function(i) S[rwsS[[j]],i])
-          }
-          
-          grslist <- mclapply(1:length(cls), function(set) { .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls[[set]], af[[set]], scale, Slist[[set]]  ) }, mc.cores = ncores)
-          grs <- as.matrix(as.data.frame(grslist[[1]]))
-          for (j in 2:length(grslist)) {
-               grs <- grs + as.matrix(as.data.frame(grslist[[j]]))      
-          }
-          rownames(grs) <- Glist$ids
-          colnames(grs) <- colnames(S)
-          # end multicore
-     }
+     # # multicore     
+     # if(ncores>1) {
+     #      size <- ceiling(length(cls)/ncores)
+     #      af <- 1-Glist$af[cls]
+     #      af <- split(af, ceiling(seq_along(af) / size))
+     #      cls <- split(cls, ceiling(seq_along(cls) / size))
+     #      rwsS <- nrow(S)
+     #      rwsS <- split(rwsS, ceiling(seq_along(rwsS) / size))
+     #      Slist <- vector(length(rwsS),mode="list")
+     #      for (j in 1:length(rwsS)) {
+     #           Slist[[j]] <- lapply(seq_len(ncol(S)), function(i) S[rwsS[[j]],i])
+     #      }
+     #      
+     #      grslist <- mclapply(1:length(cls), function(set) { .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls[[set]], af[[set]], scale, Slist[[set]]  ) }, mc.cores = ncores)
+     #      grs <- as.matrix(as.data.frame(grslist[[1]]))
+     #      for (j in 2:length(grslist)) {
+     #           grs <- grs + as.matrix(as.data.frame(grslist[[j]]))      
+     #      }
+     #      rownames(grs) <- Glist$ids
+     #      colnames(grs) <- colnames(S)
+     #      # end multicore
+     # }
      
      return(grs)
 }
