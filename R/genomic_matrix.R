@@ -137,7 +137,8 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
       Glist$mchr[chr] <- length(Glist$rsids[[chr]]) 
       Glist$chr[[chr]] <- as.character(bim[, 1])
       message(paste("Finished processing bim file", bimfiles[chr]))
-      if (is.null(Glist$fnBED)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
+      #if (is.null(Glist$fnBED)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
+      if (is.null(Glist$fnBED)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$study_ids, ncores = ncores)
       message(paste("Finished processing bed file", bedfiles[chr]))
       
     }
@@ -180,7 +181,7 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   
   rws <- 1:n
   if (!is.null(ids)) rws <- match(ids, Glist$ids)
-  if (!is.null(Glist$study_ids)) warning("Study ids not used anymore")
+  if (!is.null(Glist$study_ids)) warning("Study ids used in calculating genotype frequencies etc.")
   nr <- length(rws)
 
   if (is.null(cls)) cls <- 1:m
