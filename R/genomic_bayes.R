@@ -180,7 +180,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
            for (i in 1:length(Glist$clsLD[[chr]])) {
              fitset <- sbayes_yywy(yy=yy, wy=wy[ Glist$clsLD[[chr]][[i]] ],
                                    b=b[ Glist$clsLD[[chr]][[i]] ], 
-                                   LD=Glist$LD[[chr]][[i]], 
+                                   LD=Glist$LD[[chr]][[i]]*n, 
                                    method=method, 
                                    nit=nit_local, 
                                    n=n, 
