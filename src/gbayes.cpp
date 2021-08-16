@@ -682,7 +682,6 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
     d[i] = 1;
     d_post_mean[i] = 0.0;
     b_post_mean[i] = 0.0;
-    //ww[i] = (double)n;
     ww[i] = LD[i][i];
     r[i] = wy[i];
     x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
@@ -924,25 +923,6 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
     result[9][i] = b[i];
   }
   
-  // // Summarize results
-  // std::vector<std::vector<double>> result(6);
-  // result[0].resize(m);
-  // result[1].resize(m);
-  // result[2].resize(nit);
-  // result[3].resize(nit);
-  // result[4].resize(nit);
-  // result[5].resize(nit);
-  // 
-  // for (int i=0; i < m; i++) {
-  //   result[0][i] = b_post_mean[i]/nit;
-  //   result[1][i] = d_post_mean[i]/nit;
-  // }
-  // for (int i=0; i < nit; i++) {
-  //   result[2][i] = 0.0;
-  //   result[3][i] = varb_post[i];
-  //   result[4][i] = vare_post[i];
-  //   result[5][i] = pi_post[i];
-  // }
-  
+
   return result;
 }
