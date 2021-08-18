@@ -191,6 +191,10 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
                               pi=pi,
                               nue=nue, 
                               nub=nub, 
+                              h2=h2, 
+                              lambda=lambda, 
+                              varb=varb, 
+                              vare=vare, 
                               updateB=updateB, 
                               updateE=updateE, 
                               updatePi=updatePi)
