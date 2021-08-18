@@ -224,7 +224,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          stat[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit$bm)
          rownames(stat[[chr]]) <- rsidsLD
        }
-       stat <- do.call(rbind, stat)
+       #stat <- do.call(rbind, stat)
        fit$stat <- stat
        fit$covs <- covs
      }
