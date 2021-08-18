@@ -605,3 +605,28 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
 }
 
 
+getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0) {
+  msize <- Glist$msize
+  rsidsChr <- Glist$rsidsLD[[chr]]
+  mchr <- length(rsidsChr)
+  rsidsLD <- c(rep("start", msize), rsidsChr, rep("end", msize))
+  rsids_indices <- c(rep(0, msize), 1:mchr, rep(0, msize))
+  ld_indices <- vector(length = mchr, mode = "list")
+  ld_values <- vector(length = mchr, mode = "list")
+  names(ld_indices) <- names(ld_values) <- rsidsChr
+  
+  fnLD <- Glist$fnLD[chr]
+  bfLD <- file(fnLD, "rb")
+  
+  nld <- as.integer(msize * 2 + 1)
+  for (i in 1:mchr) {
+    ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
+    ld[msize + 1] <- 1
+    cls <- which((ld**2) > r2) + i - 1
+    ld_indices[[i]] <- rsids_indices[cls]
+    ld_values[[i]] <- ld[(ld**2) > r2]
+  }
+  close(bfLD)
+  
+  return(list(indices=ld_indices,values=ld_values))
+}
