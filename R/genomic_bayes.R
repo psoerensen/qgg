@@ -161,7 +161,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        if(is.null(chr)) chromosomes <- 1:Glist$nchr
        if(!is.null(chr)) chromosomes <- chr
        
-       bm <- dm <- covs <- fit <- vector(length=Glist$nchr,mode="list")
+       bm <- dm <- covs <- fit <- stat <- vector(length=Glist$nchr,mode="list")
        names(covs) <- names(bm) <- names(dm) <- 1:Glist$nchr
        
        e <- y
@@ -194,9 +194,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
                               updateB=updateB, 
                               updateE=updateE, 
                               updatePi=updatePi)
-         b <- fit[[chr]]$b
-         bm[[chr]] <- fit[[chr]]$bm
-         dm[[chr]] <- fit[[chr]]$dm
+         #b <- fit[[chr]]$b
+         #bm[[chr]] <- fit[[chr]]$bm
+         #dm[[chr]] <- fit[[chr]]$dm
          
          # for (iter in 1:nit_global) {
          #   b <- bmchr <- dmchr <- rep(0,length(wy))
@@ -221,12 +221,10 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          # }
          #bm[[chr]] <- cbind(bm[[chr]], bmchr)
          #dm[[chr]] <- cbind(dm[[chr]], dmchr)
+         stat[[chr]] <- data.frame(chr=chr,rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit$bm)
+         rownames(stat[[chr]]) <- rsidsLD
        }
-       bmatrix <- do.call(rbind, bm)
-       dmatrix <- do.call(rbind, dm)
-       #stat <- data.frame(chr=rep(1:Glist$nchr, times=Glist$mchr),rsids=as.character(unlist(Glist$rsids)),alleles=as.character(unlist(Glist$a2)), af=unlist(Glist$af),bm=bmatrix,dm=dmatrix)
-       stat <- data.frame(chr=rep(chromosomes, times=Glist$mchr[chromosomes]),rsids=as.character(unlist(Glist$rsids[chromosomes])),alleles=as.character(unlist(Glist$a2[chromosomes])), af=unlist(Glist$af[chromosomes]),bm=bmatrix)
-       rownames(stat) <- stat$rsids
+       stat <- do.call(rbind, stat)
        fit$stat <- stat
        fit$covs <- covs
      }
@@ -381,7 +379,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
      #                   n=n,
      #                   nit=nit,
      #                   method=as.integer(method))
-     #      names(fit[[1]]) <- rownames(LD)
+     #      names(fit[[1]]) <- 
      #      #names(fit) <- c("b","p","mu","B","E","Pi")
      #      names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
      # }
