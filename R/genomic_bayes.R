@@ -732,7 +732,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LDvalue
                n=n,
                nit=nit,
                method=as.integer(method))
-  names(fit[[1]]) <- rownames(LD)
+  names(fit[[1]]) <- names(LDvalues)
   names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
   
   return(fit)
