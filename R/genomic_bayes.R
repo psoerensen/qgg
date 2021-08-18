@@ -161,7 +161,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        if(is.null(chr)) chromosomes <- 1:Glist$nchr
        if(!is.null(chr)) chromosomes <- chr
        
-       bm <- dm <- covs <- vector(length=Glist$nchr,mode="list")
+       bm <- dm <- covs <- fit <- vector(length=Glist$nchr,mode="list")
        names(covs) <- names(bm) <- names(dm) <- 1:Glist$nchr
        
        e <- y
@@ -180,7 +180,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          covs[[chr]] <- cvs(y=e,Glist=Glist,chr=chr, cls=clsLD)
          wy <- covs[[chr]]$Xy[[1]]
          b <- rep(0,length(wy))
-         fit <- sbayes_sparse(yy=yy, 
+         fit[[chr]] <- sbayes_sparse(yy=yy, 
                               wy=wy,
                               b=b, 
                               LDvalues=LD$values, 
@@ -194,9 +194,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
                               updateB=updateB, 
                               updateE=updateE, 
                               updatePi=updatePi)
-         b <- fit$b
-         bm[[chr]] <- fit$bm
-         dm[[chr]] <- fit$dm
+         b <- fit[[chr]]$b
+         bm[[chr]] <- fit[[chr]]$bm
+         dm[[chr]] <- fit[[chr]]$dm
          
          # for (iter in 1:nit_global) {
          #   b <- bmchr <- dmchr <- rep(0,length(wy))
