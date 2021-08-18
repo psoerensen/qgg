@@ -202,6 +202,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
        dmatrix <- do.call(rbind, dm)
        #stat <- data.frame(chr=rep(1:Glist$nchr, times=Glist$mchr),rsids=as.character(unlist(Glist$rsids)),alleles=as.character(unlist(Glist$a2)), af=unlist(Glist$af),bm=bmatrix,dm=dmatrix)
        stat <- data.frame(chr=rep(chromosomes, times=Glist$mchr[chromosomes]),rsids=as.character(unlist(Glist$rsids[chromosomes])),alleles=as.character(unlist(Glist$a2[chromosomes])), af=unlist(Glist$af[chromosomes]),bm=bmatrix)
+       rownames(stat) <- stat$rsids
        fit$stat <- stat
        fit$covs <- covs
      }
