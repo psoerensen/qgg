@@ -172,31 +172,55 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=N
          yy <- sum((e-mean(e))**2)
          n <- length(e)
          print(paste("Computing summary statistics for chromosome:",chr))
-         covs[[chr]] <- cvs(y=e,Glist=Glist,chr=chr)
+         LD <- getSparseLD(Glist = Glist, chr = chr)
+         LD$indices <- lapply(LD$indices,function(x){x-1})
+         LD$values <- lapply(LD$values,function(x){x*n})
+         rsidsLD <- names(LD$values)
+         clsLD <- match(rsidsLD,Glist$rsids[[chr]])
+         covs[[chr]] <- cvs(y=e,Glist=Glist,chr=chr, cls=clsLD)
          wy <- covs[[chr]]$Xy[[1]]
-         for (iter in 1:nit_global) {
-           b <- bmchr <- dmchr <- rep(0,Glist$mchr[chr])
-           print(paste("Fit", methods[method+1],"for chromosome:",chr))
-           for (i in 1:length(Glist$clsLD[[chr]])) {
-             fitset <- sbayes_yywy(yy=yy, wy=wy[ Glist$clsLD[[chr]][[i]] ],
-                                   b=b[ Glist$clsLD[[chr]][[i]] ], 
-                                   LD=Glist$LD[[chr]][[i]]*n, 
-                                   method=method, 
-                                   nit=nit_local, 
-                                   n=n, 
-                                   pi=pi,
-                                   nue=nue, 
-                                   nub=nub, 
-                                   updateB=updateB, 
-                                   updateE=updateE, 
-                                   updatePi=updatePi)
-             b[Glist$clsLD[[chr]][[i]]] <- fitset$b
-             bmchr[Glist$clsLD[[chr]][[i]]] <- fitset$bm
-             dmchr[Glist$clsLD[[chr]][[i]]] <- fitset$dm
-           }
-         }
-         bm[[chr]] <- cbind(bm[[chr]], bmchr)
-         dm[[chr]] <- cbind(dm[[chr]], dmchr)
+         b <- rep(0,length(wy))
+         fit <- sbayes_sparse(yy=yy, 
+                              wy=wy,
+                              b=b, 
+                              LDvalues=LD$values, 
+                              LDindices=LD$indices, 
+                              method=method, 
+                              nit=nit, 
+                              n=n, 
+                              pi=pi,
+                              nue=nue, 
+                              nub=nub, 
+                              updateB=updateB, 
+                              updateE=updateE, 
+                              updatePi=updatePi)
+         b <- fit$b
+         bm[[chr]] <- fit$bm
+         dm[[chr]] <- fit$dm
+         
+         # for (iter in 1:nit_global) {
+         #   b <- bmchr <- dmchr <- rep(0,length(wy))
+         #   print(paste("Fit", methods[method+1],"for chromosome:",chr))
+         #   for (i in 1:length(Glist$clsLD[[chr]])) {
+         #     fitset <- sbayes_dense(yy=yy, wy=wy[ Glist$clsLD[[chr]][[i]] ],
+         #                           b=b[ Glist$clsLD[[chr]][[i]] ], 
+         #                           LD=Glist$LD[[chr]][[i]]*n, 
+         #                           method=method, 
+         #                           nit=nit_local, 
+         #                           n=n, 
+         #                           pi=pi,
+         #                           nue=nue, 
+         #                           nub=nub, 
+         #                           updateB=updateB, 
+         #                           updateE=updateE, 
+         #                           updatePi=updatePi)
+         #     b[Glist$clsLD[[chr]][[i]]] <- fitset$b
+         #     bmchr[Glist$clsLD[[chr]][[i]]] <- fitset$bm
+         #     dmchr[Glist$clsLD[[chr]][[i]]] <- fitset$dm
+         #   }
+         # }
+         #bm[[chr]] <- cbind(bm[[chr]], bmchr)
+         #dm[[chr]] <- cbind(dm[[chr]], dmchr)
        }
        bmatrix <- do.call(rbind, bm)
        dmatrix <- do.call(rbind, dm)
@@ -620,7 +644,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
 }
 
 
-sbayes_yywy <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
+sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                         vara=NULL, varb=NULL, vare=NULL, 
                         ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                         h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
@@ -667,6 +691,53 @@ sbayes_yywy <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   
 }
 
+sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LDvalues=NULL,LDindices=NULL, n=NULL,
+                        vara=NULL, varb=NULL, vare=NULL, 
+                        ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
+                        h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
+                        nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
+  
+  
+  m <- length(LDvalues)
+  if(is.null(pi)) pi <- 0.01
+  if(is.null(h2)) h2 <- 0.5
+  if(is.null(vare)) vare <- 1
+  if(method<4 && is.null(varb)) varb <- (vare*h2)/m
+  if(method==4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
+  if(is.null(lambda)) lambda <- rep(vare/varb,m)
+  if(is.null(vara)) vara <- vare*h2
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
+  if(is.null(sse_prior)) sse_prior <- nue*vare
+  if(is.null(b)) b <- rep(0,m)
+  
+  
+  fit <- .Call("_qgg_sbayes_spa",
+               wy=wy, 
+               LDvalues=LDvalues, 
+               LDindices=LDindices, 
+               b = b,
+               lambda = lambda,
+               yy = yy,
+               pi = pi,
+               vara = vara,
+               varb = varb,
+               vare = vare,
+               ssb_prior=ssb_prior,
+               sse_prior=sse_prior,
+               nub=nub,
+               nue=nue,
+               updateB = updateB,
+               updateE = updateE,
+               updatePi = updatePi,
+               n=n,
+               nit=nit,
+               method=as.integer(method))
+  names(fit[[1]]) <- rownames(LD)
+  names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
+  
+  return(fit)
+  
+}
 
 #mtbayes <- function(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
 #                    vara=vara, varb=varb, vare=vare, 
