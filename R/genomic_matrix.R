@@ -374,19 +374,34 @@ cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NU
                 af=af,
                 weights=weights,
                 y=y)
-  covs <- c(covs,list(NULL),list(NULL),list(NULL),list(NULL))
+  
+  res <- vector(length=length(y),mode="list")
+  names(res) <- names(y)
   for ( i in 1:length(covs[[1]])) {
-    names(covs[[1]][[i]]) <- Glist$rsids[[chr]][cls]
-    names(covs[[2]][[i]]) <- Glist$rsids[[chr]][cls]
-    covs[[3]][[i]] <- (covs[[2]][[i]]/covs[[1]][[i]])
-    covs[[4]][[i]] <- 1/sqrt(covs[[1]][[i]])
-    covs[[5]][[i]] <- (covs[[2]][[i]]/covs[[1]][[i]])*sqrt(covs[[1]][[i]])
-    #ptt <- 2 * pt(-abs(covs[[5]][[i]]), df = dfe)
-    ptt <- 2 * pt(-abs(covs[[5]][[i]]), df = dfe - 2)
-    covs[[6]][[i]] <- ptt
+    rsids <- Glist$rsids[[chr]][cls]
+    ww <- covs[[1]][[i]]
+    wy <- covs[[2]][[i]]
+    b <- (covs[[2]][[i]]/covs[[1]][[i]])
+    seb <- 1/sqrt(covs[[1]][[i]])
+    tstat <- (covs[[2]][[i]]/covs[[1]][[i]])*sqrt(covs[[1]][[i]])
+    p <- 2 * pt(-abs(tstat), df = dfe - 2)
+    res[[i]] <- data.frame(rsids,ww,wy,b,seb,tstat,p)
   }
-  names(covs) <- c("XX","Xy","b","seb","tstat","p")
-  return(covs)
+  
+  # covs <- c(covs,list(NULL),list(NULL),list(NULL),list(NULL))
+  # for ( i in 1:length(covs[[1]])) {
+  #   names(covs[[1]][[i]]) <- Glist$rsids[[chr]][cls]
+  #   names(covs[[2]][[i]]) <- Glist$rsids[[chr]][cls]
+  #   covs[[3]][[i]] <- (covs[[2]][[i]]/covs[[1]][[i]])
+  #   covs[[4]][[i]] <- 1/sqrt(covs[[1]][[i]])
+  #   covs[[5]][[i]] <- (covs[[2]][[i]]/covs[[1]][[i]])*sqrt(covs[[1]][[i]])
+  #   #ptt <- 2 * pt(-abs(covs[[5]][[i]]), df = dfe)
+  #   ptt <- 2 * pt(-abs(covs[[5]][[i]]), df = dfe - 2)
+  #   covs[[6]][[i]] <- ptt
+  # }
+  # names(covs) <- c("XX","Xy","b","seb","tstat","p")
+  #return(covs)
+  retunr(res)
 }
 
 
