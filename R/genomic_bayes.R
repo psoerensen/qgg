@@ -151,7 +151,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, covs=NULL, fit=NULL, Glist=NULL, chr=
      #   fit$gtest <- g[-rws,]
      #   fit$e <- e
      # }
-     if(nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
+     if( nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
        fit <- NULL
        if(is.matrix(y)) ids <- rownames(y)
        if(is.vector(y)) ids <- names(y)
@@ -183,7 +183,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, covs=NULL, fit=NULL, Glist=NULL, chr=
          rsidsLD <- names(LD$values)
          #clsLD <- match(rsidsLD,Glist$rsids[[chr]])
          print(paste("Computing summary statistics for chromosome:",chr))
-         wy <- covs[[chr]]$wy[[1]][rsidsLD]
+         wy <- covs[[chr]][[1]]$wy[rsidsLD]
          b <- rep(0,length(wy))
          fit[[chr]] <- sbayes_sparse(yy=yy, 
                               wy=wy,
