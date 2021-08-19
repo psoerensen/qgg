@@ -183,7 +183,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, covs=NULL, fit=NULL, Glist=NULL, chr=
          rsidsLD <- names(LD$values)
          clsLD <- match(rsidsLD,Glist$rsids[[chr]])
          print(paste("Computing summary statistics for chromosome:",chr))
-         wy <- covs[[chr]][[1]]$wy[rsidsLD]
+         #wy <- covs[[chr]][[1]]$wy[rsidsLD]
+         wy <- covs[[chr]][[1]][rsidsLD,"wy"]
          b <- rep(0,length(wy))
          fit[[chr]] <- sbayes_sparse(yy=yy, 
                               wy=wy,
@@ -207,6 +208,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, covs=NULL, fit=NULL, Glist=NULL, chr=
          rownames(stat[[chr]]) <- rsidsLD
        }
        stat <- do.call(rbind, stat)
+       rownames(stat) <- stat$rsids
        fit$stat <- stat
        fit$covs <- covs
      }
