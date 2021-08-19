@@ -181,7 +181,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, covs=NULL, fit=NULL, Glist=NULL, chr=
          LD$indices <- lapply(LD$indices,function(x){x-1})
          LD$values <- lapply(LD$values,function(x){x*n})
          rsidsLD <- names(LD$values)
-         #clsLD <- match(rsidsLD,Glist$rsids[[chr]])
+         clsLD <- match(rsidsLD,Glist$rsids[[chr]])
          print(paste("Computing summary statistics for chromosome:",chr))
          wy <- covs[[chr]][[1]]$wy[rsidsLD]
          b <- rep(0,length(wy))
