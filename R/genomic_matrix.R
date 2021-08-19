@@ -386,6 +386,7 @@ cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NU
     tstat <- (covs[[2]][[i]]/covs[[1]][[i]])*sqrt(covs[[1]][[i]])
     p <- 2 * pt(-abs(tstat), df = dfe - 2)
     res[[i]] <- data.frame(rsids,ww,wy,b,seb,tstat,p)
+    rownames(res[[i]]) <- rsids
   }
   
   # covs <- c(covs,list(NULL),list(NULL),list(NULL),list(NULL))
@@ -401,7 +402,7 @@ cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NU
   # }
   # names(covs) <- c("XX","Xy","b","seb","tstat","p")
   #return(covs)
-  retunr(res)
+  return(res)
 }
 
 
