@@ -56,7 +56,7 @@
 #' @export
 #'
 
-gbayes <- function(y=NULL, X=NULL, W=NULL, ma=NULL, fit=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
+gbayes <- function(y=NULL, X=NULL, W=NULL, ma=NULL, trait=NULL, fit=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                    vara=NULL, varb=NULL, vare=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
                    nub=4, nue=4, nit=100, nit_local=NULL,nit_global=NULL,
@@ -151,7 +151,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, ma=NULL, fit=NULL, Glist=NULL, chr=NU
      #   fit$gtest <- g[-rws,]
      #   fit$e <- e
      # }
-     if( is.null(ma) & nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
+     if( !is.null(y) & nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
        fit <- NULL
        if(is.matrix(y)) ids <- rownames(y)
        if(is.vector(y)) ids <- names(y)
@@ -212,7 +212,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, ma=NULL, fit=NULL, Glist=NULL, chr=NU
        fit$stat <- stat
        fit$covs <- covs
      }
-     
+  
+        
      if( !is.null(ma) && algorithm=="sbayes" && !is.null(Glist)) {
        fit <- NULL
 
@@ -225,11 +226,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, ma=NULL, fit=NULL, Glist=NULL, chr=NU
        for (chr in chromosomes){
          print(paste("Extract sparse LD matrix for chromosome:",chr))
          LD <- getSparseLD(Glist = Glist, chr = chr)
-         LD$indices <- lapply(LD$indices,function(x){x-1})
-         LD$values <- lapply(LD$values,function(x){x*n})
          rsidsLD <- names(LD$values)
          clsLD <- match(rsidsLD,Glist$rsids[[chr]])
-         trait <- 1
          b <- ma[[chr]]$b[rsidsLD,trait]
          seb <- ma[[chr]]$seb[rsidsLD,trait]
          ww <- ma[[chr]]$ww[rsidsLD,trait]
@@ -241,6 +239,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, ma=NULL, fit=NULL, Glist=NULL, chr=NU
          yy <- mean(yy)
          n <- as.integer(mean(dfe)+2)[trait]
          b <- rep(0,length(wy))
+         LD$indices <- lapply(LD$indices,function(x){x-1})
+         LD$values <- lapply(LD$values,function(x){x*n})
          print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
          fit[[chr]] <- sbayes_sparse(yy=yy, 
                                      wy=wy,
