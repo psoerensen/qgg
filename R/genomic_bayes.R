@@ -237,7 +237,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, ma=NULL, covs=NULL, trait=NULL, fit=N
          seb2 <- seb*seb
          yy <- ww*b2 + dfe*seb2*ww;
          yy <- mean(yy)
-         n <- as.integer(mean(dfe)+2)[trait]
+         n <- as.integer(mean(dfe)+2)
          b <- rep(0,length(wy))
          LD$indices <- lapply(LD$indices,function(x){x-1})
          LD$values <- lapply(LD$values,function(x){x*n})
