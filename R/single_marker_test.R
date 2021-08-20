@@ -190,8 +190,12 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
   }
   if (!is.null(Glist)) {
     if (any(!ids %in% Glist$ids)) stop("Some names of y does not match names in Glist$ids")
-    if (!is.null(X)) y <- as.matrix(residuals(lm(y ~ X,na.action=na.exclude)))
-    if (is.null(X)) y <- as.matrix(residuals(lm(y ~ 1,na.action=na.exclude)))
+    if (!is.null(X) && !any(is.na(y))) y <- as.matrix(residuals(lm(y ~ X)))
+    if (!is.null(X) && any(is.na(y))) stop("Need to fix missing data lm")
+    if (is.null(X) && !any(is.na(y))) y <- as.matrix(residuals(lm(y ~ 1)))
+    if (is.null(X)) {y <- apply(y,2,function(x) { 
+      x[!is.na(x)] <- x[!is.na(x)] - mean(x, na.rm=TRUE)
+      x})}
     nt <- ncol(y)
     ma <- vector(length=Glist$nchr,mode="list")
     if(is.null(chr)) chromosomes <- 1:Glist$nchr
