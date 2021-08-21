@@ -241,10 +241,10 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        for (chr in chromosomes){
          print(paste("Extract sparse LD matrix for chromosome:",chr))
          if(is.null(LD)) LD <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
-         LD$values <- lapply(LD$values,function(x){x*n})
-         print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
          rsidsLD <- names(LD$values)
          clsLD <- match(rsidsLD,Glist$rsids[[chr]])
+         LD$values <- lapply(LD$values,function(x){x*n})
+         print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
 
          # b <- ma[[chr]]$b[rsidsLD,trait]
          # seb <- ma[[chr]]$seb[rsidsLD,trait]
