@@ -219,7 +219,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
 
        if(is.null(chr)) chromosomes <- 1:Glist$nchr
        if(!is.null(chr)) chromosomes <- chr
-       if(!is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
+       if(is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
        
        rsidsLD <- unlist(Glist$rsidsLD)
        b <- wy <- rep(0,length(rsidsLD))
