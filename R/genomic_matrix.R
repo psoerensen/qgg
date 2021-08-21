@@ -621,12 +621,13 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
 }
 
 
-getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0) {
+getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE) {
   msize <- Glist$msize
   rsidsChr <- Glist$rsidsLD[[chr]]
   mchr <- length(rsidsChr)
   rsidsLD <- c(rep("start", msize), rsidsChr, rep("end", msize))
-  rsids_indices <- c(rep(0, msize), 1:mchr, rep(0, msize))
+  if(onebased) rsids_indices <- c(rep(0, msize), 1:mchr, rep(0, msize))
+  if(!onebased) rsids_indices <- c(rep(0, msize), 0:(mchr-1), rep(0, msize))
   ld_indices <- vector(length = mchr, mode = "list")
   ld_values <- vector(length = mchr, mode = "list")
   names(ld_indices) <- names(ld_values) <- rsidsChr
