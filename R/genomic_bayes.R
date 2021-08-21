@@ -282,7 +282,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          rownames(stat[[chr]]) <- rsidsLD
        }
        stat <- do.call(rbind, stat)
-       rownames(stat) <- stat$rsids
+       #rownames(stat) <- stat$rsids
        fit$stat <- stat
        fit$covs <- covs
      }
