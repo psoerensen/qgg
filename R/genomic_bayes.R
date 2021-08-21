@@ -280,8 +280,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                      updatePi=updatePi)
          res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
          rownames(res[[chr]]) <- rsidsLD
+         LD[[chr]] <- NULL
        }
-       LD[[chr]] <- NULL
        res <- do.call(rbind, res)
        rownames(res) <- res$rsids
        fit$stat <- res
