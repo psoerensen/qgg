@@ -262,7 +262,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          #LD$indices <- lapply(LD$indices,function(x){x-1})
          fit[[chr]] <- sbayes_sparse(yy=yy, 
                                      wy=wy[rsidsLD],
-                                     b=b, 
+                                     b=b[rsidsLD], 
                                      LDvalues=LD$values, 
                                      LDindices=LD$indices, 
                                      method=method, 
