@@ -235,8 +235,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        wy[rownames(stat)] <- stat$wy
        if(any(is.na(wy))) stop("Missing values in wy")
        
-       bm <- dm <- fit <- stat <- vector(length=Glist$nchr,mode="list")
-       names(bm) <- names(dm) <- names(fit) <- names(stat) <- 1:Glist$nchr
+       bm <- dm <- fit <- res <- vector(length=Glist$nchr,mode="list")
+       names(bm) <- names(dm) <- names(fit) <- names(res) <- 1:Glist$nchr
        
        for (chr in chromosomes){
          print(paste("Extract sparse LD matrix for chromosome:",chr))
@@ -278,12 +278,12 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                      updateB=updateB, 
                                      updateE=updateE, 
                                      updatePi=updatePi)
-         stat[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
-         rownames(stat[[chr]]) <- rsidsLD
+         res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
+         rownames(res[[chr]]) <- rsidsLD
        }
-       stat <- do.call(rbind, stat)
-       #rownames(stat) <- stat$rsids
-       fit$stat <- stat
+       res <- do.call(rbind, res)
+       rownames(res) <- res$rsids
+       fit$stat <- res
        fit$covs <- covs
      }
      
