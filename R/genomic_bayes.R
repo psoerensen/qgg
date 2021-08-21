@@ -219,6 +219,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
 
        if(is.null(chr)) chromosomes <- 1:Glist$nchr
        if(!is.null(chr)) chromosomes <- chr
+       if(!is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
        
        rsidsLD <- unlist(Glist$rsidsLD)
        b <- wy <- rep(0,length(rsidsLD))
@@ -237,13 +238,12 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        
        bm <- dm <- fit <- res <- vector(length=Glist$nchr,mode="list")
        names(bm) <- names(dm) <- names(fit) <- names(res) <- 1:Glist$nchr
-       
        for (chr in chromosomes){
          print(paste("Extract sparse LD matrix for chromosome:",chr))
-         if(is.null(LD)) LD <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
-         rsidsLD <- names(LD$values)
+         if(is.null(LD[[chr]])) LD[[chr]] <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
+         rsidsLD <- names(LD[[chr]]$values)
          clsLD <- match(rsidsLD,Glist$rsids[[chr]])
-         LD$values <- lapply(LD$values,function(x){x*n})
+         LD[[chr]]$values <- lapply(LD[[chr]]$values,function(x){x*n})
          print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
 
          # b <- ma[[chr]]$b[rsidsLD,trait]
@@ -263,8 +263,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          fit[[chr]] <- sbayes_sparse(yy=yy, 
                                      wy=wy[rsidsLD],
                                      b=b[rsidsLD], 
-                                     LDvalues=LD$values, 
-                                     LDindices=LD$indices, 
+                                     LDvalues=LD[[chr]]$values, 
+                                     LDindices=LD[[chr]]$indices, 
                                      method=method, 
                                      nit=nit, 
                                      n=n, 
