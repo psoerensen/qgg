@@ -5,7 +5,7 @@
 #' Single marker association analysis using linear models or linear mixed models
 #'
 #' @description
-#' The function lma performs single marker association analysis between genotype markers and the phenotype
+#' The function glma performs single marker association analysis between genotype markers and the phenotype
 #' either based on linear model analysis (LMA) or mixed linear model analysis (MLMA).
 #'
 #' The basic MLMA approach involves 1) building a genetic relationship matrix (GRM) that models genome-wide
@@ -76,7 +76,7 @@
 #' X <- model.matrix(fm, data = data)
 #' 
 #' # Linear model analyses and single marker association test
-#' maLM <- lma(y=y,X=X,W = W)
+#' maLM <- glma(y=y,X=X,W = W)
 #'
 #' head(maLM)
 #'
@@ -88,7 +88,7 @@
 #' fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
 #'
 #' # Single marker association test
-#' maMLM <- lma(fit = fit, W = W)
+#' maMLM <- glma(fit = fit, W = W)
 #'
 #' head(maMLM)
 #'
@@ -97,7 +97,7 @@
 #' @export
 #'
 
-lma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL,  fit = NULL,
+glma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL,  fit = NULL,
                 statistic = "mastor", ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
   if (is.null(fit)) {
     ma <- sma(y = y, X = X, W = W, Glist = Glist, chr=chr, ids = ids, rsids = rsids, msize = msize, scale = scale)
