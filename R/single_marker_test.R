@@ -237,7 +237,19 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
                         dfe = dfe[cls, ], ww = ww[cls, ], wy = wy[cls, ])
       if (nt == 1) ma[[chr]] <- as.matrix(as.data.frame(ma[[chr]]))
     }
-
+    if (nt == 1) ma <- do.call(rbind, ma)
+    if(nt>1) {
+      b <- do.call(rbind, sapply(ma,function(x){x$b}))
+      seb <- do.call(rbind, sapply(ma,function(x){x$seb}))
+      stat <- do.call(rbind, sapply(ma,function(x){x$stat}))
+      p <- do.call(rbind, sapply(ma,function(x){x$p}))
+      dfe <- do.call(rbind, sapply(ma,function(x){x$dfe}))
+      ww <- do.call(rbind, sapply(ma,function(x){x$ww}))
+      wy <- do.call(rbind, sapply(ma,function(x){x$wy}))
+      ma <- list(b = b, seb = seb, stat = stat, p = p,
+                        dfe = dfe, ww = ww, wy = wy)
+    }
+    
   }
   return(ma)
 }
