@@ -239,8 +239,10 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        bm <- dm <- fit <- res <- vector(length=Glist$nchr,mode="list")
        names(bm) <- names(dm) <- names(fit) <- names(res) <- 1:Glist$nchr
        for (chr in chromosomes){
-         print(paste("Extract sparse LD matrix for chromosome:",chr))
-         if(is.null(LD[[chr]])) LD[[chr]] <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
+         if(is.null(LD[[chr]])) {
+           print(paste("Extract sparse LD matrix for chromosome:",chr))
+           LD[[chr]] <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
+         } 
          rsidsLD <- names(LD[[chr]]$values)
          clsLD <- match(rsidsLD,Glist$rsids[[chr]])
          LD[[chr]]$values <- lapply(LD[[chr]]$values,function(x){x*n})
