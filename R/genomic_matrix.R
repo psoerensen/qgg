@@ -140,7 +140,17 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
       #if (is.null(Glist$fnBED)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
       if (is.null(Glist$fnBED)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$study_ids, ncores = ncores)
       message(paste("Finished processing bed file", bedfiles[chr]))
-      
+      names(Glist$nmiss[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$af[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$maf[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$a1[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$a2[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$position[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$het[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$hom[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$n0[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$n1[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$n2[[chr]]) <- Glist$rsids[[chr]]
     }
 
     Glist$nchr <- length(Glist$bedfiles)
