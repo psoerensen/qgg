@@ -3,11 +3,11 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-std::vector<float> grsbed( const char* file, 
+std::vector<double> grsbed( const char* file, 
                            int n, 
                            std::vector<int> cls, 
-                           std::vector<float> af, 
-                           std::vector<float> b) {
+                           std::vector<double> af, 
+                           std::vector<double> b) {
   
   FILE *file_stream = fopen( file, "rb" );
   
@@ -19,8 +19,8 @@ std::vector<float> grsbed( const char* file,
   unsigned char buf_k; 
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
   
-  std::vector<float> map(4);
-  std::vector<float> grs(n);
+  std::vector<double> map(4);
+  std::vector<double> grs(n);
   for ( int i = 0; i < n; i++) {
     grs[i] = 0.0;
   }                
@@ -63,12 +63,12 @@ std::vector<float> grsbed( const char* file,
 
 
 // [[Rcpp::export]]
-std::vector<std::vector<float>> mtgrsbed( const char* file, 
+std::vector<std::vector<double>> mtgrsbed( const char* file, 
                                           int n, 
                                           std::vector<int> cls, 
-                                          std::vector<float> af,
+                                          std::vector<double> af,
                                           bool scale,
-                                          std::vector<std::vector<float>> b) {
+                                          std::vector<std::vector<double>> b) {
   
   
   FILE *file_stream = fopen( file, "rb" );
@@ -80,11 +80,11 @@ std::vector<std::vector<float>> mtgrsbed( const char* file,
   size_t nbytes = ( n + 3 ) / 4;
   
   unsigned char buf_k; 
-  std::vector<float> x(n); 
+  std::vector<double> x(n); 
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
   
-  std::vector<float> map(4);
-  std::vector<std::vector<float>> grs(nt, std::vector<float>(n, 0.0));
+  std::vector<double> map(4);
+  std::vector<std::vector<double>> grs(nt, std::vector<double>(n, 0.0));
 
   ////////////////////////////////////////////////////////////////////////
   //  00 01 10 11         bit level  corresponds to
