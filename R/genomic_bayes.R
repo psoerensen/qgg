@@ -220,22 +220,43 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        if(is.null(chr)) chromosomes <- 1:Glist$nchr
        if(!is.null(chr)) chromosomes <- chr
        if(is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
-       
-       rsidsLD <- unlist(Glist$rsidsLD)
-       b <- wy <- rep(0,length(rsidsLD))
-       names(b) <- names(wy) <- rsidsLD
-       
-       stat <- stat[rownames(stat)%in%rsidsLD,]
-       b2 <- stat$b^2
-       seb2 <- stat$seb^2
-       dfe <- stat$dfe
-       n <- as.integer(mean(stat$dfe)+2)
-       ww <- stat$ww
-       yy <- (b2 + (n-2)*seb2)*ww
-       yy <- mean(yy)
-       wy[rownames(stat)] <- stat$wy
-       if(any(is.na(wy))) stop("Missing values in wy")
-       
+
+       if(is.data.frame(stat)) {
+         nt <- 1
+         rsidsLD <- unlist(Glist$rsidsLD)
+         b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
+         rownames(b) <- rownames(wy) <- rsidsLD
+         trait_names <- "trait1"       
+         stat <- stat[rownames(stat)%in%rsidsLD,]
+         b2 <- stat$b^2
+         seb2 <- stat$seb^2
+         dfe <- stat$dfe
+         n <- as.integer(mean(stat$dfe)+2)
+         ww <- stat$ww
+         yy <- (b2 + (n-2)*seb2)*ww
+         yy <- mean(yy)
+         wy[rownames(stat)] <- stat$wy
+         if(any(is.na(wy))) stop("Missing values in wy")
+       }
+        if( !is.data.frame(stat) && is.list(stat)) {
+         nt <- ncol(stat$b)
+         trait_names <- colnames(stat$b)
+         rsidsLD <- unlist(Glist$rsidsLD)
+         b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
+         rownames(b) <- rownames(wy) <- rsidsLD
+         rws <- rownames(stat$b)%in%rsidsLD 
+         b2 <- (stat$b[rws,])^2
+         seb2 <- (stat$seb[rws,])^2
+         dfe <- stat$dfe[rws,]
+         n <- as.integer(colMeans(stat$dfe)+2)
+         ww <- stat$ww[rws,]
+         yy <- (b2 + (n-2)*seb2)*ww
+         yy <- colMeans(yy)
+         wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
+         if(any(is.na(wy))) stop("Missing values in wy")
+        }
+
+
        bm <- dm <- fit <- res <- vector(length=Glist$nchr,mode="list")
        names(bm) <- names(dm) <- names(fit) <- names(res) <- 1:Glist$nchr
        for (chr in chromosomes){
@@ -262,25 +283,49 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          # names(b) <- names(wy) <- rsidsLD
          
          #LD$indices <- lapply(LD$indices,function(x){x-1})
-         fit[[chr]] <- sbayes_sparse(yy=yy, 
-                                     wy=wy[rsidsLD],
-                                     b=b[rsidsLD], 
-                                     LDvalues=LD[[chr]]$values, 
-                                     LDindices=LD[[chr]]$indices, 
-                                     method=method, 
-                                     nit=nit, 
-                                     n=n, 
-                                     pi=pi,
-                                     nue=nue, 
-                                     nub=nub, 
-                                     h2=h2, 
-                                     lambda=lambda, 
-                                     varb=varb, 
-                                     vare=vare, 
-                                     updateB=updateB, 
-                                     updateE=updateE, 
-                                     updatePi=updatePi)
-         res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
+         bmchr <- NULL
+         for (trait in 1:nt) {
+           fit[[chr]] <- sbayes_sparse(yy=yy[trait], 
+                                       wy=wy[rsidsLD,trait],
+                                       b=b[rsidsLD,trait], 
+                                       LDvalues=LD[[chr]]$values, 
+                                       LDindices=LD[[chr]]$indices, 
+                                       method=method, 
+                                       nit=nit, 
+                                       n=n[trait], 
+                                       pi=pi,
+                                       nue=nue, 
+                                       nub=nub, 
+                                       h2=h2, 
+                                       lambda=lambda, 
+                                       varb=varb, 
+                                       vare=vare, 
+                                       updateB=updateB, 
+                                       updateE=updateE, 
+                                       updatePi=updatePi)
+           bmchr <- cbind(bmchr, fit[[chr]]$bm)
+         }
+         colnames(bmchr) <- trait_names
+         res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bmchr)
+         # fit[[chr]] <- sbayes_sparse(yy=yy, 
+         #                             wy=wy[rsidsLD],
+         #                             b=b[rsidsLD], 
+         #                             LDvalues=LD[[chr]]$values, 
+         #                             LDindices=LD[[chr]]$indices, 
+         #                             method=method, 
+         #                             nit=nit, 
+         #                             n=n, 
+         #                             pi=pi,
+         #                             nue=nue, 
+         #                             nub=nub, 
+         #                             h2=h2, 
+         #                             lambda=lambda, 
+         #                             varb=varb, 
+         #                             vare=vare, 
+         #                             updateB=updateB, 
+         #                             updateE=updateE, 
+         #                             updatePi=updatePi)
+         # res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
          rownames(res[[chr]]) <- rsidsLD
          LD[[chr]]$values <- NULL
          LD[[chr]]$indices <- NULL
