@@ -75,8 +75,8 @@ arma::mat cp(arma::mat & W) {
 
 // [[Rcpp::export]]
 std::vector<int> psets( std::vector<int> msets,
-                        std::vector<float> setstat,
-                        std::vector<float> stat,
+                        std::vector<double> setstat,
+                        std::vector<double> stat,
                         int np) {
   
   
@@ -84,7 +84,7 @@ std::vector<int> psets( std::vector<int> msets,
   unsigned int local_seed;
   local_seed = rd();
   std::mt19937 gen(local_seed);
-  float u;
+  double u;
   int k1, k2;
   
   int ns = msets.size();
@@ -97,12 +97,12 @@ std::vector<int> psets( std::vector<int> msets,
   for ( int i = 0; i < ns; i++) {
     p[i] = 0; 
     for ( int j = 0; j < np; j++) {
-      std::uniform_real_distribution<float> runif(0.0, 1.0);
+      std::uniform_real_distribution<double> runif(0.0, 1.0);
       u = runif(gen);
       int imax = std::floor(maxm*u);
       k1 = imax;
       k2 = k1 + msets[i];
-      float sumstat= 0.0;
+      double sumstat= 0.0;
       for ( int k = k1; k < k2; k++) { 
         sumstat = sumstat + stat[k];
       }
