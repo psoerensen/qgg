@@ -130,6 +130,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
       if (!is.null(rsids)) bim <- droplevels(bim[rsidsBIM %in% rsids, ])
       fam <- data.table::fread(input = famfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
       if (any(!Glist$ids %in% as.character(fam[, 2]))) stop(paste("some ids not found in famfiles"))
+      message(paste("Finished processing fam file", famfiles[chr]))
       Glist$a1[[chr]] <- as.character(bim[, 5])
       Glist$a2[[chr]] <- as.character(bim[, 6])
       Glist$position[[chr]] <- as.numeric(bim[, 4])
