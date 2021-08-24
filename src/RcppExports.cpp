@@ -20,7 +20,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // readW
-NumericMatrix readW(const char* file, int n, std::vector<int> cls, std::vector<float> af);
+NumericMatrix readW(const char* file, int n, std::vector<int> cls, std::vector<double> af);
 RcppExport SEXP _qgg_readW(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -28,13 +28,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type af(afSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type af(afSEXP);
     rcpp_result_gen = Rcpp::wrap(readW(file, n, cls, af));
     return rcpp_result_gen;
 END_RCPP
 }
 // getWlist
-std::vector<std::vector<float>> getWlist(const char* file, int n, std::vector<int> cls, std::vector<float> af);
+std::vector<std::vector<double>> getWlist(const char* file, int n, std::vector<int> cls, std::vector<double> af);
 RcppExport SEXP _qgg_getWlist(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -42,7 +42,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type af(afSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type af(afSEXP);
     rcpp_result_gen = Rcpp::wrap(getWlist(file, n, cls, af));
     return rcpp_result_gen;
 END_RCPP
@@ -62,7 +62,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // summarybed
-std::vector<std::vector<std::vector<float>>> summarybed(const char* file, int n, std::vector<int> cls, std::vector<float> af, std::vector<std::vector<float>> weights, std::vector<std::vector<float>> y);
+std::vector<std::vector<std::vector<double>>> summarybed(const char* file, int n, std::vector<int> cls, std::vector<double> af, std::vector<std::vector<double>> weights, std::vector<std::vector<double>> y);
 RcppExport SEXP _qgg_summarybed(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP, SEXP weightsSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -70,9 +70,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type af(afSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<float>> >::type weights(weightsSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<float>> >::type y(ySEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type af(afSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(summarybed(file, n, cls, af, weights, y));
     return rcpp_result_gen;
 END_RCPP
@@ -190,7 +190,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // grsbed
-std::vector<float> grsbed(const char* file, int n, std::vector<int> cls, std::vector<float> af, std::vector<float> b);
+std::vector<double> grsbed(const char* file, int n, std::vector<int> cls, std::vector<double> af, std::vector<double> b);
 RcppExport SEXP _qgg_grsbed(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP, SEXP bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -198,14 +198,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type af(afSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type b(bSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type af(afSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type b(bSEXP);
     rcpp_result_gen = Rcpp::wrap(grsbed(file, n, cls, af, b));
     return rcpp_result_gen;
 END_RCPP
 }
 // mtgrsbed
-std::vector<std::vector<float>> mtgrsbed(const char* file, int n, std::vector<int> cls, std::vector<float> af, bool scale, std::vector<std::vector<float>> b);
+std::vector<std::vector<double>> mtgrsbed(const char* file, int n, std::vector<int> cls, std::vector<double> af, bool scale, std::vector<std::vector<double>> b);
 RcppExport SEXP _qgg_mtgrsbed(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP, SEXP scaleSEXP, SEXP bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -213,9 +213,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type af(afSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type af(afSEXP);
     Rcpp::traits::input_parameter< bool >::type scale(scaleSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<float>> >::type b(bSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type b(bSEXP);
     rcpp_result_gen = Rcpp::wrap(mtgrsbed(file, n, cls, af, scale, b));
     return rcpp_result_gen;
 END_RCPP
@@ -294,7 +294,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // solvebed
-std::vector<std::vector<double>> solvebed(const char* file, int n, std::vector<int> cls, int nit, std::vector<float> af, std::vector<float> b, std::vector<float> lambda, std::vector<float> y);
+std::vector<std::vector<double>> solvebed(const char* file, int n, std::vector<int> cls, int nit, std::vector<double> af, std::vector<double> b, std::vector<double> lambda, std::vector<double> y);
 RcppExport SEXP _qgg_solvebed(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP nitSEXP, SEXP afSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -303,16 +303,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
     Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type af(afSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type b(bSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type y(ySEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type af(afSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type b(bSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(solvebed(file, n, cls, nit, af, b, lambda, y));
     return rcpp_result_gen;
 END_RCPP
 }
 // mtsolvebed
-std::vector<std::vector<std::vector<double>>> mtsolvebed(const char* file, int n, std::vector<int> cls, int nit, std::vector<float> af, std::vector<std::vector<float>> b, std::vector<std::vector<float>> lambda, std::vector<std::vector<float>> y);
+std::vector<std::vector<std::vector<double>>> mtsolvebed(const char* file, int n, std::vector<int> cls, int nit, std::vector<double> af, std::vector<std::vector<double>> b, std::vector<std::vector<double>> lambda, std::vector<std::vector<double>> y);
 RcppExport SEXP _qgg_mtsolvebed(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP nitSEXP, SEXP afSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -321,10 +321,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
     Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type af(afSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<float>> >::type b(bSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<float>> >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<float>> >::type y(ySEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type af(afSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type b(bSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(mtsolvebed(file, n, cls, nit, af, b, lambda, y));
     return rcpp_result_gen;
 END_RCPP
@@ -415,14 +415,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // psets
-std::vector<int> psets(std::vector<int> msets, std::vector<float> setstat, std::vector<float> stat, int np);
+std::vector<int> psets(std::vector<int> msets, std::vector<double> setstat, std::vector<double> stat, int np);
 RcppExport SEXP _qgg_psets(SEXP msetsSEXP, SEXP setstatSEXP, SEXP statSEXP, SEXP npSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::vector<int> >::type msets(msetsSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type setstat(setstatSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type stat(statSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type setstat(setstatSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type stat(statSEXP);
     Rcpp::traits::input_parameter< int >::type np(npSEXP);
     rcpp_result_gen = Rcpp::wrap(psets(msets, setstat, stat, np));
     return rcpp_result_gen;
