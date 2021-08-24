@@ -171,6 +171,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
     Glist$rsidsLD <- vector(mode = "list", length = length(Glist$fnLD))
     Glist$lscore <- vector(mode = "list", length = length(Glist$fnLD))
     if (is.null(ids)) ids <- Glist$ids
+    Glist$idsLD <- ids
     for( chr in 1:length(Glist$fnLD)) {
       Glist <- sparseLD(Glist = Glist, fnLD = Glist$fnLD[chr], msize = msize, chr = chr, rsids = rsids,
         ids = ids, ncores = 1)
@@ -234,6 +235,24 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
     Glist$n2[[chr]] <- freq[1,]
   }
   return(Glist)
+}
+
+gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeHWE=1e-12, excludeMHC=TRUE) {
+  if(!is.null(excludeMAF)) isMAF <- unlist(lapply(Glist$maf, function(x){x<=excludeMAF}))
+  if(!is.null(excludeMISS)) isMISS <- unlist(lapply(Glist$nmiss,function(x) {x/length(Glist$study_ids)>excludeMISS}))
+  if(!is.null(excludeHWE)) isHWE <- unlist(hwe(Glist)) < excludeHWE 
+  isHWE[is.na(isHWE)] <- TRUE
+  
+  if(excludeMHC) {
+    isMHC <-  Glist$position[[6]] > 28477797 & Glist$position[[6]] < 33448354
+    #isMHC <-  Glist$position[[6]] > 25602429 & Glist$position[[6]] < 33448354
+    rsidsMHC <- names(isMHC)[isMHC] 
+  }
+  rsidsQC <- isMAF | isMISS | isHWE
+  rsidsQC <- names(rsidsQC)[!rsidsQC]
+  if(excludeMHC) rsidsQC <- rsidsQC[!rsidsQC%in%rsidsMHC]
+  rsidsQC <- unlist(lapply(Glist$rsids,function(x){x[x%in%rsidsQC]}))
+  return(unlist(rsidsQC))  
 }
 
 
