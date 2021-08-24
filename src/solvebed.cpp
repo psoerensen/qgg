@@ -7,10 +7,10 @@ std::vector<std::vector<double>> solvebed( const char* file,
                              			int n, 
                              			std::vector<int> cls, 
                              			int nit, 
-                             			std::vector<float> af, 
-                             			std::vector<float> b, 
-                             			std::vector<float> lambda, 
-                             			std::vector<float> y) {
+                             			std::vector<double> af, 
+                             			std::vector<double> b, 
+                             			std::vector<double> lambda, 
+                             			std::vector<double> y) {
   
   
   FILE *file_stream = fopen( file, "rb" );
@@ -23,9 +23,9 @@ std::vector<std::vector<double>> solvebed( const char* file,
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
   unsigned char buf_k; 
   
-  std::vector<std::vector<float>> g(m, std::vector<float>(n, 0.0));
-  std::vector<float> map(4);
-  std::vector<float> dxx(m);
+  std::vector<std::vector<double>> g(m, std::vector<double>(n, 0.0));
+  std::vector<double> map(4);
+  std::vector<double> dxx(m);
   for ( int i = 0; i < m; i++) {
     dxx[i] = 0.0;
   }                
@@ -73,12 +73,12 @@ std::vector<std::vector<double>> solvebed( const char* file,
   std::cout << "Starting solver" << "\n";
   std::cout << "  " << "\n";
   
-  std::vector<float> e(n);
+  std::vector<double> e(n);
   for ( int i = 0; i < n; i++) {
     e[i] = y[i];
   }                
   
-  float rhs, lhs, bnew, conv, diff;
+  double rhs, lhs, bnew, conv, diff;
   
   for ( int it = 0; it < nit; it++) {
     conv = 0.0;
@@ -124,10 +124,10 @@ std::vector<std::vector<std::vector<double>>> mtsolvebed( const char* file,
                                             int n, 
                                             std::vector<int> cls, 
                                             int nit, 
-                                            std::vector<float> af, 
-                                            std::vector<std::vector<float>> b, 
-                                            std::vector<std::vector<float>> lambda, 
-                                            std::vector<std::vector<float>> y) {
+                                            std::vector<double> af, 
+                                            std::vector<std::vector<double>> b, 
+                                            std::vector<std::vector<double>> lambda, 
+                                            std::vector<std::vector<double>> y) {
   
   FILE *file_stream = fopen( file, "rb" );
   
@@ -140,9 +140,9 @@ std::vector<std::vector<std::vector<double>>> mtsolvebed( const char* file,
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
   unsigned char buf_k; 
   
-  std::vector<std::vector<float>> g(m, std::vector<float>(n, 0.0));
-  std::vector<float> map(4);
-  std::vector<float> dxx(m);
+  std::vector<std::vector<double>> g(m, std::vector<double>(n, 0.0));
+  std::vector<double> map(4);
+  std::vector<double> dxx(m);
   for ( int i = 0; i < m; i++) {
     dxx[i] = 0.0;
   }                
@@ -191,7 +191,7 @@ std::vector<std::vector<std::vector<double>>> mtsolvebed( const char* file,
   std::cout << "  " << "\n";
   
   int nt = y.size();
-  std::vector<std::vector<float>> e(nt, std::vector<float>(n, 0.0));
+  std::vector<std::vector<double>> e(nt, std::vector<double>(n, 0.0));
   
   for ( int t = 0; t < nt; t++) {
     for ( int i = 0; i < n; i++) {
@@ -199,7 +199,7 @@ std::vector<std::vector<std::vector<double>>> mtsolvebed( const char* file,
     }                
   }
   
-  std::vector<float> rhs(nt), lhs(nt), bnew(nt), conv(nt), diff(nt);
+  std::vector<double> rhs(nt), lhs(nt), bnew(nt), conv(nt), diff(nt);
   
   for ( int it = 0; it < nit; it++) {
     for ( int t = 0; t < nt; t++) {
