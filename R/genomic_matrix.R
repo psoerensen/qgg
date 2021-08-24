@@ -245,7 +245,6 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeHWE=
   
   if(excludeMHC) {
     isMHC <-  Glist$position[[6]] > 28477797 & Glist$position[[6]] < 33448354
-    #isMHC <-  Glist$position[[6]] > 25602429 & Glist$position[[6]] < 33448354
     rsidsMHC <- names(isMHC)[isMHC] 
   }
   rsidsQC <- isMAF | isMISS | isHWE
