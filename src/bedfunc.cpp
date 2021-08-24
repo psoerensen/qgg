@@ -70,7 +70,7 @@ IntegerMatrix   readG( const char* file,
 NumericMatrix readW( const char* file, 
                         int n, 
                         std::vector<int> cls, 
-                        std::vector<float> af) {
+                        std::vector<double> af) {
   
   
   FILE *file_stream = fopen( file, "rb" );
@@ -83,10 +83,10 @@ NumericMatrix readW( const char* file,
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
   unsigned char buf_k; 
   
-  //std::vector<std::vector<float>> g(m, std::vector<float>(n, 0.0));
+  //std::vector<std::vector<double>> g(m, std::vector<double>(n, 0.0));
   NumericMatrix W(n, m);
   
-  std::vector<float> map(4);
+  std::vector<double> map(4);
   
   
   ////////////////////////////////////////////////////////////////////////
@@ -130,10 +130,10 @@ NumericMatrix readW( const char* file,
 
 
 // [[Rcpp::export]]
-std::vector<std::vector<float>> getWlist( const char* file, 
+std::vector<std::vector<double>> getWlist( const char* file, 
                                           int n, 
                                           std::vector<int> cls, 
-                                          std::vector<float> af) {
+                                          std::vector<double> af) {
   
   
   FILE *file_stream = fopen( file, "rb" );
@@ -146,8 +146,8 @@ std::vector<std::vector<float>> getWlist( const char* file,
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
   unsigned char buf_k; 
   
-  std::vector<std::vector<float>> g(m, std::vector<float>(n, 0.0));
-  std::vector<float> map(4);
+  std::vector<std::vector<double>> g(m, std::vector<double>(n, 0.0));
+  std::vector<double> map(4);
   
   
   ////////////////////////////////////////////////////////////////////////
@@ -248,12 +248,12 @@ IntegerMatrix freqbed( const char* file,
 
 
 // [[Rcpp::export]]
-std::vector<std::vector<std::vector<float>>> summarybed( const char* file, 
+std::vector<std::vector<std::vector<double>>> summarybed( const char* file, 
                                                          int n, 
                                                          std::vector<int> cls,
-                                                         std::vector<float> af,
-                                                         std::vector<std::vector<float>> weights,
-                                                         std::vector<std::vector<float>> y) {
+                                                         std::vector<double> af,
+                                                         std::vector<std::vector<double>> weights,
+                                                         std::vector<std::vector<double>> y) {
   
   FILE *file_stream = fopen( file, "rb" );
   
@@ -266,10 +266,10 @@ std::vector<std::vector<std::vector<float>>> summarybed( const char* file,
   int m = cls.size();
   int nt = y.size();
   
-  std::vector<std::vector<float>> xy(nt, std::vector<float>(m, 0.0));
-  std::vector<std::vector<float>> xx(nt, std::vector<float>(m, 0.0));
-  std::vector<float> map(4);
-  std::vector<float> x(n);
+  std::vector<std::vector<double>> xy(nt, std::vector<double>(m, 0.0));
+  std::vector<std::vector<double>> xx(nt, std::vector<double>(m, 0.0));
+  std::vector<double> map(4);
+  std::vector<double> x(n);
   
   
   ////////////////////////////////////////////////////////////////////////
@@ -318,7 +318,7 @@ std::vector<std::vector<std::vector<float>>> summarybed( const char* file,
   free( buffer );
   fclose( file_stream );
   
-  std::vector<std::vector<std::vector<float>>> result;
+  std::vector<std::vector<std::vector<double>>> result;
   result.resize(2);
   result[0].resize(nt);
   result[1].resize(nt);
