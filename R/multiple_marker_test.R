@@ -320,6 +320,7 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
           setsChr <- mapSets(sets = setsChr, rsids = rsidsStat)
         }
         if (!is.null(ldSets)) setsChr <- ldSets[[chr]]
+        setsChr <- setsChr[names(setsChr)%in%rsidsStat]
         rsidsChr <- names(setsChr)
         rwsChr <- match(rsidsChr, rsidsStat)
         p <- pstat[rwsChr, i]
