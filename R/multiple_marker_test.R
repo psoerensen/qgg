@@ -302,8 +302,8 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
   #if (statistics == "p-value") pstat <- stat[, "p"]
   rsidsMapped <- rsidsStat%in%unlist(Glist$rsidsLD)
   stat <- stat[rsidsMapped,]
-  rsidsStat <- rownames(stat)
   stat <- as.matrix(stat)
+  rsidsStat <- rownames(stat)
   if(any(!rsidsMapped)) {
     message(paste("Number of rsids found in LD matrices:", sum(rsidsMapped)))
     message(paste("Number of rsids not found in LD matrices:", sum(!rsidsMapped)))
@@ -367,7 +367,7 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
     
 
   }
-  res <- res[!rowSums(res == 0) == ncol(res), ]
+  #res <- res[!rowSums(res == 0) == ncol(res), ]
   if (length(chromosomes)==1) res <- res[rownames(res)%in%rsidsChr,]
   return(res)
 }
