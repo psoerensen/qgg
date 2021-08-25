@@ -307,11 +307,11 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
   if(any(!rsidsMapped)) {
     message(paste("Number of rsids found in LD matrices:", sum(rsidsMapped)))
     message(paste("Number of rsids not found in LD matrices:", sum(!rsidsMapped)))
-    if(nrow(pstat)<1) stop("No rsids remaining for pruning")
+    if(nrow(stat)<1) stop("No rsids remaining for pruning")
   }
   #rownames(pstat) <- rsidsStat
-  if(is.null(colnames(stat))) colnames(pstat) <- paste0("stat",1:ncol(stat))
-  
+  if(is.null(colnames(stat))) colnames(stat) <- paste0("stat",1:ncol(stat))
+  res <- NULL
   if (method %in% c("pruning", "clumping")) {
     if (!is.null(ldSets)) nchr <- length(ldSets)
     if (!is.null(Glist)) nchr <- Glist$nchr
@@ -325,44 +325,51 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
       ldSets[[chr]] <- mapSets(sets = ldSets[[chr]], rsids = rsidsStat)
     }
     
-    for (i in 1:ncol(stat)) {
-      m <- length(rsidsStat)
-      indx1 <- rep(T, m)
-      indx2 <- rep(F, m)
-      for (chr in chromosomes) {
-        #if (!is.null(Glist)) {
-          message(paste("Pruning chromosome:", chr, "for stat column:", colnames(stat)[i]))
+    for (thold in threshold) {
+      pstat <- stat
+      for (i in 1:ncol(stat)) {
+        m <- length(rsidsStat)
+        indx1 <- rep(T, m)
+        indx2 <- rep(F, m)
+        for (chr in chromosomes) {
+          #if (!is.null(Glist)) {
+          message(paste("Pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
           #if(i==1) setsChr[[chr]] <- getLDsets(Glist = Glist, r2 = r2, chr = chr)
           #if(i==1) setsChr[[chr]] <- mapSets(sets = setsChr[[chr]], rsids = rsidsStat)
-        #}
-        if (!is.null(ldSets)) setsChr <- ldSets[[chr]]
-        setsChr <- setsChr[names(setsChr)%in%rsidsStat]
-        rsidsChr <- names(setsChr)
-        rwsChr <- match(rsidsChr, rsidsStat)
-        p <- stat[rwsChr, i]
-        o <- order(p, decreasing = FALSE)
-        for (j in o) {
-          if (p[j] <= threshold) {
-            if (indx1[rwsChr[j]]) {
-              rws <- setsChr[[j]]
-              indx1[rws] <- F
-              indx2[rwsChr[j]] <- T
+          #}
+          if (!is.null(ldSets)) setsChr <- ldSets[[chr]]
+          setsChr <- setsChr[names(setsChr)%in%rsidsStat]
+          rsidsChr <- names(setsChr)
+          rwsChr <- match(rsidsChr, rsidsStat)
+          p <- pstat[rwsChr, i]
+          o <- order(p, decreasing = FALSE)
+          for (j in o) {
+            if (p[j] <= thold) {
+              if (indx1[rwsChr[j]]) {
+                rws <- setsChr[[j]]
+                indx1[rws] <- F
+                indx2[rwsChr[j]] <- T
+              }
             }
           }
+          message(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
         }
-        message(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(stat)[i]))
+        if (method == "clumping") {
+          pstat[indx1, i] <- 0
+          p <- pstat[, i]
+          pstat[p > thold, i] <- 0
+        }
+        if (method == "pruning") pstat[!indx2, i] <- 0
       }
-      if (method == "clumping") {
-        stat[indx1, i] <- 0
-        p <- stat[, i]
-        stat[p > threshold, i] <- 0
-      }
-      if (method == "pruning") stat[!indx2, i] <- 0
+      colnames(pstat) <- paste0(colnames(stat),"_",thold)
+      res <- cbind(res,pstat)
     }
+    
+
   }
-  stat <- stat[!rowSums(stat == 0) == ncol(stat), ]
-  if (length(chromosomes)==1) stat <- stat[rownames(stat)%in%rsidsChr,]
-  return(stat)
+  res <- res[!rowSums(res == 0) == ncol(res), ]
+  if (length(chromosomes)==1) res <- res[rownames(res)%in%rsidsChr,]
+  return(res)
 }
 
 
