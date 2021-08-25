@@ -344,10 +344,10 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4) {
         
         for (chr in chromosomes) {
                 message(paste("Processing chromosome:",chr))
-                m <- Glist$mchr[chr]
+                rsids <- Glist$rsidsLD[[chr]]
+                m <- length(rsids)
                 msize <- Glist$msize
-                rsids <- Glist$rsids[[chr]]
-                
+
                 # LD indexes
                 k1 <- rep(1, m)
                 k1[1:msize] <- msize - 1:msize + 2
