@@ -318,10 +318,15 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
     if (is.null(chr)) chromosomes <- 1:nchr
     if (!is.null(chr)) chromosomes <- chr
     
-    ldSets <- vector(length=Glist$nchr, mode="list")
+    if(is.null(ldSets)) {
+      ldSets <- vector(length=Glist$nchr, mode="list")
+      for (chr in chromosomes) {
+        message(paste("Extract LD information for chromosome:", chr))
+        ldSets[[chr]] <- getLDsets(Glist = Glist, r2 = r2, chr = chr)
+        #ldSets[[chr]] <- mapSets(sets = ldSets[[chr]], rsids = rsidsStat)
+      }
+    }
     for (chr in chromosomes) {
-      message(paste("Extract LD information for chromosome:", chr))
-      ldSets[[chr]] <- getLDsets(Glist = Glist, r2 = r2, chr = chr)
       ldSets[[chr]] <- mapSets(sets = ldSets[[chr]], rsids = rsidsStat)
     }
     
