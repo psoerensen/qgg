@@ -249,15 +249,21 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   return(Glist)
 }
 
-gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeHWE=1e-12, excludeMHC=TRUE) {
+gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeHWE=1e-12, excludeMHC=TRUE, assembly="GRCh37") {
   if(!is.null(excludeMAF)) isMAF <- unlist(lapply(Glist$maf, function(x){x<=excludeMAF}))
   if(!is.null(excludeMISS)) isMISS <- unlist(lapply(Glist$nmiss,function(x) {x/length(Glist$study_ids)>excludeMISS}))
   if(!is.null(excludeHWE)) isHWE <- unlist(hwe(Glist)) < excludeHWE 
   isHWE[is.na(isHWE)] <- TRUE
   
   if(excludeMHC) {
-    isMHC <-  Glist$position[[6]] > 28477797 & Glist$position[[6]] < 33448354
-    rsidsMHC <- names(isMHC)[isMHC] 
+    if(assembly="GRCh37"){
+        isMHC <-  Glist$position[[6]] > 28477797 & Glist$position[[6]] < 33448354
+        rsidsMHC <- names(isMHC)[isMHC]
+    }
+    if(assembly="GRCh38"){
+        isMHC <-  Glist$position[[6]] > 28510120 & Glist$position[[6]] < 33480577
+        rsidsMHC <- names(isMHC)[isMHC]
+    }
   }
   rsidsQC <- isMAF | isMISS | isHWE
   rsidsQC <- names(rsidsQC)[!rsidsQC]
