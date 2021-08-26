@@ -79,7 +79,7 @@
 
 gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fnLD = NULL,
                   bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
-                  overwrite = FALSE, msize = 100, ncores = 1) {
+                  overwrite = FALSE, msize = 100, r2=NULL, ncores = 1) {
 
   if (task == "prepare") {
     nfiles <- length(bedfiles)
@@ -122,7 +122,6 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
     Glist$n0 <- vector(mode = "list", length = nfiles)
     Glist$n1 <- vector(mode = "list", length = nfiles)
     Glist$n2 <- vector(mode = "list", length = nfiles)
-#    Glist$cls <- vector(mode = "list", length = nfiles)
 
     for (chr in 1:length(bedfiles)) {
       bim <- data.table::fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
@@ -179,7 +178,19 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
       Glist$lscore[[chr]] <- ldscore( Glist=Glist, chr=chr) 
     }
   }
-
+  if (task == "ldsets") {
+    if(is.null(r2)) stop("Please specify r2 threshold - can be a vector values")
+    Glist$ldSets <- vector(length=length(r2), mode="list")
+    names(Glist$ldSets) <- r2
+    for (i in 1:length(r2) ) {
+      ldSets <- vector(length=Glist$nchr, mode="list")
+      for (chr in 1:Glist$nchr) {
+        message(paste("Extract LD information for chromosome:", chr))
+        ldSets[[chr]] <- getLDsets(Glist = Glist, r2 = 0.5, chr = chr)
+      }
+      Glist$ldSets[[i]] <- ldSets
+    }
+  }  
   return(Glist)
 }
 
@@ -608,26 +619,28 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
 }
 
 getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
-  msize <- Glist$msize
-  rsidsChr <- Glist$rsidsLD[[chr]]
-  mchr <- length(rsidsChr)
-  rsidsLD <- c(rep("start", msize), rsidsChr, rep("end", msize))
-  ldSetsChr <- vector(length = mchr, mode = "list")
-  names(ldSetsChr) <- rsidsChr
-  
-  fnLD <- Glist$fnLD[chr]
-  bfLD <- file(fnLD, "rb")
-  
-  nld <- as.integer(msize * 2 + 1)
-  for (i in 1:mchr) {
-    ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
-    ld[msize + 1] <- 1
-    cls <- which((ld**2) > r2) + i - 1
-    ldSetsChr[[i]] <- rsidsLD[cls]
+  if(!is.null(chr)) {
+    msize <- Glist$msize
+    rsidsChr <- Glist$rsidsLD[[chr]]
+    mchr <- length(rsidsChr)
+    rsidsLD <- c(rep("start", msize), rsidsChr, rep("end", msize))
+    ldSetsChr <- vector(length = mchr, mode = "list")
+    names(ldSetsChr) <- rsidsChr
+    
+    fnLD <- Glist$fnLD[chr]
+    bfLD <- file(fnLD, "rb")
+    
+    nld <- as.integer(msize * 2 + 1)
+    for (i in 1:mchr) {
+      ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
+      ld[msize + 1] <- 1
+      cls <- which((ld**2) > r2) + i - 1
+      ldSetsChr[[i]] <- rsidsLD[cls]
+    }
+    close(bfLD)
+    return(ldSetsChr)
   }
-  close(bfLD)
   
-  return(ldSetsChr)
 }
 
 getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
