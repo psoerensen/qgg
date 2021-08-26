@@ -267,7 +267,6 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          rsidsLD <- names(LD[[chr]]$values)
          clsLD <- match(rsidsLD,Glist$rsids[[chr]])
          LD[[chr]]$values <- lapply(LD[[chr]]$values,function(x){x*n})
-         print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
 
          # b <- ma[[chr]]$b[rsidsLD,trait]
          # seb <- ma[[chr]]$seb[rsidsLD,trait]
@@ -285,6 +284,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          #LD$indices <- lapply(LD$indices,function(x){x-1})
          bmchr <- NULL
          for (trait in 1:nt) {
+           print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
            fit[[chr]] <- sbayes_sparse(yy=yy[trait], 
                                        wy=wy[rsidsLD,trait],
                                        b=b[rsidsLD,trait], 
