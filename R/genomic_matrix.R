@@ -256,11 +256,11 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeHWE=
   isHWE[is.na(isHWE)] <- TRUE
   
   if(excludeMHC) {
-    if(assembly="GRCh37"){
+    if(assembly=="GRCh37"){
         isMHC <-  Glist$position[[6]] > 28477797 & Glist$position[[6]] < 33448354
         rsidsMHC <- names(isMHC)[isMHC]
     }
-    if(assembly="GRCh38"){
+    if(assembly=="GRCh38"){
         isMHC <-  Glist$position[[6]] > 28510120 & Glist$position[[6]] < 33480577
         rsidsMHC <- names(isMHC)[isMHC]
     }
