@@ -313,6 +313,11 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
   if(is.null(colnames(stat))) colnames(stat) <- paste0("stat",1:ncol(stat))
   res <- NULL
   if (method %in% c("pruning", "clumping")) {
+    if(!is.null(Glist$ldSets[[as.character(r2)]])) {
+      message("Using ldSets in Glist")
+      ldSets <- Glist$ldSets[[as.character(r2)]]
+    }
+    
     if (!is.null(ldSets)) nchr <- length(ldSets)
     if (!is.null(Glist)) nchr <- Glist$nchr
     if (is.null(chr)) chromosomes <- 1:nchr
