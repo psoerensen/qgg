@@ -178,8 +178,10 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
 
        for (chr in chromosomes){
          print(paste("Extract sparse LD matrix for chromosome:",chr))
-         LD <- getSparseLD(Glist = Glist, chr = chr)
-         LD$indices <- lapply(LD$indices,function(x){x-1})
+         #LD <- getSparseLD(Glist = Glist, chr = chr)
+         LD <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
+         
+         #LD$indices <- lapply(LD$indices,function(x){x-1})
          LD$values <- lapply(LD$values,function(x){x*n})
          rsidsLD <- names(LD$values)
          clsLD <- match(rsidsLD,Glist$rsids[[chr]])
@@ -857,6 +859,12 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   if(is.list(y)) nt <- length(y)
   if(!is.list(y)) stop("This is not a multiple trait analysis")
   
+  if(method==0) {
+    # BLUP and we do not estimate parameters
+    updateB=FALSE;
+    updateE=FALSE;
+  }
+  
   if(method==2) stop("Multiple trait not yet implemented for Bayes A") 
   if(method==3) stop("Multiple trait not yet implemented for Bayesian Lasso")
   
@@ -890,10 +898,12 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   if(is.null(vare)) {
     vare <- diag(sapply(y,var))
   }
-  if(is.null(varb)) varb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
+  if(method<4 && is.null(varb)) varb <- diag(sapply(y,var)/(m))*h2
+  if(method==4 && is.null(varb)) varb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
+  
   #if(is.null(varb)) varb <- (vare*h2)/(m*pi[length(models)])
   if(is.null(vara)) vara <- diag(diag(vare))*h2
-  
+
   #if(is.null(ssb_prior)) ssb_prior <-  diag((nub-2.0)/nub * (vara/(m*pi[length(models)])))
   #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(m*pi[length(models)]))
   if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
