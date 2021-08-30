@@ -24,9 +24,14 @@ arma::mat mmult(arma::mat A, arma::mat B) {
 arma::mat mvrnorm(arma::mat sigma) {
   int ncols = sigma.n_cols;
   arma::mat Y = arma::randn(1, ncols);
-  return Y * arma::chol(sigma);
+  return (Y * arma::chol(sigma));
 }
 
+// arma::mat mvrnormArma(arma::vec mu, arma::mat sigma) {
+//   int ncols = sigma.n_cols;
+//   arma::mat Y = arma::randn(1, ncols);
+//   return mu + Y * arma::chol(sigma);
+// }
 
 
 // // [[Rcpp::export]]
@@ -232,37 +237,37 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
     //arma::mat Bi = arma::inv(B);
     
     // Sample marker effects (Mixed)
-    if (method==1) {
+    if (method<2) {
       
-
-      for ( int i = 0; i < m; i++) {
+      //for ( int i = 0; i < m; i++) {
+      for ( int i0 = 0; i0 < m; i0++) {
+        int i = order[i0];
         
         // Compute rhs                     
         for ( int t = 0; t < nt; t++) {
           rhs[t] = 0.0;
           for ( int j = 0; j < n; j++) {
-            rhs[t] = rhs[t] + Ei(t,t)*W[i][j]*e[t][j]; 
+            //rhs[t] = rhs[t] + Ei(t,t)*W[i][j]*e[t][j]; 
+            rhs[t] = rhs[t] + W[i][j]*e[t][j]; 
           }
-          rhs[t] = rhs[t] + Ei(t,t)*ww[t][i]*b[t][i];
+          rhs[t] = Ei(t,t)*rhs[t] + Ei(t,t)*ww[t][i]*b[t][i];
         }
         
         // Sample beta
         for ( int t = 0; t < nt; t++) { 
           d[t][i] = 1;
         }
-        arma::mat C(nt,nt, fill::zeros);
-        for ( int t1 = 0; t1 < nt; t1++) {
-          for ( int t2 = t1; t2 < nt; t2++) {
-            C(t1,t2) = Bi(t1,t2);
-            C(t2,t1) = Bi(t2,t1);
-          }
-          C(t1,t1) = C(t1,t1) + ww[t1][i]*Ei(t1,t1);       
+        arma::mat C = Bi;
+        for ( int t = 0; t < nt; t++) {
+          C(t,t) = C(t,t) + ww[t][i]*Ei(t,t);       
         }
         arma::mat Ci = arma::inv(C);
         arma::mat mub = mvrnorm(Ci);
-        
-        
+
         for ( int t1 = 0; t1 < nt; t1++) {
+          if(method==0) {
+            mub(0,t1) = 0.0;
+          }  
           for ( int t2 = 0; t2 < nt; t2++) {
             mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
           }
@@ -360,17 +365,18 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           d[t][i] = models[mselect][t];
         }
         arma::mat C = Bi;
-        for ( int t1 = 0; t1 < nt; t1++) {
-          if(models[mselect][t1]==1) {
-            C(t1,t1) = C(t1,t1) + ww[t1][i]*Ei(t1,t1);       
+        for ( int t = 0; t < nt; t++) {
+          if(models[mselect][t]==1) {
+            C(t,t) = C(t,t) + ww[t][i]*Ei(t,t);       
           } 
         }
         arma::mat Ci = arma::inv(C);
         arma::mat mub = mvrnorm(Ci);
-        
-        
+
         for ( int t1 = 0; t1 < nt; t1++) {
-          mub(0,t1) = 0.0;
+          if(models[mselect][t1]!=1) {
+            mub(0,t1) = 0.0;
+          } 
           for ( int t2 = 0; t2 < nt; t2++) {
             if(models[mselect][t2]==1) {
               mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
