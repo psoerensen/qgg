@@ -635,7 +635,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
                  method=as.integer(method)) 
     names(fit[[1]]) <- colnames(W)
     fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
-     names(fit[[7]]) <- names(fit[[8]]) <- ids
+    names(fit[[7]]) <- names(fit[[8]]) <- ids
     names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
   } 
   
@@ -930,16 +930,33 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
                method=as.integer(method))
   fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
   fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
-  colnames(fit[[6]]) <- rownames(fit[[6]]) <- paste0("T",1:nt)
-  colnames(fit[[7]]) <- rownames(fit[[7]]) <- paste0("T",1:nt)
+  trait_names <- names(y)
+  if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
+  colnames(fit[[6]]) <- rownames(fit[[6]]) <- trait_names
+  colnames(fit[[7]]) <- rownames(fit[[7]]) <- trait_names
   fit[[11]] <- matrix(unlist(fit[[11]]), ncol = nt, byrow = TRUE)
   fit[[12]] <- matrix(unlist(fit[[12]]), ncol = nt, byrow = TRUE)
-  colnames(fit[[11]]) <- rownames(fit[[11]]) <- paste0("T",1:nt)
-  colnames(fit[[12]]) <- rownames(fit[[12]]) <- paste0("T",1:nt)
+  colnames(fit[[11]]) <- rownames(fit[[11]]) <- trait_names
+  colnames(fit[[12]]) <- rownames(fit[[12]]) <- trait_names
+  # add colnames/rownames e, g and gm
+  # add colnames/rownames rg and covg
   fit[[13]] <- fit[[13]][[1]]
   fit[[14]] <- fit[[14]][[1]]
   fit[[15]] <- fit[[15]][[1]]
-  names(fit) <- c("bm","dm","mu","Bm","Em","rg","re","g","e","b","B","E","pi","pim","order")
+  fit[[16]] <- crossprod(t(W),matrix(unlist(fit[[1]]), ncol=nt))
+  fit[[17]] <- cov2cor(fit[[6]])
+  fit[[18]] <- cov2cor(fit[[7]])
+  fit[[19]] <- cov(fit[[16]])
+  fit[[20]] <- cov2cor(fit[[19]])
+  colnames(fit[[19]]) <- rownames(fit[[19]]) <- trait_names
+  colnames(fit[[20]]) <- rownames(fit[[20]]) <- trait_names
+  for(i in 1:nt){
+    names(fit[[8]]) <- names(y[[i]])
+    names(fit[[9]]) <- names(y[[i]])
+    names(fit[[16]]) <- names(y[[i]])
+  }
+    
+  names(fit) <- c("bm","dm","mu","Bm","Em","covb","cove","g","e","b","B","E","pi","pim","order","gm","rb","re","covg","rg")
   
   return(fit)
   
@@ -1006,6 +1023,9 @@ gsim <- function(nt=1,W=NULL,n=1000,m=1000) {
       W <- cbind(W,scale(W[,i-1]) + runif(n))  
     }
   }
+  colnames(W) <- paste0("m",1:m)
+  rownames(W) <- paste0("id",1:n)
+  
   y <- e <- vector(length=nt,mode="list")
   names(y) <- paste0("D",1:nt)
   set0 <- sample(1:ncol(W),2)
@@ -1018,7 +1038,8 @@ gsim <- function(nt=1,W=NULL,n=1000,m=1000) {
     b1[[i]] <- sample(c(0.5,-0.5,1,-1),length(set1[[i]]))
     g1[[i]] <- W[,set1[[i]]]%*%b1[[i]]
     e[[i]] <- rnorm(nrow(W),mean=0,sd=1)
-    y[[i]] <- g0+g1[[i]]+e[[i]]
+    y[[i]] <- as.vector(g0+g1[[i]]+e[[i]])
+    names(y[[i]]) <- rownames(W)
     g <- cbind(g,g0+g1[[i]])
   }
   colnames(g) <- paste0("D",1:nt) 
