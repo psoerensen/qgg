@@ -931,6 +931,7 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
   fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
   trait_names <- names(y)
+  ids <- rownames(W)
   if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
   colnames(fit[[6]]) <- rownames(fit[[6]]) <- trait_names
   colnames(fit[[7]]) <- rownames(fit[[7]]) <- trait_names
@@ -951,11 +952,22 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   colnames(fit[[19]]) <- rownames(fit[[19]]) <- trait_names
   colnames(fit[[20]]) <- rownames(fit[[20]]) <- trait_names
   for(i in 1:nt){
-    names(fit[[8]]) <- names(y[[i]])
-    names(fit[[9]]) <- names(y[[i]])
-    names(fit[[16]]) <- names(y[[i]])
+    names(fit[[1]][[i]]) <- colnames(W)
+    names(fit[[2]][[i]]) <- colnames(W)
+    names(fit[[10]][[i]]) <- colnames(W)
+    names(fit[[8]][[i]]) <- ids
+    names(fit[[9]][[i]]) <- names(y[[i]])
   }
-    
+  names(fit[[1]]) <- trait_names
+  names(fit[[2]]) <- trait_names
+  names(fit[[4]]) <- trait_names
+  names(fit[[5]]) <- trait_names
+  names(fit[[8]]) <- trait_names
+  names(fit[[9]]) <- trait_names
+  rownames(fit[[16]]) <- ids
+  colnames(fit[[16]]) <- trait_names
+  names(fit[[13]]) <- sapply(models,paste,collapse="_")
+  names(fit[[14]]) <- sapply(models,paste,collapse="_")
   names(fit) <- c("bm","dm","mu","Bm","Em","covb","cove","g","e","b","B","E","pi","pim","order","gm","rb","re","covg","rg")
   
   return(fit)
