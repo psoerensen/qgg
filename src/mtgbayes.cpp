@@ -124,10 +124,11 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   //Rcout << "Number of markers: " << m << "\n";
   
   
-  double ssb, sse, dfb, dfe, chi2, u, logliksum, psum, detC, diff;
+  double ssb, sse, ssg, dfb, dfe, dfg, chi2, u, logliksum, psum, detC, diff;
   int mselect;
   
   std::vector<std::vector<double>> e(nt, std::vector<double>(n, 0.0));
+  std::vector<std::vector<double>> g(nt, std::vector<double>(n, 0.0));
   std::vector<std::vector<double>> ww(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<int>> d(nt, std::vector<int>(m, 0));
   
@@ -142,8 +143,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   std::vector<std::vector<double>> d_post_mean(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> vare_post(nt, std::vector<double>(nit, 0.0));
   std::vector<std::vector<double>> varb_post(nt, std::vector<double>(nit, 0.0));
-  std::vector<std::vector<double>> rhob_post_mean(nt, std::vector<double>(nt, 0.0));
-  std::vector<std::vector<double>> rhoe_post_mean(nt, std::vector<double>(nt, 0.0));
+  std::vector<std::vector<double>> covb_post_mean(nt, std::vector<double>(nt, 0.0));
+  std::vector<std::vector<double>> cove_post_mean(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> mu_post(nt, std::vector<double>(nit, 0.0));
   
   std::vector<double> x2t(m);
@@ -154,7 +155,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   
   
   // Prior variance and degrees of freedom
-  dfe = n + nue;
+  dfe = n;
+  dfg = n;
   //for (int t1 = 0; t1 < nt; t1++) {
   //  for (int t2 = 0; t2 < nt; t2++) {
   //    ssb_prior[t1][t2] = (nub-2.0)/nub * B(t1,t2);
@@ -423,11 +425,11 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           if (t1==t2) {
             for (int i=0; i < m; i++) {
               if( (d[t1][i]==1) ) {
-                ssb = ssb + b[t1][i]*b[t2][i];  
+                ssb = ssb + b[t1][i]*b[t1][i];  
                 dfb = dfb + 1.0;
               }
             }
-            Sb(t1,t2) = ssb + ssb_prior[t1][t2];
+            Sb(t1,t1) = ssb + ssb_prior[t1][t1];
           } 
           if (t1!=t2) {
             for (int i=0; i < m; i++) {
@@ -440,10 +442,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           } 
         }
       }
+      
       int dfSb = dfb/nt + nub;
-      //arma::mat B = rinvwish(dfSb, Sb);
-      //arma::mat B = riwish(dfSb, Sb);
-      //arma::mat B = riwishart(dfSb, Sb);
       arma::mat B = riwishart(dfSb, Sb);
       
       for (int t = 0; t < nt; t++) {
@@ -451,13 +451,14 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
-          rhob_post_mean[t1][t2] = rhob_post_mean[t1][t2] + B(t1,t2)/(sqrt(B(t1,t1))*sqrt(B(t2,t2)));
+          covb_post_mean[t1][t2] = covb_post_mean[t1][t2] + B(t1,t2);
         } 
       } 
       arma::mat Bi = arma::inv(B);
       //arma::mat Bi = arma::pinv(B);
     }
-    
+
+
     // Sample residual variance
     if(updateE) {
       
@@ -504,7 +505,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
-          rhoe_post_mean[t1][t2] = rhoe_post_mean[t1][t2] + E(t1,t2)/(sqrt(E(t1,t1))*sqrt(E(t2,t2)));
+          cove_post_mean[t1][t2] = cove_post_mean[t1][t2] + E(t1,t2);
         } 
       } 
       
@@ -586,8 +587,14 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   }
   for (int t1=0; t1 < nt; t1++) {
     for (int t2=0; t2 < nt; t2++) {
-      result[5][t1][t2] = rhob_post_mean[t1][t2]/nit;
-      result[6][t1][t2] = rhoe_post_mean[t1][t2]/nit;
+      result[5][t1][t2] = covb_post_mean[t1][t2]/nit;
+      result[6][t1][t2] = cove_post_mean[t1][t2]/nit;
+    }
+  }
+  for (int t1=0; t1 < nt; t1++) {
+    for (int t2=0; t2 < nt; t2++) {
+      result[5][t1][t2] = covb_post_mean[t1][t2]/nit;
+      result[6][t1][t2] = cove_post_mean[t1][t2]/nit;
       result[10][t1][t2] = B(t1,t2);
       //result[10][t2][t1] = B(t2,t1);
       result[11][t1][t2] = E(t1,t2);
@@ -659,8 +666,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   std::vector<std::vector<double>> d_post_mean(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> vare_post(nt, std::vector<double>(nit, 0.0));
   std::vector<std::vector<double>> varb_post(nt, std::vector<double>(nit, 0.0));
-  std::vector<std::vector<double>> rhob_post_mean(nt, std::vector<double>(nt, 0.0));
-  std::vector<std::vector<double>> rhoe_post_mean(nt, std::vector<double>(nt, 0.0));
+  std::vector<std::vector<double>> covb_post_mean(nt, std::vector<double>(nt, 0.0));
+  std::vector<std::vector<double>> cove_post_mean(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> mu_post(nt, std::vector<double>(nit, 0.0));
   
   std::vector<double> x2t(m);
@@ -997,7 +1004,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
-          rhob_post_mean[t1][t2] = rhob_post_mean[t1][t2] + B(t1,t2)/(sqrt(B(t1,t1))*sqrt(B(t2,t2)));
+          covb_post_mean[t1][t2] = covb_post_mean[t1][t2] + B(t1,t2)/(sqrt(B(t1,t1))*sqrt(B(t2,t2)));
         } 
       } 
       arma::mat Bi = arma::inv(B);
@@ -1055,7 +1062,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
-          rhoe_post_mean[t1][t2] = rhoe_post_mean[t1][t2] + E(t1,t2)/(sqrt(E(t1,t1))*sqrt(E(t2,t2)));
+          cove_post_mean[t1][t2] = cove_post_mean[t1][t2] + E(t1,t2)/(sqrt(E(t1,t1))*sqrt(E(t2,t2)));
         } 
       } 
       
@@ -1137,8 +1144,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   }
   for (int t1=0; t1 < nt; t1++) {
     for (int t2=0; t2 < nt; t2++) {
-      result[5][t1][t2] = rhob_post_mean[t1][t2]/nit;
-      result[6][t1][t2] = rhoe_post_mean[t1][t2]/nit;
+      result[5][t1][t2] = covb_post_mean[t1][t2]/nit;
+      result[6][t1][t2] = cove_post_mean[t1][t2]/nit;
       result[10][t1][t2] = B(t1,t2);
       //result[10][t2][t1] = B(t2,t1);
       result[11][t1][t2] = E(t1,t2);
