@@ -70,6 +70,8 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
           for (t in 1:nt) {
                z <- cbind(z,(b[,t]/seb[,t]))
           }
+          colnames(z) <- colnames(b)
+          rownames(z) <- rownames(b)
      }  
      
      lscore <- lscore[rownames(z)]
@@ -200,7 +202,7 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
           rownames(rg) <- colnames(rg) <- colnames(z)
           result <- rg
           
-     #---------------------------------#
+               #---------------------------------#
      # Block Jackknife to estimate rg SE
      if(SE.rg==TRUE){
           if(intercept==TRUE){
@@ -265,8 +267,7 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
           }
           return(list(rg=result,SE=SE, P=P))                         
           }
-     }
-          
+         
          if(intercept==FALSE){
                P <- SE <- matrix(NA,ncol=nt,nrow=nt)
                rownames(SE) <- colnames(SE) <- rownames(P) <- colnames(P) <- colnames(b)
@@ -330,6 +331,9 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
           return(list(rg=result,SE=SE, P=P))     
          }
      }
+     }
+          
+
      return(result)
 }
 
