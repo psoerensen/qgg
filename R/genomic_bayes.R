@@ -633,10 +633,11 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
                  updatePi = updatePi,
                  nit=nit,
                  method=as.integer(method)) 
-    names(fit[[1]]) <- colnames(W)
+    ids <- rownames(W)
+    names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[10]]) <- colnames(W)
     fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
     names(fit[[7]]) <- names(fit[[8]]) <- ids
-    names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
+    names(fit) <- c("bm","dm","mu","B","E","pi","g","e","param","b")
   } 
   
   
@@ -1035,6 +1036,8 @@ gsim <- function(nt=1,W=NULL,n=1000,m=1000) {
       W <- cbind(W,scale(W[,i-1]) + runif(n))  
     }
   }
+  n <- nrow(W)
+  m <- ncol(W)
   colnames(W) <- paste0("m",1:m)
   rownames(W) <- paste0("id",1:n)
   
@@ -1055,7 +1058,8 @@ gsim <- function(nt=1,W=NULL,n=1000,m=1000) {
     g <- cbind(g,g0+g1[[i]])
   }
   colnames(g) <- paste0("D",1:nt) 
-  return( list( y=y,W=W, e=e,g=g,b0=b0,b1=b1,set0=set0,set1=set1,causal=c(set0,unlist(set1))))
+  if(nt==1) return( list( y=y[[1]],W=W, e=e[[1]],g=g,b0=b0,b1=b1,set0=set0,set1=set1,causal=c(set0,unlist(set1))))
+  if(nt>1) return( list( y=y,W=W, e=e,g=g,b0=b0,b1=b1,set0=set0,set1=set1,causal=c(set0,unlist(set1))))
 }
 
 
