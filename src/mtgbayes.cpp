@@ -406,7 +406,12 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       for (int k = 0; k<nmodels ; k++) {
         std::gamma_distribution<double> rgamma(cmodel[k],1.0);
         double rg = rgamma(gen);
-        pi[k] = rg/(double)m;
+        pi[k] = rg;
+        //pi[k] = rg/(double)m;
+      }
+      double psum = std::accumulate(pi.begin(), pi.end(), 0.0);
+      for (int k = 0; k<nmodels ; k++) {
+        pi[k] = pi[k]/psum;
         pi_post_mean[k] = pi_post_mean[k] + pi[k];
       }
       std::fill(cmodel.begin(), cmodel.end(), 1.0);
