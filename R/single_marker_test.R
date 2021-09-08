@@ -178,6 +178,7 @@ plotma <- function(ma = NULL, chr = NULL, rsids = NULL, thresh = 5) {
 
 sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL, rsids = NULL,
                 msize = 100, scale = TRUE) {
+  if (is.list(y)) y <- as.matrix(as.data.frame(y))
   if (is.vector(y)) y <- matrix(y, ncol = 1, dimnames = list(names(y), "trait"))
   ids <- rownames(y)
   nt <- ncol(y)
@@ -213,7 +214,7 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
       dfe <- ww <- wy <- matrix(NA, nrow = m, ncol = nt)
       rownames(s) <- rownames(se) <- rownames(stat) <- rownames(p) <- Glist$rsids[[chr]]
       colnames(s) <- colnames(se) <- colnames(stat) <- colnames(p) <- colnames(y)
-      rownames(dfe) <- rownames(ww) <- rownames(wy) <-Glist$rsids[[chr]]
+      rownames(dfe) <- rownames(ww) <- rownames(wy) <- Glist$rsids[[chr]]
       colnames(dfe) <- colnames(ww) <- colnames(wy) <- colnames(y)
       if (!is.null(rsids)) cls <- match(rsids, Glist$rsids[[chr]])
       sets <- split(cls, ceiling(seq_along(cls) / msize))
@@ -239,15 +240,15 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
     }
     if (nt == 1) ma <- do.call(rbind, ma)
     if(nt>1) {
-      b <- do.call(rbind, sapply(ma,function(x){x$b}))
-      seb <- do.call(rbind, sapply(ma,function(x){x$seb}))
-      stat <- do.call(rbind, sapply(ma,function(x){x$stat}))
-      p <- do.call(rbind, sapply(ma,function(x){x$p}))
-      dfe <- do.call(rbind, sapply(ma,function(x){x$dfe}))
-      ww <- do.call(rbind, sapply(ma,function(x){x$ww}))
-      wy <- do.call(rbind, sapply(ma,function(x){x$wy}))
+      b <- do.call(rbind, lapply(ma,function(x){x$b}))
+      seb <- do.call(rbind, lapply(ma,function(x){x$seb}))
+      stat <- do.call(rbind, lapply(ma,function(x){x$stat}))
+      p <- do.call(rbind, lapply(ma,function(x){x$p}))
+      dfe <- do.call(rbind, lapply(ma,function(x){x$dfe}))
+      ww <- do.call(rbind, lapply(ma,function(x){x$ww}))
+      wy <- do.call(rbind, lapply(ma,function(x){x$wy}))
       ma <- list(b = b, seb = seb, stat = stat, p = p,
-                        dfe = dfe, ww = ww, wy = wy)
+                 dfe = dfe, ww = ww, wy = wy)
     }
     
   }
