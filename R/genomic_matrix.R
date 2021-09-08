@@ -179,7 +179,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
     }
   }
   if (task == "ldsets") {
-    if(is.null(r2)) stop("Please specify r2 threshold - can be a vector values")
+    if(is.null(r2)) stop("Please specify r2 threshold - can be a vector of values (e.g. r2=c(0.7,0.8,0.9) )")
     Glist$ldSets <- vector(length=length(r2), mode="list")
     names(Glist$ldSets) <- r2
     for (i in 1:length(r2) ) {
