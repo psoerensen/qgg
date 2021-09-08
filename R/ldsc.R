@@ -73,7 +73,7 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
           colnames(z) <- colnames(b)
           rownames(z) <- rownames(b)
      }  
-     
+     z <- z [rownames(z)%in%names(lscore),]
      lscore <- lscore[rownames(z)]
      if(is.null(n)) {
           n <- NULL
