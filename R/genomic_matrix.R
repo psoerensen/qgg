@@ -575,6 +575,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
 
   rsidsLD <- Glist$rsids[[chr]]
   if(!is.null(rsids)) rsidsLD <- rsidsLD[rsidsLD%in%rsids]
+  if(length(rsidsLD)<msize) stop("LD marker window size is to big - use smaller number for msize")
   Glist$rsidsLD[[chr]] <- rsidsLD
   cls <- match(rsidsLD, Glist$rsids[[chr]])
   nc <- length(cls)
@@ -669,7 +670,7 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
 }
 
 
-getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE) {
+getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=NULL, format="sparse") {
   msize <- Glist$msize
   rsidsChr <- Glist$rsidsLD[[chr]]
   mchr <- length(rsidsChr)
@@ -692,6 +693,33 @@ getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE) {
     ld_values[[i]] <- ld[(ld**2) > r2]
   }
   close(bfLD)
-  
-  return(list(indices=ld_indices,values=ld_values))
+  if(format=="sparse") return(list(indices=ld_indices,values=ld_values))
+  if(format=="dense") {
+    if(is.null(rsids)) {
+      LD <- matrix(0,nrow=length(ld_values),ncol=length(ld_values), 
+                   dimnames=list(names(ld_values),names(ld_values) ) )  
+      for(i in 1:length(ld_values)) {
+        LD[i,ld_indices[[i]]] <- ld_values[[i]]
+      }
+    }
+    if(!is.null(rsids)) {
+      LD <- matrix(0,nrow=length(rsids),ncol=length(rsids), 
+                   dimnames=list(rsids,rsids) )
+      for(i in 1:length(rsids)) {
+        ldrsids <-rsidsChr[ld_indices[[rsids[i]]]]
+        ldvals <- ld_values[[rsids[i]]]
+        inlist <- ldrsids%in%rsids 
+        LD[rsids[i],ldrsids[inlist]] <- ldvals[inlist]
+      }
+    }
+    return(LD)
+  }
+}
+
+plotLD <- function(LD=null, cols=NULL) {
+  if(is.null(cols)) cols <- colorRampPalette(c('#f0f3ff','#0033BB'))(256)
+  LD <- LD[,ncol(LD):1]
+  image(LD, col=cols, axes = FALSE)
+  axis(1, at = seq(0, 1, length = nrow(LD)), labels = rownames(LD), las=2, cex.axis=0.5)
+  axis(2, at = seq(0, 1, length = ncol(LD)), labels = colnames(LD), las=2, cex.axis=0.5)
 }
