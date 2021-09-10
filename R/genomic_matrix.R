@@ -650,6 +650,9 @@ getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   
 }
 
+#' @export
+#'
+
 getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
   msize <- Glist$msize
   rsidsChr <- Glist$rsidsLD[[chr]]
@@ -669,6 +672,8 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
   return(ld)
 }
 
+#' @export
+#'
 
 getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=NULL, format="sparse") {
   msize <- Glist$msize
@@ -715,6 +720,9 @@ getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=N
     return(LD)
   }
 }
+
+#' @export
+#'
 
 plotLD <- function(LD=null, cols=NULL) {
   if(is.null(cols)) cols <- colorRampPalette(c('#f0f3ff','#0033BB'))(256)
