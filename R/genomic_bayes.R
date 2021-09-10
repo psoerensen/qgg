@@ -151,6 +151,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      #   fit$gtest <- g[-rws,]
      #   fit$e <- e
      # }
+     
      if( !is.null(y) & nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
        fit <- NULL
        if(is.matrix(y)) ids <- rownames(y)
@@ -1038,8 +1039,8 @@ gsim <- function(nt=1,W=NULL,n=1000,m=1000) {
   }
   n <- nrow(W)
   m <- ncol(W)
-  colnames(W) <- paste0("m",1:m)
-  rownames(W) <- paste0("id",1:n)
+  if(is.null(colnames(W))) colnames(W) <- paste0("m",1:m)
+  if(is.null(rownames(W))) rownames(W) <- paste0("id",1:n)
   
   y <- e <- vector(length=nt,mode="list")
   names(y) <- paste0("D",1:nt)
