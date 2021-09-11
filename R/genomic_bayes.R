@@ -1106,7 +1106,7 @@ sortedSets <- function(o = NULL, msize = 500) {
 #' @export
 #'
 
-checkStat <- function(Glist=NULL, stat=NULL, filename=NULL) {
+checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05) {
   
   cpra <- paste(unlist(Glist$chr),unlist(Glist$position),unlist(Glist$a1),unlist(Glist$a2), sep="_")
   df <- data.frame(rsids=unlist(Glist$rsids),cpra,
@@ -1138,9 +1138,9 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL) {
   lm(stat$effect_allele_freq~ df$af)
   plot(stat$effect_allele_freq,df$af, ylab="AF in Glist",xlab="AF in stat (after allele flipped)")
   
-  isOK1 <- abs(df$af-stat$effect_allele_freq)<0.05
-  isOK2 <- stat$effect_allele_freq < 0.99
-  isOK3 <- stat$effect_allele_freq > 0.01
+  isOK1 <- abs(df$af-stat$effect_allele_freq)< aftol
+  isOK2 <- stat$effect_allele_freq < 1-maf
+  isOK3 <- stat$effect_allele_freq > maf
   
   isOK <- isOK1 & isOK2 & isOK3
   lm(stat$effect_allele_freq[isOK]~ df$af[isOK])
