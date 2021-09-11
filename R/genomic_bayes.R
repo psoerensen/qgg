@@ -1119,7 +1119,7 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05
   
   if(!is.null(filename)) png(file=filename)
   
-  layout(matrix(1:4,ncol=2,byrow=TRUE))
+  layout(matrix(1:6,ncol=2,byrow=TRUE))
   
   lm(stat$effect_allele_freq[aligned]~ df$af[aligned])
   plot(stat$effect_allele_freq[aligned],df$af[aligned], ylab="AF in Glist (allele matching)",xlab="AF in stat (allele matching)")
@@ -1145,6 +1145,12 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05
   isOK <- isOK1 & isOK2 & isOK3
   lm(stat$effect_allele_freq[isOK]~ df$af[isOK])
   plot(stat$effect_allele_freq[isOK],df$af[isOK], ylab="AF in Glist",xlab="AF in stat (after qc check)")
+  stat <- stat[isOK,]
+  maf <- stat$effect_allele_freq
+  maf[maf>0.5] <- 1-maf[maf>0.5]
+  seb <- stat$seb
+  cor(maf,seb)
+  plot(y=seb,x=maf, ylab="SEB",xlab="MAF")
   if(!is.null(filename)) dev.off()
-  return(stat[isOK,])
+  return(stat)
 }
