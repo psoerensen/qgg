@@ -1099,3 +1099,52 @@ sortedSets <- function(o = NULL, msize = 500) {
   if(any(!indices%in%unique(unlist(sets[osets])))) stop("Some markers not in sets")
   return(sets[osets])
 }
+
+
+
+#'
+#' @export
+#'
+
+checkStat <- function(Glist=NULL, stat=NULL, filename=NULL) {
+  
+  cpra <- paste(unlist(Glist$chr),unlist(Glist$position),unlist(Glist$a1),unlist(Glist$a2), sep="_")
+  df <- data.frame(rsids=unlist(Glist$rsids),cpra,
+                   chr=unlist(Glist$chr), position=unlist(Glist$position), 
+                   a1=unlist(Glist$a1), a2=unlist(Glist$a2),
+                   af=unlist(Glist$af))
+  inGlist <- stat$rsids%in%df$rsids
+  stat <- stat[inGlist,]
+  df <- df[rownames(stat),]
+  
+  if(!is.null(filename)) png(file=filename)
+  
+  layout(matrix(1:4,ncol=2,byrow=TRUE))
+  
+  lm(stat$effect_allele_freq[aligned]~ df$af[aligned])
+  plot(stat$effect_allele_freq[aligned],df$af[aligned], ylab="AF in Glist (allele matching)",xlab="AF in stat (allele matching)")
+  
+  lm(stat$effect_allele_freq[!aligned]~ df$af[!aligned])
+  plot(stat$effect_allele_freq[!aligned],df$af[!aligned], ylab="AF in Glist (allele not matching)",xlab="AF in stat (allele not matching)")
+  
+  stat[!aligned,"effect_allele_freq"] <- 1 - stat[!aligned,"effect_allele_freq"]
+  effect <- stat[!aligned,"b"]
+  effect_allele <- stat[!aligned,"effect_allele"]
+  alternative_allele <- stat[!aligned,"alternative_allele"]
+  stat[!aligned,"effect_allele"] <- alternative_allele 
+  stat[!aligned,"alternative_allele"] <- effect_allele 
+  stat[!aligned,"b"] <- -effect 
+  
+  lm(stat$effect_allele_freq~ df$af)
+  plot(stat$effect_allele_freq,df$af, ylab="AF in Glist",xlab="AF in stat (after allele flipped)")
+  
+  isOK1 <- abs(df$af-stat$effect_allele_freq)<0.05
+  isOK2 <- stat$effect_allele_freq < 0.99
+  isOK3 <- stat$effect_allele_freq > 0.01
+  
+  isOK <- isOK1 & isOK2 & isOK3
+  lm(stat$effect_allele_freq[isOK]~ df$af[isOK])
+  plot(stat$effect_allele_freq[isOK],df$af[isOK], ylab="AF in Glist",xlab="AF in stat (after qc check)")
+  if(!is.null(filename)) dev.off()
+  return(stat[isOK,])
+}
