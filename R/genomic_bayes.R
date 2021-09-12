@@ -1117,6 +1117,8 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05
   stat <- stat[inGlist,]
   df <- df[rownames(stat),]
   
+  aligned <- stat$effect_allele==Glist$a1
+  
   if(!is.null(filename)) png(file=filename)
   
   layout(matrix(1:6,ncol=2,byrow=TRUE))
