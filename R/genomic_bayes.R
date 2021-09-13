@@ -1117,7 +1117,7 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05
   stat <- stat[inGlist,]
   df <- df[rownames(stat),]
   
-  aligned <- stat$effect_allele==Glist$a1
+  aligned <- stat$effect_allele==df$a1
   
   if(!is.null(filename)) png(file=filename)
   
