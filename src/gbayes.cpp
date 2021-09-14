@@ -1104,7 +1104,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         u = runif(gen);
         if(u>p0) d[i]=1;
         bnew=0.0;
-        if(d[i]==1 & mask[i]==1) {
+        if(d[i]==1 && mask[i]==1) {
           std::normal_distribution<double> rnorm_b(rhs1/lhs1, sqrt(1.0/lhs1));
           bnew = rnorm_b(gen);
         } 
