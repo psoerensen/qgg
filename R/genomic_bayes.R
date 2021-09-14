@@ -207,7 +207,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                               updateB=updateB, 
                               updateE=updateE, 
                               updatePi=updatePi)
-         stat[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
+         stat[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a1[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
          rownames(stat[[chr]]) <- rsidsLD
        }
        stat <- do.call(rbind, stat)
@@ -312,7 +312,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
            bmchr <- cbind(bmchr, fit[[chr]]$bm)
          }
          colnames(bmchr) <- trait_names
-         res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bmchr)
+         res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a1[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bmchr)
          # fit[[chr]] <- sbayes_sparse(yy=yy, 
          #                             wy=wy[rsidsLD],
          #                             b=b[rsidsLD], 
@@ -331,7 +331,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          #                             updateB=updateB, 
          #                             updateE=updateE, 
          #                             updatePi=updatePi)
-         # res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
+         # res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a1[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
          rownames(res[[chr]]) <- rsidsLD
          LD[[chr]]$values <- NULL
          LD[[chr]]$indices <- NULL
