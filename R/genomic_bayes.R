@@ -225,6 +225,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        if(is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
 
        if(is.data.frame(stat)) {
+         # this is for external summary statistics
          nt <- 1
          rsidsLD <- unlist(Glist$rsidsLD)
          b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
@@ -239,8 +240,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          if(!is.null(stat$n)) ww <- stat$n
          yy <- (b2 + (n-2)*seb2)*ww
          yy <- mean(yy)
-         if(!is.null(stat$wy)) wy[rownames(stat)] <- stat$wy
-         if(is.null(stat$wy)) wy[rownames(stat)] <- stat$b*stat$n
+         if(!is.null(stat$wy)) wy[rownames(stat),1] <- stat$wy
+         if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$n
          if(any(is.na(wy))) stop("Missing values in wy")
        }
         if( !is.data.frame(stat) && is.list(stat)) {
