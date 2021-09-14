@@ -489,7 +489,7 @@ getW <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, fam
     cls <- cls[!is.na(cls)]
     nc <- length(cls)
     if (is.null(allele)) direction <- rep(1, nc)
-    if (!is.null(allele)) direction <- as.integer(allele == Glist$a2[[chr]][cls])
+    if (!is.null(allele)) direction <- as.integer(allele == Glist$a1[[chr]][cls])
     if (is.null(rws)) rws <- 1:Glist$n
     if (!is.null(ids)) rws <- match(ids, Glist$ids)
     nr <- length(rws)
