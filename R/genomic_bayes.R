@@ -233,12 +233,14 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          stat <- stat[rownames(stat)%in%rsidsLD,]
          b2 <- stat$b^2
          seb2 <- stat$seb^2
-         dfe <- stat$dfe
-         n <- as.integer(mean(stat$dfe)+2)
-         ww <- stat$ww
+         if(!is.null(stat$dfe)) n <- as.integer(mean(stat$dfe)+2)
+         if(!is.null(stat$n)) n <- as.integer(mean(stat$n))
+         if(!is.null(stat$ww)) ww <- stat$ww
+         if(!is.null(stat$n)) ww <- stat$n
          yy <- (b2 + (n-2)*seb2)*ww
          yy <- mean(yy)
-         wy[rownames(stat)] <- stat$wy
+         if(!is.null(stat$wy)) wy[rownames(stat)] <- stat$wy
+         if(is.null(stat$wy)) wy[rownames(stat)] <- stat$b*stat$n
          if(any(is.na(wy))) stop("Missing values in wy")
        }
         if( !is.data.frame(stat) && is.list(stat)) {
@@ -1107,7 +1109,7 @@ sortedSets <- function(o = NULL, msize = 500) {
 #'
 
 checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05) {
-  
+  # effect, effect_se, effect_allele, alternative_allele, effect_allele_freq, nobs 
   cpra <- paste(unlist(Glist$chr),unlist(Glist$position),unlist(Glist$a1),unlist(Glist$a2), sep="_")
   df <- data.frame(rsids=unlist(Glist$rsids),cpra,
                    chr=unlist(Glist$chr), position=unlist(Glist$position), 
@@ -1145,14 +1147,65 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05
   isOK3 <- stat$effect_allele_freq > maf
   
   isOK <- isOK1 & isOK2 & isOK3
-  lm(stat$effect_allele_freq[isOK]~ df$af[isOK])
+  #lm(stat$effect_allele_freq[isOK]~ df$af[isOK])
   plot(stat$effect_allele_freq[isOK],df$af[isOK], ylab="AF in Glist",xlab="AF in stat (after qc check)")
   stat <- stat[isOK,]
   maf <- stat$effect_allele_freq
   maf[maf>0.5] <- 1-maf[maf>0.5]
   seb <- stat$seb
-  cor(maf,seb)
+  #cor(maf,seb)
   plot(y=seb,x=maf, ylab="SEB",xlab="MAF")
   if(!is.null(filename)) dev.off()
+  stat$af <- stat$effect_allele_freq  
+  stat$allele <- stat$effect_allele  
+  if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)  
+  return(stat)
+}
+
+
+adjStat <- function(Glist=NULL,stat=NULL,filename=NULL, chr=NULL){
+  chromosomes <- chr
+  if(is.null(chromosomes)) chromosomes <- 1:Glist$nchr
+  badj <- NULL
+  for ( chr in chromosomes) {
+    
+    LD <- getSparseLD(Glist = Glist, chr = chr)
+    rsidsLD <- Glist$rsidsLD[[chr]]
+    
+    zobs <- zpred <- rep(0,length(rsidsLD))
+    names(zobs) <- names(zpred) <- rsidsLD
+    rsidsSTAT <- rownames(stat)[rownames(stat)%in%rsidsLD]
+    zobs[rsidsSTAT] <- stat[rsidsSTAT,"b"]/stat[rsidsSTAT,"seb"]
+    for (i in 1:length(LD$indices)){
+      #zsum <- sum(zobs[LD$indices[[i]]]*LD$values[[i]])-zobs[i]
+      #nsum <- sum(abs(LD$values[[i]])) - 1
+      zsum <- sum(zobs[LD$indices[[i]]]*LD$values[[i]])
+      nsum <- sum(abs(LD$values[[i]]))
+      #zpred[i] <- zsum/nsum
+      if(!zobs[i]==0.0) zpred[i] <- zsum/nsum
+    }
+    # quantile normalisation (https://academic.oup.com/bioinformatics/article/19/2/185/372664)
+    zobs_rank <- rank(zobs, ties.method = "min")
+    zpred_rank <- rank(zpred, ties.method = "min")
+    zobs_sort <- sort(zobs)
+    zpred_sort <- sort(zpred)
+    zmean <- (zobs_sort+zpred_sort)/2
+    zobs_adj <- zmean[zobs_rank]
+    zpred_adj <- zmean[zpred_rank]
+    
+    if(!is.null(filename[chr])) {
+      png(filename[chr])
+      layout(matrix(1:4,ncol=2,byrow=TRUE))
+      plot(y=zobs,x=zpred, main=paste("Chr",chr), ylab="Observed Z",xlab="Predicted Z")
+      plot(y=zobs_adj,x=zpred_adj, main=paste("Chr",chr), ylab="Observed Z (normalized)",xlab="Predicted Z (normalized)")
+      plot(y=zobs,x=zobs_adj, main=paste("Chr",chr), ylab="Observed Z", xlab="Observed Z (normalized)")
+      plot(y=zobs,x=zpred_adj, main=paste("Chr",chr), ylab="Observed Z", xlab="Predicted Z (normalized)")
+      dev.off()
+    }
+    print(paste("Finished chr:",chr))
+    badj <- c(badj,zpred_adj)
+  }
+  badj <- badj[names(badj)%in%rownames(stat)]
+  stat <- cbind(stat[names(badj),],badj=badj)
   return(stat)
 }
