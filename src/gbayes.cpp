@@ -968,6 +968,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   std::vector<double> ww(m),r(m);
   
+  std::vector<int> mask(m);
   std::vector<double> d_post_mean(m),b_post_mean(m);
   std::vector<double> vare_post(nit),varb_post(nit),pi_post(nit);
   
@@ -987,12 +988,14 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   //yy = 0.0;
   for ( int i = 0; i < m; i++) {
     d[i] = 1;
+    mask[i]=1;
     d_post_mean[i] = 0.0;
     b_post_mean[i] = 0.0;
     //ww[i] = LD[i][i];
     ww[i] = (double)n;
     r[i] = wy[i];
     x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
+    if(wy[i]==0.0) mask[i]=0;
     //yy = yy + seb2[i]*ww[i]*(n-2.0) + b2[i]*ww[i];
   }
   //yy = yy/m;
@@ -1065,15 +1068,18 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         lhs = ww[i] + lambda[i];
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm_b(rhs/lhs, sqrt(vare/lhs));
-        bnew = rnorm_b(gen);
-        diff = bnew-b[i];
-        //for (int j = 0; j < m; j++) {
-        //  r[j]=r[j] - LD[i][j]*(diff);
-        //}
-        for (int j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
+        bnew=0.0;
+        if(mask[i]==1) {
+          bnew = rnorm_b(gen);
+          diff = bnew-b[i];
+          //for (int j = 0; j < m; j++) {
+          //  r[j]=r[j] - LD[i][j]*(diff);
+          //}
+          for (int j = 0; j < LDindices[i].size(); j++) {
+            r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
+          }
+          conv = conv + diff*diff;
         }
-        conv = conv + diff*diff;
         b[i] = bnew;
       }
     }
@@ -1098,7 +1104,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         u = runif(gen);
         if(u>p0) d[i]=1;
         bnew=0.0;
-        if(d[i]==1) {
+        if(d[i]==1 & mask[i]==1) {
           std::normal_distribution<double> rnorm_b(rhs1/lhs1, sqrt(1.0/lhs1));
           bnew = rnorm_b(gen);
         } 
