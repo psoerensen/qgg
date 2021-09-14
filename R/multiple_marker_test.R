@@ -16,7 +16,7 @@
 #' test statistics consult doi:10.1534/genetics.116.189498.
 #'
 #' The sum test is based on the sum of all marker summary statistics located within the feature set. The single marker
-#' summary statistics can be obtained from linear model analyses (from PLINK or using the qgg lma approximation),
+#' summary statistics can be obtained from linear model analyses (from PLINK or using the qgg glma approximation),
 #' or from single or multiple component REML analyses (GBLUP or GFBLUP) from the greml function. The sum test is powerful
 #' if the genomic feature harbors many genetic markers that have small to moderate effects.
 #'
@@ -70,7 +70,7 @@
 #'  X <- model.matrix(fm, data = data)
 #'
 #'  # Single marker association analyses
-#'  ma <- lma(y=y,X=X,W=W)
+#'  ma <- glma(y=y,X=X,W=W)
 #'
 #'  # Create marker sets
 #'  f <- factor(rep(1:100,each=10), levels=1:100)
@@ -152,7 +152,7 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g
   if (method == "score") {
     if (!is.null(W)) res <- scoretest(e = fit$e, W = W, sets = sets, nperm = nperm)
     if (!is.null(Glist)) {
-      sets <- mapSets(sets = sets, rsids = Glist$rsids, index = TRUE)
+        sets <- mapSets(sets = sets, rsids = Glist$rsids, index = TRUE)
       nsets <- length(sets)
       msets <- sapply(sets, length)
       ids <- fit$ids
@@ -181,20 +181,6 @@ gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum
   setstat <- sapply(sets, function(x) {
     sum(stat[x])
   })
-
-#  res <- .Fortran("psets",
-#    m = as.integer(m),
-#    stat = as.double(stat),
-#    nsets = as.integer(nsets),
-#    setstat = as.double(setstat),
-#    msets = as.integer(msets),
-#    p = as.integer(rep(0, nsets)),
-#    np = as.integer(np),
-#    ncores = as.integer(ncores),
-#    PACKAGE = "qgg"
-#  )
-#  p <- res$p / np
-
   p <- .Call("_qgg_psets", msets = msets,
               setstat = setstat,
               stat = stat,
@@ -241,22 +227,6 @@ gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e
   for (j in 1:nsets) {
     nc <- length(cls[[j]])
     direction <- rep(1, nc)
-
-#    W <- .Fortran("readbed",
-#      n = as.integer(n),
-#      nr = as.integer(nr),
-#      rws = as.integer(rws),
-#      nc = as.integer(nc),
-#      cls = as.integer(cls[[j]]),
-#      impute = as.integer(impute),
-#      scale = as.integer(scale),
-#      direction = as.integer(direction),
-#      W = matrix(as.double(0), nrow = nr, ncol = nc),
-#      nbytes = as.integer(nbytes),
-#      fnRAWCHAR = as.integer(unlist(sapply(as.character(fnRAW),charToRaw),use.names=FALSE)),
-#      nchars = nchar(as.character(fnRAW)),
-#      PACKAGE = "qgg"
-#    )$W
 
 # Check this again - should be getW using a bedfile
       W <- getW(Glist = Glist, rws = rws, cls = cls, scale = scale)
