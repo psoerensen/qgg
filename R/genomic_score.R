@@ -34,7 +34,7 @@
 #'                famfiles=famfiles, overwrite=TRUE)
 #' 
 #' rsids <- Glist$rsids
-#' stat <- data.frame(rsids=Glist$rsids,alleles=Glist$a2, af=Glist$af, effect=rnorm(Glist$m))
+#' stat <- data.frame(rsids=Glist$rsids,alleles=Glist$a1, af=Glist$af, effect=rnorm(Glist$m))
 #' 
 #' W <- getW(Glist=Glist,rsids=Glist$rsids)
 #' pgs1 <- W%*%stat[,4]
@@ -59,7 +59,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
           # if(is.null(stat) & !is.null(fit)) {
           #   rsids <- unlist(Glist$rsids)
           #   af <- unlist(Glist$af)
-          #   alleles <- unlist(Glist$a2)
+          #   alleles <- unlist(Glist$a1)
           #   cls <- match(names(fit$bm),rsids)
           #   if(any(is.na(cls))) stop("Missing rsids")
           #   stat <- data.frame(rsids=names(fit$bm), alleles=alleles[cls], af=af[cls], effect=fit$b)
@@ -148,9 +148,9 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      rws <- 1:Glist$n
      if (!is.null(ids)) rws <- match(ids, Glist$ids)
      cls <- match(rsids, Glist$rsids[[chr]])
-     if(any( !stat$alleles == Glist$a2[[chr]][cls] )) {
+     if(any( !stat$alleles == Glist$a1[[chr]][cls] )) {
        warning("Some variants appear to be flipped => changing sign of variant effect for those variants ")
-       flipped <- !stat$alleles == Glist$a2[[chr]][cls]
+       flipped <- !stat$alleles == Glist$a1[[chr]][cls]
        S[flipped,] <- -S[flipped,]  
      }
      if(!file.exists(Glist$bedfiles[chr])) stop(paste("bed file does not exists:"),Glist$bedfiles[chr]) 
