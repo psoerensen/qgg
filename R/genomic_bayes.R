@@ -1163,11 +1163,18 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05
   plot(y=seb,x=maf, ylab="SEB",xlab="MAF")
   if(!is.null(filename)) dev.off()
   stat$af <- stat$effect_allele_freq  
-  stat$allele <- stat$effect_allele  
-  if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)  
+  stat$alleles <- stat$effect_allele  
+  if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)
+  isCGTA <- stat$alleles=="C" |stat$alleles=="G" |stat$alleles=="T" |stat$alleles=="A"
+  stat <- stat[isCGTA,]
   return(stat)
 }
 
+
+
+#'
+#' @export
+#'
 
 adjStat <- function(Glist=NULL,stat=NULL,filename=NULL, chr=NULL){
   chromosomes <- chr
@@ -1181,7 +1188,8 @@ adjStat <- function(Glist=NULL,stat=NULL,filename=NULL, chr=NULL){
     zobs <- zpred <- rep(0,length(rsidsLD))
     names(zobs) <- names(zpred) <- rsidsLD
     rsidsSTAT <- rownames(stat)[rownames(stat)%in%rsidsLD]
-    zobs[rsidsSTAT] <- stat[rsidsSTAT,"b"]/stat[rsidsSTAT,"seb"]
+    zobs[rsidsSTAT] <- stat[rsidsSTAT,"b"]
+    #zobs[rsidsSTAT] <- stat[rsidsSTAT,"b"]/stat[rsidsSTAT,"seb"]
     for (i in 1:length(LD$indices)){
       #zsum <- sum(zobs[LD$indices[[i]]]*LD$values[[i]])-zobs[i]
       #nsum <- sum(abs(LD$values[[i]])) - 1
@@ -1214,4 +1222,24 @@ adjStat <- function(Glist=NULL,stat=NULL,filename=NULL, chr=NULL){
   badj <- badj[names(badj)%in%rownames(stat)]
   stat <- cbind(stat[names(badj),],badj=badj)
   return(stat)
+}
+
+
+#'
+#' @export
+#'
+
+adjLDStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r2 = 0.9, ldSets = NULL, threshold = 1,
+                      method = "pruning") {
+  cnames <- c("chr","rsids","alleles","af","b","seb") 
+  if(any(is.na(match(cnames,colnames(stat))))) {
+    stop(paste("Columns missing in stat:",cnames[is.na(match(cnames,colnames(stat)))]))
+  }
+  pstat <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
+  names(pstat) <- rownames(stat)
+  pstat <- adjLD(Glist=Glist, stat=pstat, r2=r2[i], threshold=threshold)
+  pstat[pstat>0] <- 1
+  statadj <- pstat*stat[rownames(pstat),"b"]
+  statadj <- data.frame(stat[rownames(pstat),c("chr","rsids","alleles","af")],statadj)
+  return(statadj)
 }
