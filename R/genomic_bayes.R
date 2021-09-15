@@ -1147,7 +1147,12 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05
   isOK2 <- stat$effect_allele_freq < 1-maf
   isOK3 <- stat$effect_allele_freq > maf
   
-  isOK <- isOK1 & isOK2 & isOK3
+  isOK4 <- !(stat$effect_allele=="A" & stat$alternative_allele=="T")
+  isOK5 <- !(stat$effect_allele=="T" & stat$alternative_allele=="A")
+  isOK6 <- !(stat$effect_allele=="C" & stat$alternative_allele=="G")
+  isOK7 <- !(stat$effect_allele=="G" & stat$alternative_allele=="C")
+  
+  isOK <- isOK1 & isOK2 & isOK3 & isOK4 & isOK5 & isOK6 & isOK7
   #lm(stat$effect_allele_freq[isOK]~ df$af[isOK])
   plot(stat$effect_allele_freq[isOK],df$af[isOK], ylab="AF in Glist",xlab="AF in stat (after qc check)")
   stat <- stat[isOK,]
