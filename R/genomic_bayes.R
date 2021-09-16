@@ -1237,7 +1237,7 @@ adjLDStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value
   }
   pstat <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
   names(pstat) <- rownames(stat)
-  pstat <- adjLD(Glist=Glist, stat=pstat, r2=r2[i], threshold=threshold)
+  pstat <- adjLD(Glist=Glist, stat=pstat, r2=r2, threshold=threshold)
   pstat[pstat>0] <- 1
   statadj <- pstat*stat[rownames(pstat),"b"]
   statadj <- data.frame(stat[rownames(pstat),c("chr","rsids","alleles","af")],statadj)
