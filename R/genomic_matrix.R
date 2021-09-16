@@ -249,7 +249,8 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   return(Glist)
 }
 
-gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT=TRUE, excludeHWE=1e-12, excludeMHC=FALSE, assembly="GRCh37") {
+gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT=TRUE, 
+                    excludeINDEL=TRUE, excludeDUPS=TRUE, excludeHWE=1e-12, excludeMHC=FALSE, assembly="GRCh37") {
   if(is.null(Glist$study_ids)) Glist$study_ids <- Glist$ids
   if(!is.null(excludeMAF)) isMAF <- unlist(lapply(Glist$maf, function(x){x<=excludeMAF}))
   if(!is.null(excludeMISS)) isMISS <- unlist(lapply(Glist$nmiss,function(x) {x/length(Glist$study_ids)>excludeMISS}))
@@ -265,6 +266,8 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT
         rsidsMHC <- names(isMHC)[isMHC]
     }
   }
+  rsids <- unlist(Glist$rsids)
+  isDUPS <- duplicated(rsids)
   a1 <- unlist(Glist$a1)
   a2 <- unlist(Glist$a2)
   isAT <- a1=="A" & a2=="T"
@@ -272,12 +275,38 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT
   isCG <- a1=="C" & a2=="G"
   isGC <- a1=="G" & a2=="C"
   isCGAT <- isAT | isTA | isCG | isGC
-  
+  CGTA <- c("C","G","T","A")
+  isINDEL <- !((a1%in%CGTA) & (a2%in%CGTA))
+
+  message(paste("Number of markers excluded by low MAF:", sum(isMAF)))
+  message(paste("Number of markers excluded by deviation from HWE:", sum(isHWE)))
+  message(paste("Number of markers excluded by missingnes:", sum(isMISS)))
+
   rsidsQC <- isMAF | isMISS | isHWE
-  if(excludeCGAT) rsidsQC <- isMAF | isMISS | isHWE | isCGAT
+
+    
+  if(excludeCGAT) {
+    rsidsQC <- rsidsQC | isCGAT
+    message(paste("Number of markers excluded by ambiguity (CG or AT):", sum(isCGAT)))
+  }
+  if(excludeDUPS) {
+    rsidsQC <- rsidsQC | isDUPS
+    message(paste("Number of markers excluded by duplicated rsids", sum(isDUPS)))
+  }
+  if(excludeINDEL) {
+    rsidsQC <- rsidsQC | isINDEL
+    message(paste("Number of markers excluded by being INDEL:", sum(isINDEL)))
+  }
+
+  #if(excludeCG_AT) rsidsQC <- isMAF | isMISS | isHWE | isCG_AT
   rsidsQC <- names(rsidsQC)[!rsidsQC]
-  if(excludeMHC) rsidsQC <- rsidsQC[!rsidsQC%in%rsidsMHC]
+  if(excludeMHC) {
+    rsidsQC <- rsidsQC[!rsidsQC%in%rsidsMHC]
+    message(paste("Number of markers excluded in MHC region:", sum(!rsidsQC%in%rsidsMHC)))
+  }
   rsidsQC <- unlist(lapply(Glist$rsids,function(x){x[x%in%rsidsQC]}))
+  message(paste("Number of markers excluded:", length(rsids)-length(rsidsQC)))
+  message(paste("Number of markers retained:", length(rsidsQC)))
   return(unlist(rsidsQC))  
 }
 
