@@ -76,7 +76,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
                  
                }
           }
-          prs <- scale(grs[,1:ncol(prs),drop=FALSE])
+          prs <- scale(prs[,1:ncol(prs),drop=FALSE])
      }
      if ( !is.null(bedfiles))  {
           prs <- run_gscore(bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, stat = stat, 
