@@ -76,6 +76,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
                  
                }
           }
+          prs <- scale(grs[,1:ncol(prs),drop=FALSE])
      }
      if ( !is.null(bedfiles))  {
           prs <- run_gscore(bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, stat = stat, 
@@ -132,7 +133,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      if (any(!rsidsOK)) {
        #warning("Some variants not found in genotype files")
        message(paste("Number of variants used:", sum(rsidsOK)))
-       message(paste("Number of variants missing:", sum(!rsidsOK)))
+       #message(paste("Number of variants missing:", sum(!rsidsOK)))
        stat <- stat[rsidsOK, ]
        stat$rsids <- as.character(stat$rsids)
        stat$alleles <- as.character(stat$alleles)
