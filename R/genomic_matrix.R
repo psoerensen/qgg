@@ -284,7 +284,6 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT
 
   rsidsQC <- isMAF | isMISS | isHWE
 
-    
   if(excludeCGAT) {
     rsidsQC <- rsidsQC | isCGAT
     message(paste("Number of markers excluded by ambiguity (CG or AT):", sum(isCGAT)))
@@ -298,7 +297,7 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT
     message(paste("Number of markers excluded by being INDEL:", sum(isINDEL)))
   }
 
-  #if(excludeCG_AT) rsidsQC <- isMAF | isMISS | isHWE | isCG_AT
+  #if(excludeCG_AT) rsidsQC <- isMAF | isMISS | isHWE | isCGAT
   rsidsQC <- names(rsidsQC)[!rsidsQC]
   if(excludeMHC) {
     rsidsQC <- rsidsQC[!rsidsQC%in%rsidsMHC]
