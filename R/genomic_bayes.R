@@ -1109,7 +1109,8 @@ sortedSets <- function(o = NULL, msize = 500) {
 #' @export
 #'
 
-checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05) {
+checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
+                      excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE) {
   # effect, effect_se, effect_allele, alternative_allele, effect_allele_freq, nobs 
   cpra <- paste(unlist(Glist$chr),unlist(Glist$position),unlist(Glist$a1),unlist(Glist$a2), sep="_")
   df <- data.frame(rsids=unlist(Glist$rsids),cpra,
@@ -1117,11 +1118,15 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05
                    a1=unlist(Glist$a1), a2=unlist(Glist$a2),
                    af=unlist(Glist$af))
   inGlist <- stat$rsids%in%df$rsids
+  message(paste("Number of markers in stat also found in bedfiles:", sum(inGlist)))
+  
   stat <- stat[inGlist,]
   df <- df[rownames(stat),]
   
   aligned <- stat$effect_allele==df$a1
-  
+  message(paste("Number of effect alleles aligned with first allele in bimfiles:", sum(aligned)))
+  message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
+
   if(!is.null(filename)) png(file=filename)
   
   layout(matrix(1:6,ncol=2,byrow=TRUE))
@@ -1143,30 +1148,57 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, maf=0.01, aftol=0.05
   lm(stat$effect_allele_freq~ df$af)
   plot(stat$effect_allele_freq,df$af, ylab="AF in Glist",xlab="AF in stat (after allele flipped)")
   
-  isOK1 <- abs(df$af-stat$effect_allele_freq)< aftol
-  isOK2 <- stat$effect_allele_freq < 1-maf
-  isOK3 <- stat$effect_allele_freq > maf
+  isDUPS <- duplicated(stat$rsids)
+  a1 <- df$a1
+  a2 <- df$a2
+  isAT <- a1=="A" & a2=="T"
+  isTA <- a1=="T" & a2=="A"
+  isCG <- a1=="C" & a2=="G"
+  isGC <- a1=="G" & a2=="C"
+  isCGAT <- isAT | isTA | isCG | isGC
+  CGTA <- c("C","G","T","A")
+  isINDEL <- !((a1%in%CGTA) & (a2%in%CGTA))
   
-  isOK4 <- !(stat$effect_allele=="A" & stat$alternative_allele=="T")
-  isOK5 <- !(stat$effect_allele=="T" & stat$alternative_allele=="A")
-  isOK6 <- !(stat$effect_allele=="C" & stat$alternative_allele=="G")
-  isOK7 <- !(stat$effect_allele=="G" & stat$alternative_allele=="C")
+  largeMAFDIFF <- abs(df$af-stat$effect_allele_freq) > excludeMAFDIFF
+  maf <- stat$effect_allele_freq
+  maf[maf>0.5] <- 1-maf[maf>0.5]
+  lowMAF <- maf < excludeMAF
+
+  message(paste("Number of markers excluded by low MAF:", sum(lowMAF)))
+  message(paste("Number of markers excluded by large difference between MAF difference:", sum(largeMAFDIFF)))
+
+  rsidsQC <- lowMAF | largeMAFDIFF
+
+  if(!is.null(stat$info)) {
+    lowINFO <- stat$info < excludeINFO
+    rsidsQC <- rsidsQC | lowINFO
+    message(paste("Number of markers excluded by low INFO score:", sum(lowINFO)))
+  }
   
-  isOK <- isOK1 & isOK2 & isOK3 & isOK4 & isOK5 & isOK6 & isOK7
-  #lm(stat$effect_allele_freq[isOK]~ df$af[isOK])
-  plot(stat$effect_allele_freq[isOK],df$af[isOK], ylab="AF in Glist",xlab="AF in stat (after qc check)")
-  stat <- stat[isOK,]
+  if(excludeCGAT) {
+    rsidsQC <- rsidsQC | isCGAT
+    message(paste("Number of markers excluded by ambiguity (CG or AT):", sum(isCGAT)))
+  }
+  if(excludeDUPS) {
+    rsidsQC <- rsidsQC | isDUPS
+    message(paste("Number of markers excluded by duplicated rsids", sum(isDUPS)))
+  }
+  if(excludeINDEL) {
+    rsidsQC <- rsidsQC | isINDEL
+    message(paste("Number of markers excluded by being INDEL:", sum(isINDEL)))
+  }
+  
+  rsidsQC <- !rsidsQC
+  plot(stat$effect_allele_freq[rsidsQC],df$af[rsidsQC], ylab="AF in Glist",xlab="AF in stat (after qc check)")
+  stat <- stat[rsidsQC,]
   maf <- stat$effect_allele_freq
   maf[maf>0.5] <- 1-maf[maf>0.5]
   seb <- stat$seb
-  #cor(maf,seb)
   plot(y=seb,x=maf, ylab="SEB",xlab="MAF")
   if(!is.null(filename)) dev.off()
   stat$af <- stat$effect_allele_freq  
   stat$alleles <- stat$effect_allele  
   if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)
-  isCGTA <- stat$alleles=="C" |stat$alleles=="G" |stat$alleles=="T" |stat$alleles=="A"
-  stat <- stat[isCGTA,]
   return(stat)
 }
 
