@@ -1117,6 +1117,11 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
                    chr=unlist(Glist$chr), position=unlist(Glist$position), 
                    a1=unlist(Glist$a1), a2=unlist(Glist$a2),
                    af=unlist(Glist$af))
+  rsidsDUPS <- df$rsids[duplicated(df$rsids)]
+  df <- df[!df$rsids%in%rsidsDUPS,]
+  rsidsLD <- unlist(Glist$rsidsLD)
+  df <- df[df$rsids%in%rsidsLD,]
+  rownames(df) <- df$rsids
   inGlist <- stat$rsids%in%df$rsids
   message(paste("Number of markers in stat also found in bedfiles:", sum(inGlist)))
   
