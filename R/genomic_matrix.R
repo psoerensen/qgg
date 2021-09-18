@@ -295,7 +295,7 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT
   
   if(excludeDUPS) {
     rsidsDUPS <- rsids[duplicated(rsids)]
-    isDUPS <- rsids[rsids%in%rsidsDUPS]
+    isDUPS <- rsids%in%rsidsDUPS
     rsidsQC <- rsidsQC | isDUPS
     message(paste("Number of markers excluded by duplicated rsids", sum(isDUPS)))
   }
