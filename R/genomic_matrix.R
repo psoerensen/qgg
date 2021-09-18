@@ -251,6 +251,8 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 
 gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT=TRUE, 
                     excludeINDEL=TRUE, excludeDUPS=TRUE, excludeHWE=1e-12, excludeMHC=FALSE, assembly="GRCh37") {
+
+  rsids <- unlist(Glist$rsids)
   if(is.null(Glist$study_ids)) Glist$study_ids <- Glist$ids
   if(!is.null(excludeMAF)) isMAF <- unlist(lapply(Glist$maf, function(x){x<=excludeMAF}))
   if(!is.null(excludeMISS)) isMISS <- unlist(lapply(Glist$nmiss,function(x) {x/length(Glist$study_ids)>excludeMISS}))
@@ -266,8 +268,6 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT
         rsidsMHC <- names(isMHC)[isMHC]
     }
   }
-  rsids <- unlist(Glist$rsids)
-  isDUPS <- duplicated(rsids)
   a1 <- unlist(Glist$a1)
   a2 <- unlist(Glist$a2)
   isAT <- a1=="A" & a2=="T"
@@ -288,14 +288,18 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT
     rsidsQC <- rsidsQC | isCGAT
     message(paste("Number of markers excluded by ambiguity (CG or AT):", sum(isCGAT)))
   }
-  if(excludeDUPS) {
-    rsidsQC <- rsidsQC | isDUPS
-    message(paste("Number of markers excluded by duplicated rsids", sum(isDUPS)))
-  }
   if(excludeINDEL) {
     rsidsQC <- rsidsQC | isINDEL
     message(paste("Number of markers excluded by being INDEL:", sum(isINDEL)))
   }
+  
+  if(excludeDUPS) {
+    rsidsDUPS <- rsids[duplicated(rsids)]
+    isDUPS <- rsids[rsids%in%rsidsDUPS]
+    rsidsQC <- rsidsQC | isDUPS
+    message(paste("Number of markers excluded by duplicated rsids", sum(isDUPS)))
+  }
+  
 
   #if(excludeCG_AT) rsidsQC <- isMAF | isMISS | isHWE | isCGAT
   rsidsQC <- names(rsidsQC)[!rsidsQC]
