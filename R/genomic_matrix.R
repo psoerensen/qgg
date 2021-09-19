@@ -173,6 +173,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
     if (is.null(ids)) ids <- Glist$ids
     Glist$idsLD <- ids
     for( chr in 1:length(Glist$fnLD)) {
+      message(paste("Compute sparse LD matrix for chromosome:",chr))
       Glist <- sparseLD(Glist = Glist, fnLD = Glist$fnLD[chr], msize = msize, chr = chr, rsids = rsids,
         ids = ids, ncores = 1)
       Glist$lscore[[chr]] <- ldscore( Glist=Glist, chr=chr) 
