@@ -347,7 +347,7 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4) {
         lscore2 <- vector(length=length(chromosomes),mode="list")
         
         for (chr in chromosomes) {
-                message(paste("Processing chromosome:",chr))
+                message(paste("Compute LD scores for chromosome:",chr))
                 rsids <- Glist$rsidsLD[[chr]]
                 m <- length(rsids)
                 msize <- Glist$msize
