@@ -113,7 +113,8 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
     Glist$a2 <- vector(mode = "list", length = nfiles)
     Glist$position <- vector(mode = "list", length = nfiles)
     Glist$chr <- vector(mode = "list", length = nfiles)
-
+    Glist$cpra <- vector(mode = "list", length = nfiles)
+    
     Glist$nmiss <- vector(mode = "list", length = nfiles)
     Glist$af <- vector(mode = "list", length = nfiles)
     Glist$maf <- vector(mode = "list", length = nfiles)
@@ -136,6 +137,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
       Glist$rsids[[chr]] <- as.character(bim[, 2])
       Glist$mchr[chr] <- length(Glist$rsids[[chr]]) 
       Glist$chr[[chr]] <- as.character(bim[, 1])
+      Glist$cpra[[chr]] <- paste(Glist$chr[[chr]],Glist$pos[[chr]],Glist$a1[[chr]],Glist$a2[[chr]],sep="_")
       message(paste("Finished processing bim file", bimfiles[chr]))
       #if (is.null(Glist$fnBED)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
       if (is.null(Glist$fnBED)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$study_ids, ncores = ncores)
@@ -151,6 +153,8 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
       names(Glist$n0[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$n1[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$n2[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$cpra[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$rsids[[chr]]) <- Glist$cpra[[chr]]
     }
 
     Glist$nchr <- length(Glist$bedfiles)
@@ -169,14 +173,14 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
     Glist$fnLD <- fnLD
     if (is.null(fnLD)) Glist$fnLD <- gsub(".bed", ".ld", Glist$bedfiles)
     Glist$rsidsLD <- vector(mode = "list", length = length(Glist$fnLD))
-    Glist$lscore <- vector(mode = "list", length = length(Glist$fnLD))
+    Glist$ldscores <- vector(mode = "list", length = length(Glist$fnLD))
     if (is.null(ids)) ids <- Glist$ids
     Glist$idsLD <- ids
     for( chr in 1:length(Glist$fnLD)) {
       message(paste("Compute sparse LD matrix for chromosome:",chr))
       Glist <- sparseLD(Glist = Glist, fnLD = Glist$fnLD[chr], msize = msize, chr = chr, rsids = rsids,
         ids = ids, ncores = 1)
-      Glist$lscore[[chr]] <- ldscore( Glist=Glist, chr=chr) 
+      Glist$ldscores[[chr]] <- ldscore( Glist=Glist, chr=chr) 
     }
   }
   if (task == "ldsets") {
