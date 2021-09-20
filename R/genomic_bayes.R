@@ -1272,7 +1272,8 @@ adjLDStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value
   if(any(is.na(match(cnames,colnames(stat))))) {
     stop(paste("Columns missing in stat:",cnames[is.na(match(cnames,colnames(stat)))]))
   }
-  pstat <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
+  pstat <- stat$p
+  if(is.null(stat$p)) pstat <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
   names(pstat) <- rownames(stat)
   pstat <- adjLD(Glist=Glist, stat=pstat, r2=r2, threshold=threshold)
   pstat[pstat>0] <- 1
