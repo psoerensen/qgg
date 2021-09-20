@@ -306,7 +306,7 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT
   rsidsQC <- names(rsidsQC)[!rsidsQC]
   if(excludeMHC) {
     rsidsQC <- rsidsQC[!rsidsQC%in%rsidsMHC]
-    message(paste("Number of markers excluded in MHC region:", sum(!rsidsQC%in%rsidsMHC)))
+    message(paste("Number of markers excluded in MHC region:", length(rsidsMHC)))
   }
   rsidsQC <- unlist(lapply(Glist$rsids,function(x){x[x%in%rsidsQC]}))
   message(paste("Number of markers excluded:", length(rsids)-length(rsidsQC)))
