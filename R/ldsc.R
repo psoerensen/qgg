@@ -7,7 +7,7 @@
 #' The ldsc function is used for LDSC analysis
 #'
 #' @param Glist list of information about genotype matrix stored on disk
-#' @param lscore vector of LD scores (optional as LD scores are stored within Glist)
+#' @param ldscores vector of LD scores (optional as LD scores are stored within Glist)
 #' @param z matrix of z statistics for n traits
 #' @param b matrix of marker effects for n traits if z matrix not is given
 #' @param seb matrix of standard errors of marker effects for n traits if z matrix not is given
@@ -60,8 +60,8 @@
 #'
 #' @export 
 
-ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
-     if(!is.null(Glist) & is.null(lscore) ) lscore <- unlist(Glist$lscore)
+ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
+     if(!is.null(Glist) & is.null(ldscores) ) ldscores <- unlist(Glist$ldscores)
      
      if(!is.null(z)) nt <- ncol(z)
      
@@ -73,8 +73,8 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
           colnames(z) <- colnames(b)
           rownames(z) <- rownames(b)
      }  
-     z <- z[rownames(z)%in%names(lscore),,drop=FALSE]
-     lscore <- lscore[rownames(z)]
+     z <- z[rownames(z)%in%names(ldscores),,drop=FALSE]
+     ldscores <- ldscores[rownames(z)]
      if(is.null(n)) {
           n <- NULL
           if(is.null(seb)) stop("Please provide n or alternatively seb")
@@ -88,8 +88,8 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
                z2 <- z[,t]**2
                z2 <- z2[!is.na(z2)] 
                z2 <- z2[z2<maxZ2]
-               if(intercept) X <- cbind(1,n[t]*lscore[names(z2)]/length(z2))
-               if(!intercept) X <- matrix(n[t]*lscore[names(z2)]/length(z2),ncol=1)
+               if(intercept) X <- cbind(1,n[t]*ldscores[names(z2)]/length(z2))
+               if(!intercept) X <- matrix(n[t]*ldscores[names(z2)]/length(z2),ncol=1)
                y <- z2
                XtX <- crossprod(X)
                Xy <- crossprod(X,y)
@@ -123,7 +123,7 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
                          z2 <- z[,t]**2
                          z2 <- z2[!is.na(z2)]
                          z2 <- z2[z2<maxZ2]
-                         X <- cbind(1,n[t]*lscore[names(z2)]/length(z2))
+                         X <- cbind(1,n[t]*ldscores[names(z2)]/length(z2))
                          y <- z2
                          XtX <- crossprod(X)
                          Xy <- crossprod(X,y)
@@ -150,7 +150,7 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
                          z2 <- z[,t]**2
                          z2 <- z2[!is.na(z2)]
                          z2 <- z2[z2<maxZ2]
-                         X <- matrix(n[t]*lscore[names(z2)]/length(z2),ncol=1)
+                         X <- matrix(n[t]*ldscores[names(z2)]/length(z2),ncol=1)
                          y <- z2
                          XtX <- crossprod(X)
                          Xy <- crossprod(X,y)
@@ -188,7 +188,7 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
                     rws2 <- Z2_2<maxZ2
                     rws <- rws1 & rws2
                     m <- sum(rws)
-                    X <- cbind(1,sqrt(n[t1])*sqrt(n[t2])*lscore[rws]/m)
+                    X <- cbind(1,sqrt(n[t1])*sqrt(n[t2])*ldscores[rws]/m)
                     y <- Z1[rws]*Z2[rws]
                     XtX <- crossprod(X)
                     Xy <- crossprod(X,y)
@@ -221,9 +221,9 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
                          rws <- rws1 & rws2
                          m <- sum(rws)
                          
-                         X1 <- cbind(1,n[t1]*lscore[rws]/sum(rws))
+                         X1 <- cbind(1,n[t1]*ldscores[rws]/sum(rws))
                          y1 <- Z2_1[rws]
-                         X2 <- cbind(1,n[t2]*lscore[rws]/sum(rws))
+                         X2 <- cbind(1,n[t2]*ldscores[rws]/sum(rws))
                          y2 <- Z2_2[rws]
                          
                          XtX1 <- crossprod(X1)
@@ -231,7 +231,7 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
                          XtX2 <- crossprod(X2)
                          Xy2 <- crossprod(X2,y2)
                          
-                         X <- cbind(1,sqrt(n[t1])*sqrt(n[t2])*lscore[rws]/m)
+                         X <- cbind(1,sqrt(n[t1])*sqrt(n[t2])*ldscores[rws]/m)
                          y <- Z1[rws]*Z2[rws]
                          XtX <- crossprod(X)
                          Xy <- crossprod(X,y)
@@ -284,9 +284,9 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
                               rws <- rws1 & rws2
                               m <- sum(rws)
                               
-                              X1 <- matrix(n[t1]*lscore[rws]/sum(rws),ncol=1)
+                              X1 <- matrix(n[t1]*ldscores[rws]/sum(rws),ncol=1)
                               y1 <- Z2_1[rws]
-                              X2 <- matrix(n[t2]*lscore[rws]/sum(rws),ncol=1)
+                              X2 <- matrix(n[t2]*ldscores[rws]/sum(rws),ncol=1)
                               y2 <- Z2_2[rws]
                               
                               XtX1 <- crossprod(X1)
@@ -294,7 +294,7 @@ ldsc <- function(Glist=NULL, lscore=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, inte
                               XtX2 <- crossprod(X2)
                               Xy2 <- crossprod(X2,y2)
                               
-                              X <- matrix(1,sqrt(n[t1])*sqrt(n[t2])*lscore[rws]/m,ncol=1)
+                              X <- matrix(1,sqrt(n[t1])*sqrt(n[t2])*ldscores[rws]/m,ncol=1)
                               y <- Z1[rws]*Z2[rws]
                               XtX <- crossprod(X)
                               Xy <- crossprod(X,y)
@@ -344,7 +344,7 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4) {
         
         if(is.null(chr)) chromosomes <- 1:22  
         
-        lscore2 <- vector(length=length(chromosomes),mode="list")
+        ldscores2 <- vector(length=length(chromosomes),mode="list")
         
         for (chr in chromosomes) {
                 message(paste("Compute LD scores for chromosome:",chr))
@@ -370,10 +370,10 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4) {
                         ldchr[j] <- sum(ld[rwsLD]**2)
                 }
                 close(bfLD)
-                lscore2[[chr]] <- ldchr
+                ldscores2[[chr]] <- ldchr
         }
         
-        return(unlist(lscore2))
+        return(unlist(ldscores2))
 }
 
 neff <- function(seb=NULL,af=NULL,Vy=1) {
