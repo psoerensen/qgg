@@ -1111,17 +1111,6 @@ sortedSets <- function(o = NULL, msize = 500) {
 
 checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
                       excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE) {
-  if("OR"%in%colnames(stat)) {
-      or <- stat$OR
-      p <- stat$p
-      z975 <- qnorm(1-(p/2))
-      maxz <- max(z975[is.finite(z975)])
-      z975[!is.finite(z975)] <- maxz
-      or[or==1] <- 1.00001
-      stat$b <- log(or)
-      stat$seb <- abs(stat$b)/z975
-      stat <- stat[,c("rsids","chr","position","effect_allele","alternative_allele","effect_allele_freq","b","seb","p")]
-  }
   # effect, effect_se, effect_allele, alternative_allele, effect_allele_freq, nobs
   cpra <- paste(unlist(Glist$chr),unlist(Glist$position),unlist(Glist$a1),unlist(Glist$a2), sep="_")
   df <- data.frame(rsids=unlist(Glist$rsids),cpra,
