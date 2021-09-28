@@ -1111,7 +1111,7 @@ sortedSets <- function(o = NULL, msize = 500) {
 
 checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
                       excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE) {
-  # effect, effect_se, effect_allele, alternative_allele, effect_allele_freq, nobs 
+  # effect, effect_se, effect_allele, alternative_allele, effect_allele_freq, nobs
   cpra <- paste(unlist(Glist$chr),unlist(Glist$position),unlist(Glist$a1),unlist(Glist$a2), sep="_")
   df <- data.frame(rsids=unlist(Glist$rsids),cpra,
                    chr=unlist(Glist$chr), position=unlist(Glist$position), 
@@ -1122,6 +1122,7 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
   rsidsLD <- unlist(Glist$rsidsLD)
   df <- df[df$rsids%in%rsidsLD,]
   rownames(df) <- df$rsids
+  
   inGlist <- stat$rsids%in%df$rsids
   message(paste("Number of markers in stat also found in bedfiles:", sum(inGlist)))
   
