@@ -187,7 +187,7 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
     if (!is.null(X)) y <- residuals(lm(y ~ X))
     if (is.null(X)) y <- residuals(lm(y ~ 1))
     ma <- smlm(y = y, X = X, W = W)
-    if (nt == 1) ma <- as.matrix(as.data.frame(ma))
+    if (nt == 1) ma <- as.data.frame(ma)
   }
   if (!is.null(Glist)) {
     if (any(!ids %in% Glist$ids)) stop("Some names of y does not match names in Glist$ids")
