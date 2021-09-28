@@ -1051,10 +1051,10 @@ gsim <- function(nt=1,W=NULL,n=1000,m=1000) {
   set1 <- b1 <- g1 <- vector(length=nt,mode="list")
   g <- NULL
   for (i in 1:nt){
-    b0 <- sample(c(0.5,-0.5,1,-1),2)
+    b0 <- sample(c(0.25,-0.25,0.5,-0.5),2)
     g0 <- W[,set0]%*%b0
     set1[[i]] <- sample(1:ncol(W),2)
-    b1[[i]] <- sample(c(0.5,-0.5,1,-1),length(set1[[i]]))
+    b1[[i]] <- sample(c(0.25,-0.25,0.5,-0.5),length(set1[[i]]))
     g1[[i]] <- W[,set1[[i]]]%*%b1[[i]]
     e[[i]] <- rnorm(nrow(W),mean=0,sd=1)
     y[[i]] <- as.vector(g0+g1[[i]]+e[[i]])
