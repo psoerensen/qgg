@@ -125,7 +125,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      
      
      # Prepase summary stat
-     if (!sum(colnames(stat)[1:4] == c("chr","rsids", "alleles", "af")) == 4) {
+     if (!sum(colnames(stat)[1:6] == c("rsids","chr","pos", "a1","a2", "af")) == 6) {
           stop("First three columns in data frame stat should be: chr, rsids, alleles, af ")
      }
      rsidsOK <- stat$rsids %in% Glist$rsids[[chr]]
@@ -135,13 +135,13 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
        message(paste("Number of variants used:", sum(rsidsOK)))
        #message(paste("Number of variants missing:", sum(!rsidsOK)))
        stat <- stat[rsidsOK, ]
-       stat$rsids <- as.character(stat$rsids)
-       stat$alleles <- as.character(stat$alleles)
+       #stat$rsids <- as.character(stat$rsids)
+       #stat$a1 <- as.character(stat$a1)
      }
-     S <- stat[, -c(1:4)]
+     S <- stat[, -c(1:6),drop=FALSE]
      if (is.vector(S)) S <- as.matrix(S)
      S <- apply(S, 2, as.numeric)
-     colnames(S) <- colnames(stat)[-c(1:4)]
+     colnames(S) <- colnames(stat)[-c(1:6)]
      rsids <- as.character(stat$rsids)
      af <- stat$af
      
@@ -149,9 +149,9 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      rws <- 1:Glist$n
      if (!is.null(ids)) rws <- match(ids, Glist$ids)
      cls <- match(rsids, Glist$rsids[[chr]])
-     if(any( !stat$alleles == Glist$a1[[chr]][cls] )) {
+     if(any( !stat$a1 == Glist$a1[[chr]][cls] )) {
        warning("Some variants appear to be flipped => changing sign of variant effect for those variants ")
-       flipped <- !stat$alleles == Glist$a1[[chr]][cls]
+       flipped <- !stat$a1 == Glist$a1[[chr]][cls]
        S[flipped,] <- -S[flipped,]  
      }
      if(!file.exists(Glist$bedfiles[chr])) stop(paste("bed file does not exists:"),Glist$bedfiles[chr]) 
