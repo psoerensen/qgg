@@ -21,7 +21,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
                                           std::vector<double> b, 
                                           std::vector<double> lambda, 
                                           double pi, 
-                                          double vara, 
+                                          double varg, 
                                           double varb, 
                                           double vare,
                                           double ssb_prior,
@@ -41,11 +41,10 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   int m = W.size();
   
   double pi0=pi;
-  //double vara0=vara;
-  
+
   double rhs, lhs, bnew, conv, diff, mu;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
-  double ssb, sse, dfb, dfe, chi2;
+  double ssb, sse, dfb, dfb0, dfe, chi2;
   double xtau, tau, lambda_tau, mu_tau, z, z2, u;
   
   std::vector<int> d(m);
@@ -60,7 +59,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   // Prior variance and degrees of freedom
   dfe = n + nue;
   //ssb_prior = nub*varb;
-  //ssb_prior =  (nub-2.0)/nub * (vara0/(pi0*m*0.5));
+  //ssb_prior =  (nub-2.0)/nub * (varg0/(pi0*m*0.5));
   //sse_prior = nue*vare;
   
   // Mean adjust y
@@ -171,25 +170,92 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       }
     }
     
+    // Sample marker effects (ssvs)
+    if (method==5) {
+      for ( int i0 = 0; i0 < m; i0++) {
+        int i = order[i0];
+        lhs0 = ww[i]/vare + 1.0/(varb*0.001);
+        lhs1 = ww[i]/vare + 1.0/varb;
+        rhs0 = 0.0;
+        rhs1 = 0.0;
+        for ( int j = 0; j < n; j++) {
+          rhs1 = rhs1 + W[i][j]*e[j]/vare; 
+          rhs0 = rhs0 + W[i][j]*e[j]/vare; 
+        }
+        rhs0 = rhs0 + ww[i]*b[i]/vare;
+        rhs1 = rhs1 + ww[i]*b[i]/vare;
+        like0 = sqrt((1.0/lhs0))*std::exp(0.5*(1.0/lhs0)*rhs0*rhs0);
+        like1 = sqrt((1.0/lhs1))*std::exp(0.5*(1.0/lhs1)*rhs1*rhs1);
+        like0 = like0*(1.0-pi); 
+        like1 = like1*pi;
+        p0 = like0/(like0+like1); 
+        //p1 = like1/(like0+like1);
+        d[i]=0;
+        std::uniform_real_distribution<double> runif(0.0, 1.0);
+        u = runif(gen);
+        if(u>p0) d[i]=1;
+        bnew=0.0;
+        if(d[i]==1) {
+          std::normal_distribution<double> rnorm_b(rhs1/lhs1, sqrt(1.0/lhs1));
+          //std::normal_distribution<double> rnorm_b(rhs1/lhs1, sqrt(vare/lhs1));
+          bnew = rnorm_b(gen);
+        } 
+        if(d[i]==0) {
+          std::normal_distribution<double> rnorm_b(rhs0/lhs0, sqrt(1.0/lhs0));
+          //std::normal_distribution<double> rnorm_b(rhs1/lhs1, sqrt(vare/lhs1));
+          bnew = rnorm_b(gen);
+        } 
+        diff = bnew-b[i];
+        for (int j = 0; j < n; j++) {
+          e[j]=e[j] - W[i][j]*(diff);
+        }
+        conv = conv + diff*diff;
+        b[i] = bnew;
+      }
+    }
+    
     //std::cout << "Sampling variance components: " << it + 1 << "\n";
     
     // Sample marker variance
     ssb = 0.0;
     dfb = 0.0;
+    dfb0 = 0.0;
     for ( int i = 0; i < m; i++) {
       b_post_mean[i] = b_post_mean[i] + b[i];     
-      if(d[i]==1)   {
-        ssb = ssb + b[i]*b[i];  
-        dfb = dfb + 1.0;
-        d_post_mean[i] = d_post_mean[i] + 1.0;     
+      if(method==4) {
+        if(d[i]==1)   {
+          ssb = ssb + b[i]*b[i];  
+          dfb = dfb + 1.0;
+          d_post_mean[i] = d_post_mean[i] + 1.0;     
+        }
+      }
+      if(method==5) {
+        ssb = ssb + b[i]*b[i];
+        if(d[i]==0)   {
+          dfb0 = dfb0 + 0.00001;
+        }
+        if(d[i]==1)   {
+          dfb = dfb + 1.0;
+          d_post_mean[i] = d_post_mean[i] + 1.0;     
+        }
       }
     }
     if(updateB) {
-      dfb = dfb + nub;
-      std::chi_squared_distribution<double> rchisq_b(dfb);
-      chi2 = rchisq_b(gen);
-      varb = (ssb + ssb_prior)/chi2 ;
-      varb_post[it] = varb;
+      //dfb = dfb + nub;
+      if(method==4) {
+        std::chi_squared_distribution<double> rchisq_b(dfb+nub);
+        chi2 = rchisq_b(gen);
+        varb = (ssb + ssb_prior)/chi2 ;
+        varb_post[it] = varb; 
+      }
+      if(method==5) {
+        double dfb5 = m;
+        //std::chi_squared_distribution<double> rchisq_b(dfb5+nub);
+        std::chi_squared_distribution<double> rchisq_b(dfb+dfb0+nub);
+        chi2 = rchisq_b(gen);
+        varb = (ssb + ssb_prior)/chi2 ;
+        varb_post[it] = varb; 
+      }
     }
     
 
@@ -258,7 +324,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       pi = rg1/(double)m;
       pi_post[it] = pi;
       //std::cout << "Pi: " << pi << "\n";
-      //ssb_prior =  (nub-2.0)/nub * vara0/(pi0*m*0.5);
+      //ssb_prior =  (nub-2.0)/nub * varg0/(pi0*m*0.5);
     }
     
     
@@ -319,7 +385,7 @@ std::vector<std::vector<double>>  fbayes(  std::vector<double> y,
                                           std::vector<double> b, 
                                           std::vector<double> lambda, 
                                           double pi, 
-                                          double vara, 
+                                          double varg, 
                                           double varb, 
                                           double vare,
                                           double nub,
@@ -337,7 +403,7 @@ std::vector<std::vector<double>>  fbayes(  std::vector<double> y,
   int m = W.size();
   
   double pi0=pi;
-  double vara0=vara;
+  double varg0=varg;
   
   double rhs, lhs, bnew, conv, diff, mu;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
@@ -361,7 +427,7 @@ std::vector<std::vector<double>>  fbayes(  std::vector<double> y,
   // Prior variance and degrees of freedom
   dfe = n + nue;
   //ssb_prior = nub*varb;
-  ssb_prior =  (nub-2.0)/nub * (vara0/(pi0*m*0.5));
+  ssb_prior =  (nub-2.0)/nub * (varg0/(pi0*m*0.5));
   sse_prior = nue*vare;
   
 
@@ -629,7 +695,7 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
                                           std::vector<double> lambda,
                                           double yy,
                                           double pi,
-                                          double vara,
+                                          double varg,
                                           double varb,
                                           double vare,
                                           double ssb_prior,
@@ -650,7 +716,7 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
   int m = b.size();
 
   double pi0=pi;
-  //double vara0=vara;
+  //double varg0=varg;
 
   double rhs, lhs, bnew, conv, diff;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
@@ -811,8 +877,8 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
         d_post_mean[i] = d_post_mean[i] + 1.0;
       }
     }
-    dfb = dfb + nub;
-    std::chi_squared_distribution<double> rchisq_b(dfb);
+    //dfb = dfb + nub;
+    std::chi_squared_distribution<double> rchisq_b(dfb + nub);
     chi2 = rchisq_b(gen);
     if(updateB) {
       varb = (ssb + ssb_prior)/chi2 ;
@@ -936,7 +1002,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
                                           std::vector<double> lambda, 
                                           double yy, 
                                           double pi, 
-                                          double vara, 
+                                          double varg, 
                                           double varb, 
                                           double vare,
                                           double ssb_prior,
@@ -957,7 +1023,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   int m = b.size();
   
   double pi0=pi;
-  //double vara0=vara;
+  //double varg0=varg;
   
   double rhs, lhs, bnew, conv, diff;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
