@@ -178,9 +178,14 @@ plotma <- function(ma = NULL, chr = NULL, rsids = NULL, thresh = 5) {
 
 sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL, rsids = NULL,
                 msize = 100, scale = TRUE) {
-  if (is.list(y)) y <- as.matrix(as.data.frame(y))
+  if (is.list(y)) {
+    if(is.null(names(y))) names(y) <- paste0("T",1:length(y)) 
+    y <- as.matrix(as.data.frame(y))
+  }
+  
   if (is.vector(y)) y <- matrix(y, ncol = 1, dimnames = list(names(y), "trait"))
   ids <- rownames(y)
+  
   nt <- ncol(y)
   if (!is.null(W)) {
     if (any(!ids == rownames(W))) stop("Some names of y does not match rownames of W")
@@ -204,10 +209,8 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
     for (chr in  chromosomes) {
       message(paste("Processing chromosome:", chr, "out of", Glist$nchr, "chromosomes"))
       m <- Glist$mchr[chr]
-      n <- Glist$n
       cls <- 1:m
-      if (!is.null(rsids)) cls <- match(rsids, Glist$rsids)
-      m <- length(cls)
+      n <- Glist$n
       rws <- 1:n
       if (!is.null(ids)) rws <- match(ids, Glist$ids)
       s <- se <- stat <- p <- matrix(NA, nrow = m, ncol = nt)
@@ -217,6 +220,11 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
       rownames(dfe) <- rownames(ww) <- rownames(wy) <- Glist$rsids[[chr]]
       colnames(dfe) <- colnames(ww) <- colnames(wy) <- colnames(y)
       if (!is.null(rsids)) cls <- match(rsids, Glist$rsids[[chr]])
+      rsidsChr <- Glist$rsids[[chr]]
+      if (!is.null(rsids)) {
+        rsidsChr <- rsidsChr[rsidsChr%in%rsids]
+        cls <- match(rsidsChr,Glist$rsids[[chr]])
+      }
       sets <- split(cls, ceiling(seq_along(cls) / msize))
       nsets <- length(sets)
       for (i in 1:nsets) {
@@ -235,22 +243,44 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
       }
       cls <- unlist(sets)
       ma[[chr]] <- list(b = s[cls, ], seb = se[cls, ], stat = stat[cls, ], p = p[cls, ],
-                        dfe = dfe[cls, ], ww = ww[cls, ], wy = wy[cls, ])
-      if (nt == 1) ma[[chr]] <- as.matrix(as.data.frame(ma[[chr]]))
+                        n = dfe[cls, ], ww = ww[cls, ], wy = wy[cls, ])
+      if (nt == 1) ma[[chr]] <- as.data.frame(ma[[chr]])
     }
-    if (nt == 1) ma <- do.call(rbind, ma)
+    if (nt == 1) {
+      ma <- do.call(rbind, ma)
+      if(!is.null(Glist)) {
+        rsids <- rownames(ma)
+        ma$rsids <- rsids
+        ma$chr <- unlist(Glist$chr)[rsids]
+        ma$pos <- unlist(Glist$pos)[rsids]
+        ma$a1 <- unlist(Glist$a1)[rsids]
+        ma$a2 <- unlist(Glist$a2)[rsids]
+        ma$af <- unlist(Glist$af)[rsids]
+        ma <- ma[,c(8:13,1:7)]
+        ma <- na.omit(ma)
+      }
+    }
     if(nt>1) {
       b <- do.call(rbind, lapply(ma,function(x){x$b}))
       seb <- do.call(rbind, lapply(ma,function(x){x$seb}))
       stat <- do.call(rbind, lapply(ma,function(x){x$stat}))
       p <- do.call(rbind, lapply(ma,function(x){x$p}))
-      dfe <- do.call(rbind, lapply(ma,function(x){x$dfe}))
+      n <- do.call(rbind, lapply(ma,function(x){x$dfe}))
       ww <- do.call(rbind, lapply(ma,function(x){x$ww}))
       wy <- do.call(rbind, lapply(ma,function(x){x$wy}))
       ma <- list(b = b, seb = seb, stat = stat, p = p,
                  dfe = dfe, ww = ww, wy = wy)
+      if(!is.null(Glist)) {
+        rsids <- rownames(ma$b)
+        ma$marker <- data.frame( rsids=rsids, 
+                              chr=unlist(Glist$chr)[rsids],
+                              pos=unlist(Glist$pos)[rsids],
+                              a1=unlist(Glist$a1)[rsids],
+                              a2=unlist(Glist$a2)[rsids],
+                              af=unlist(Glist$a2)[rsids])
+      }
+      
     }
-    
   }
   return(ma)
 }
