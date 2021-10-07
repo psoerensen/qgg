@@ -21,20 +21,20 @@ summarybed <- function(file, n, cls, af, weights, y) {
     .Call(`_qgg_summarybed`, file, n, cls, af, weights, y)
 }
 
-bayes <- function(y, W, b, lambda, pi, vara, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, method) {
-    .Call(`_qgg_bayes`, y, W, b, lambda, pi, vara, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, method)
+bayes <- function(y, W, b, lambda, pi, varg, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, method) {
+    .Call(`_qgg_bayes`, y, W, b, lambda, pi, varg, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, method)
 }
 
-fbayes <- function(y, W, LD, b, lambda, pi, vara, varb, vare, nub, nue, updateB, updateE, updatePi, nit, method) {
-    .Call(`_qgg_fbayes`, y, W, LD, b, lambda, pi, vara, varb, vare, nub, nue, updateB, updateE, updatePi, nit, method)
+fbayes <- function(y, W, LD, b, lambda, pi, varg, varb, vare, nub, nue, updateB, updateE, updatePi, nit, method) {
+    .Call(`_qgg_fbayes`, y, W, LD, b, lambda, pi, varg, varb, vare, nub, nue, updateB, updateE, updatePi, nit, method)
 }
 
-sbayes <- function(wy, LD, b, lambda, yy, pi, vara, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method) {
-    .Call(`_qgg_sbayes`, wy, LD, b, lambda, yy, pi, vara, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method)
+sbayes <- function(wy, LD, b, lambda, yy, pi, varg, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method) {
+    .Call(`_qgg_sbayes`, wy, LD, b, lambda, yy, pi, varg, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method)
 }
 
-sbayes_spa <- function(wy, LDvalues, LDindices, b, lambda, yy, pi, vara, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method) {
-    .Call(`_qgg_sbayes_spa`, wy, LDvalues, LDindices, b, lambda, yy, pi, vara, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method)
+sbayes_spa <- function(wy, LDvalues, LDindices, b, lambda, yy, pi, varg, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method) {
+    .Call(`_qgg_sbayes_spa`, wy, LDvalues, LDindices, b, lambda, yy, pi, varg, varb, vare, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method)
 }
 
 grsbed <- function(file, n, cls, af, b) {
