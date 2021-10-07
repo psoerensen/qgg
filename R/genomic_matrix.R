@@ -46,7 +46,7 @@
 #' @param bimfiles vector of names for the PLINK bim-files
 #' @param ids vector of individuals used in the study
 #' @param rsids vector of marker rsids used in the study
-#' @param fnLD path and filename of the binary files .ld for storing sparse ld matrix on the disk
+#' @param ldfiles path and filename of the binary files .ld for storing sparse ld matrix on the disk
 #' @param msize number of markers used in compuation of sparseld
 #' @param overwrite logical if TRUE overwite binary genotype file
 #' @param ncores number of cores used to process the genotypes
@@ -77,7 +77,7 @@
 #' @export
 #'
 
-gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fnLD = NULL,
+gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ldfiles = NULL,
                   bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
                   overwrite = FALSE, msize = 100, r2=NULL, ncores = 1) {
 
@@ -155,6 +155,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
       names(Glist$n2[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$cpra[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$rsids[[chr]]) <- Glist$cpra[[chr]]
+      names(Glist$chr[[chr]]) <- Glist$rsids[[chr]]
     }
 
     Glist$nchr <- length(Glist$bedfiles)
@@ -170,15 +171,15 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, fn
   if (task == "sparseld") {
     message("Computing ld")
     Glist$msize <- msize
-    Glist$fnLD <- fnLD
-    if (is.null(fnLD)) Glist$fnLD <- gsub(".bed", ".ld", Glist$bedfiles)
-    Glist$rsidsLD <- vector(mode = "list", length = length(Glist$fnLD))
-    Glist$ldscores <- vector(mode = "list", length = length(Glist$fnLD))
+    Glist$ldfiles <- ldfiles
+    if (is.null(ldfiles)) Glist$ldfiles <- gsub(".bed", ".ld", Glist$bedfiles)
+    Glist$rsidsLD <- vector(mode = "list", length = length(Glist$ldfiles))
+    Glist$ldscores <- vector(mode = "list", length = length(Glist$ldfiles))
     if (is.null(ids)) ids <- Glist$ids
     Glist$idsLD <- ids
-    for( chr in 1:length(Glist$fnLD)) {
+    for( chr in 1:length(Glist$ldfiles)) {
       message(paste("Compute sparse LD matrix for chromosome:",chr))
-      Glist <- sparseLD(Glist = Glist, fnLD = Glist$fnLD[chr], msize = msize, chr = chr, rsids = rsids,
+      Glist <- sparseLD(Glist = Glist, fnLD = Glist$ldfiles[chr], msize = msize, chr = chr, rsids = rsids,
         ids = ids, ncores = 1)
       Glist$ldscores[[chr]] <- ldscore( Glist=Glist, chr=chr) 
     }
@@ -680,7 +681,7 @@ getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
     ldSetsChr <- vector(length = mchr, mode = "list")
     names(ldSetsChr) <- rsidsChr
     
-    fnLD <- Glist$fnLD[chr]
+    fnLD <- Glist$ldfiles[chr]
     bfLD <- file(fnLD, "rb")
     
     nld <- as.integer(msize * 2 + 1)
@@ -706,7 +707,7 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
   ld = matrix(0, ncol = mchr, nrow=(msize * 2 + 1))
   colnames(ld) <- rsidsChr
   rownames(ld) <- c(-(msize:1), 0, 1:msize)
-  fnLD <- Glist$fnLD[chr]
+  fnLD <- Glist$ldfiles[chr]
   bfLD <- file(fnLD, "rb")
   nld <- as.integer(msize * 2 + 1)
   k = 1
@@ -732,7 +733,7 @@ getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=N
   ld_values <- vector(length = mchr, mode = "list")
   names(ld_indices) <- names(ld_values) <- rsidsChr
   
-  fnLD <- Glist$fnLD[chr]
+  fnLD <- Glist$ldfiles[chr]
   bfLD <- file(fnLD, "rb")
   
   nld <- as.integer(msize * 2 + 1)
