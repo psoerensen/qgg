@@ -361,7 +361,7 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4) {
                 ldchr <- rep(0,m)
                 names(ldchr) <- rsids
                 
-                fnLD <- Glist$fnLD[[chr]]
+                fnLD <- Glist$ldfiles[[chr]]
                 bfLD <- file(fnLD, "rb")
                 
                 for (j in 1:m) {
