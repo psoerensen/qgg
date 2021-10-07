@@ -57,32 +57,32 @@
 #'
 
 gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                   vara=NULL, varb=NULL, vare=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
+                   varg=NULL, varb=NULL, vare=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
                    nub=4, nue=4, nit=100, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="default") {
      
-     methods <- c("blup","mixed","bayesA","blasso","bayesC")
+     methods <- c("blup","mixed","bayesA","blasso","bayesC","ssvs")
      method <- match(method, methods) - 1
-     if( !sum(method%in%c(0:4))== 1 ) stop("Method specified not valid") 
+     if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid") 
      
      nt <- 1
      if(is.list(y)) nt <- length(y)
      
      if(nt==1 && !algorithm=="sbayes") fit <- bayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                                                     vara=vara, varb=varb, vare=vare, 
+                                                     varg=varg, varb=varb, vare=vare, 
                                                      ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                                                      h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
                                                      nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
      
      if(nt==1 && algorithm=="sbayes" && is.null(Glist)) fit <- sbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                                                                      vara=vara, varb=varb, vare=vare, 
+                                                                      varg=varg, varb=varb, vare=vare, 
                                                                       ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                                                                       h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
                                                                       nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
      
      if(nt>1 && is.null(Glist)) fit <- mtbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                                               vara=vara, varb=varb, vare=vare, 
+                                               varg=varg, varb=varb, vare=vare, 
                                                ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                                                h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
                                                nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) 
@@ -130,7 +130,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      #       W <- getG(Glist, chr=chr, scale=TRUE, cls=cls[[i]])
      #       LD <- crossprod(W[rws,])
      #       fitset <- sbayes(y=e, X=X, W=W[rws,], b=b, badj=badj, seb=seb, LD=LD, n=n,
-     #                        vara=vara, varb=varb, vare=vare, 
+     #                        varg=varg, varb=varb, vare=vare, 
      #                        ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=FALSE,
      #                        h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
      #                        nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)
@@ -139,8 +139,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      #       e <- e - gset[rws,]
      #       dm[sets[[i]]] <- fitset$dm
      #       bm[sets[[i]]] <- fitset$bm
-     #       varem[[i]] <- fitset$E
-     #       varbm[[i]] <- fitset$B
+     #       varem[[i]] <- fitset$vare
+     #       varbm[[i]] <- fitset$varb
      #       pim[[i]] <- fitset$Pi
      #       print(paste("Finished segment:",i,"out of",length(sets),"segments on chromosome:",chr))
      #     }
@@ -207,7 +207,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                               updateB=updateB, 
                               updateE=updateE, 
                               updatePi=updatePi)
-         stat[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a1[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
+         stat[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
+                                   pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
+                                   a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
          rownames(stat[[chr]]) <- rsidsLD
        }
        stat <- do.call(rbind, stat)
@@ -216,8 +218,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        fit$covs <- covs
      }
   
-        
-     if( !is.null(stat) && algorithm=="sbayes" && !is.null(Glist)) {
+     #if( !is.null(stat) && algorithm=="sbayes" && !is.null(Glist)) {
+       
+     if( !is.null(stat) && !is.null(Glist)) {
        fit <- NULL
 
        if(is.null(chr)) chromosomes <- 1:Glist$nchr
@@ -230,7 +233,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          rsidsLD <- unlist(Glist$rsidsLD)
          b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
          rownames(b) <- rownames(wy) <- rsidsLD
-         trait_names <- "trait1"       
+         trait_names <- "badj"       
          stat <- stat[rownames(stat)%in%rsidsLD,]
          b2 <- stat$b^2
          seb2 <- stat$seb^2
@@ -312,7 +315,11 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
            bmchr <- cbind(bmchr, fit[[chr]]$bm)
          }
          colnames(bmchr) <- trait_names
-         res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a1[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bmchr)
+         #res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a1[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bmchr)
+         res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
+                                   pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
+                                   a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=bmchr)
+         
          # fit[[chr]] <- sbayes_sparse(yy=yy, 
          #                             wy=wy[rsidsLD],
          #                             b=b[rsidsLD], 
@@ -341,244 +348,14 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        fit$stat <- res
        fit$covs <- covs
      }
-     
-     #fit$acc <- acc(yobs=y,ypred=fit$g)
      fit$method <- methods[method+1]
           
      return(fit)
-     
-          # ids <- NULL
-          # if(is.matrix(y)) ids <- rownames(y)
-          # if(is.vector(y)) ids <- names(y)
-          # 
-          # if(scaleY) y <- as.vector(scale(y)) 
-          # 
-          # if(is.null(pi)) pi <- 0.001
-          # 
-          # if(is.null(h2)) h2 <- 0.5
-          # 
-          # n <- nrow(W)
-          # m <- ncol(W)
-          # 
-          # if(is.null(ids)) warning("No names/rownames provided for y")
-          # if(is.null(rownames(W))) warning("No names/rownames provided for W")
-          # if(!is.null(ids) & !is.null(rownames(W))) {
-          #   if(any(is.na(match(ids,rownames(W))))) stop("Names/rownames for y does match rownames for W")
-          #                         
-          # }
-          # 
-          # 
-          # 
-          # if(is.null(b)) b <- rep(0,m)
-          # e=y-mean(y)
-          # if(is.null(vare)) vare <- var(e)
-          # if(is.null(varb)) varb <- (vare/m)*h2
-          # if(is.null(lambda)) lambda <- rep(vare/varb,m)
-          # if(is.null(vara)) vara <- vare*h2
-          # 
-          # #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
-          # if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
-          # if(is.null(sse_prior)) sse_prior <- nue*vare
-          # 
-          # 
-          # if(algorithm=="default") {
-          #      fit <- .Call("_qgg_bayes",
-          #                   y=y, 
-          #                   W=split(W, rep(1:ncol(W), each = nrow(W))), 
-          #                   b=b,
-          #                   lambda = lambda,
-          #                   pi = pi,
-          #                   vara = vara,
-          #                   varb = varb,
-          #                   vare = vare,
-          #                   ssb_prior=ssb_prior,
-          #                   sse_prior=sse_prior,
-          #                   nub=nub,
-          #                   nue=nue,
-          #                   updateB = updateB,
-          #                   updateE = updateE,
-          #                   updatePi = updatePi,
-          #                   nit=nit,
-          #                   method=as.integer(method)) 
-          #      names(fit[[1]]) <- colnames(W)
-          #      fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
-          #      names(fit[[7]]) <- names(fit[[8]]) <- ids
-          #      names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
-          # } 
-          # 
-          # 
-          # if(algorithm=="fastbayes") {
-          #      LD <- crossprod(W)
-          #      
-          #      fit <- .Call("_qgg_fbayes",
-          #                     y=y, 
-          #                    W=split(W, rep(1:ncol(W), each = nrow(W))), 
-          #                    LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
-          #                    b=b,
-          #                    lambda = lambda,
-          #                    pi = pi,
-          #                    vara = vara,
-          #                    varb = varb,
-          #                    vare = vare,
-          #                    nub=nub,
-          #                    nue=nue,
-          #                    updateB = updateB,
-          #                    updateE = updateE,
-          #                    updatePi = updatePi,
-          #                    nit=nit,
-          #                    method=as.integer(method)) 
-          #      names(fit[[1]]) <- colnames(W)
-          #      names(fit) <- c("b","p","mu","B","E","Pi")
-          # }
-
-     
-     
-     # if(algorithm=="sbayes") {
-     #   
-     #   
-     #   ids <- NULL
-     #   if(is.matrix(y)) ids <- rownames(y)
-     #   if(is.vector(y)) ids <- names(y)
-     #   
-     #   if(scaleY) y <- as.vector(scale(y)) 
-     #   
-     #   wy <- as.vector(crossprod(W,y))           
-     #   yy <- sum((y-mean(y))**2)
-     #   
-     #   n <-nrow(W)       
-     #   
-     #   if(!is.null(W) && is.null(LD)) {
-     #     n <- nrow(W)
-     #     LD <- crossprod(W)
-     #     #LD <- crossprod(W)/(n-1)
-     #   }    
-     #   
-     #   
-     #   m <- ncol(LD)
-     #   
-     #   if(is.null(pi)) pi <- 0.01
-     #   
-     #   if(is.null(h2)) h2 <- 0.5
-     #   
-     #   if(is.null(vare)) vare <- 1
-     #   if(is.null(varb)) varb <- (vare/m)*h2
-     #   if(is.null(lambda)) lambda <- rep(vare/varb,m)
-     #   if(is.null(vara)) vara <- vare*h2
-     #   
-     #   if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
-     #   if(is.null(sse_prior)) sse_prior <- nue*vare
-     #   
-     #   if(is.null(b)) b <- rep(0,m)
-     #   
-     # 
-     #      fit <- .Call("_qgg_sbayes",
-     #                   wy=wy, 
-     #                   LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
-     #                   b = b,
-     #                   lambda = lambda,
-     #                   yy = yy,
-     #                   pi = pi,
-     #                   vara = vara,
-     #                   varb = varb,
-     #                   vare = vare,
-     #                   ssb_prior=ssb_prior,
-     #                   sse_prior=sse_prior,
-     #                   nub=nub,
-     #                   nue=nue,
-     #                   updateB = updateB,
-     #                   updateE = updateE,
-     #                   updatePi = updatePi,
-     #                   n=n,
-     #                   nit=nit,
-     #                   method=as.integer(method))
-     #      names(fit[[1]]) <- 
-     #      #names(fit) <- c("b","p","mu","B","E","Pi")
-     #      names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
-     # }
-     
-     # if(nt>1) {
-     #      
-     #      if(method==2) stop("Multiple trait not yet implemented for Bayes A") 
-     #      if(method==3) stop("Multiple trait not yet implemented for Bayesian Lasso")
-     #      
-     #      n <- nrow(W)
-     #      m <- ncol(W)
-     #      
-     #      if(scaleY) y <- lapply(y,function(x){as.vector(scale(x))})
-     #      if(!scaleY) y <- lapply(y,function(x){x-mean(x) })
-     #      
-     #      
-     #      if(is.null(b)) b <- lapply(1:nt,function(x){rep(0,m)}) 
-     #      
-     #      if(is.null(models)) {
-     #           models <- rep(list(0:1), nt)
-     #           models <- t(do.call(expand.grid, models))
-     #           models <- split(models, rep(1:ncol(models), each = nrow(models)))
-     #           pi <- c(0.999,rep(0.001,length(models)-1)) 
-     #      } 
-     #      if(is.character(models)) {
-     #           if(models=="restrictive") {
-     #                models <- list(rep(0,nt),rep(1,nt))
-     #                pi <- c(0.999,0.001)
-     #           }
-     #      }
-     #      
-     #      #if(is.null(pi)) {
-     #      #     pi <- c(0.999,rep(0.001,length(models)-1)) 
-     #      #}
-     #      
-     #      if(is.null(h2)) h2 <- 0.5
-     #      if(is.null(vare)) {
-     #           vare <- diag(sapply(y,var))
-     #      }
-     #      if(is.null(varb)) varb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
-     #      #if(is.null(varb)) varb <- (vare*h2)/(m*pi[length(models)])
-     #      if(is.null(vara)) vara <- diag(diag(vare))*h2
-     #      
-     #      #if(is.null(ssb_prior)) ssb_prior <-  diag((nub-2.0)/nub * (vara/(m*pi[length(models)])))
-     #      #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(m*pi[length(models)]))
-     #      if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
-     #      #if(is.null(sse_prior)) sse_prior <- diag(nue*vare)
-     #      if(is.null(sse_prior)) sse_prior <- nue*diag(diag(vare))
-     #      
-     #              
-     #      fit <- .Call("_qgg_mtbayes",
-     #                   y=y, 
-     #                   W=split(W, rep(1:ncol(W), each = nrow(W))), 
-     #                   b=b,
-     #                   B = varb,
-     #                   E = vare,
-     #                   ssb_prior=split(ssb_prior, rep(1:ncol(ssb_prior), each = nrow(ssb_prior))),
-     #                   sse_prior=split(sse_prior, rep(1:ncol(sse_prior), each = nrow(sse_prior))),
-     #                   models=models,
-     #                   pi=pi,
-     #                   nub=nub,
-     #                   nue=nue,
-     #                   updateB=updateB,
-     #                   updateE=updateE,
-     #                   updatePi=updatePi,
-     #                   nit=nit,
-     #                   method=as.integer(method))
-     #      fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
-     #      fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
-     #      colnames(fit[[6]]) <- rownames(fit[[6]]) <- paste0("T",1:nt)
-     #      colnames(fit[[7]]) <- rownames(fit[[7]]) <- paste0("T",1:nt)
-     #      fit[[11]] <- matrix(unlist(fit[[11]]), ncol = nt, byrow = TRUE)
-     #      fit[[12]] <- matrix(unlist(fit[[12]]), ncol = nt, byrow = TRUE)
-     #      colnames(fit[[11]]) <- rownames(fit[[11]]) <- paste0("T",1:nt)
-     #      colnames(fit[[12]]) <- rownames(fit[[12]]) <- paste0("T",1:nt)
-     #      fit[[13]] <- fit[[13]][[1]]
-     #      fit[[14]] <- fit[[14]][[1]]
-     #      fit[[15]] <- fit[[15]][[1]]
-     #      names(fit) <- c("bm","dm","mu","Bm","Em","rg","re","g","e","b","B","E","pi","pim","order")
-     # 
-     # }
-     
-
 }
 
+
 bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                   vara=NULL, varb=NULL, vare=NULL, 
+                   varg=NULL, varb=NULL, vare=NULL, 
                    ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                    h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                    nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
@@ -608,13 +385,11 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   e=y-mean(y)
   if(is.null(vare)) vare <- var(e)
   if(method<4 && is.null(varb)) varb <- (vare*h2)/m
-  if(method==4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
-  #if(is.null(varb)) varb <- (vare/m)*h2
+  if(method>=4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
   if(is.null(lambda)) lambda <- rep(vare/varb,m)
-  if(is.null(vara)) vara <- vare*h2
+  if(is.null(varg)) varg <- vare*h2
   
-  #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
   if(is.null(sse_prior)) sse_prior <- nue*vare
   
   
@@ -625,7 +400,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
                  b=b,
                  lambda = lambda,
                  pi = pi,
-                 vara = vara,
+                 varg = varg,
                  varb = varb,
                  vare = vare,
                  ssb_prior=ssb_prior,
@@ -641,48 +416,17 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
     names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[10]]) <- colnames(W)
     fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
     names(fit[[7]]) <- names(fit[[8]]) <- ids
-    names(fit) <- c("bm","dm","mu","B","E","pi","g","e","param","b")
+    names(fit) <- c("bm","dm","mu","varb","vare","pi","g","e","param","b")
+
   } 
-  
-  
-  if(algorithm=="fastbayes") {
-    LD <- crossprod(W)
-    
-    fit <- .Call("_qgg_fbayes",
-                 y=y, 
-                 W=split(W, rep(1:ncol(W), each = nrow(W))), 
-                 LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
-                 b=b,
-                 lambda = lambda,
-                 pi = pi,
-                 vara = vara,
-                 varb = varb,
-                 vare = vare,
-                 nub=nub,
-                 nue=nue,
-                 updateB = updateB,
-                 updateE = updateE,
-                 updatePi = updatePi,
-                 nit=nit,
-                 method=as.integer(method)) 
-    names(fit[[1]]) <- colnames(W)
-    names(fit) <- c("b","p","mu","B","E","Pi")
-  }
   
   return(fit)
   
   
 }
 
-
-#sbayes <- function(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-#                    vara=vara, varb=varb, vare=vare, 
-#                    ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-#                    h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-#                    nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) {
-
 sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                  vara=NULL, varb=NULL, vare=NULL, 
+                  varg=NULL, varb=NULL, vare=NULL, 
                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                   h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                   nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
@@ -701,25 +445,20 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   if(!is.null(W) && is.null(LD)) {
     n <- nrow(W)
     LD <- crossprod(W)
-    #LD <- crossprod(W)/(n-1)
   }    
-  
-  
   m <- ncol(LD)
   
-  if(is.null(pi)) pi <- 0.01
+  if(is.null(pi)) pi <- 0.001
   
   if(is.null(h2)) h2 <- 0.5
   
   if(is.null(vare)) vare <- 1
-  #if(is.null(varb)) varb <- (vare/m)*h2
   if(method<4 && is.null(varb)) varb <- (vare*h2)/m
   if(method==4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
   if(is.null(lambda)) lambda <- rep(vare/varb,m)
-  if(is.null(vara)) vara <- vare*h2
+  if(is.null(varg)) varg <- vare*h2
   
-  #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(pi*m*0.5))
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
   if(is.null(sse_prior)) sse_prior <- nue*vare
   
   if(is.null(b)) b <- rep(0,m)
@@ -732,7 +471,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                lambda = lambda,
                yy = yy,
                pi = pi,
-               vara = vara,
+               varg = varg,
                varb = varb,
                vare = vare,
                ssb_prior=ssb_prior,
@@ -748,7 +487,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   names(fit[[1]]) <- rownames(LD)
   if(!is.null(W)) fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
   names(fit[[7]]) <- ids
-  names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
+  names(fit) <- c("bm","dm","mu","varb","vare","pi","g","e","param","b")
 
   return(fit)
   
@@ -756,7 +495,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
 
 
 sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                        vara=NULL, varb=NULL, vare=NULL, 
+                        varg=NULL, varb=NULL, vare=NULL, 
                         ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                         h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                         nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
@@ -769,8 +508,8 @@ sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   if(method<4 && is.null(varb)) varb <- (vare*h2)/m
   if(method==4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
   if(is.null(lambda)) lambda <- rep(vare/varb,m)
-  if(is.null(vara)) vara <- vare*h2
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
+  if(is.null(varg)) varg <- vare*h2
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
   if(is.null(sse_prior)) sse_prior <- nue*vare
   if(is.null(b)) b <- rep(0,m)
   
@@ -782,7 +521,7 @@ sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                lambda = lambda,
                yy = yy,
                pi = pi,
-               vara = vara,
+               varg = varg,
                varb = varb,
                vare = vare,
                ssb_prior=ssb_prior,
@@ -796,14 +535,14 @@ sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                nit=nit,
                method=as.integer(method))
   names(fit[[1]]) <- rownames(LD)
-  names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
+  names(fit) <- c("bm","dm","mu","varb","vare","pi","g","e","param","b")
   
   return(fit)
   
 }
 
 sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LDvalues=NULL,LDindices=NULL, n=NULL,
-                        vara=NULL, varb=NULL, vare=NULL, 
+                        varg=NULL, varb=NULL, vare=NULL, 
                         ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                         h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                         nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
@@ -816,8 +555,8 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LDvalue
   if(method<4 && is.null(varb)) varb <- (vare*h2)/m
   if(method==4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
   if(is.null(lambda)) lambda <- rep(vare/varb,m)
-  if(is.null(vara)) vara <- vare*h2
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
+  if(is.null(varg)) varg <- vare*h2
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
   if(is.null(sse_prior)) sse_prior <- nue*vare
   if(is.null(b)) b <- rep(0,m)
   
@@ -830,7 +569,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LDvalue
                lambda = lambda,
                yy = yy,
                pi = pi,
-               vara = vara,
+               varg = varg,
                varb = varb,
                vare = vare,
                ssb_prior=ssb_prior,
@@ -844,19 +583,19 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LDvalue
                nit=nit,
                method=as.integer(method))
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","mu","B","E","Pi","g","e","param","b")
+  names(fit) <- c("bm","dm","mu","varb","vare","pi","g","e","param","b")
   
   return(fit)
   
 }
 
 #mtbayes <- function(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-#                    vara=vara, varb=varb, vare=vare, 
+#                    varg=varg, varb=varb, vare=vare, 
 #                    ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
 #                    h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
 #                    nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) {
 mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                  vara=NULL, varb=NULL, vare=NULL, 
+                  varg=NULL, varb=NULL, vare=NULL, 
                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                   h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                   nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
@@ -907,11 +646,11 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   if(method==4 && is.null(varb)) varb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
   
   #if(is.null(varb)) varb <- (vare*h2)/(m*pi[length(models)])
-  if(is.null(vara)) vara <- diag(diag(vare))*h2
+  if(is.null(varg)) varg <- diag(diag(vare))*h2
 
-  #if(is.null(ssb_prior)) ssb_prior <-  diag((nub-2.0)/nub * (vara/(m*pi[length(models)])))
-  #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/(m*pi[length(models)]))
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vara/m)
+  #if(is.null(ssb_prior)) ssb_prior <-  diag((nub-2.0)/nub * (varg/(m*pi[length(models)])))
+  #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/(m*pi[length(models)]))
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
   #if(is.null(sse_prior)) sse_prior <- diag(nue*vare)
   if(is.null(sse_prior)) sse_prior <- nue*diag(diag(vare))
   
@@ -973,7 +712,7 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   colnames(fit[[16]]) <- trait_names
   names(fit[[13]]) <- sapply(models,paste,collapse="_")
   names(fit[[14]]) <- sapply(models,paste,collapse="_")
-  names(fit) <- c("bm","dm","mu","Bm","Em","covb","cove","g","e","b","B","E","pi","pim","order","gm","rb","re","covg","rg")
+  names(fit) <- c("bm","dm","mu","Bm","Em","covb","cove","g","e","b","varb","vare","pi","pim","order","gm","rb","re","covg","rg")
   
   return(fit)
   
@@ -1214,71 +953,85 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
 #' @export
 #'
 
-adjStat <- function(Glist=NULL,stat=NULL,filename=NULL, chr=NULL){
-  chromosomes <- chr
-  if(is.null(chromosomes)) chromosomes <- 1:Glist$nchr
-  badj <- NULL
-  for ( chr in chromosomes) {
-    
-    LD <- getSparseLD(Glist = Glist, chr = chr)
-    rsidsLD <- Glist$rsidsLD[[chr]]
-    
-    zobs <- zpred <- rep(0,length(rsidsLD))
-    names(zobs) <- names(zpred) <- rsidsLD
-    rsidsSTAT <- rownames(stat)[rownames(stat)%in%rsidsLD]
-    zobs[rsidsSTAT] <- stat[rsidsSTAT,"b"]
-    #zobs[rsidsSTAT] <- stat[rsidsSTAT,"b"]/stat[rsidsSTAT,"seb"]
-    for (i in 1:length(LD$indices)){
-      #zsum <- sum(zobs[LD$indices[[i]]]*LD$values[[i]])-zobs[i]
-      #nsum <- sum(abs(LD$values[[i]])) - 1
-      zsum <- sum(zobs[LD$indices[[i]]]*LD$values[[i]])
-      nsum <- sum(abs(LD$values[[i]]))
-      #zpred[i] <- zsum/nsum
-      if(!zobs[i]==0.0) zpred[i] <- zsum/nsum
-    }
-    # quantile normalisation (https://academic.oup.com/bioinformatics/article/19/2/185/372664)
-    zobs_rank <- rank(zobs, ties.method = "min")
-    zpred_rank <- rank(zpred, ties.method = "min")
-    zobs_sort <- sort(zobs)
-    zpred_sort <- sort(zpred)
-    zmean <- (zobs_sort+zpred_sort)/2
-    zobs_adj <- zmean[zobs_rank]
-    zpred_adj <- zmean[zpred_rank]
-    
-    if(!is.null(filename[chr])) {
-      png(filename[chr])
-      layout(matrix(1:4,ncol=2,byrow=TRUE))
-      plot(y=zobs,x=zpred, main=paste("Chr",chr), ylab="Observed Z",xlab="Predicted Z")
-      plot(y=zobs_adj,x=zpred_adj, main=paste("Chr",chr), ylab="Observed Z (normalized)",xlab="Predicted Z (normalized)")
-      plot(y=zobs,x=zobs_adj, main=paste("Chr",chr), ylab="Observed Z", xlab="Observed Z (normalized)")
-      plot(y=zobs,x=zpred_adj, main=paste("Chr",chr), ylab="Observed Z", xlab="Predicted Z (normalized)")
-      dev.off()
-    }
-    print(paste("Finished chr:",chr))
-    badj <- c(badj,zpred_adj)
-  }
-  badj <- badj[names(badj)%in%rownames(stat)]
-  stat <- cbind(stat[names(badj),],badj=badj)
-  return(stat)
-}
+
+
+# adjStat <- function(Glist=NULL,stat=NULL,filename=NULL, chr=NULL){
+#   chromosomes <- chr
+#   if(is.null(chromosomes)) chromosomes <- 1:Glist$nchr
+#   badj <- NULL
+#   for ( chr in chromosomes) {
+#     
+#     LD <- getSparseLD(Glist = Glist, chr = chr)
+#     rsidsLD <- Glist$rsidsLD[[chr]]
+#     
+#     zobs <- zpred <- rep(0,length(rsidsLD))
+#     names(zobs) <- names(zpred) <- rsidsLD
+#     rsidsSTAT <- rownames(stat)[rownames(stat)%in%rsidsLD]
+#     zobs[rsidsSTAT] <- stat[rsidsSTAT,"b"]
+#     #zobs[rsidsSTAT] <- stat[rsidsSTAT,"b"]/stat[rsidsSTAT,"seb"]
+#     for (i in 1:length(LD$indices)){
+#       #zsum <- sum(zobs[LD$indices[[i]]]*LD$values[[i]])-zobs[i]
+#       #nsum <- sum(abs(LD$values[[i]])) - 1
+#       zsum <- sum(zobs[LD$indices[[i]]]*LD$values[[i]])
+#       nsum <- sum(abs(LD$values[[i]]))
+#       #zpred[i] <- zsum/nsum
+#       if(!zobs[i]==0.0) zpred[i] <- zsum/nsum
+#     }
+#     # quantile normalisation (https://academic.oup.com/bioinformatics/article/19/2/185/372664)
+#     zobs_rank <- rank(zobs, ties.method = "min")
+#     zpred_rank <- rank(zpred, ties.method = "min")
+#     zobs_sort <- sort(zobs)
+#     zpred_sort <- sort(zpred)
+#     zmean <- (zobs_sort+zpred_sort)/2
+#     zobs_adj <- zmean[zobs_rank]
+#     zpred_adj <- zmean[zpred_rank]
+#     
+#     if(!is.null(filename[chr])) {
+#       png(filename[chr])
+#       layout(matrix(1:4,ncol=2,byrow=TRUE))
+#       plot(y=zobs,x=zpred, main=paste("Chr",chr), ylab="Observed Z",xlab="Predicted Z")
+#       plot(y=zobs_adj,x=zpred_adj, main=paste("Chr",chr), ylab="Observed Z (normalized)",xlab="Predicted Z (normalized)")
+#       plot(y=zobs,x=zobs_adj, main=paste("Chr",chr), ylab="Observed Z", xlab="Observed Z (normalized)")
+#       plot(y=zobs,x=zpred_adj, main=paste("Chr",chr), ylab="Observed Z", xlab="Predicted Z (normalized)")
+#       dev.off()
+#     }
+#     print(paste("Finished chr:",chr))
+#     badj <- c(badj,zpred_adj)
+#   }
+#   badj <- badj[names(badj)%in%rownames(stat)]
+#   stat <- cbind(stat[names(badj),],badj=badj)
+#   return(stat)
+# }
 
 
 #'
 #' @export
 #'
 
-adjLDStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r2 = 0.9, ldSets = NULL, threshold = 1,
-                      method = "pruning") {
-  cnames <- c("chr","rsids","alleles","af","b","seb") 
-  if(any(is.na(match(cnames,colnames(stat))))) {
-    stop(paste("Columns missing in stat:",cnames[is.na(match(cnames,colnames(stat)))]))
+adjLDStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b", 
+                    r2 = 0.9, ldSets = NULL, threshold = 1,
+                    header=NULL,
+                    method = "pruning") {
+  if(is.data.frame(stat)) {
+    p <- stat$p
+    if(is.null(stat$p)) pstat <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
+    names(p) <- rownames(stat)
+    p <- adjLD(Glist=Glist, stat=p, r2=r2, threshold=threshold)
+    p[p>0] <- 1
+    if(is.null(header)) header <- c("rsids","chr","pos","allele","a1","a2","af")
+    
+    if(statistics=="b") {
+      b <- stat[rownames(p),"b"]
+      badj <- p*stat[rownames(p),"b"]
+      colnames(badj) <- paste0("b_",threshold)
+      return(data.frame(stat[rownames(badj),colnames(stat)%in%header],b,badj))
+    }
+    if(statistics=="z") {
+      z <- stat[rownames(p),"b"]/stat[rownames(p),"seb"]
+      zadj <- p*stat[rownames(p),"b"]/stat[rownames(p),"seb"]
+      colnames(zadj) <- paste0("z_",threshold)
+      return(data.frame(stat[rownames(zadj),colnames(stat)%in%header],z,zadj))
+    }
   }
-  pstat <- stat$p
-  if(is.null(stat$p)) pstat <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
-  names(pstat) <- rownames(stat)
-  pstat <- adjLD(Glist=Glist, stat=pstat, r2=r2, threshold=threshold)
-  pstat[pstat>0] <- 1
-  statadj <- pstat*stat[rownames(pstat),"b"]
-  statadj <- data.frame(stat[rownames(pstat),c("chr","rsids","alleles","af")],statadj)
-  return(statadj)
 }
+
