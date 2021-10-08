@@ -68,8 +68,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      
      nt <- 1
      if(is.list(y)) nt <- length(y)
-     
-     if(nt==1 && !algorithm=="sbayes") fit <- bayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
+
+     if(nt==1 && algorithm=="default" && !is.null(W)) fit <- bayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
                                                      varg=varg, varb=varb, vare=vare, 
                                                      ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                                                      h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
@@ -152,7 +152,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      #   fit$e <- e
      # }
      
-     if( !is.null(y) & nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
+     if( !is.null(y) && nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
        fit <- NULL
        if(is.matrix(y)) ids <- rownames(y)
        if(is.vector(y)) ids <- names(y)
@@ -218,15 +218,13 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        fit$covs <- covs
      }
   
-     #if( !is.null(stat) && algorithm=="sbayes" && !is.null(Glist)) {
-       
-     if( !is.null(stat) && !is.null(Glist)) {
+     if( !is.null(stat) && nt==1 && !is.null(Glist)) {
        fit <- NULL
-
+       
        if(is.null(chr)) chromosomes <- 1:Glist$nchr
        if(!is.null(chr)) chromosomes <- chr
        if(is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
-
+       
        if(is.data.frame(stat)) {
          # this is for external summary statistics
          nt <- 1
@@ -247,7 +245,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$n
          if(any(is.na(wy))) stop("Missing values in wy")
        }
-        if( !is.data.frame(stat) && is.list(stat)) {
+       if( !is.data.frame(stat) && is.list(stat)) {
          nt <- ncol(stat$b)
          trait_names <- colnames(stat$b)
          rsidsLD <- unlist(Glist$rsidsLD)
@@ -263,9 +261,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          yy <- colMeans(yy)
          wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
          if(any(is.na(wy))) stop("Missing values in wy")
-        }
-
-
+       }
+       
+       
        bm <- dm <- fit <- res <- vector(length=Glist$nchr,mode="list")
        names(bm) <- names(dm) <- names(fit) <- names(res) <- 1:Glist$nchr
        for (chr in chromosomes){
@@ -276,7 +274,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          rsidsLD <- names(LD[[chr]]$values)
          clsLD <- match(rsidsLD,Glist$rsids[[chr]])
          LD[[chr]]$values <- lapply(LD[[chr]]$values,function(x){x*n})
-
+         
          # b <- ma[[chr]]$b[rsidsLD,trait]
          # seb <- ma[[chr]]$seb[rsidsLD,trait]
          # ww <- ma[[chr]]$ww[rsidsLD,trait]
@@ -317,8 +315,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          colnames(bmchr) <- trait_names
          #res[[chr]] <- data.frame(chr=rep(chr,length(rsidsLD)),rsids=rsidsLD,alleles=Glist$a1[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bmchr)
          res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
-                                   pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
-                                   a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=bmchr)
+                                  pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
+                                  a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=bmchr)
          
          # fit[[chr]] <- sbayes_sparse(yy=yy, 
          #                             wy=wy[rsidsLD],
@@ -348,6 +346,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        fit$stat <- res
        fit$covs <- covs
      }
+     
      fit$method <- methods[method+1]
           
      return(fit)
@@ -379,8 +378,6 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
     
   }
   
-  
-  
   if(is.null(b)) b <- rep(0,m)
   e=y-mean(y)
   if(is.null(vare)) vare <- var(e)
@@ -391,7 +388,6 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   
   if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
   if(is.null(sse_prior)) sse_prior <- nue*vare
-  
   
   if(algorithm=="default") {
     fit <- .Call("_qgg_bayes",
@@ -541,11 +537,12 @@ sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   
 }
 
-sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LDvalues=NULL,LDindices=NULL, n=NULL,
-                        varg=NULL, varb=NULL, vare=NULL, 
-                        ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
-                        h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                        nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
+sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, 
+                          LDvalues=NULL,LDindices=NULL, n=NULL,
+                          varg=NULL, varb=NULL, vare=NULL, 
+                          ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
+                          h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
+                          nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
   
   
   m <- length(LDvalues)
@@ -589,11 +586,6 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LDvalue
   
 }
 
-#mtbayes <- function(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-#                    varg=varg, varb=varb, vare=vare, 
-#                    ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-#                    h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-#                    nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) {
 mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                   varg=NULL, varb=NULL, vare=NULL, 
                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
@@ -634,10 +626,6 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
     }
   }
   
-  #if(is.null(pi)) {
-  #     pi <- c(0.999,rep(0.001,length(models)-1)) 
-  #}
-  
   if(is.null(h2)) h2 <- 0.5
   if(is.null(vare)) {
     vare <- diag(sapply(y,var))
@@ -645,13 +633,9 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   if(method<4 && is.null(varb)) varb <- diag(sapply(y,var)/(m))*h2
   if(method==4 && is.null(varb)) varb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
   
-  #if(is.null(varb)) varb <- (vare*h2)/(m*pi[length(models)])
   if(is.null(varg)) varg <- diag(diag(vare))*h2
 
-  #if(is.null(ssb_prior)) ssb_prior <-  diag((nub-2.0)/nub * (varg/(m*pi[length(models)])))
-  #if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/(m*pi[length(models)]))
   if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
-  #if(is.null(sse_prior)) sse_prior <- diag(nue*vare)
   if(is.null(sse_prior)) sse_prior <- nue*diag(diag(vare))
   
   
@@ -916,11 +900,6 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
 
 
 
-#'
-#' @export
-#'
-
-
 
 # adjStat <- function(Glist=NULL,stat=NULL,filename=NULL, chr=NULL){
 #   chromosomes <- chr
@@ -975,10 +954,9 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
 #' @export
 #'
 
-adjLDStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b", 
-                    r2 = 0.9, ldSets = NULL, threshold = 1,
-                    header=NULL,
-                    method = "pruning") {
+adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b", 
+                  r2 = 0.9, ldSets = NULL, threshold = 1, header=NULL,
+                  method = "pruning") {
   if(is.data.frame(stat)) {
     p <- stat$p
     if(is.null(stat$p)) pstat <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
@@ -991,13 +969,17 @@ adjLDStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
       b <- stat[rownames(p),"b"]
       badj <- p*stat[rownames(p),"b"]
       colnames(badj) <- paste0("b_",threshold)
-      return(data.frame(stat[rownames(badj),colnames(stat)%in%header],b,badj))
+      if(any(colnames(stat)%in%header)) statadj <- data.frame(stat[rownames(badj),colnames(stat)%in%header],b,badj)
+      if(!any(colnames(stat)%in%header)) statadj <- as.matrix(data.frame(b,badj))
+      return(statadj)
     }
     if(statistics=="z") {
       z <- stat[rownames(p),"b"]/stat[rownames(p),"seb"]
       zadj <- p*stat[rownames(p),"b"]/stat[rownames(p),"seb"]
       colnames(zadj) <- paste0("z_",threshold)
-      return(data.frame(stat[rownames(zadj),colnames(stat)%in%header],z,zadj))
+      if(any(colnames(stat)%in%header)) statadj <- data.frame(stat[rownames(zadj),colnames(stat)%in%header],z,zadj)
+      if(!any(colnames(stat)%in%header)) statadj <- as.matrix(data.frame(z,zadj))
+      return(statadj)
     }
   }
 }
