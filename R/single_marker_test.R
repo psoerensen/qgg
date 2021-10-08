@@ -26,7 +26,6 @@
 #' selected based on the global maximum from out-of sample predictive accuracy.
 #'
 #'
-
 #'
 #' @param y vector or matrix of phenotypes
 #' @param X design matrix for factors modeled as fixed effects
@@ -39,17 +38,12 @@
 #' @param msize number of genotype markers used for batch processing
 #' @param scale logical if TRUE the genotypes have been scaled to mean zero and variance one
 #'
-
 #' @return Returns a dataframe (if number of traits = 1) else a list including
 #' \item{coef}{single marker coefficients}
 #' \item{se}{standard error of coefficients}
 #' \item{stat}{single marker test statistic}
 #' \item{p}{p-value}
-
-
 #' @author Peter Soerensen
-
-
 #' @references Chen, W. M., & Abecasis, G. R. (2007). Family-based association tests for genomewide association scans. The American Journal of Human Genetics, 81(5), 913-926.
 #' @references Loh, P. R., Tucker, G., Bulik-Sullivan, B. K., Vilhjalmsson, B. J., Finucane, H. K., Salem, R. M., ... & Patterson, N. (2015). Efficient Bayesian mixed-model analysis increases association power in large cohorts. Nature genetics, 47(3), 284-290.
 #' @references Kang, H. M., Sul, J. H., Zaitlen, N. A., Kong, S. Y., Freimer, N. B., Sabatti, C., & Eskin, E. (2010). Variance component model to account for sample structure in genome-wide association studies. Nature genetics, 42(4), 348-354.
@@ -61,7 +55,6 @@
 #' @references Svishcheva, G. R., Axenovich, T. I., Belonogova, N. M., van Duijn, C. M., & Aulchenko, Y. S. (2012). Rapid variance components-based method for whole-genome association analysis. Nature genetics, 44(10), 1166-1170.
 #' @references Yang, J., Zaitlen, N. A., Goddard, M. E., Visscher, P. M., & Price, A. L. (2014). Advantages and pitfalls in the application of mixed-model association methods. Nature genetics, 46(2), 100-106.
 #' @references Bulik-Sullivan, B. K., Loh, P. R., Finucane, H. K., Ripke, S., Yang, J., Patterson, N., ... & Schizophrenia Working Group of the Psychiatric Genomics Consortium. (2015). LD Score regression distinguishes confounding from polygenicity in genome-wide association studies. Nature genetics, 47(3), 291-295.
-
 #' @examples
 #'
 #' # Simulate data
@@ -94,11 +87,13 @@
 #'
 #' }
 #' 
+#' 
+
 #' @export
 #'
-
+#' 
 glma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL,  fit = NULL,
-                statistic = "mastor", ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
+                 statistic = "mastor", ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
   if (is.null(fit)) {
     ma <- sma(y = y, X = X, W = W, Glist = Glist, chr=chr, ids = ids, rsids = rsids, msize = msize, scale = scale)
     return(ma)
@@ -108,7 +103,6 @@ glma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL,  fit = NU
     return(ma)
   }
 }
-
 
 mlma <- function(y = NULL, X = NULL, fit = NULL, W = NULL, m = NULL, statistic = "mastor") {
   if (is.null(m)) m <- ncol(W)
@@ -120,23 +114,23 @@ mlma <- function(y = NULL, X = NULL, fit = NULL, W = NULL, m = NULL, statistic =
   yVy <- fit$yVy
   trPG <- fit$trPG[1]
   trVG <- fit$trVG[1]
-
+  
   # compute single marker, coefficients, test statistics and p-values
   nW <- colSums(!W == 0)
   WPy <- crossprod(W, Py)
   WVy <- crossprod(W, Vy)
   ww <- colSums(W**2)
-
+  
   if (statistic == "mastor") {
     coef <- (WPy / (trPG / m)) / m
     se <- (1 / (trPG / m)) / m
     stat <- WPy**2 / sum(Py**2)
     p <- pchisq(stat, df = 1, ncp = 0, lower.tail = FALSE)
   }
-
+  
   mma <- data.frame(coef = coef, se = se, stat = stat, p = p)
   rownames(mma) <- colnames(W)
-
+  
   return(as.matrix(mma))
 }
 
@@ -151,7 +145,7 @@ plotma <- function(ma = NULL, chr = NULL, rsids = NULL, thresh = 5) {
   if (is.null(chr)) {
     chr <- rep(1, m)
   }
-
+  
   layout(matrix(1:2, ncol = 1))
   o <- order(mlogObs, decreasing = TRUE)
   mlogExp <- -log10((1:m) / m)
@@ -160,16 +154,15 @@ plotma <- function(ma = NULL, chr = NULL, rsids = NULL, thresh = 5) {
     frame.plot = FALSE, main = "", xlab = "Expected -log10(p)", ylab = "Observed -log10(p)"
   )
   abline(a = 0, b = 1)
-
+  
   colSNP <- "red"
-
+  
   is.even <- function(x) x %% 2 == 0
   colCHR <- rep(gray(0.3), m)
   colCHR[is.even(chr)] <- gray(0.9)
-
-  plot(
-    y = mlogObs, x = 1:m, ylab = "Observed -log10(p)", xlab = "Position", col = colCHR,
-    pch = ".", frame.plot = FALSE
+  
+  plot(y = mlogObs, x = 1:m, ylab = "Observed -log10(p)", xlab = "Position", col = colCHR,
+       pch = ".", frame.plot = FALSE
   )
   points(y = mlogObs[rwsSNP], x = (1:m)[rwsSNP], col = colSNP)
   abline(h = thresh, col = 2, lty = 2)
@@ -273,19 +266,17 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
       if(!is.null(Glist)) {
         rsids <- rownames(ma$b)
         ma$marker <- data.frame( rsids=rsids, 
-                              chr=unlist(Glist$chr)[rsids],
-                              pos=unlist(Glist$pos)[rsids],
-                              a1=unlist(Glist$a1)[rsids],
-                              a2=unlist(Glist$a2)[rsids],
-                              af=unlist(Glist$a2)[rsids])
+                                 chr=unlist(Glist$chr)[rsids],
+                                 pos=unlist(Glist$pos)[rsids],
+                                 a1=unlist(Glist$a1)[rsids],
+                                 a2=unlist(Glist$a2)[rsids],
+                                 af=unlist(Glist$a2)[rsids])
       }
       
     }
   }
   return(ma)
-}
-
-
+  }
 smlm <- function(y = NULL, X = NULL, W = NULL) {
   if (is.vector(y)) y <- matrix(y, ncol = 1)
   nt <- ncol(y)
