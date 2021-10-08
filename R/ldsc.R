@@ -73,7 +73,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, in
           colnames(z) <- colnames(b)
           rownames(z) <- rownames(b)
      }  
-     z <- z[rownames(z)%in%names(ldscores),,drop=FALSE]
+     z <- as.matrix(z[rownames(z)%in%names(ldscores),,drop=FALSE])
      ldscores <- ldscores[rownames(z)]
      if(is.null(n)) {
           n <- NULL
