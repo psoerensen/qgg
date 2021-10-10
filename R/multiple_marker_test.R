@@ -101,8 +101,13 @@
 
 #' @export
 gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g = NULL, e = NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
+  if(is.data.frame(stat)) {
+    colstat <- !colnames(stat)%in%c("rsids","chr","pos","a1","a2","af")
+    if(any(colstat)) stat <- as.matrix(stat[,colstat])**2
+    if(!any(colstat)) stat <- as.matrix(stat[,colstat])
+  }
   if (method == "sum") {
-    m <- length(stat)
+    #m <- length(stat)
     if (is.matrix(stat)) sets <- mapSets(sets = sets, rsids = rownames(stat), index = TRUE)
     if (is.vector(stat)) sets <- mapSets(sets = sets, rsids = names(stat), index = TRUE)
     nsets <- length(sets)
@@ -194,6 +199,7 @@ gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum
 mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
   if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
   nsets <- sapply(sets, length)
+  if(is.null(names(sets))) names(sets) <- paste0("Set",1:length(sets))
   rs <- rep(names(sets), times = nsets)
   rsSets <- unlist(sets, use.names = FALSE)
   rsSets <- match(rsSets, rsids)
