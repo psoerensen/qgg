@@ -799,6 +799,177 @@ sortedSets <- function(o = NULL, msize = 500) {
 #' @export
 #'
 
+qcstat <- function(Glist=NULL, stat=NULL, filename=NULL, 
+                   excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
+                   excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE,
+                   excludeMISS=0.05, excludeHWE=1e-12) {
+
+
+  # stat is a data.frame
+  if(!is.data.frame(stat)) stop("stat should be  a data frame")
+  if(!is.null(stat$marker)) rownames(stat) <- stat$marker
+  if(!is.null(stat$rsids)) rownames(stat) <- stat$rsids
+  
+  # internal summary statistic column format
+  # data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
+  # list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
+
+  fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb","stat","p","n")
+  
+  fm_external <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
+  "effect_allele_freq","effect", "effect_se", "statistic", "p", "n")
+  
+  format <- "unknown"
+  if(all(fm_internal%in%colnames(stat))) format <- "internal"
+  if(all(fm_external%in%colnames(stat))) format <- "external"
+  if(format=="unknown") {
+    message("Column headings for stat object not found")
+    message("Column headings for stat object should be:")
+    print(fm_external)
+    message("or:")
+    print(fm_internal)
+    stop("please revised your stat object according to these ")
+  }
+
+  # external summary statistic column format
+  # optimal format:
+  # marker, chromosome, position, effect_allele, non_effect_allele, 
+  # effect_allele_freq, effect, effect_se, statistic, p, n
+  # (which will allow best quality control)
+  #
+  # minimal option 1:
+  # marker, effect_allele, effect, effect_se, n   (limited quality control)
+  #
+  # minimal option 2:
+  # marker, effect_allele, sign, p, n             (limited quality control)
+  
+  marker <- data.frame(rsids=unlist(Glist$rsids),unlist(Glist$cpra),
+                   chr=unlist(Glist$chr), pos=unlist(Glist$position), 
+                   a1=unlist(Glist$a1), a2=unlist(Glist$a2),
+                   af=unlist(Glist$af))
+  rownames(marker) <- marker$rsids
+  
+  message("Filtering markers based on information in Glist:")
+  message("")
+  
+
+  #message("Filtering markers based on qc information in Glist:")
+  #message("")
+  rsids <-  gfilter(Glist = Glist,
+                    excludeMAF=excludeMAF, 
+                    excludeMISS=excludeMISS, 
+                    excludeCGAT=excludeCGAT, 
+                    excludeINDEL=excludeINDEL, 
+                    excludeDUPS=excludeDUPS, 
+                    excludeHWE=excludeHWE, 
+                    excludeMHC=excludeMHC)
+  marker <- marker[marker$rsids%in%rsids,]
+  message("")
+  
+  if(!is.null(Glist$rsidsLD)) {
+    rsids <- unlist(Glist$rsidsLD)
+    message(paste("Number of markers in sparse LD matrices:", sum(marker$rsids%in%rsids)))
+    message("")
+    marker <- marker[marker$rsids%in%rsids,]
+  }
+  
+  message("Filtering markers based on information in stat:")
+  message("")
+  
+  if(!is.null(stat$rsids)) marker_in_stat <- marker$rsids%in%stat$rsids
+  if(!is.null(stat$marker)) marker_in_stat <- marker$rsids%in%stat$marker
+  message(paste("Number of markers in stat also found in bimfiles:", sum(marker_in_stat)))
+  message("")
+  if(sum(marker_in_stat)==0) stop("No marker ids found in bimfiles")
+  
+  # align marker and stat object
+  marker <- marker[marker_in_stat,]
+  stat <- stat[marker$rsids,]
+  
+  if(!is.null(stat$effect_allele)) aligned <- stat$effect_allele==marker$a1
+  if(!is.null(stat$a1)) aligned <- stat$a1==marker$a1
+  message(paste("Number of effect alleles aligned with first allele in bimfiles:", sum(aligned)))
+  message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
+  message("")
+  
+  if(format=="external") {
+    #original
+    effect <- stat[,"effect"]
+    effect_allele <- stat[,"effect_allele"]
+    non_effect_allele <- stat[,"non_effect_allele"]
+    effect_allele_freq <- stat[,"effect_allele_freq"]
+    # aligned
+    stat[!aligned,"effect"] <- -effect[!aligned]
+    stat[!aligned,"effect_allele"] <- non_effect_allele[!aligned]
+    stat[!aligned,"non_effect_allele"] <- effect_allele[!aligned] 
+    stat[!aligned,"effect_allele_freq"] <- 1-effect_allele_freq[!aligned]
+    plot(x=stat$effect_allele_freq, y=marker$af, 
+         ylab="Allele frequency in Glist (after allele matching)", 
+         xlab="Allele frequency in stat (after allele matching)")
+    largeMAFDIFF <- abs(marker$af-stat$effect_allele_freq) > excludeMAFDIFF
+    message(paste("Number of markers excluded by large difference between MAF difference:", sum(largeMAFDIFF)))
+    message("")
+    if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
+  }  
+
+  if(format=="external") {
+    #original
+    effect <- stat[,"effect"]
+    effect_allele <- stat[,"effect_allele"]
+    non_effect_allele <- stat[,"non_effect_allele"]
+    effect_allele_freq <- stat[,"effect_allele_freq"]
+    # aligned
+    stat[!aligned,"effect"] <- -effect[!aligned]
+    stat[!aligned,"effect_allele"] <- non_effect_allele[!aligned]
+    stat[!aligned,"non_effect_allele"] <- effect_allele[!aligned] 
+    stat[!aligned,"effect_allele_freq"] <- 1-effect_allele_freq[!aligned]
+    plot(x=stat$effect_allele_freq, y=marker$af, 
+         ylab="Allele frequency in Glist (after allele matching)", 
+         xlab="Allele frequency in stat (after allele matching)")
+    excludeMAFDIFF <- abs(marker$af-stat$effect_allele_freq) > excludeMAFDIFF
+    message(paste("Number of markers excluded by large difference between MAF difference:", sum(excludeMAFDIFF)))
+    message("")
+    stat <- stat[!excludeMAFDIFF,]
+    if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
+  }  
+
+  if(format=="internal") {
+    #original
+    effect <- stat[,"b"]
+    effect_allele <- stat[,"a1"]
+    non_effect_allele <- stat[,"a2"]
+    effect_allele_freq <- stat[,"af"]
+    # aligned
+    stat[!aligned,"b"] <- -effect[!aligned]
+    stat[!aligned,"a1"] <- non_effect_allele[!aligned]
+    stat[!aligned,"a2"] <- effect_allele[!aligned] 
+    stat[!aligned,"af"] <- 1-effect_allele_freq[!aligned]
+    plot(x=stat$af, y=marker$af, 
+         ylab="Allele frequency in Glist (after allele matching)", 
+         xlab="Allele frequency in stat (after allele matching)")
+    excludeMAFDIFF <- abs(marker$af-stat$af) > excludeMAFDIFF
+    message(paste("Number of markers excluded by large difference between MAF difference:", sum(excludeMAFDIFF)))
+    message("")
+    stat <- stat[!excludeMAFDIFF,]
+    if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
+  }  
+  
+  #if(!is.null(filename)) png(file=filename)
+  
+  if(!is.null(stat$info)) {
+    lowINFO <- stat$info < excludeINFO
+    message(paste("Number of markers excluded by low INFO score:", sum(lowINFO)))
+    message("")
+    stat <- stat[!lowINFO,]
+  }  
+  return(stat)
+}
+
+
+#'
+#' @export
+#'
+
 checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
                       excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE) {
   # effect, effect_se, effect_allele, alternative_allele, effect_allele_freq, nobs
@@ -822,7 +993,7 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
   aligned <- stat$effect_allele==df$a1
   message(paste("Number of effect alleles aligned with first allele in bimfiles:", sum(aligned)))
   message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
-
+  
   if(!is.null(filename)) png(file=filename)
   
   layout(matrix(1:6,ncol=2,byrow=TRUE))
@@ -859,12 +1030,12 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
   maf <- stat$effect_allele_freq
   maf[maf>0.5] <- 1-maf[maf>0.5]
   lowMAF <- maf < excludeMAF
-
+  
   message(paste("Number of markers excluded by low MAF:", sum(lowMAF)))
   message(paste("Number of markers excluded by large difference between MAF difference:", sum(largeMAFDIFF)))
-
+  
   rsidsQC <- lowMAF | largeMAFDIFF
-
+  
   if(!is.null(stat$info)) {
     lowINFO <- stat$info < excludeINFO
     rsidsQC <- rsidsQC | lowINFO
@@ -897,7 +1068,6 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
   if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)
   return(stat)
 }
-
 
 
 
