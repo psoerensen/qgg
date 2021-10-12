@@ -814,10 +814,9 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   # data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
   # list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
 
-  fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb","stat","p","n")
-  
+  fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb")
   fm_external <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
-  "effect_allele_freq","effect", "effect_se", "statistic", "p", "n")
+  "effect_allele_freq","effect", "effect_se")
   
   format <- "unknown"
   if(all(fm_internal%in%colnames(stat))) format <- "internal"
@@ -892,25 +891,6 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
   message("")
   
-  if(format=="external") {
-    #original
-    effect <- stat[,"effect"]
-    effect_allele <- stat[,"effect_allele"]
-    non_effect_allele <- stat[,"non_effect_allele"]
-    effect_allele_freq <- stat[,"effect_allele_freq"]
-    # aligned
-    stat[!aligned,"effect"] <- -effect[!aligned]
-    stat[!aligned,"effect_allele"] <- non_effect_allele[!aligned]
-    stat[!aligned,"non_effect_allele"] <- effect_allele[!aligned] 
-    stat[!aligned,"effect_allele_freq"] <- 1-effect_allele_freq[!aligned]
-    plot(x=stat$effect_allele_freq, y=marker$af, 
-         ylab="Allele frequency in Glist (after allele matching)", 
-         xlab="Allele frequency in stat (after allele matching)")
-    largeMAFDIFF <- abs(marker$af-stat$effect_allele_freq) > excludeMAFDIFF
-    message(paste("Number of markers excluded by large difference between MAF difference:", sum(largeMAFDIFF)))
-    message("")
-    if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
-  }  
 
   if(format=="external") {
     #original
@@ -923,14 +903,17 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     stat[!aligned,"effect_allele"] <- non_effect_allele[!aligned]
     stat[!aligned,"non_effect_allele"] <- effect_allele[!aligned] 
     stat[!aligned,"effect_allele_freq"] <- 1-effect_allele_freq[!aligned]
-    plot(x=stat$effect_allele_freq, y=marker$af, 
-         ylab="Allele frequency in Glist (after allele matching)", 
-         xlab="Allele frequency in stat (after allele matching)")
+    #plot(x=stat$effect_allele_freq, y=marker$af, 
+    #     ylab="Allele frequency in Glist (after allele matching)", 
+    #     xlab="Allele frequency in stat (after allele matching)")
     excludeMAFDIFF <- abs(marker$af-stat$effect_allele_freq) > excludeMAFDIFF
     message(paste("Number of markers excluded by large difference between MAF difference:", sum(excludeMAFDIFF)))
     message("")
     stat <- stat[!excludeMAFDIFF,]
+    marker <- marker[!excludeMAFDIFF,]
     if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
+    colnames(stat)[1:8] <- fm_internal
+    
   }  
 
   if(format=="internal") {
@@ -944,13 +927,14 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     stat[!aligned,"a1"] <- non_effect_allele[!aligned]
     stat[!aligned,"a2"] <- effect_allele[!aligned] 
     stat[!aligned,"af"] <- 1-effect_allele_freq[!aligned]
-    plot(x=stat$af, y=marker$af, 
-         ylab="Allele frequency in Glist (after allele matching)", 
-         xlab="Allele frequency in stat (after allele matching)")
+    #plot(x=stat$af, y=marker$af, 
+    #     ylab="Allele frequency in Glist (after allele matching)", 
+    #     xlab="Allele frequency in stat (after allele matching)")
     excludeMAFDIFF <- abs(marker$af-stat$af) > excludeMAFDIFF
     message(paste("Number of markers excluded by large difference between MAF difference:", sum(excludeMAFDIFF)))
     message("")
     stat <- stat[!excludeMAFDIFF,]
+    marker <- marker[!excludeMAFDIFF,]
     if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
   }  
   
