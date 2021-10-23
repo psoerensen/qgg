@@ -1138,3 +1138,187 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
   }
 }
 
+
+
+
+################################################################################
+# Note on how to obtain a pre-specified prior mode
+################################################################################
+#
+# Inverse Wishart
+#
+# mode = S/(df+nt+1)	(mode of prior variance estimates)
+# => S = mode*(df+nt+1)	(prior S to given prior mode)
+# nt = number of traits
+# df = prior degrees of freedom
+# S = prior scale parameter 
+#
+# Inverse Chi-square
+#
+# mode = (S/(df+2))/df		(mode of prior variance estimates)
+# => S = (mode*(df+2))/df	(prior S to given prior mode)
+# df = prior degrees of freedom
+# S = prior scale parameter 
+################################################################################
+
+#'
+#' @export
+#'
+#'
+#'
+
+    
+bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
+                vg=NULL, ve=NULL, nug=NULL, nue=NULL,
+                vg_prior=NULL, ve_prior=NULL,
+                updateG=TRUE, updateE=TRUE,
+                nit=500, nburn=0, tol=0.001) {
+  
+  n <- nrow(y)                            # number of observation
+  nt <- ncol(y)                           # number of traits
+  tnames <- colnames(y)
+  if(is.null(tnames)) tnames <- paste0("T",1:nt)
+  e <- matrix(0,nrow=n,ncol=nt)
+  mu <- matrix(0,nrow=n,ncol=nt)
+  psum <- matrix(0,nrow=n,ncol=nt)
+  
+  nset <- length(GRMlist)                   # number of sets
+  setnames <- names(GRMlist)
+  if(is.null(setnames)) setnames <- paste0("Set",1:nset) 
+  g <- gm <- NULL
+  for ( i in 1:nt) {                        # genetic values (n*nset)
+    g[[i]] <- matrix(0,nrow=n,ncol=nset)         
+    gm[[i]] <- matrix(0,nrow=n,ncol=nset)
+    rownames(g[[i]]) <- rownames(y) 
+    colnames(g[[i]]) <- setnames
+    rownames(gm[[i]]) <- rownames(y) 
+    colnames(gm[[i]]) <- setnames
+  }
+  names(gm) <- names(g) <- tnames
+  
+  vgm <- lapply(1:nset,function(x){matrix(0,nt,nt)})
+  names(vgm) <- setnames
+
+  vem <- matrix(0,nt,nt)
+  
+  if(is.null(vg_prior)) vg_prior <- lapply(1:nset,function(x){diag(0.01,nt)})
+  if(is.null(ve_prior)) ve_prior <- diag(0.01,nt)
+  if(is.null(nug)) nug <- rep(4,nset)
+  if(is.null(nue)) nue <- 4
+  
+  if(!is.null(ve)) ve <- as.matrix(ve)
+  if(is.null(ve)) ve <- ve_prior
+  if(is.null(vg)) vg <- vg_prior
+  
+  ves <- matrix(0,nrow=nit,ncol=(nt*(nt+1))/2)
+  
+  # eigen value decomposition of the GRM5 matrices
+  U <- D <- vector(length=nset,mode="list")
+  vgs <- vector(length=nset,mode="list")
+  for ( i in 1:nset ){                    
+    eg <- eigen(GRMlist[[i]])                    
+    ev <- eg$values
+    U[[i]] <- eg$vectors[,ev>tol]            # keep eigen vector if ev>tol
+    D[[i]] <- eg$values[ev>tol]              # keep eigen value if ev>tol
+    vgs[[i]] <- matrix(NA,nrow=nit,ncol=(nt*(nt+1))/2)
+  }
+  
+  for ( i in 1:nit) {                     
+    for ( j in 1:nset ) {                   
+      rhs <- NULL
+      for (t in 1:nt) {
+        yadj <- y[,t]-mu[,t]-rowSums(as.matrix(g[[t]][,-j]))
+        rhst <- crossprod( U[[j]],yadj ) 
+        rhs <- cbind(rhs,rhst)
+      }
+      Vi <- solve(vg[[j]])
+      a <- matrix(0,nrow=nrow(rhs),ncol=nt)
+      for (k in 1:nrow(rhs)) {
+        iC <- solve( diag(1,nt) + (ve%*%Vi)/D[[j]][k] )      
+        ahat <- iC%*%rhs[k,]
+        a[k,] <- MASS::mvrnorm(n=1,mu=ahat,Sigma=iC%*%ve) 
+      }
+      for (t in 1:nt) { 
+        g[[t]][,j] <- U[[j]]%*%a[,t] 
+      }
+      if(i>nburn){
+        for (t in 1:nt) { 
+          gm[[t]][,j] <- gm[[t]][,j] + g[[t]][,j]  
+        } 
+      }
+      
+      # Sample variance components
+      df <- nrow(a) + nug[j]
+      
+      # inverse chisquare
+      if (nt==1) {
+        scg <- sum((1/D[[j]])*a**2) + (vg_prior[j]*(nug[j]+2))/nug[j]	# => S = (mode*(df+2))/df         
+        #scg <- sum((1/D[[j]])*a**2) + (vg[j]*(nug[j]+2))/nug[j]	# => S = (mode*(df+2))/df         
+        vg[j] <- scg/rchisq(n=1, df=df, ncp=0)    
+        vgs[[j]][i,] <- vg[j]
+      }
+      
+      # inverse wishart
+      if (nt>1) {
+        S <- t(a*(1/D[[j]]))%*%a + vg_prior[[j]]*(nug[j]+nt+1)		# => S = mode*(df+nt+1)
+        #S <- t(a*(1/D[[j]]))%*%a + vg[[j]]*(nug[j]+nt+1)		# => S = mode*(df+nt+1)
+        vg[[j]] <- MCMCpack::riwish(df,S)
+        vgs[[j]][i,] <- vg[[j]][as.vector(lower.tri(vg[[j]], diag=TRUE))]
+      }
+    }
+    
+    # Sample mu
+    if(is.null(X)) {
+      for (t in 1:nt) {
+        yadj <- y[,t]-rowSums(as.matrix(g[[t]])) 
+        rhs <- sum(yadj)
+        lhs <- (n+ve[t,t]/100000)
+        mu[,t] <- rnorm(1,mean=rhs/lhs,sd=1/sqrt(lhs))
+      }  
+    }
+    if(!is.null(X)) {
+      for (t in 1:nt) {
+        yadj <- y[,t]-rowSums(as.matrix(g[[t]])) 
+        mu[,t] <- X%*%solve(t(X)%*%X)%*%t(X)%*%yadj
+      }  
+    }
+    
+    for (t in 1:nt) {
+      e[,t] <- y[,t]-mu[,t]-rowSums(g[[t]])
+      p <-  (1/sqrt(2*pi))*exp(-0.5*(e[,t]**2)) 
+      if(i>nburn) psum[,t] <- psum[,t] + 1/p
+    }
+    Se <- t(e)%*%e + ve_prior*(mean(nue)+nt+1)
+    dfe <- nrow(y) + mean(nue)+nt+1
+    ve <- MCMCpack::riwish(dfe,Se)
+    ves[i,] <- ve[as.vector(lower.tri(ve, diag=TRUE))]
+    
+    if(nit>nburn) {
+      for ( j in 1:nset ) {
+        vgm[[j]] <- vgm[[j]] + vg[[j]]  
+      }                   
+      vem <- vem + ve  
+    }
+    message(paste("Iteration:",i))
+    
+  }
+  
+  for ( j in 1:nset ) {                   
+    vgm[[j]] <- vgm[[j]]/(nit-nburn)
+    colnames(vgm[[j]]) <- rownames(vgm[[j]]) <- tnames
+    for (t in 1:nt) { 
+      if(nit>nburn) gm[[t]][,j] <- gm[[t]][,j]/(nit-nburn) 
+    } 
+  }
+  vem <- vem/(nit-nburn)  
+  colnames(vem) <- rownames(vem) <- tnames
+
+    # summary of model fit
+  logCPO <- NULL
+  for (t in 1:nt) {
+    logCPO[t] <- sum(log((nit-nburn)*(1/psum[,t])))
+  }
+  return(list(vgs=vgs,ves=ves,vgm=vgm,vem=vem,logCPO=logCPO, gm=gm, g=g,e=e, nit=nit, nburn=nburn) ) # return posterior samples of sigma 
+}
+
+
