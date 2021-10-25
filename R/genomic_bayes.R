@@ -60,7 +60,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                    vg=NULL, vb=NULL, ve=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
-                   nug=NULL, nub=4, nue=4, 
+                   nug=NULL, nub=4, nue=4, verbose=FALSE,
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="default") {
@@ -76,7 +76,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                            vg=vg, ve=ve, nug=nug, nue=nue,
                                            vg_prior=vg_prior, ve_prior=ve_prior,
                                            updateG=updateB, updateE=updateE,
-                                           nit=nit, nburn=nburn, tol=tol) 
+                                           nit=nit, nburn=nburn, tol=tol, verbose=verbose) 
      
 
 
@@ -1183,7 +1183,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
                 vg=NULL, ve=NULL, nug=NULL, nue=NULL,
                 vg_prior=NULL, ve_prior=NULL,
                 updateG=TRUE, updateE=TRUE,
-                nit=500, nburn=0, tol=0.001) {
+                nit=500, nburn=0, tol=0.001, verbose=FALSE) {
   
   n <- nrow(y)                            # number of observation
   nt <- ncol(y)                           # number of traits
@@ -1310,7 +1310,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
       }                   
       vem <- vem + ve  
     }
-    message(paste("Iteration:",i))
+    if(verbose) message(paste("Iteration:",i))
     
   }
   
