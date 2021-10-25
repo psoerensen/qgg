@@ -56,10 +56,13 @@
 #' @export
 #'
 
-gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit=NULL, Glist=NULL, chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
+gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit=NULL, Glist=NULL, 
+                   chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                    varg=NULL, varb=NULL, vare=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
-                   nub=4, nue=4, nit=100, nit_local=NULL,nit_global=NULL,
+                   nug=NULL, nub=4, nue=4, 
+                   GRMlist=NULL, ve=NULL, vg=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
+                   nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="default") {
      
      methods <- c("blup","mixed","bayesA","blasso","bayesC","ssvs")
@@ -68,6 +71,14 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      
      nt <- 1
      if(is.list(y)) nt <- length(y)
+     
+     if(!is.null(GRMlist))      fit <- bmm(y=y, X=X, W=W, GRMlist=GRMlist,
+                                           vg=vg, ve=ve, nug=nug, nue=nue,
+                                           vg_prior=vg_prior, ve_prior=ve_prior,
+                                           updateG=updateB, updateE=updateE,
+                                           nit=nit, nburn=nburn, tol=tol) 
+     
+
 
      if(nt==1 && algorithm=="default" && !is.null(W)) fit <- bayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
                                                      varg=varg, varb=varb, vare=vare, 
@@ -1313,7 +1324,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   vem <- vem/(nit-nburn)  
   colnames(vem) <- rownames(vem) <- tnames
 
-    # summary of model fit
+  # summary of model fit
   logCPO <- NULL
   for (t in 1:nt) {
     logCPO[t] <- sum(log((nit-nburn)*(1/psum[,t])))
