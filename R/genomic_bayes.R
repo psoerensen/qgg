@@ -1329,7 +1329,19 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   for (t in 1:nt) {
     logCPO[t] <- sum(log((nit-nburn)*(1/psum[,t])))
   }
-  return(list(vgs=vgs,ves=ves,vgm=vgm,vem=vem,logCPO=logCPO, gm=gm, g=g,e=e, nit=nit, nburn=nburn) ) # return posterior samples of sigma 
+  fit <- list(vgs=vgs,ves=ves,vgm=vgm,vem=vem,logCPO=logCPO, gm=gm, g=g,e=e, nit=nit, nburn=nburn)
+  vgm <- Reduce(`+`, fit$vgm)
+  vem <- fit$vem
+  vpm <- vgm + vem
+  fit$vpm <- vpm
+  fit$h2 <- diag(vgm/vpm)
+  fit$h2set <- lapply(fit$vgm,function(x) {diag(x/vpm)})
+  fit$rp <- cov2cor(vpm)
+  fit$re <- cov2cor(vem)
+  fit$rg <- cov2cor(vgm)
+  fit$rgset <- lapply(fit$vgm,function(x) {cov2cor(x)})
+  
+  return(fit) # return posterior samples of sigma 
 }
 
 
