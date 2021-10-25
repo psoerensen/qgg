@@ -58,10 +58,10 @@
 
 gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit=NULL, Glist=NULL, 
                    chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                   varg=NULL, varb=NULL, vare=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
+                   vg=NULL, vb=NULL, ve=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
                    nug=NULL, nub=4, nue=4, 
-                   GRMlist=NULL, ve=NULL, vg=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
+                   GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="default") {
      
@@ -81,19 +81,19 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
 
 
      if(nt==1 && algorithm=="default" && !is.null(W)) fit <- bayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                                                     varg=varg, varb=varb, vare=vare, 
+                                                     vg=vg, vb=vb, ve=ve, 
                                                      ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                                                      h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
                                                      nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
      
      if(nt==1 && algorithm=="sbayes" && is.null(Glist)) fit <- sbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                                                                      varg=varg, varb=varb, vare=vare, 
+                                                                      vg=vg, vb=vb, ve=ve, 
                                                                       ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                                                                       h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
                                                                       nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
      
      if(nt>1 && is.null(Glist)) fit <- mtbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                                               varg=varg, varb=varb, vare=vare, 
+                                               vg=vg, vb=vb, ve=ve, 
                                                ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                                                h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
                                                nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) 
@@ -136,12 +136,12 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      #     sets <- splitWithOverlap((1:m)[o],1000,0)
      #     dm <- bm <- rep(0,m)
      #     names(dm) <- names(bm) <- names(mlogp)
-     #     varem <- varbm <- pim <- vector(length=length(sets),mode="list")
+     #     vem <- vbm <- pim <- vector(length=length(sets),mode="list")
      #     for (i in 1:length(sets)) {
      #       W <- getG(Glist, chr=chr, scale=TRUE, cls=cls[[i]])
      #       LD <- crossprod(W[rws,])
      #       fitset <- sbayes(y=e, X=X, W=W[rws,], b=b, badj=badj, seb=seb, LD=LD, n=n,
-     #                        varg=varg, varb=varb, vare=vare, 
+     #                        vg=vg, vb=vb, ve=ve, 
      #                        ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=FALSE,
      #                        h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
      #                        nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)
@@ -150,12 +150,12 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      #       e <- e - gset[rws,]
      #       dm[sets[[i]]] <- fitset$dm
      #       bm[sets[[i]]] <- fitset$bm
-     #       varem[[i]] <- fitset$vare
-     #       varbm[[i]] <- fitset$varb
+     #       vem[[i]] <- fitset$ve
+     #       vbm[[i]] <- fitset$vb
      #       pim[[i]] <- fitset$Pi
      #       print(paste("Finished segment:",i,"out of",length(sets),"segments on chromosome:",chr))
      #     }
-     #     fit[[chr]] <- list(bm=bm,dm=dm,E=varem,B=varbm,Pi=pim)
+     #     fit[[chr]] <- list(bm=bm,dm=dm,E=vem,B=vbm,Pi=pim)
      #   }
      #   fit$g <- g[rws,]
      #   fit$gtrain <- g[rws,]
@@ -213,8 +213,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                               nub=nub, 
                               h2=h2, 
                               lambda=lambda, 
-                              varb=varb, 
-                              vare=vare, 
+                              vb=vb, 
+                              ve=ve, 
                               updateB=updateB, 
                               updateE=updateE, 
                               updatePi=updatePi)
@@ -316,8 +316,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                        nub=nub, 
                                        h2=h2, 
                                        lambda=lambda, 
-                                       varb=varb, 
-                                       vare=vare, 
+                                       vb=vb, 
+                                       ve=ve, 
                                        updateB=updateB, 
                                        updateE=updateE, 
                                        updatePi=updatePi)
@@ -342,8 +342,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          #                             nub=nub, 
          #                             h2=h2, 
          #                             lambda=lambda, 
-         #                             varb=varb, 
-         #                             vare=vare, 
+         #                             vb=vb, 
+         #                             ve=ve, 
          #                             updateB=updateB, 
          #                             updateE=updateE, 
          #                             updatePi=updatePi)
@@ -365,7 +365,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
 
 
 bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                   varg=NULL, varb=NULL, vare=NULL, 
+                   vg=NULL, vb=NULL, ve=NULL, 
                    ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                    h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                    nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
@@ -391,14 +391,14 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   
   if(is.null(b)) b <- rep(0,m)
   e=y-mean(y)
-  if(is.null(vare)) vare <- var(e)
-  if(method<4 && is.null(varb)) varb <- (vare*h2)/m
-  if(method>=4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
-  if(is.null(lambda)) lambda <- rep(vare/varb,m)
-  if(is.null(varg)) varg <- vare*h2
+  if(is.null(ve)) ve <- var(e)
+  if(method<4 && is.null(vb)) vb <- (ve*h2)/m
+  if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,m)
+  if(is.null(vg)) vg <- ve*h2
   
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
-  if(is.null(sse_prior)) sse_prior <- nue*vare
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
+  if(is.null(sse_prior)) sse_prior <- nue*ve
   
   if(algorithm=="default") {
     fit <- .Call("_qgg_bayes",
@@ -407,9 +407,9 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
                  b=b,
                  lambda = lambda,
                  pi = pi,
-                 varg = varg,
-                 varb = varb,
-                 vare = vare,
+                 vg = vg,
+                 vb = vb,
+                 ve = ve,
                  ssb_prior=ssb_prior,
                  sse_prior=sse_prior,
                  nub=nub,
@@ -423,7 +423,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
     names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[10]]) <- colnames(W)
     fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
     names(fit[[7]]) <- names(fit[[8]]) <- ids
-    names(fit) <- c("bm","dm","mu","varb","vare","pi","g","e","param","b")
+    names(fit) <- c("bm","dm","mu","vb","ve","pi","g","e","param","b")
 
   } 
   
@@ -433,7 +433,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
 }
 
 sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                  varg=NULL, varb=NULL, vare=NULL, 
+                  vg=NULL, vb=NULL, ve=NULL, 
                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                   h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                   nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
@@ -459,14 +459,14 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   
   if(is.null(h2)) h2 <- 0.5
   
-  if(is.null(vare)) vare <- 1
-  if(method<4 && is.null(varb)) varb <- (vare*h2)/m
-  if(method==4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
-  if(is.null(lambda)) lambda <- rep(vare/varb,m)
-  if(is.null(varg)) varg <- vare*h2
+  if(is.null(ve)) ve <- 1
+  if(method<4 && is.null(vb)) vb <- (ve*h2)/m
+  if(method==4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,m)
+  if(is.null(vg)) vg <- ve*h2
   
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
-  if(is.null(sse_prior)) sse_prior <- nue*vare
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
+  if(is.null(sse_prior)) sse_prior <- nue*ve
   
   if(is.null(b)) b <- rep(0,m)
   
@@ -478,9 +478,9 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                lambda = lambda,
                yy = yy,
                pi = pi,
-               varg = varg,
-               varb = varb,
-               vare = vare,
+               vg = vg,
+               vb = vb,
+               ve = ve,
                ssb_prior=ssb_prior,
                sse_prior=sse_prior,
                nub=nub,
@@ -494,7 +494,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   names(fit[[1]]) <- rownames(LD)
   if(!is.null(W)) fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
   names(fit[[7]]) <- ids
-  names(fit) <- c("bm","dm","mu","varb","vare","pi","g","e","param","b")
+  names(fit) <- c("bm","dm","mu","vb","ve","pi","g","e","param","b")
 
   return(fit)
   
@@ -502,7 +502,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
 
 
 sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                        varg=NULL, varb=NULL, vare=NULL, 
+                        vg=NULL, vb=NULL, ve=NULL, 
                         ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                         h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                         nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
@@ -511,13 +511,13 @@ sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   m <- ncol(LD)
   if(is.null(pi)) pi <- 0.01
   if(is.null(h2)) h2 <- 0.5
-  if(is.null(vare)) vare <- 1
-  if(method<4 && is.null(varb)) varb <- (vare*h2)/m
-  if(method==4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
-  if(is.null(lambda)) lambda <- rep(vare/varb,m)
-  if(is.null(varg)) varg <- vare*h2
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
-  if(is.null(sse_prior)) sse_prior <- nue*vare
+  if(is.null(ve)) ve <- 1
+  if(method<4 && is.null(vb)) vb <- (ve*h2)/m
+  if(method==4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,m)
+  if(is.null(vg)) vg <- ve*h2
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
+  if(is.null(sse_prior)) sse_prior <- nue*ve
   if(is.null(b)) b <- rep(0,m)
   
   
@@ -528,9 +528,9 @@ sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                lambda = lambda,
                yy = yy,
                pi = pi,
-               varg = varg,
-               varb = varb,
-               vare = vare,
+               vg = vg,
+               vb = vb,
+               ve = ve,
                ssb_prior=ssb_prior,
                sse_prior=sse_prior,
                nub=nub,
@@ -542,7 +542,7 @@ sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
                nit=nit,
                method=as.integer(method))
   names(fit[[1]]) <- rownames(LD)
-  names(fit) <- c("bm","dm","mu","varb","vare","pi","g","e","param","b")
+  names(fit) <- c("bm","dm","mu","vb","ve","pi","g","e","param","b")
   
   return(fit)
   
@@ -550,7 +550,7 @@ sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
 
 sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, 
                           LDvalues=NULL,LDindices=NULL, n=NULL,
-                          varg=NULL, varb=NULL, vare=NULL, 
+                          vg=NULL, vb=NULL, ve=NULL, 
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                           nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
@@ -559,13 +559,13 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
   m <- length(LDvalues)
   if(is.null(pi)) pi <- 0.01
   if(is.null(h2)) h2 <- 0.5
-  if(is.null(vare)) vare <- 1
-  if(method<4 && is.null(varb)) varb <- (vare*h2)/m
-  if(method==4 && is.null(varb)) varb <- (vare*h2)/(m*pi)
-  if(is.null(lambda)) lambda <- rep(vare/varb,m)
-  if(is.null(varg)) varg <- vare*h2
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
-  if(is.null(sse_prior)) sse_prior <- nue*vare
+  if(is.null(ve)) ve <- 1
+  if(method<4 && is.null(vb)) vb <- (ve*h2)/m
+  if(method==4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,m)
+  if(is.null(vg)) vg <- ve*h2
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
+  if(is.null(sse_prior)) sse_prior <- nue*ve
   if(is.null(b)) b <- rep(0,m)
   
   
@@ -577,9 +577,9 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
                lambda = lambda,
                yy = yy,
                pi = pi,
-               varg = varg,
-               varb = varb,
-               vare = vare,
+               vg = vg,
+               vb = vb,
+               ve = ve,
                ssb_prior=ssb_prior,
                sse_prior=sse_prior,
                nub=nub,
@@ -591,14 +591,14 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
                nit=nit,
                method=as.integer(method))
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","mu","varb","vare","pi","g","e","param","b")
+  names(fit) <- c("bm","dm","mu","vb","ve","pi","g","e","param","b")
   
   return(fit)
   
 }
 
 mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                  varg=NULL, varb=NULL, vare=NULL, 
+                  vg=NULL, vb=NULL, ve=NULL, 
                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                   h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                   nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
@@ -638,24 +638,24 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   }
   
   if(is.null(h2)) h2 <- 0.5
-  if(is.null(vare)) {
-    vare <- diag(sapply(y,var))
+  if(is.null(ve)) {
+    ve <- diag(sapply(y,var))
   }
-  if(method<4 && is.null(varb)) varb <- diag(sapply(y,var)/(m))*h2
-  if(method==4 && is.null(varb)) varb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
+  if(method<4 && is.null(vb)) vb <- diag(sapply(y,var)/(m))*h2
+  if(method==4 && is.null(vb)) vb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
   
-  if(is.null(varg)) varg <- diag(diag(vare))*h2
+  if(is.null(vg)) vg <- diag(diag(ve))*h2
 
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (varg/m)
-  if(is.null(sse_prior)) sse_prior <- nue*diag(diag(vare))
+  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
+  if(is.null(sse_prior)) sse_prior <- nue*diag(diag(ve))
   
   
   fit <- .Call("_qgg_mtbayes",
                y=y, 
                W=split(W, rep(1:ncol(W), each = nrow(W))), 
                b=b,
-               B = varb,
-               E = vare,
+               B = vb,
+               E = ve,
                ssb_prior=split(ssb_prior, rep(1:ncol(ssb_prior), each = nrow(ssb_prior))),
                sse_prior=split(sse_prior, rep(1:ncol(sse_prior), each = nrow(sse_prior))),
                models=models,
@@ -707,7 +707,7 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   colnames(fit[[16]]) <- trait_names
   names(fit[[13]]) <- sapply(models,paste,collapse="_")
   names(fit[[14]]) <- sapply(models,paste,collapse="_")
-  names(fit) <- c("bm","dm","mu","Bm","Em","covb","cove","g","e","b","varb","vare","pi","pim","order","gm","rb","re","covg","rg")
+  names(fit) <- c("bm","dm","mu","Bm","Em","covb","cove","g","e","b","vb","ve","pi","pim","order","gm","rb","re","covg","rg")
   
   return(fit)
   
