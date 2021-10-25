@@ -141,8 +141,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   
   std::vector<std::vector<double>> b_post_mean(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> d_post_mean(nt, std::vector<double>(m, 0.0));
-  std::vector<std::vector<double>> vare_post(nt, std::vector<double>(nit, 0.0));
-  std::vector<std::vector<double>> varb_post(nt, std::vector<double>(nit, 0.0));
+  std::vector<std::vector<double>> ve_post(nt, std::vector<double>(nit, 0.0));
+  std::vector<std::vector<double>> vb_post(nt, std::vector<double>(nit, 0.0));
   std::vector<std::vector<double>> covb_post_mean(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> cove_post_mean(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> mu_post(nt, std::vector<double>(nit, 0.0));
@@ -452,7 +452,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       arma::mat B = riwishart(dfSb, Sb);
       
       for (int t = 0; t < nt; t++) {
-        varb_post[t][it] = B(t,t);
+        vb_post[t][it] = B(t,t);
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
@@ -476,7 +476,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       //   }
       //   std::chi_squared_distribution<double> rchisq_e(dfe);
       //   chi2 = rchisq_e(gen);
-      //   vare_post[t][it] = (sse + sse_prior[t][t])/chi2;
+      //   ve_post[t][it] = (sse + sse_prior[t][t])/chi2;
       //   E(t,t) = (sse + sse_prior[t][t])/chi2;
       // }
       // arma::mat Ei = arma::inv(E);
@@ -496,7 +496,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           }
           //std::chi_squared_distribution<double> rchisq_e(dfe);
           //chi2 = rchisq_e(gen);
-          //vare_post[t][it] = (sse + sse_prior[t])/chi2;
+          //ve_post[t][it] = (sse + sse_prior[t])/chi2;
           //E(t,t) = (sse + sse_prior[t][t])/chi2;
         }
       }
@@ -506,7 +506,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       arma::mat E = riwishart(dfSe, Se);
       arma::mat Ei = arma::inv(E);
       for (int t = 0; t < nt; t++) {
-        vare_post[t][it] = E(t,t);
+        ve_post[t][it] = E(t,t);
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
@@ -586,8 +586,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   for (int t=0; t < nt; t++) {
     for (int i=0; i < nit; i++) {
       result[2][t][i] = mu_post[t][i];
-      result[3][t][i] = varb_post[t][i];
-      result[4][t][i] = vare_post[t][i];
+      result[3][t][i] = vb_post[t][i];
+      result[4][t][i] = ve_post[t][i];
     }
   }
   for (int t1=0; t1 < nt; t1++) {
@@ -669,8 +669,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   
   std::vector<std::vector<double>> b_post_mean(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> d_post_mean(nt, std::vector<double>(m, 0.0));
-  std::vector<std::vector<double>> vare_post(nt, std::vector<double>(nit, 0.0));
-  std::vector<std::vector<double>> varb_post(nt, std::vector<double>(nit, 0.0));
+  std::vector<std::vector<double>> ve_post(nt, std::vector<double>(nit, 0.0));
+  std::vector<std::vector<double>> vb_post(nt, std::vector<double>(nit, 0.0));
   std::vector<std::vector<double>> covb_post_mean(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> cove_post_mean(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> mu_post(nt, std::vector<double>(nit, 0.0));
@@ -1005,7 +1005,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       arma::mat B = riwishart(dfSb, Sb);
       
       for (int t = 0; t < nt; t++) {
-        varb_post[t][it] = B(t,t);
+        vb_post[t][it] = B(t,t);
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
@@ -1028,7 +1028,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       //   }
       //   std::chi_squared_distribution<double> rchisq_e(dfe);
       //   chi2 = rchisq_e(gen);
-      //   vare_post[t][it] = (sse + sse_prior[t][t])/chi2;
+      //   ve_post[t][it] = (sse + sse_prior[t][t])/chi2;
       //   E(t,t) = (sse + sse_prior[t][t])/chi2;
       // }
       // arma::mat Ei = arma::inv(E);
@@ -1053,7 +1053,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         //   }
         //   //std::chi_squared_distribution<double> rchisq_e(dfe);
         //   //chi2 = rchisq_e(gen);
-        //   //vare_post[t][it] = (sse + sse_prior[t])/chi2;
+        //   //ve_post[t][it] = (sse + sse_prior[t])/chi2;
         //   //E(t,t) = (sse + sse_prior[t][t])/chi2;
         // }
       }
@@ -1063,7 +1063,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       arma::mat E = riwishart(dfSe, Se);
       arma::mat Ei = arma::inv(E);
       for (int t = 0; t < nt; t++) {
-        vare_post[t][it] = E(t,t);
+        ve_post[t][it] = E(t,t);
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
@@ -1143,8 +1143,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   for (int t=0; t < nt; t++) {
     for (int i=0; i < nit; i++) {
       result[2][t][i] = mu_post[t][i];
-      result[3][t][i] = varb_post[t][i];
-      result[4][t][i] = vare_post[t][i];
+      result[3][t][i] = vb_post[t][i];
+      result[4][t][i] = ve_post[t][i];
     }
   }
   for (int t1=0; t1 < nt; t1++) {
