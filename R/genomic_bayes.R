@@ -80,11 +80,12 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      
 
 
-     if(nt==1 && algorithm=="default" && !is.null(W)) fit <- bayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                                                     vg=vg, vb=vb, ve=ve, 
-                                                     ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-                                                     h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                                                     nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
+     if(nt==1 && algorithm=="default" && !is.null(W)) fit <- bayes(y=y, X=X, W=W, b=b, 
+                                                                   badj=badj, seb=seb, LD=LD, n=n,
+                                                                   vg=vg, vb=vb, ve=ve, 
+                                                                   ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
+                                                                   h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
+                                                                   nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
      
      if(nt==1 && algorithm=="sbayes" && is.null(Glist)) fit <- sbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
                                                                       vg=vg, vb=vb, ve=ve, 
@@ -557,7 +558,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
   
   
   m <- length(LDvalues)
-  if(is.null(pi)) pi <- 0.01
+  if(is.null(pi)) pi <- 0.001
   if(is.null(h2)) h2 <- 0.5
   if(is.null(ve)) ve <- 1
   if(method<4 && is.null(vb)) vb <- (ve*h2)/m
@@ -567,7 +568,6 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
   if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
   if(is.null(sse_prior)) sse_prior <- nue*ve
   if(is.null(b)) b <- rep(0,m)
-  
   
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy, 
