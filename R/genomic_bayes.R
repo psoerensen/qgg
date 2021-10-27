@@ -78,8 +78,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                            updateG=updateB, updateE=updateE,
                                            nit=nit, nburn=nburn, tol=tol, verbose=verbose) 
      
-
-
+     
+     
      if(nt==1 && algorithm=="default" && !is.null(W)) fit <- bayes(y=y, X=X, W=W, b=b, 
                                                                    badj=badj, seb=seb, LD=LD, n=n,
                                                                    vg=vg, vb=vb, ve=ve, 
