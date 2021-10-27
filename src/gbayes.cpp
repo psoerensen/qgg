@@ -183,8 +183,8 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       ves[it] = ve;
     }
     
-    // Update lambda's
-    if ( method<2 || method==4 ) {
+    // Update lambda's for BLUP
+    if ( method<2 ) {
       for ( int i = 0; i < m; i++) {
         lambda[i] = ve/vb;
       }
@@ -443,15 +443,6 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
       vbs[it] = vb; 
     }
     
-    // Sample marker variance
-    if(updateB) {
-      std::chi_squared_distribution<double> rchisq(dfb+nub);
-      chi2 = rchisq(gen);
-      vb = (ssb + ssb_prior)/chi2 ;
-      vbs[it] = vb; 
-    }
-    
-    
     
     // Sample residual variance
     if(updateE) {
@@ -469,9 +460,8 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
       ves[it] = ve;
     }
     
-    
-    // Update lambda's
-    if ( method==1 || method==4 ) {
+    // Update lambda's for BLUP
+    if ( method==1) {
       for ( int i = 0; i < m; i++) {
         lambda[i] = ve/vb;
       }
@@ -709,8 +699,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       }
     }
     
-    
-    
     // Sample marker variance
     ssb = 0.0;
     dfb = 0.0;
@@ -745,8 +733,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       ves[it] = ve;
     }
     
-    // Update lambda's
-    if ( method==1 || method==4 ) {
+    // Update lambda's for BLUP
+    if ( method==1 ) {
       for ( int i = 0; i < m; i++) {
         lambda[i] = ve/vb;
       }
