@@ -12,7 +12,6 @@
 /* .Call calls */
 extern SEXP _qgg_bayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_cp(SEXP);
-extern SEXP _qgg_fbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_freqbed(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_readW(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_getWlist(SEXP, SEXP, SEXP, SEXP);
@@ -42,7 +41,6 @@ extern SEXP _qgg_summarybed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 static const R_CallMethodDef CallEntries[] = {
     {"_qgg_bayes",                 (DL_FUNC) &_qgg_bayes,                 17},
     {"_qgg_cp",                    (DL_FUNC) &_qgg_cp,                     1},
-    {"_qgg_fbayes",                (DL_FUNC) &_qgg_fbayes,                16},
     {"_qgg_freqbed",               (DL_FUNC) &_qgg_freqbed,                4},
     {"_qgg_readW",                 (DL_FUNC) &_qgg_readW,                  4},
     {"_qgg_getWlist",              (DL_FUNC) &_qgg_getWlist,               4},
