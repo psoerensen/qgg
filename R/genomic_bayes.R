@@ -365,6 +365,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
 }
 
 
+# Individual level data using W 
 bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                    vg=NULL, vb=NULL, ve=NULL, 
                    ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
@@ -373,13 +374,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   ids <- NULL
   if(is.matrix(y)) ids <- rownames(y)
   if(is.vector(y)) ids <- names(y)
-  
   if(scaleY) y <- as.vector(scale(y)) 
-  
-  if(is.null(pi)) pi <- 0.001
-  
-  if(is.null(h2)) h2 <- 0.5
-  
   n <- nrow(W)
   m <- ncol(W)
   
@@ -387,19 +382,19 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   if(is.null(rownames(W))) warning("No names/rownames provided for W")
   if(!is.null(ids) & !is.null(rownames(W))) {
     if(any(is.na(match(ids,rownames(W))))) stop("Names/rownames for y does match rownames for W")
-    
   }
-  
-  if(is.null(b)) b <- rep(0,m)
+  if(is.null(pi)) pi <- 0.001
+  if(is.null(h2)) h2 <- 0.5
   e=y-mean(y)
   if(is.null(ve)) ve <- var(e)
   if(method<4 && is.null(vb)) vb <- (ve*h2)/m
   if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
   if(is.null(lambda)) lambda <- rep(ve/vb,m)
   if(is.null(vg)) vg <- ve*h2
-  
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
   if(is.null(sse_prior)) sse_prior <- nue*ve
+  if(is.null(b)) b <- rep(0,m)
   
   if(algorithm=="default") {
     fit <- .Call("_qgg_bayes",
@@ -425,14 +420,11 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
     fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
     names(fit[[7]]) <- names(fit[[8]]) <- ids
     names(fit) <- c("bm","dm","mu","vb","ve","pi","g","e","param","b")
-
   } 
-  
   return(fit)
-  
-  
 }
 
+# Individual level data using W 
 sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                   vg=NULL, vb=NULL, ve=NULL, 
                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
@@ -457,21 +449,18 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   m <- ncol(LD)
   
   if(is.null(pi)) pi <- 0.001
-  
   if(is.null(h2)) h2 <- 0.5
   
   if(is.null(ve)) ve <- 1
   if(method<4 && is.null(vb)) vb <- (ve*h2)/m
-  if(method==4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+  if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
   if(is.null(lambda)) lambda <- rep(ve/vb,m)
   if(is.null(vg)) vg <- ve*h2
-  
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
   if(is.null(sse_prior)) sse_prior <- nue*ve
-  
   if(is.null(b)) b <- rep(0,m)
-  
-  
+
   fit <- .Call("_qgg_sbayes",
                wy=wy, 
                LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
@@ -501,74 +490,25 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   
 }
 
-
-sbayes_dense <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                        vg=NULL, vb=NULL, ve=NULL, 
-                        ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
-                        h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                        nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
-  
-  
-  m <- ncol(LD)
-  if(is.null(pi)) pi <- 0.01
-  if(is.null(h2)) h2 <- 0.5
-  if(is.null(ve)) ve <- 1
-  if(method<4 && is.null(vb)) vb <- (ve*h2)/m
-  if(method==4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
-  if(is.null(lambda)) lambda <- rep(ve/vb,m)
-  if(is.null(vg)) vg <- ve*h2
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
-  if(is.null(sse_prior)) sse_prior <- nue*ve
-  if(is.null(b)) b <- rep(0,m)
-  
-  
-  fit <- .Call("_qgg_sbayes",
-               wy=wy, 
-               LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
-               b = b,
-               lambda = lambda,
-               yy = yy,
-               pi = pi,
-               vg = vg,
-               vb = vb,
-               ve = ve,
-               ssb_prior=ssb_prior,
-               sse_prior=sse_prior,
-               nub=nub,
-               nue=nue,
-               updateB = updateB,
-               updateE = updateE,
-               updatePi = updatePi,
-               n=n,
-               nit=nit,
-               method=as.integer(method))
-  names(fit[[1]]) <- rownames(LD)
-  names(fit) <- c("bm","dm","mu","vb","ve","pi","g","e","param","b")
-  
-  return(fit)
-  
-}
-
 sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, 
                           LDvalues=NULL,LDindices=NULL, n=NULL,
                           vg=NULL, vb=NULL, ve=NULL, 
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                           nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
-  
-  
   m <- length(LDvalues)
   if(is.null(pi)) pi <- 0.001
   if(is.null(h2)) h2 <- 0.5
   if(is.null(ve)) ve <- 1
   if(method<4 && is.null(vb)) vb <- (ve*h2)/m
-  if(method==4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+  if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
   if(is.null(lambda)) lambda <- rep(ve/vb,m)
   if(is.null(vg)) vg <- ve*h2
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
   if(is.null(sse_prior)) sse_prior <- nue*ve
   if(is.null(b)) b <- rep(0,m)
-  
+
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy, 
                LDvalues=LDvalues, 
@@ -592,10 +532,9 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
                method=as.integer(method))
   names(fit[[1]]) <- names(LDvalues)
   names(fit) <- c("bm","dm","mu","vb","ve","pi","g","e","param","b")
-  
   return(fit)
-  
 }
+
 
 mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                   vg=NULL, vb=NULL, ve=NULL, 
@@ -621,7 +560,6 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   if(scaleY) y <- lapply(y,function(x){as.vector(scale(x))})
   if(!scaleY) y <- lapply(y,function(x){x-mean(x) })
   
-  
   if(is.null(b)) b <- lapply(1:nt,function(x){rep(0,m)}) 
   
   if(is.null(models)) {
@@ -638,18 +576,14 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   }
   
   if(is.null(h2)) h2 <- 0.5
-  if(is.null(ve)) {
-    ve <- diag(sapply(y,var))
-  }
+  if(is.null(ve)) ve <- diag(sapply(y,var))
   if(method<4 && is.null(vb)) vb <- diag(sapply(y,var)/(m))*h2
-  if(method==4 && is.null(vb)) vb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
-  
+  if(method>=4 && is.null(vb)) vb <- diag(sapply(y,var)/(m*pi[length(models)]))*h2
   if(is.null(vg)) vg <- diag(diag(ve))*h2
-
-  if(is.null(ssb_prior)) ssb_prior <-  (nub-2.0)/nub * (vg/m)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*0.001)
   if(is.null(sse_prior)) sse_prior <- nue*diag(diag(ve))
-  
-  
+
   fit <- .Call("_qgg_mtbayes",
                y=y, 
                W=split(W, rep(1:ncol(W), each = nrow(W))), 
