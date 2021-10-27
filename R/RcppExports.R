@@ -25,10 +25,6 @@ bayes <- function(y, W, b, lambda, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nu
     .Call(`_qgg_bayes`, y, W, b, lambda, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, method)
 }
 
-fbayes <- function(y, W, LD, b, lambda, pi, vg, vb, ve, nub, nue, updateB, updateE, updatePi, nit, method) {
-    .Call(`_qgg_fbayes`, y, W, LD, b, lambda, pi, vg, vb, ve, nub, nue, updateB, updateE, updatePi, nit, method)
-}
-
 sbayes <- function(wy, LD, b, lambda, yy, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method) {
     .Call(`_qgg_sbayes`, wy, LD, b, lambda, yy, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method)
 }
