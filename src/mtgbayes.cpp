@@ -124,7 +124,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   //Rcout << "Number of markers: " << m << "\n";
   
   
-  double ssb, sse, ssg, dfb, dfe, u, logliksum, psum, detC, diff;
+  double ssb, sse, dfb, dfe, u, logliksum, psum, detC, diff;
   int mselect;
   
   std::vector<std::vector<double>> e(nt, std::vector<double>(n, 0.0));
@@ -652,7 +652,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   //Rcout << "Number of markers: " << m << "\n";
   
   
-  double ssb, sse, dfb, dfe, chi2, u, logliksum, psum, detC, diff;
+  double ssb, sse, dfb, dfe, u, logliksum, psum, detC, diff;
   int mselect;
   
   //std::vector<std::vector<double>> e(nt, std::vector<double>(n, 0.0));
