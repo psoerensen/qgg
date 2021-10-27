@@ -124,7 +124,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   //Rcout << "Number of markers: " << m << "\n";
   
   
-  double ssb, sse, ssg, dfb, dfe, dfg, chi2, u, logliksum, psum, detC, diff;
+  double ssb, sse, ssg, dfb, dfe, u, logliksum, psum, detC, diff;
   int mselect;
   
   std::vector<std::vector<double>> e(nt, std::vector<double>(n, 0.0));
@@ -156,7 +156,6 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   
   // Prior variance and degrees of freedom
   dfe = n;
-  dfg = n;
   //for (int t1 = 0; t1 < nt; t1++) {
   //  for (int t2 = 0; t2 < nt; t2++) {
   //    ssb_prior[t1][t2] = (nub-2.0)/nub * B(t1,t2);
@@ -714,7 +713,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     for (int t = 0; t < nt; t++) {
       if (b[t][i]!= 0.0) {
       //      for (int j = 0; j < m; j++) {
-      for (int j = 0; j < LDindices[i].size(); j++) {
+      for (size_t j = 0; j < LDindices[i].size(); j++) {
         //r[j]=r[j] - LD[i][j]*b[i];
         r[t][LDindices[i][j]]=r[t][LDindices[i][j]] - LDvalues[i][j]*b[t][i];
       }
@@ -832,7 +831,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           //for (int j = 0; j < n; j++) {
           //  e[t][j]=e[t][j] - W[i][j]*(diff);
           //}
-          for (int j = 0; j < LDindices[i].size(); j++) {
+          for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[t][LDindices[i][j]]=r[t][LDindices[i][j]] - LDvalues[i][j]*diff;
           }
           conv[t] = conv[t] + diff*diff;
@@ -945,7 +944,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           //for (int j = 0; j < n; j++) {
           //  e[t][j]=e[t][j] - W[i][j]*(diff);
           //}
-          for (int j = 0; j < LDindices[i].size(); j++) {
+          for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[t][LDindices[i][j]]=r[t][LDindices[i][j]] - LDvalues[i][j]*diff;
           }
           conv[t] = conv[t] + diff*diff;
