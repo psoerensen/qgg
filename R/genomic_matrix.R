@@ -180,7 +180,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     for( chr in 1:length(Glist$ldfiles)) {
       message(paste("Compute sparse LD matrix for chromosome:",chr))
       Glist <- sparseLD(Glist = Glist, fnLD = Glist$ldfiles[chr], msize = msize, chr = chr, rsids = rsids,
-        ids = ids, ncores = 1)
+        ids = ids, ncores = 1, overwrite=overwrite)
       Glist$ldscores[[chr]] <- ldscore( Glist=Glist, chr=chr) 
     }
   }
@@ -590,10 +590,11 @@ getW <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, fam
 
 
 sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, msize = 100, chr = NULL, rsids = NULL, allele = NULL,
-                     ids = NULL, ncores = 1) {
+                     ids = NULL, ncores = 1, overwrite=FALSE) {
 
-  if (file.exists(fnLD)) stop("LD file allready exists - please specify other file names")
-
+  if (!overwrite && file.exists(fnLD)) stop("LD file allready exists - please specify other file names")
+  if (overwrite && file.exists(fnLD)) warning("LD file allready exists - replacing existing file")
+  
   if(!is.null(bedfiles)) {
      if(is.null(bimfiles)) bimfiles <- gsub(".bed",".bim",bedfiles)
      if(is.null(famfiles)) famfiles <- gsub(".bed",".fam",bedfiles)
