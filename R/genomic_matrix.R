@@ -592,12 +592,9 @@ getW <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, fam
 sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, msize = 100, chr = NULL, rsids = NULL, allele = NULL,
                      ids = NULL, ncores = 1, overwrite=FALSE) {
 
-  if (!overwrite && file.exists(fnLD)) stop("LD file allready exists - please specify other file names")
-  #if (overwrite && file.exists(fnLD)) warning("LD file allready exists - replacing existing file")
-  if (overwrite && file.exists(fnLD)) {
-    if (interactive()) askYesNo(paste("LD file",fnLD,"allready exists - do you want to replace existing file?"))
-    if (!interactive()) stop(paste("LD file",fnLD,"allready exists - please remove file or specify other file names"))
-  }
+  if (!overwrite && file.exists(fnLD) && !interactive()) stop("LD file allready exists - please specify other file names")
+  if (overwrite && file.exists(fnLD)) warning("LD file allready exists - replacing existing file")
+  if (!overwrite && file.exists(fnLD) && interactive()) askYesNo(paste("LD file",fnLD,"allready exists - do you want to replace existing file?"))
   if(!is.null(bedfiles)) {
      if(is.null(bimfiles)) bimfiles <- gsub(".bed",".bim",bedfiles)
      if(is.null(famfiles)) famfiles <- gsub(".bed",".fam",bedfiles)
