@@ -285,9 +285,9 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     result[6][i] = y[i]- mu - e[i];
     result[7][i] = e[i];
   }
-  result[8][0] = pi;
-  result[8][1] = vb;
-  result[8][2] = ve;
+  result[8][0] = vb;
+  result[8][1] = ve;
+  result[8][2] = pi;
   for (int i=0; i < m; i++) {
     result[9][i] = b[i];
   }
@@ -551,9 +551,9 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
     result[6][i] = wy[i];
     result[7][i] = r[i];
   }
-  result[8][0] = pi;
-  result[8][1] = vb;
-  result[8][2] = ve;
+  result[8][0] = vb;
+  result[8][1] = ve;
+  result[8][2] = pi;
   for (int i=0; i < m; i++) {
     result[9][i] = b[i];
   }
@@ -824,9 +824,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     result[6][i] = wy[i];
     result[7][i] = r[i];
   }
-  result[8][0] = pi;
-  result[8][1] = vb;
-  result[8][2] = ve;
+  result[8][0] = vb;
+  result[8][1] = ve;
+  result[8][2] = pi;
   for (int i=0; i < m; i++) {
     result[9][i] = b[i];
   }
