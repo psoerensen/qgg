@@ -95,9 +95,29 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   
   for ( int it = 0; it < nit; it++) {
     conv = 0.0;
+
+    // Compute marker effects (BLUP)
+    if (method==0) {
+      for ( int isort = 0; isort < m; isort++) {
+        int i = order[isort];
+        lhs = ww[i] + lambda[i];
+        rhs = 0.0;
+        for ( int j = 0; j < n; j++) {
+          rhs = rhs + W[i][j]*e[j]; 
+        }
+        rhs = rhs + ww[i]*b[i];
+        bn = rhs/lhs;
+        diff = bn-b[i];
+        for (int j = 0; j < n; j++) {
+          e[j]=e[j] - W[i][j]*(diff);
+        }
+        conv = conv + diff*diff;
+        b[i] = bn;
+      }
+    }
     
     // Sample marker effects (Mixed, BayesA, Lasso)
-    if (method<=3) {
+    if ( method==1 || method==2 || method==3 ) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         lhs = ww[i] + lambda[i];
@@ -183,14 +203,14 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       ves[it] = ve;
     }
     
-    // Update lambda's for BLUP
+    // Update lambda's for BLUP/Mixed
     if ( method<2 ) {
       for ( int i = 0; i < m; i++) {
         lambda[i] = ve/vb;
       }
     }
     
-    // Bayes A
+    // Sample marker specific variance for Bayes A
     if (method==2) {
       dfb = 1.0 + nub;
       for ( int i = 0; i < m; i++) { 
@@ -202,7 +222,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       }
     }
     
-    // Bayesian lasso
+    // Sample marker specific tau for Bayes lasso
     if (method==3) { 
       lambda_tau = 2.0*2.0*0.5*0.5/vb;
       for ( int i = 0; i < m; i++) { 
@@ -220,7 +240,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       }
     }
     
-    // Sample pi
+    // Sample pi for Bayes C
     if(updatePi) {
       double count = dfb + 1.0;
       std::gamma_distribution<double> rgamma(count,1.0);
@@ -391,20 +411,16 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        
         lhs0 = 1.0/vb;
         lhs1 = ww[i]/ve + 1.0/vb;
         rhs0 = 0.0;
         rhs1 = 0.0;
         rhs1 = r[i]/ve + ww[i]*b[i]/ve;
-        
         like0 = sqrt((1.0/lhs0))*std::exp(0.5*(1.0/lhs0)*rhs0*rhs0);
         like1 = sqrt((1.0/lhs1))*std::exp(0.5*(1.0/lhs1)*rhs1*rhs1);
         like0 = like0*(1.0-pi);
         like1 = like1*pi;
-        
         p0 = like0/(like0+like1);
-        
         d[i]=0;
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
@@ -460,14 +476,14 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
       ves[it] = ve;
     }
     
-    // Update lambda's for BLUP
+    // Update lambda's for BLUP/Mixed
     if ( method==1) {
       for ( int i = 0; i < m; i++) {
         lambda[i] = ve/vb;
       }
     }
     
-    // Bayes A
+    // Sample marker specific variance for Bayes A
     if (method==2) {
       dfb = 1.0 + nub;
       for ( int i = 0; i < m; i++) {
@@ -479,7 +495,7 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
       }
     }
     
-    // Bayesian lasso
+    // Sample marker specific tau for Bayesian lasso
     if (method==3) {
       lambda_tau = 2.0*2.0*0.5*0.5/vb;
       for ( int i = 0; i < m; i++) {
@@ -497,7 +513,7 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
       }
     }
     
-    // Sample pi
+    // Sample pi for Bayes C
     if(method==4 && updatePi) {
       double count = dfb + 1.0;
       std::gamma_distribution<double> rgamma(count,1.0);
@@ -733,14 +749,14 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       ves[it] = ve;
     }
     
-    // Update lambda's for BLUP
+    // Update lambda's for BLUP/Mixed
     if ( method==1 ) {
       for ( int i = 0; i < m; i++) {
         lambda[i] = ve/vb;
       }
     }
     
-    // Bayes A
+    // Sample marker specific variance for Bayes A
     if (method==2) {
       dfb = 1.0 + nub;
       for ( int i = 0; i < m; i++) { 
@@ -752,7 +768,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       }
     }
     
-    // Bayesian lasso
+    // Sample marker specific tau for Bayes lasso
     if (method==3) { 
       lambda_tau = 2.0*2.0*0.5*0.5/vb;
       for ( int i = 0; i < m; i++) { 
@@ -770,7 +786,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       }
     }
     
-    // Sample pi
+    // Sample pi for Bayes C
     if(method==4 && updatePi) {
       double count = dfb + 1.0;
       std::gamma_distribution<double> rgamma(count,1.0);
