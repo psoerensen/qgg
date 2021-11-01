@@ -58,7 +58,7 @@
 
 gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit=NULL, Glist=NULL, 
                    chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                   vg=NULL, vb=NULL, ve=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
+                   vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
                    nug=NULL, nub=4, nue=4, verbose=FALSE,
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
@@ -71,100 +71,55 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      
      nt <- 1
      if(is.list(y)) nt <- length(y)
+ 
+     # Single and multiple trait BLR based on GRMs    
+     if(!is.null(GRMlist)) {
+       
+       fit <- bmm(y=y, X=X, W=W, GRMlist=GRMlist,
+                  vg=vg, ve=ve, nug=nug, nue=nue,
+                  vg_prior=vg_prior, ve_prior=ve_prior,
+                  updateG=updateB, updateE=updateE,
+                  nit=nit, nburn=nburn, tol=tol, verbose=verbose) 
+     } 
      
-     if(!is.null(GRMlist))      fit <- bmm(y=y, X=X, W=W, GRMlist=GRMlist,
-                                           vg=vg, ve=ve, nug=nug, nue=nue,
-                                           vg_prior=vg_prior, ve_prior=ve_prior,
-                                           updateG=updateB, updateE=updateE,
-                                           nit=nit, nburn=nburn, tol=tol, verbose=verbose) 
+        
+     # Single trait BLR using y and W   
+     if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") {
+       
+       fit <- bayes(y=y, X=X, W=W, b=b, 
+                    badj=badj, seb=seb, LD=LD, n=n,
+                    vg=vg, vb=vb, ve=ve, 
+                    ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
+                    h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
+                    nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
+     }
+     
+     
+     # Single trait BLR using y and W and sbayes method 
+     if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") {
+       
+       fit <- sbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
+                     vg=vg, vb=vb, ve=ve, 
+                     ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
+                     h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
+                     nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
+     }
+     
+     # Multiple trait BLR using y and W
+     if(nt>1 && !is.null(y) && !is.null(W)) {
+       fit <- mtbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
+                      vg=vg, vb=vb, ve=ve, 
+                      ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
+                      h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
+                      nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) 
+     }
      
      
      
-     if(nt==1 && algorithm=="default" && !is.null(W)) fit <- bayes(y=y, X=X, W=W, b=b, 
-                                                                   badj=badj, seb=seb, LD=LD, n=n,
-                                                                   vg=vg, vb=vb, ve=ve, 
-                                                                   ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-                                                                   h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                                                                   nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
-     
-     if(nt==1 && algorithm=="sbayes" && is.null(Glist)) fit <- sbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                                                                      vg=vg, vb=vb, ve=ve, 
-                                                                      ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-                                                                      h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                                                                      nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
-     
-     if(nt>1 && is.null(Glist)) fit <- mtbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                                               vg=vg, vb=vb, ve=ve, 
-                                               ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-                                               h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                                               nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) 
-     
-     # if(nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
-     #   
-     #   if(is.matrix(y)) ids <- rownames(y)
-     #   if(is.vector(y)) ids <- names(y)
-     #   rws <- match(ids,Glist$ids)
-     #   if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
-     # 
-     #   if(is.null(chr)) chromosomes <- 1:Glist$nchr
-     #   if(!is.null(chr)) chromosomes <- chr
-     #   fit <- vector(length=length(chromosomes),mode="list")
-     #   names(fit) <- chromosomes
-     #   
-     # 
-     #   e <- y
-     #   g <- rep(0,Glist$n)
-     #   
-     #   for (chr in chromosomes) {
-     #     rsidsCVS <- Glist$rsids[[chr]]
-     #     if(!is.null(rsids)) rsidsCVS <- Glist$rsids[[chr]][Glist$rsids[[chr]]%in%rsids]
-     #     clsCVS <- match(rsidsCVS,Glist$rsids[[chr]])
-     #     clsCVS <- clsCVS[!is.na(clsCVS)]
-     #     covs <- cvs(y=e,Glist=Glist,chr=chr, cls=clsCVS)
-     #     mlogp <- -log10(covs$p[[1]])
-     #     if(any(is.na(mlogp))) {
-     #       print(paste("Number of marker removed:",sum(is.na(mlogp))))
-     #       mlogp <- mlogp[!is.na(mlogp)]
-     #     }
-     #     if(!is.null(rsids)) {
-     #       print(paste("Number of markers used:",sum(names(mlogp)%in%rsids),"from chromosome:",chr))
-     #       mlogp <- mlogp[names(mlogp)%in%rsids]
-     #     }
-     #     cls <- match(names(mlogp),Glist$rsids[[chr]])
-     #     m <- length(mlogp) 
-     #     o <- order(mlogp,decreasing=TRUE)
-     #     cls <- splitWithOverlap(cls[o],1000,0)
-     #     sets <- splitWithOverlap((1:m)[o],1000,0)
-     #     dm <- bm <- rep(0,m)
-     #     names(dm) <- names(bm) <- names(mlogp)
-     #     vem <- vbm <- pim <- vector(length=length(sets),mode="list")
-     #     for (i in 1:length(sets)) {
-     #       W <- getG(Glist, chr=chr, scale=TRUE, cls=cls[[i]])
-     #       LD <- crossprod(W[rws,])
-     #       fitset <- sbayes(y=e, X=X, W=W[rws,], b=b, badj=badj, seb=seb, LD=LD, n=n,
-     #                        vg=vg, vb=vb, ve=ve, 
-     #                        ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=FALSE,
-     #                        h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-     #                        nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)
-     #       gset <- crossprod(t(W),fitset$bm)
-     #       g <- g + gset
-     #       e <- e - gset[rws,]
-     #       dm[sets[[i]]] <- fitset$dm
-     #       bm[sets[[i]]] <- fitset$bm
-     #       vem[[i]] <- fitset$ve
-     #       vbm[[i]] <- fitset$vb
-     #       pim[[i]] <- fitset$Pi
-     #       print(paste("Finished segment:",i,"out of",length(sets),"segments on chromosome:",chr))
-     #     }
-     #     fit[[chr]] <- list(bm=bm,dm=dm,E=vem,B=vbm,Pi=pim)
-     #   }
-     #   fit$g <- g[rws,]
-     #   fit$gtrain <- g[rws,]
-     #   fit$gtest <- g[-rws,]
-     #   fit$e <- e
-     # }
-     
-     if( !is.null(y) && nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
+     # Single trait BLR using y and sparse LD provided Glist
+     if( nt==1 && !is.null(y) && algorithm=="sparse") {
+       
+       if(is.null(Glist)) stop("Please provide Glist")
        fit <- NULL
        if(is.matrix(y)) ids <- rownames(y)
        if(is.vector(y)) ids <- names(y)
@@ -229,8 +184,67 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        fit$stat <- stat
        fit$covs <- covs
      }
-  
-     if( !is.null(stat) && nt==1 && !is.null(Glist)) {
+     
+     
+     # Single trait BLR using y and dense LD
+     if( nt==1 && !is.null(y) &&  algorithm=="dense") {
+       
+       overlap <- 0
+       msize <- 100
+       
+       if(is.null(Glist)) stop("Please provide Glist")
+       fit <- NULL
+       if(is.matrix(y)) ids <- rownames(y)
+       if(is.vector(y)) ids <- names(y)
+       rws <- match(ids,Glist$ids)
+       if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
+       n <- length(y)
+       
+       if(is.null(chr)) chromosomes <- 1:Glist$nchr
+       if(!is.null(chr)) chromosomes <- chr
+       
+       
+       e <- y
+       rsids <- unlist(Glist$rsidsLD)
+       cls <- lapply(Glist$rsids,function(x) { 
+         splitWithOverlap(na.omit(match(rsids,x)),msize,0)})
+       b <- lapply(Glist$mchr,function(x){rep(0,x)})
+       d <- lapply(Glist$mchr,function(x){rep(0,x)})
+       
+       for (chr in 1:length(Glist$nchr)) {
+         for (i in 1:length(cls[[chr]])) {
+           yy <- sum(e**2)
+           wy <- computeWy(y=e,Glist=Glist,chr=chr,cls=cls[[chr]][[i]])
+           WW <- computeWW(Glist=Glist, chr=chr, cls=cls[[chr]][[i]], rws=rws)
+           fitS <- computeB(wy=wy, yy=yy, WW=WW, n=n, 
+                            ve=ve, vb=vb, pi=pi,
+                            nub=nub, nue=nue,
+                            updateB=updateB, updateE=updateE, updatePi=updatePi,
+                            nit=nit, nburn=nburn, method=method) 
+           b[[chr]][cls[[chr]][[i]]] <- fitS$bm
+           d[[chr]][cls[[chr]][[i]]] <- fitS$dm
+           grs <- computeGRS(Glist = Glist, chr = chr, 
+                             cls = cls[[chr]][[i]], 
+                             b=b[[chr]][cls[[chr]][[i]]])  
+           e <- e - grs[rws,]
+         }
+       }
+       bm <- unlist(b)
+       dm <- unlist(d)
+       names(bm) <- names(dm) <- unlist(Glist$rsids)
+       stat <- data.frame(rsids=rsids,
+                          chr=unlist(Glist$chr)[rsids],
+                          pos=unlist(Glist$pos)[rsids], 
+                          a1=unlist(Glist$a1)[rsids],
+                          a2=unlist(Glist$a2)[rsids], 
+                          af=unlist(Glist$af)[rsids],
+                          bm=bm[rsids])
+       fit$stat <- stat
+       
+     }
+     
+     # Single trait BLR using stat and sparse LD provided in Glist
+     if( nt==1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
        fit <- NULL
        
        if(is.null(chr)) chromosomes <- 1:Glist$nchr
@@ -645,6 +659,76 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   
   return(fit)
   
+}
+
+
+computeB <- function(wy=NULL, yy=NULL, b=NULL, WW=NULL, n=NULL,
+                     vb=NULL, vg=NULL, ve=NULL, lambda=NULL, 
+                     ssb_prior=NULL, sse_prior=NULL, 
+                     nub=NULL, nue=NULL, 
+                     h2=NULL, pi=NULL, 
+                     updateB=NULL, updateE=NULL, updatePi=NULL,
+                     nit=NULL, nburn=NULL, method=NULL) {
+  
+  m <- ncol(WW)
+  
+  if(is.null(pi)) pi <- 0.001
+  if(is.null(h2)) h2 <- 0.5
+  
+  if(is.null(ve)) ve <- 1
+  if(method<4 && is.null(vb)) vb <- (ve*h2)/m
+  if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,m)
+  if(is.null(vg)) vg <- ve*h2
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
+  if(is.null(sse_prior)) sse_prior <- nue*ve
+  if(is.null(b)) b <- rep(0,m)
+  
+  fit <- .Call("_qgg_sbayes",
+               wy=wy, 
+               LD=split(WW, rep(1:ncol(WW), each = nrow(WW))), 
+               b = b,
+               lambda = lambda,
+               yy = yy,
+               pi = pi,
+               vg = vg,
+               vb = vb,
+               ve = ve,
+               ssb_prior=ssb_prior,
+               sse_prior=sse_prior,
+               nub=nub,
+               nue=nue,
+               updateB = updateB,
+               updateE = updateE,
+               updatePi = updatePi,
+               n=n,
+               nit=nit,
+               method=as.integer(method))
+  
+  names(fit[[1]]) <- rownames(WW)
+  names(fit) <- c("bm","dm","mus","vbs","ves","pis","wy","r","param","b")
+  
+  return(fit)
+  
+}
+
+computeWy <- function(y=NULL, Glist = NULL, chr = NULL, cls = NULL) {
+  wy <- cvs(y=y,Glist=Glist,chr=chr,cls=cls)[[1]]$wy
+  return(wy)
+}
+
+computeWW <- function(Glist = NULL, chr = NULL, cls = NULL, rws=NULL, scale=TRUE) { 
+  W <- getG(Glist=Glist, chr=chr, cls=cls, scale=scale)
+  WW <- crossprod(W[rws,])
+  return(WW)
+}
+
+computeGRS <- function(Glist = NULL, chr = NULL, cls = NULL, b=NULL, scale=TRUE) { 
+  af <- Glist$af[[chr]][cls]  
+  grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], 
+               Glist$n, cls=cls, af=af, scale=scale, Slist=list(b))
+  return(as.matrix(as.data.frame(grs)))
 }
 
 
@@ -1277,5 +1361,72 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   
   return(fit) # return posterior samples of sigma 
 }
+
+
+
+# if(nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
+#   
+#   if(is.matrix(y)) ids <- rownames(y)
+#   if(is.vector(y)) ids <- names(y)
+#   rws <- match(ids,Glist$ids)
+#   if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
+# 
+#   if(is.null(chr)) chromosomes <- 1:Glist$nchr
+#   if(!is.null(chr)) chromosomes <- chr
+#   fit <- vector(length=length(chromosomes),mode="list")
+#   names(fit) <- chromosomes
+#   
+# 
+#   e <- y
+#   g <- rep(0,Glist$n)
+#   
+#   for (chr in chromosomes) {
+#     rsidsCVS <- Glist$rsids[[chr]]
+#     if(!is.null(rsids)) rsidsCVS <- Glist$rsids[[chr]][Glist$rsids[[chr]]%in%rsids]
+#     clsCVS <- match(rsidsCVS,Glist$rsids[[chr]])
+#     clsCVS <- clsCVS[!is.na(clsCVS)]
+#     covs <- cvs(y=e,Glist=Glist,chr=chr, cls=clsCVS)
+#     mlogp <- -log10(covs$p[[1]])
+#     if(any(is.na(mlogp))) {
+#       print(paste("Number of marker removed:",sum(is.na(mlogp))))
+#       mlogp <- mlogp[!is.na(mlogp)]
+#     }
+#     if(!is.null(rsids)) {
+#       print(paste("Number of markers used:",sum(names(mlogp)%in%rsids),"from chromosome:",chr))
+#       mlogp <- mlogp[names(mlogp)%in%rsids]
+#     }
+#     cls <- match(names(mlogp),Glist$rsids[[chr]])
+#     m <- length(mlogp) 
+#     o <- order(mlogp,decreasing=TRUE)
+#     cls <- splitWithOverlap(cls[o],1000,0)
+#     sets <- splitWithOverlap((1:m)[o],1000,0)
+#     dm <- bm <- rep(0,m)
+#     names(dm) <- names(bm) <- names(mlogp)
+#     vem <- vbm <- pim <- vector(length=length(sets),mode="list")
+#     for (i in 1:length(sets)) {
+#       W <- getG(Glist, chr=chr, scale=TRUE, cls=cls[[i]])
+#       LD <- crossprod(W[rws,])
+#       fitset <- sbayes(y=e, X=X, W=W[rws,], b=b, badj=badj, seb=seb, LD=LD, n=n,
+#                        vg=vg, vb=vb, ve=ve, 
+#                        ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=FALSE,
+#                        h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
+#                        nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)
+#       gset <- crossprod(t(W),fitset$bm)
+#       g <- g + gset
+#       e <- e - gset[rws,]
+#       dm[sets[[i]]] <- fitset$dm
+#       bm[sets[[i]]] <- fitset$bm
+#       vem[[i]] <- fitset$ve
+#       vbm[[i]] <- fitset$vb
+#       pim[[i]] <- fitset$Pi
+#       print(paste("Finished segment:",i,"out of",length(sets),"segments on chromosome:",chr))
+#     }
+#     fit[[chr]] <- list(bm=bm,dm=dm,E=vem,B=vbm,Pi=pim)
+#   }
+#   fit$g <- g[rws,]
+#   fit$gtrain <- g[rws,]
+#   fit$gtest <- g[-rws,]
+#   fit$e <- e
+# }
 
 
