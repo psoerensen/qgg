@@ -155,7 +155,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
            LD$values <- lapply(LD$values,function(x){x*n})
            rsidsLD <- names(LD$values)
            clsLD <- match(rsidsLD,Glist$rsids[[chr]])
-           wy <- covs[[chr]][[1]][rsidsLD,"wy"]
+           wy <- covs[[chr]][rsidsLD,"wy"]
            b <- rep(0,length(wy))
            if(it>1) {
              b <- fit[[chr]]$b
@@ -199,7 +199,6 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      if( nt==1 && !is.null(y) &&  algorithm=="dense") {
        
        overlap <- 0
-       #msize <- 100
        
        if(is.null(Glist)) stop("Please provide Glist")
        fit <- NULL
@@ -715,7 +714,7 @@ computeB <- function(wy=NULL, yy=NULL, b=NULL, WW=NULL, n=NULL,
 }
 
 computeWy <- function(y=NULL, Glist = NULL, chr = NULL, cls = NULL) {
-  wy <- cvs(y=y,Glist=Glist,chr=chr,cls=cls)[[1]]$wy
+  wy <- cvs(y=y,Glist=Glist,chr=chr,cls=cls)$wy
   return(wy)
 }
 
