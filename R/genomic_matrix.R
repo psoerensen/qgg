@@ -429,48 +429,36 @@ cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NU
   if(is.matrix(y)) ids <- rownames(y)
   if(is.vector(y)) ids <- names(y)
   if(is.vector(y)) y <- as.matrix(y)
+  nt <- ncol(y)
   for (i in 1:ncol(y)) {
     y[,i] <- y[,i] - mean(y[,i])
   }
-  if(is.null(ids)) warning("No names/rownames provided for y")
+  if(is.null(ids)) stop("No names/rownames provided for y")
   if(!is.null(ids)) {
     if(any(is.na(match(ids,Glist$ids))))  stop("Names/rownames for y does match rownames for W")
     if(any(is.na(Glist$ids%in%ids)))  stop("Names/rownames for y does match rownames for W")
   }
-  dfe <- nrow(y)-1
-  weights <- list(rep(1.0,nrow(y)))
   rws <- match(ids,Glist$ids)
   if(any(is.na(rws))) stop("Some ids in y does not match individuals in Glist$ids")
-  if(!is.null(ids) & any(duplicated(ids)) ) {
-    ylist <- apply(y,2,function(x){ split(x,f=factor(ids))})
-    weights <- lapply(ylist,function(x){sapply(x,length)}) 
-    y <- lapply(ylist,function(x){sapply(x,sum)}) 
+  dfe <- nrow(y)-1
+  ylist <- lapply(1:nt,function(x) {rep(0,Glist$n)})
+  weights <- lapply(1:nt,function(x) {rep(0,Glist$n)})
+  for (i in 1:nt) {
+    ylist[[i]][rws] <- y[,i]
+    weights[[i]][rws] <- 1.0
   }
-  if(!is.null(ids) & !any(duplicated(ids)) ) {
-    weights <- rep(0.0,Glist$n)
-    weights[rws] <- 1.0
-    weights <- list(weights)
-    ylist <- apply(y,2,function(x){ 
-      y0 <- rep(0.0,Glist$n)
-      y0[rws] <- x
-      y0
-      })
-    y <- ylist
-  }
-  if(!is.list(y)) y <- list(y)
   if(!file.exists(Glist$bedfiles[chr])) stop(paste("Bedfile:", Glist$bedfiles[chr],"does not exist"))
-  #if(!length(y)==Glist$n) stop("Length of y does not match number of individuals in Glist$n")
   covs <- .Call("_qgg_summarybed", 
                 Glist$bedfiles[chr], 
                 n=Glist$n,
                 cls=cls,
                 af=af,
                 weights=weights,
-                y=y)
+                y=ylist)
   
-  res <- vector(length=length(y),mode="list")
-  names(res) <- names(y)
-  for ( i in 1:length(covs[[1]])) {
+  res <- vector(length=nt,mode="list")
+  names(res) <- colnames(y)
+  for ( i in 1:nt) {
     rsids <- Glist$rsids[[chr]][cls]
     ww <- covs[[1]][[i]]
     wy <- covs[[2]][[i]]
@@ -481,20 +469,7 @@ cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NU
     res[[i]] <- data.frame(rsids,ww,wy,b,seb,tstat,p)
     rownames(res[[i]]) <- rsids
   }
-  
-  # covs <- c(covs,list(NULL),list(NULL),list(NULL),list(NULL))
-  # for ( i in 1:length(covs[[1]])) {
-  #   names(covs[[1]][[i]]) <- Glist$rsids[[chr]][cls]
-  #   names(covs[[2]][[i]]) <- Glist$rsids[[chr]][cls]
-  #   covs[[3]][[i]] <- (covs[[2]][[i]]/covs[[1]][[i]])
-  #   covs[[4]][[i]] <- 1/sqrt(covs[[1]][[i]])
-  #   covs[[5]][[i]] <- (covs[[2]][[i]]/covs[[1]][[i]])*sqrt(covs[[1]][[i]])
-  #   #ptt <- 2 * pt(-abs(covs[[5]][[i]]), df = dfe)
-  #   ptt <- 2 * pt(-abs(covs[[5]][[i]]), df = dfe - 2)
-  #   covs[[6]][[i]] <- ptt
-  # }
-  # names(covs) <- c("XX","Xy","b","seb","tstat","p")
-  #return(covs)
+  if(nt==1) res <- res[[1]]
   return(res)
 }
 
