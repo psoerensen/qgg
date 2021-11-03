@@ -71,7 +71,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      
      nt <- 1
      if(is.list(y)) nt <- length(y)
- 
+     if(is.matrix(y)) nt <- length(y)
+     
      # Single and multiple trait BLR based on GRMs    
      if(!is.null(GRMlist)) {
        
@@ -551,7 +552,7 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
                   nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
   
   if(is.list(y)) nt <- length(y)
-  if(!is.list(y)) stop("This is not a multiple trait analysis")
+  if(!is.matrix(y)) stop("This is not a multiple trait analysis")
   
   if(method==0) {
     # BLUP and we do not estimate parameters
@@ -564,6 +565,9 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   
   n <- nrow(W)
   m <- ncol(W)
+  
+  if(!is.matrix(y)) stop("y should be a matrix")
+  y <- split(y, rep(1:ncol(y), each = nrow(y)))
   
   if(scaleY) y <- lapply(y,function(x){as.vector(scale(x))})
   if(!scaleY) y <- lapply(y,function(x){x-mean(x) })
@@ -649,8 +653,11 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   colnames(fit[[16]]) <- trait_names
   names(fit[[13]]) <- sapply(models,paste,collapse="_")
   names(fit[[14]]) <- sapply(models,paste,collapse="_")
-  names(fit) <- c("bm","dm","mu","Bm","Em","covb","cove","g","e","b","vb","ve","pi","pim","order","gm","rb","re","covg","rg")
-  
+  names(fit) <- c("bm","dm","mus","vbs","ves","covb","cove",
+                  "g","e","b","vb","ve","pi","pim","order",
+                  "gm","rb","re","covg","rg")
+  fit$bm <- as.matrix(as.data.frame(fit$bm))
+  fit$dm <- as.matrix(as.data.frame(fit$dm))
   return(fit)
   
 }
