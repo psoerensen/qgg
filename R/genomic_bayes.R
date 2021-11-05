@@ -1011,10 +1011,10 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
   
   layout(matrix(1:6,ncol=2,byrow=TRUE))
   
-  lm(stat$effect_allele_freq[aligned]~ df$af[aligned])
+  try(lm(stat$effect_allele_freq[aligned]~ df$af[aligned]))
   plot(stat$effect_allele_freq[aligned],df$af[aligned], ylab="AF in Glist (allele matching)",xlab="AF in stat (allele matching)")
   
-  lm(stat$effect_allele_freq[!aligned]~ df$af[!aligned])
+  try(lm(stat$effect_allele_freq[!aligned]~ df$af[!aligned]))
   plot(stat$effect_allele_freq[!aligned],df$af[!aligned], ylab="AF in Glist (allele not matching)",xlab="AF in stat (allele not matching)")
   
   stat[!aligned,"effect_allele_freq"] <- 1 - stat[!aligned,"effect_allele_freq"]
@@ -1025,7 +1025,7 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
   stat[!aligned,"alternative_allele"] <- effect_allele 
   stat[!aligned,"b"] <- -effect 
   
-  lm(stat$effect_allele_freq~ df$af)
+  try(lm(stat$effect_allele_freq~ df$af))
   plot(stat$effect_allele_freq,df$af, ylab="AF in Glist",xlab="AF in stat (after allele flipped)")
   
   isDUPS <- duplicated(stat$rsids)
