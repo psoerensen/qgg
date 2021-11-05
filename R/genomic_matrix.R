@@ -553,7 +553,6 @@ getW <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, fam
     ids <- as.character(fam[rws, 2])
     rsids <- as.character(bim[cls, 2])
   }
-
   W <- .Call("_qgg_readW", Glist$bedfiles[chr], Glist$n, cls, Glist$af[[chr]][cls])
   W <- W[rws,]     
   rownames(W) <- ids
