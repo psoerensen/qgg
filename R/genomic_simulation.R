@@ -82,7 +82,7 @@ gsim <- function(nt=1,W=NULL,n=1000,m=1000) {
     g <- cbind(g,g0+g1[[i]])
   }
   colnames(g) <- paste0("D",1:nt) 
-  if(nt==1) return( list( y=y[[1]],W=W, e=e[[1]],g=g,b0=b0,b1=b1,set0=set0,set1=set1,causal=c(set0,unlist(set1))))
-  if(nt>1) return( list( y=y,W=W, e=e,g=g,b0=b0,b1=b1,set0=set0,set1=set1,causal=c(set0,unlist(set1))))
+  if(nt==1) return( list(y=y[[1]],W=W,e=e[[1]],g=g,b0=b0,b1=b1,set0=set0,set1=set1,causal=c(set0,unlist(set1))))
+  if(nt>1) return( list(y=as.matrix(as.data.frame(y)),W=W,e=as.matrix(as.data.frame(e)),g=g,b0=b0,b1=b1,set0=set0,set1=set1,causal=c(set0,unlist(set1))))
 }
 
