@@ -427,7 +427,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
     names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[10]]) <- colnames(W)
     fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
     names(fit[[7]]) <- names(fit[[8]]) <- ids
-    names(fit) <- c("bm","dm","mu","vb","ve","pi","g","e","param","b")
+    names(fit) <- c("bm","dm","coef","vb","ve","pi","g","e","param","b")
   } 
   return(fit)
 }
@@ -492,7 +492,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   names(fit[[1]]) <- rownames(LD)
   if(!is.null(W)) fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
   names(fit[[7]]) <- ids
-  names(fit) <- c("bm","dm","mu","vb","ve","pi","g","e","param","b")
+  names(fit) <- c("bm","dm","coef","vb","ve","pi","g","e","param","b")
 
   return(fit)
   
@@ -539,7 +539,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
                nit=nit,
                method=as.integer(method))
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","mu","vb","ve","pi","g","e","param","b")
+  names(fit) <- c("bm","dm","coef","vb","ve","pi","g","e","param","b")
   return(fit)
 }
 
