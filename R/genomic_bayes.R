@@ -71,7 +71,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      
      nt <- 1
      if(is.list(y)) nt <- length(y)
-     if(is.matrix(y)) nt <- length(y)
+     if(is.matrix(y)) nt <- ncol(y)
      
      # Single and multiple trait BLR based on GRMs    
      if(!is.null(GRMlist)) {
@@ -273,12 +273,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
      }
      
      # Single trait BLR using summary statistics and sparse LD provided in Glist
-     if( nt==1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
-       fit <- NULL
-       
-       if(is.null(chr)) chromosomes <- 1:Glist$nchr
-       if(!is.null(chr)) chromosomes <- chr
-       if(is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
+#     if( nt==1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
+     if( is.null(y) && !is.null(stat) && !is.null(Glist)) {
        
        # single trait summary statistics
        if(is.data.frame(stat)) {
@@ -305,21 +301,30 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        if( !is.data.frame(stat) && is.list(stat)) {
          nt <- ncol(stat$b)
          trait_names <- colnames(stat$b)
+         if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
          rsidsLD <- unlist(Glist$rsidsLD)
          b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
          rownames(b) <- rownames(wy) <- rsidsLD
+         colnames(b) <- colnames(wy) <- trait_names
          rws <- rownames(stat$b)%in%rsidsLD 
          b2 <- (stat$b[rws,])^2
          seb2 <- (stat$seb[rws,])^2
-         dfe <- stat$dfe[rws,]
-         n <- as.integer(colMeans(stat$dfe)+2)
+         if(!is.null(stat$dfe)) n <- as.integer(colMeans(stat$dfe)+2)
+         if(!is.null(stat$n)) n <- as.integer(colMeans(stat$n))
          ww <- stat$ww[rws,]
-         yy <- (b2 + (n-2)*seb2)*ww
+         for (i in 1:nt) {
+           seb2[,i] <- (n[i]-2)*seb2[,i]
+         }
+         yy <- (b2 + seb2)*ww
          yy <- colMeans(yy)
          wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
          if(any(is.na(wy))) stop("Missing values in wy")
        }
 
+       if(is.null(chr)) chromosomes <- 1:Glist$nchr
+       if(!is.null(chr)) chromosomes <- chr
+       if(is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
+       
        bm <- dm <- fit <- res <- vector(length=Glist$nchr,mode="list")
        names(bm) <- names(dm) <- names(fit) <- names(res) <- 1:Glist$nchr
        for (chr in chromosomes){
@@ -329,14 +334,14 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
          } 
          rsidsLD <- names(LD[[chr]]$values)
          clsLD <- match(rsidsLD,Glist$rsids[[chr]])
-         LD[[chr]]$values <- lapply(LD[[chr]]$values,function(x){x*n})
          bmchr <- NULL
          for (trait in 1:nt) {
-           if(verbose) print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
+           if(verbose) print( paste("Fit",methods[method+1], "on chromosome:",chr,"for trait",trait))
+           LDvalues <- lapply(LD[[chr]]$values,function(x){x*n[trait]})
            fit[[chr]] <- sbayes_sparse(yy=yy[trait], 
                                        wy=wy[rsidsLD,trait],
                                        b=b[rsidsLD,trait], 
-                                       LDvalues=LD[[chr]]$values, 
+                                       LDvalues=LDvalues, 
                                        LDindices=LD[[chr]]$indices, 
                                        method=method, 
                                        nit=nit, 
@@ -364,7 +369,6 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
        res <- do.call(rbind, res)
        rownames(res) <- res$rsids
        fit$stat <- res
-       fit$covs <- covs
      }
      
      fit$method <- methods[method+1]
