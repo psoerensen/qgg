@@ -258,11 +258,11 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
       seb <- do.call(rbind, lapply(ma,function(x){x$seb}))
       stat <- do.call(rbind, lapply(ma,function(x){x$stat}))
       p <- do.call(rbind, lapply(ma,function(x){x$p}))
-      n <- do.call(rbind, lapply(ma,function(x){x$dfe}))
+      n <- do.call(rbind, lapply(ma,function(x){x$n}))
       ww <- do.call(rbind, lapply(ma,function(x){x$ww}))
       wy <- do.call(rbind, lapply(ma,function(x){x$wy}))
       ma <- list(b = b, seb = seb, stat = stat, p = p,
-                 dfe = dfe, ww = ww, wy = wy)
+                 n = n, ww = ww, wy = wy)
       if(!is.null(Glist)) {
         rsids <- rownames(ma$b)
         ma$marker <- data.frame( rsids=rsids, 
