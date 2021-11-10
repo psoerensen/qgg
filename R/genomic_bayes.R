@@ -65,10 +65,12 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="default") {
   
+  # Check methods
   methods <- c("blup","mixed","bayesA","blasso","bayesC","ssvs")
   method <- match(method, methods) - 1
   if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid") 
   
+  # Determine number of traits
   nt <- 1
   if(!is.null(y)) {
     if(is.list(y)) nt <- length(y)
@@ -78,7 +80,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     if(!is.data.frame(stat) && is.list(stat)) nt <- ncol(stat$b)
   }
   
-  # define type of analysis
+  # Define type of analysis
   if(!is.null(GRMlist)) analysis <- "mtmc-mixed"
   
   if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") 
@@ -86,7 +88,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   
   if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") 
     analysis <- "st-blr-individual-level-sbayes"
-
+  
   if(nt==1 && !is.null(y) && algorithm=="sparse") 
     analysis <- "st-blr-individual-level-sparse-ld"
   
@@ -98,15 +100,23 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   
   if(nt>1 && !is.null(y) && !is.null(W))
     analysis <- "mt-blr-individual-level"
+
+  if(nt>1 && !is.null(y) && algorithm=="sparse") 
+    analysis <- "mt-blr-individual-level-sparse-ld"
   
   if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="default") 
     analysis <- "mt-blr-sumstat-sparse-ld"
-
+  
   if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="serial") 
     analysis <- "st-blr-sumstat-sparse-ld"
   
-  message(paste("Type of analysis chosen:",analysis))  
-
+  message(paste("Type of analysis performed:",analysis))  
+  
+  
+  ##############################################################################
+  # Different work flows
+  ##############################################################################
+  
   # Single and multiple trait BLR based on GRMs    
   if(!is.null(GRMlist)) {
     fit <- bmm(y=y, X=X, W=W, GRMlist=GRMlist,
@@ -306,7 +316,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   }
   
   # Single trait BLR using summary statistics and sparse LD provided in Glist
-#  if( nt==1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
+  #  if( nt==1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
   if(analysis=="st-blr-sumstat-sparse-ld") {
     # single trait summary statistics
     if(is.data.frame(stat)) {
@@ -405,10 +415,10 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   }
   
   # Multi trait BLR using summary statistics and sparse LD provided in Glist
-#  if( nt>1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
-
-  if(analysis=="mt-blr-sumstat-sparse-ld") {
+  #  if( nt>1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
   
+  if(analysis=="mt-blr-sumstat-sparse-ld") {
+    
     
     # multiple trait summary statistics
     trait_names <- colnames(stat$b)
@@ -482,12 +492,17 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   
 }
 
-# Individual level data using W 
+##############################################################################
+# Core functions used in work flows
+##############################################################################
+
+
+# Single trait BLR based on individual level data 
 bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                   vg=NULL, vb=NULL, ve=NULL, 
-                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
-                   h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                   nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
+                  vg=NULL, vb=NULL, ve=NULL, 
+                  ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
+                  h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
+                  nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
   ids <- NULL
   if(is.matrix(y)) ids <- rownames(y)
   if(is.vector(y)) ids <- names(y)
@@ -541,12 +556,12 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   return(fit)
 }
 
-# Individual level data using W 
+# Single trait BLR based on individual level data based on fast algorithm  
 sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                  vg=NULL, vb=NULL, ve=NULL, 
-                  ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
-                  h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                  nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
+                   vg=NULL, vb=NULL, ve=NULL, 
+                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
+                   h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
+                   nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
   
   ids <- NULL
   if(is.matrix(y)) ids <- rownames(y)
@@ -577,7 +592,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
   if(is.null(sse_prior)) sse_prior <- nue*ve
   if(is.null(b)) b <- rep(0,m)
-
+  
   fit <- .Call("_qgg_sbayes",
                wy=wy, 
                LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
@@ -602,11 +617,13 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   if(!is.null(W)) fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
   names(fit[[7]]) <- ids
   names(fit) <- c("bm","dm","coef","vb","ve","pi","g","e","param","b")
-
+  
   return(fit)
   
 }
 
+
+# Single trait BLR using summary statistics and sparse LD provided in Glist 
 sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, 
                           LDvalues=NULL,LDindices=NULL, n=NULL,
                           vg=NULL, vb=NULL, ve=NULL, 
@@ -625,7 +642,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
   if(is.null(sse_prior)) sse_prior <- nue*ve
   if(is.null(b)) b <- rep(0,m)
-
+  
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy, 
                LDvalues=LDvalues, 
@@ -653,6 +670,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
 }
 
 
+# Multiple trait BLR using summary statistics and sparse LD provided in Glist 
 mt_sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, 
                              LDvalues=NULL,LDindices=NULL, n=NULL,
                              vg=NULL, vb=NULL, ve=NULL, 
@@ -762,11 +780,12 @@ mt_sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL,
 }
 
 
+# Multiple trait BLR based on individual level data based on fast algorithm  
 mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
-                  vg=NULL, vb=NULL, ve=NULL, 
-                  ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
-                  h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                  nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
+                    vg=NULL, vb=NULL, ve=NULL, 
+                    ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
+                    h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
+                    nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
   
   if(is.list(y)) nt <- length(y)
   if(!is.matrix(y)) stop("This is not a multiple trait analysis")
@@ -813,7 +832,7 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*0.001)
   if(is.null(sse_prior)) sse_prior <- nue*diag(diag(ve))
-
+  
   fit <- .Call("_qgg_mtbayes",
                y=y, 
                W=split(W, rep(1:ncol(W), each = nrow(W))), 
@@ -965,29 +984,29 @@ computeGRS <- function(Glist = NULL, chr = NULL, cls = NULL, b=NULL, scale=TRUE)
 #'
 
 plotBayes <- function(fit=NULL, causal=NULL) {
-     if(!is.list(fit[[1]])) {
-          layout(matrix(1:6,nrow=3,ncol=2))
-          plot(fit[[1]],ylab="Posterior", xlab="Marker", main="Marker effect", frame.plot=FALSE)  
-          if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
-          #plot(fit[[2]],ylab="Posterior mean", xlab="Marker", pch="✈",,main="Marker indicator", frame.plot=FALSE)  
-          plot(fit[[2]],ylab="Posterior mean", xlab="Marker", main="Marker indicator", ylim=c(0,1), frame.plot=FALSE)  
-          if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
-          #if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch="✈", cex=2, lwd=3 )
-          hist(fit[[6]],xlab="Posterior", main="Pi")  
-          hist(fit[[4]],xlab="Posterior", main="Marker variance")  
-          hist(fit[[5]],xlab="Posterior", main="Residual variance")  
-          plot(fit[[6]],xlab="Sample", ylab="Pi", frame.plot=FALSE)  
-     } 
-     if(is.list(fit[[1]])) {
-          layout(matrix(1:4,2,2))
-          matplot(as.data.frame(fit[[1]]),ylab="Marker effect", frame.plot=FALSE)  
-          if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="green", pch=4, cex=2, lwd=3 )
-          matplot(as.data.frame(fit[[2]]),ylab="Marker indicator", frame.plot=FALSE)  
-          if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="green", pch=4, cex=2, lwd=3 )
-          matplot(as.data.frame(fit[[4]]),ylab="Marker variance", frame.plot=FALSE)  
-          matplot(as.data.frame(fit[[5]]),ylab="Residual variance", frame.plot=FALSE)  
-     } 
-     
+  if(!is.list(fit[[1]])) {
+    layout(matrix(1:6,nrow=3,ncol=2))
+    plot(fit[[1]],ylab="Posterior", xlab="Marker", main="Marker effect", frame.plot=FALSE)  
+    if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
+    #plot(fit[[2]],ylab="Posterior mean", xlab="Marker", pch="✈",,main="Marker indicator", frame.plot=FALSE)  
+    plot(fit[[2]],ylab="Posterior mean", xlab="Marker", main="Marker indicator", ylim=c(0,1), frame.plot=FALSE)  
+    if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
+    #if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch="✈", cex=2, lwd=3 )
+    hist(fit[[6]],xlab="Posterior", main="Pi")  
+    hist(fit[[4]],xlab="Posterior", main="Marker variance")  
+    hist(fit[[5]],xlab="Posterior", main="Residual variance")  
+    plot(fit[[6]],xlab="Sample", ylab="Pi", frame.plot=FALSE)  
+  } 
+  if(is.list(fit[[1]])) {
+    layout(matrix(1:4,2,2))
+    matplot(as.data.frame(fit[[1]]),ylab="Marker effect", frame.plot=FALSE)  
+    if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="green", pch=4, cex=2, lwd=3 )
+    matplot(as.data.frame(fit[[2]]),ylab="Marker indicator", frame.plot=FALSE)  
+    if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="green", pch=4, cex=2, lwd=3 )
+    matplot(as.data.frame(fit[[4]]),ylab="Marker variance", frame.plot=FALSE)  
+    matplot(as.data.frame(fit[[5]]),ylab="Residual variance", frame.plot=FALSE)  
+  } 
+  
 }
 
 #'
@@ -1006,17 +1025,17 @@ plotCvs <- function(fit=NULL, causal=NULL) {
 
 
 splitWithOverlap <- function(vec, seg.length, overlap) {
-     starts = seq(1, length(vec), by=seg.length-overlap)
-     ends   = starts + seg.length - 1
-     ends[ends > length(vec)] = length(vec)
-     lapply(1:length(starts), function(i) vec[starts[i]:ends[i]])
+  starts = seq(1, length(vec), by=seg.length-overlap)
+  ends   = starts + seg.length - 1
+  ends[ends > length(vec)] = length(vec)
+  lapply(1:length(starts), function(i) vec[starts[i]:ends[i]])
 }
 
 neff <- function(seb=NULL,af=NULL,Vy=1) {
-     seb2 <- seb**2
-     vaf <- 2*af*(1-af)
-     neff <- round(median(Vy/(vaf*seb2)))
-     return(neff)
+  seb2 <- seb**2
+  vaf <- 2*af*(1-af)
+  neff <- round(median(Vy/(vaf*seb2)))
+  return(neff)
 }
 
 sortedSets <- function(o = NULL, msize = 500) {
@@ -1051,8 +1070,8 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
                    excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
                    excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE,
                    excludeMISS=0.05, excludeHWE=1e-12) {
-
-
+  
+  
   # stat is a data.frame
   if(!is.data.frame(stat)) stop("stat should be  a data frame")
   if(!is.null(stat$marker)) rownames(stat) <- stat$marker
@@ -1061,10 +1080,10 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   # internal summary statistic column format
   # data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
   # list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
-
+  
   fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb")
   fm_external <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
-  "effect_allele_freq","effect", "effect_se")
+                   "effect_allele_freq","effect", "effect_se")
   
   format <- "unknown"
   if(all(fm_internal%in%colnames(stat))) format <- "internal"
@@ -1077,7 +1096,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     print(fm_internal)
     stop("please revised your stat object according to these ")
   }
-
+  
   # external summary statistic column format
   # optimal format:
   # marker, chromosome, position, effect_allele, non_effect_allele, 
@@ -1091,15 +1110,15 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   # marker, effect_allele, sign, p, n             (limited quality control)
   
   marker <- data.frame(rsids=unlist(Glist$rsids),unlist(Glist$cpra),
-                   chr=unlist(Glist$chr), pos=unlist(Glist$position), 
-                   a1=unlist(Glist$a1), a2=unlist(Glist$a2),
-                   af=unlist(Glist$af))
+                       chr=unlist(Glist$chr), pos=unlist(Glist$position), 
+                       a1=unlist(Glist$a1), a2=unlist(Glist$a2),
+                       af=unlist(Glist$af))
   rownames(marker) <- marker$rsids
   
   message("Filtering markers based on information in Glist:")
   message("")
   
-
+  
   #message("Filtering markers based on qc information in Glist:")
   #message("")
   rsids <-  gfilter(Glist = Glist,
@@ -1139,7 +1158,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
   message("")
   
-
+  
   if(format=="external") {
     #original
     effect <- stat[,"effect"]
@@ -1163,7 +1182,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     colnames(stat)[1:8] <- fm_internal
     
   }  
-
+  
   if(format=="internal") {
     #original
     effect <- stat[,"b"]
@@ -1357,8 +1376,8 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
 #'
 
 adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b", 
-                  r2 = 0.9, ldSets = NULL, threshold = 1, header=NULL,
-                  method = "pruning") {
+                    r2 = 0.9, ldSets = NULL, threshold = 1, header=NULL,
+                    method = "pruning") {
   if(is.data.frame(stat)) {
     p <- stat$p
     if(is.null(stat$p)) pstat <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
@@ -1415,7 +1434,7 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
 #'
 #'
 
-    
+
 bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
                 vg=NULL, ve=NULL, nug=NULL, nue=NULL,
                 vg_prior=NULL, ve_prior=NULL,
@@ -1446,7 +1465,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   
   vgm <- lapply(1:nset,function(x){matrix(0,nt,nt)})
   names(vgm) <- setnames
-
+  
   vem <- matrix(0,nt,nt)
   
   if(is.null(vg_prior)) vg_prior <- lapply(1:nset,function(x){diag(0.01,nt)})
@@ -1464,7 +1483,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   idsT <- rownames(y)
   idsV <- idsG[!idsG%in%idsT]
   train <- match(idsT,idsG)
-
+  
   # eigen value decomposition of the GRM5 matrices
   U <- D <- vector(length=nset,mode="list")
   vgs <- vector(length=nset,mode="list")
@@ -1565,7 +1584,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   }
   vem <- vem/(nit-nburn)  
   colnames(vem) <- rownames(vem) <- tnames
-
+  
   # summary of model fit
   logCPO <- NULL
   for (t in 1:nt) {
