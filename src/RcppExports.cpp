@@ -268,7 +268,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // mtsbayes
-std::vector<std::vector<std::vector<double>>> mtsbayes(std::vector<std::vector<double>> wy, std::vector<double> yy, std::vector<std::vector<double>> b, std::vector<std::vector<double>> LDvalues, std::vector<std::vector<int>> LDindices, arma::mat B, arma::mat E, std::vector<std::vector<double>> ssb_prior, std::vector<std::vector<double>> sse_prior, std::vector<std::vector<int>> models, std::vector<double> pi, double nub, double nue, bool updateB, bool updateE, bool updatePi, int n, int nit, int method);
+std::vector<std::vector<std::vector<double>>> mtsbayes(std::vector<std::vector<double>> wy, std::vector<double> yy, std::vector<std::vector<double>> b, std::vector<std::vector<double>> LDvalues, std::vector<std::vector<int>> LDindices, arma::mat B, arma::mat E, std::vector<std::vector<double>> ssb_prior, std::vector<std::vector<double>> sse_prior, std::vector<std::vector<int>> models, std::vector<double> pi, double nub, double nue, bool updateB, bool updateE, bool updatePi, std::vector<int> n, int nit, int method);
 RcppExport SEXP _qgg_mtsbayes(SEXP wySEXP, SEXP yySEXP, SEXP bSEXP, SEXP LDvaluesSEXP, SEXP LDindicesSEXP, SEXP BSEXP, SEXP ESEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP modelsSEXP, SEXP piSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nSEXP, SEXP nitSEXP, SEXP methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -289,7 +289,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type updateB(updateBSEXP);
     Rcpp::traits::input_parameter< bool >::type updateE(updateESEXP);
     Rcpp::traits::input_parameter< bool >::type updatePi(updatePiSEXP);
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type n(nSEXP);
     Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
     rcpp_result_gen = Rcpp::wrap(mtsbayes(wy, yy, b, LDvalues, LDindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method));
