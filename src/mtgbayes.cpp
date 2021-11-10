@@ -553,7 +553,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
                                                            bool updateB,
                                                            bool updateE,
                                                            bool updatePi,
-                                                           int n,
+                                                           std::vector<int> n,
                                                            int nit,
                                                            int method) {
   
@@ -562,13 +562,13 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   int m = wy[0].size();
   int nmodels = models.size();
   
-  double ssb, sse, dfb, dfe, u, logliksum, psum, detC, diff;
+  double ssb, sse, dfb, u, logliksum, psum, detC, bxn, diff;
   int mselect;
   
   std::vector<std::vector<double>> ww(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<int>> d(nt, std::vector<int>(m, 0));
   
-  std::vector<double> mu(nt), rhs(nt), conv(nt);
+  std::vector<double> mu(nt), rhs(nt), conv(nt), dfe(nt);
   std::vector<double> pmodel(nmodels), pcum(nmodels), loglik(nmodels), cmodel(nmodels);
   std::vector<double> pis(nmodels);
   
@@ -588,13 +588,14 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   
   // Prior variance and degrees of freedom
   // fix this dfe and n should be vectors of length nt
-  dfe = n + nue;
-
+  for (int t = 0; t < nt; t++) {
+    dfe[t] = n[t] + nue;
+  }
   // Initialize variables
   for (int i = 0; i < m; i++) {
     for (int t = 0; t < nt; t++) {
       // fix this dfe and n should be vectors of length nt
-      ww[t][i] = (double)n;;
+      ww[t][i] = (double)n[t];
       // fix this dfe and n should be vectors of length nt
       //ww[t][i] = (double)n[t];;
       //for (int j = 0; j < n; j++) {
@@ -610,9 +611,10 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     for (int t = 0; t < nt; t++) {
       if (b[t][i]!= 0.0) {
         //      for (int j = 0; j < m; j++) {
+        bxn = double(n[t])*b[t][i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          //r[j]=r[j] - LD[i][j]*b[i];
-          r[t][LDindices[i][j]]=r[t][LDindices[i][j]] - LDvalues[i][j]*b[t][i];
+          //r[t][LDindices[i][j]]=r[t][LDindices[i][j]] - LDvalues[i][j]*b[t][i];
+          r[t][LDindices[i][j]]=r[t][LDindices[i][j]] - LDvalues[i][j]*bxn;
         }
       }
     }
@@ -681,7 +683,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         
         
         for ( int t = 0; t < nt; t++) {
-          diff = mub(0,t)-b[t][i];
+          diff = (mub(0,t)-b[t][i])*double(n[t]);
           for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[t][LDindices[i][j]]=r[t][LDindices[i][j]] - LDvalues[i][j]*diff;
           }
@@ -775,7 +777,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         } 
         
         for ( int t = 0; t < nt; t++) {
-          diff = mub(0,t)-b[t][i];
+          diff = (mub(0,t)-b[t][i])*double(n[t]);
           for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[t][LDindices[i][j]]=r[t][LDindices[i][j]] - LDvalues[i][j]*diff;
           }
@@ -788,17 +790,30 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         }
         
       }
-      
       // Sample pi for Bayes C
       if(updatePi) {
         for (int k = 0; k<nmodels ; k++) {
           std::gamma_distribution<double> rgamma(cmodel[k],1.0);
           double rg = rgamma(gen);
-          pi[k] = rg/(double)m;
+          pi[k] = rg;
+        }
+        double psum = std::accumulate(pi.begin(), pi.end(), 0.0);
+        for (int k = 0; k<nmodels ; k++) {
+          pi[k] = pi[k]/psum;
           pis[k] = pis[k] + pi[k];
         }
         std::fill(cmodel.begin(), cmodel.end(), 1.0);
       }
+      // Sample pi for Bayes C
+      //if(updatePi) {
+      //  for (int k = 0; k<nmodels ; k++) {
+      //    std::gamma_distribution<double> rgamma(cmodel[k],1.0);
+      //    double rg = rgamma(gen);
+      //    pi[k] = rg/(double)m;
+      //    pis[k] = pis[k] + pi[k];
+      //  }
+      //  std::fill(cmodel.begin(), cmodel.end(), 1.0);
+      //}
     }
     
     // Sample marker variance
@@ -811,11 +826,11 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           if (t1==t2) {
             for (int i=0; i < m; i++) {
               if( (d[t1][i]==1) ) {
-                ssb = ssb + b[t1][i]*b[t2][i];  
+                ssb = ssb + b[t1][i]*b[t1][i];  
                 dfb = dfb + 1.0;
               }
             }
-            Sb(t1,t2) = ssb + ssb_prior[t1][t2];
+            Sb(t1,t1) = ssb + ssb_prior[t1][t1];
           } 
           if (t1!=t2) {
             for (int i=0; i < m; i++) {
@@ -835,11 +850,51 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
-          cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2)/(sqrt(B(t1,t1))*sqrt(B(t2,t2)));
+          cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2);
         } 
       } 
       arma::mat Bi = arma::inv(B);
     }
+    
+    // // Sample marker variance
+    // if(updateB) {
+    //   arma::mat Sb(nt,nt, fill::zeros);
+    //   dfb = 0.0;
+    //   for (int t1 = 0; t1 < nt; t1++) {
+    //     for (int t2 = t1; t2 < nt; t2++) {
+    //       ssb = 0.0;
+    //       if (t1==t2) {
+    //         for (int i=0; i < m; i++) {
+    //           if( (d[t1][i]==1) ) {
+    //             ssb = ssb + b[t1][i]*b[t2][i];  
+    //             dfb = dfb + 1.0;
+    //           }
+    //         }
+    //         Sb(t1,t2) = ssb + ssb_prior[t1][t2];
+    //       } 
+    //       if (t1!=t2) {
+    //         for (int i=0; i < m; i++) {
+    //           if( (d[t1][i]==1) && (d[t2][i]==1) ) {
+    //             ssb = ssb + b[t1][i]*b[t2][i];  
+    //           }
+    //         }
+    //         Sb(t1,t2) = ssb + ssb_prior[t1][t2];
+    //         Sb(t2,t1) = ssb + ssb_prior[t2][t1];
+    //       } 
+    //     }
+    //   }
+    //   int dfSb = dfb/nt + nub;
+    //   arma::mat B = riwishart(dfSb, Sb);
+    //   for (int t = 0; t < nt; t++) {
+    //     vbs[t][it] = B(t,t);
+    //   }
+    //   for (int t1 = 0; t1 < nt; t1++) {
+    //     for (int t2 = 0; t2 < nt; t2++) {
+    //       cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2)/(sqrt(B(t1,t1))*sqrt(B(t2,t2)));
+    //     } 
+    //   } 
+    //   arma::mat Bi = arma::inv(B);
+    // }
     
     // Sample residual variance
     if(updateE) {
@@ -851,7 +906,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         }
         sse = yy[t1] - sse;
       }
-      int dfSe = dfe + nue;
+      //int dfSe = dfe + nue;
+      int dfSe = dfe[0] + nue;
       arma::mat E = riwishart(dfSe, Se);
       arma::mat Ei = arma::inv(E);
       for (int t = 0; t < nt; t++) {
@@ -863,6 +919,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         } 
       } 
     }
+
+        
     
   }
   
