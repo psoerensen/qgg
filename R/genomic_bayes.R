@@ -1460,11 +1460,16 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   
   ves <- matrix(0,nrow=nit,ncol=(nt*(nt+1))/2)
   
+  idsG <- rownames(GRMlist[[1]])
+  idsT <- rownames(y)
+  idsV <- idsG[!idsG%in%idsT]
+  train <- match(idsT,idsG)
+
   # eigen value decomposition of the GRM5 matrices
   U <- D <- vector(length=nset,mode="list")
   vgs <- vector(length=nset,mode="list")
-  for ( i in 1:nset ){                    
-    eg <- eigen(GRMlist[[i]])                    
+  for ( i in 1:nset ){
+    eg <- eigen(GRMlist[[i]][train,train])                    
     ev <- eg$values
     U[[i]] <- eg$vectors[,ev>tol]            # keep eigen vector if ev>tol
     D[[i]] <- eg$values[ev>tol]              # keep eigen value if ev>tol
@@ -1577,6 +1582,25 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   fit$re <- cov2cor(vem)
   fit$rg <- cov2cor(vgm)
   fit$rgset <- lapply(fit$vgm,function(x) {cov2cor(x)})
+  
+  gset <- NULL
+  for ( i in 1:nset) {                        
+    gset[[i]] <- matrix(0,nrow=length(idsG),ncol=nt)         
+    rownames(gset[[i]]) <- idsG 
+    colnames(gset[[i]]) <- tnames
+  }
+  names(gset) <- setnames
+  
+  for ( set in 1:nset ){
+    for (t1 in 1:nt) {
+      gset[[set]][idsT,t1] <- gm[[t1]][,set]
+      for (t2 in 1:nt) {
+        gset[[set]][idsV,t1] <- gset[[set]][idsV,t1] + (GRMlist[[set]][idsV,idsT]*vgm[t1,t2])%*%gm[[t2]][,set]
+      }
+    }
+  }
+  fit$gset <- gset
+  fit$g <- Reduce(`+`, fit$gset)
   
   return(fit) # return posterior samples of sigma 
 }
