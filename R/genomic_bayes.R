@@ -64,318 +64,423 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="default") {
-     
-     methods <- c("blup","mixed","bayesA","blasso","bayesC","ssvs")
-     method <- match(method, methods) - 1
-     if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid") 
-     
-     nt <- 1
-     if(is.list(y)) nt <- length(y)
-     if(is.matrix(y)) nt <- ncol(y)
-     
-     # Single and multiple trait BLR based on GRMs    
-     if(!is.null(GRMlist)) {
-       
-       fit <- bmm(y=y, X=X, W=W, GRMlist=GRMlist,
-                  vg=vg, ve=ve, nug=nug, nue=nue,
-                  vg_prior=vg_prior, ve_prior=ve_prior,
-                  updateG=updateB, updateE=updateE,
-                  nit=nit, nburn=nburn, tol=tol, verbose=verbose) 
-     } 
-     
-        
-     # Single trait BLR using y and W   
-     if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") {
-       
-       fit <- bayes(y=y, X=X, W=W, b=b, 
-                    badj=badj, seb=seb, LD=LD, n=n,
-                    vg=vg, vb=vb, ve=ve, 
-                    ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-                    h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                    nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
-     }
-     
-     
-     # Single trait BLR using y and W and sbayes method 
-     if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") {
-       
-       fit <- sbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                     vg=vg, vb=vb, ve=ve, 
-                     ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-                     h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                     nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
-     }
-     
-     # Multiple trait BLR using y and W
-     if(nt>1 && !is.null(y) && !is.null(W)) {
-       fit <- mtbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
-                      vg=vg, vb=vb, ve=ve, 
-                      ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-                      h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                      nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) 
-     }
-     
-     
-     
-     # Single trait BLR using y and sparse LD provided Glist
-     if( nt==1 && !is.null(y) && algorithm=="sparse") {
-       
-       if(is.null(Glist)) stop("Please provide Glist")
-       fit <- NULL
-       if(is.matrix(y)) ids <- rownames(y)
-       if(is.vector(y)) ids <- names(y)
-       rws <- match(ids,Glist$ids)
-       if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
-       n <- length(y)
-       
-       if(is.null(chr)) chromosomes <- 1:Glist$nchr
-       if(!is.null(chr)) chromosomes <- chr
-       
-       bm <- dm <- fit <- stat <- vector(length=Glist$nchr,mode="list")
-       names(bm) <- names(dm) <- names(fit) <- names(stat) <- 1:Glist$nchr
-       
-       yy <- sum((y-mean(y))**2)
-       
-       if(is.null(covs)) {
-         covs <- vector(length=Glist$nchr,mode="list")
-         names(covs) <- 1:Glist$nchr
-         for (chr in chromosomes){
-           print(paste("Computing summary statistics for chromosome:",chr))
-           covs[[chr]] <- cvs(y=y,Glist=Glist,chr=chr)
-         }
-       } 
-       
-       if(is.null(nit_local)) nit_local <- nit
-       if(is.null(nit_global)) nit_global <- 1
-       
-       for (it in 1:nit_global) {
-         for (chr in chromosomes){
-           if(verbose) print(paste("Extract sparse LD matrix for chromosome:",chr))
-           LD <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
-           LD$values <- lapply(LD$values,function(x){x*n})
-           rsidsLD <- names(LD$values)
-           clsLD <- match(rsidsLD,Glist$rsids[[chr]])
-           wy <- covs[[chr]][rsidsLD,"wy"]
-           b <- rep(0,length(wy))
-           if(it>1) {
-             b <- fit[[chr]]$b
-             if(updateB) vb <- fit[[chr]]$param[1]
-             if(updateE) ve <- fit[[chr]]$param[2]
-             if(updatePi) pi <- fit[[chr]]$param[3]
-           }
-           if(verbose) print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
-           fit[[chr]] <- sbayes_sparse(yy=yy, 
-                                       wy=wy,
-                                       b=b, 
-                                       LDvalues=LD$values, 
-                                       LDindices=LD$indices, 
-                                       method=method, 
-                                       nit=nit_local, 
-                                       n=n, 
-                                       pi=pi,
-                                       nue=nue, 
-                                       nub=nub, 
-                                       h2=h2, 
-                                       lambda=lambda, 
-                                       vb=vb, 
-                                       ve=ve, 
-                                       updateB=updateB, 
-                                       updateE=updateE, 
-                                       updatePi=updatePi)
-           stat[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
-                                     pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
-                                     a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
-           rownames(stat[[chr]]) <- rsidsLD
-         }
-       }
-       stat <- do.call(rbind, stat)
-       rownames(stat) <- stat$rsids
-       fit$stat <- stat
-       fit$covs <- covs
-     }
-     
-     
-     # Single trait BLR using y and dense LD
-     if( nt==1 && !is.null(y) &&  algorithm=="dense") {
-       
-       overlap <- 0
-       
-       if(is.null(Glist)) stop("Please provide Glist")
-       fit <- NULL
-       if(is.matrix(y)) ids <- rownames(y)
-       if(is.vector(y)) ids <- names(y)
-       rws <- match(ids,Glist$ids)
-       if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
-       n <- length(y)
-       
-       if(is.null(chr)) chromosomes <- 1:Glist$nchr
-       if(!is.null(chr)) chromosomes <- chr
+  
+  methods <- c("blup","mixed","bayesA","blasso","bayesC","ssvs")
+  method <- match(method, methods) - 1
+  if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid") 
+  
+  nt <- 1
+  if(!is.null(y)) {
+    if(is.list(y)) nt <- length(y)
+    if(is.matrix(y)) nt <- ncol(y)
+  }
+  if(!is.null(stat)) {
+    if(!is.data.frame(stat) && is.list(stat)) nt <- ncol(stat$b)
+  }
+  
+  # define type of analysis
+  if(!is.null(GRMlist)) analysis <- "mtmc-mixed"
+  
+  if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") 
+    analysis <- "st-blr-individual-level-default"
+  
+  if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") 
+    analysis <- "st-blr-individual-level-sbayes"
 
-       rsids <- unlist(Glist$rsidsLD)
-       cls <- lapply(Glist$rsids,function(x) { 
-         splitWithOverlap(na.omit(match(rsids,x)),msize,0)})
-       vblist <- lapply(sapply(cls,length),function(x) 
-       {vector(length=x, mode="numeric")})
-       velist <- lapply(sapply(cls,length),function(x) 
-       {vector(length=x, mode="numeric")})
-       pilist <- lapply(sapply(cls,length),function(x) 
-       {vector(length=x, mode="numeric")})
-       b <- lapply(Glist$mchr,function(x){rep(0,x)})
-       bm <- lapply(Glist$mchr,function(x){rep(0,x)})
-       dm <- lapply(Glist$mchr,function(x){rep(0,x)})
-       
-       if(is.null(nit_local)) nit_local <- nit
-       if(is.null(nit_global)) nit_global <- 1
+  if(nt==1 && !is.null(y) && algorithm=="sparse") 
+    analysis <- "st-blr-individual-level-sparse-ld"
+  
+  if( nt==1 && !is.null(y) &&  algorithm=="dense") 
+    analysis <- "st-blr-individual-level-dense-ld"
+  
+  if( nt==1 && is.null(y) && !is.null(stat) && !is.null(Glist)) 
+    analysis <- "st-blr-sumstat-sparse-ld"
+  
+  if(nt>1 && !is.null(y) && !is.null(W))
+    analysis <- "mt-blr-individual-level"
+  
+  if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="default") 
+    analysis <- "mt-blr-sumstat-sparse-ld"
 
-       for (it in 1:nit_global) {
-         e <- y-mean(y)
-         yy <- sum(e**2)
-         for (chr in 1:length(Glist$nchr)) {
-           for (i in 1:length(cls[[chr]])) {
-             wy <- computeWy(y=e,Glist=Glist,chr=chr,cls=cls[[chr]][[i]])
-             WW <- computeWW(Glist=Glist, chr=chr, cls=cls[[chr]][[i]], rws=rws)
-             if(it>1) {
-               if(updateB) vb <- vblist[[chr]][i]
-               if(updateE) ve <- velist[[chr]][i]
-               if(updatePi) pi <- pilist[[chr]][i]
-             }
-             fitS <- computeB(wy=wy, yy=yy, WW=WW, n=n,
-                              b=b[[chr]][cls[[chr]][[i]]],
-                              ve=ve, vb=vb, pi=pi,
-                              nub=nub, nue=nue,
-                              updateB=updateB, updateE=updateE, updatePi=updatePi,
-                              nit=nit, nburn=nburn, method=method) 
-             b[[chr]][cls[[chr]][[i]]] <- fitS$b
-             bm[[chr]][cls[[chr]][[i]]] <- fitS$bm
-             dm[[chr]][cls[[chr]][[i]]] <- fitS$dm
-             vblist[[chr]][i] <- fitS$param[1]
-             velist[[chr]][i] <- fitS$param[2]
-             pilist[[chr]][i] <- fitS$param[3]
-             grs <- computeGRS(Glist = Glist, chr = chr, 
-                               cls = cls[[chr]][[i]], 
-                               b=bm[[chr]][cls[[chr]][[i]]])  
-             e <- e - grs[rws,]
-           }
-         }
-       }   
-       bm <- unlist(bm)
-       dm <- unlist(dm)
-       names(bm) <- names(dm) <- unlist(Glist$rsids)
-       stat <- data.frame(rsids=rsids,
-                          chr=unlist(Glist$chr)[rsids],
-                          pos=unlist(Glist$pos)[rsids], 
-                          a1=unlist(Glist$a1)[rsids],
-                          a2=unlist(Glist$a2)[rsids], 
-                          af=unlist(Glist$af)[rsids],
-                          bm=bm[rsids])
-       fit$stat <- stat
-       
-     }
-     
-     # Single trait BLR using summary statistics and sparse LD provided in Glist
-#     if( nt==1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
-     if( is.null(y) && !is.null(stat) && !is.null(Glist)) {
-       
-       # single trait summary statistics
-       if(is.data.frame(stat)) {
-         nt <- 1
-         rsidsLD <- unlist(Glist$rsidsLD)
-         b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
-         rownames(b) <- rownames(wy) <- rsidsLD
-         trait_names <- "badj"       
-         stat <- stat[rownames(stat)%in%rsidsLD,]
-         b2 <- stat$b^2
-         seb2 <- stat$seb^2
-         if(!is.null(stat$dfe)) n <- as.integer(mean(stat$dfe)+2)
-         if(!is.null(stat$n)) n <- as.integer(mean(stat$n))
-         if(!is.null(stat$ww)) ww <- stat$ww
-         if(!is.null(stat$n)) ww <- stat$n
-         yy <- (b2 + (n-2)*seb2)*ww
-         yy <- mean(yy)
-         if(!is.null(stat$wy)) wy[rownames(stat),1] <- stat$wy
-         if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$n
-         if(any(is.na(wy))) stop("Missing values in wy")
-       }
-       
-       # multiple trait summary statistics
-       if( !is.data.frame(stat) && is.list(stat)) {
-         nt <- ncol(stat$b)
-         trait_names <- colnames(stat$b)
-         if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
-         rsidsLD <- unlist(Glist$rsidsLD)
-         b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
-         rownames(b) <- rownames(wy) <- rsidsLD
-         colnames(b) <- colnames(wy) <- trait_names
-         rws <- rownames(stat$b)%in%rsidsLD 
-         b2 <- (stat$b[rws,])^2
-         seb2 <- (stat$seb[rws,])^2
-         if(!is.null(stat$dfe)) n <- as.integer(colMeans(stat$dfe)+2)
-         if(!is.null(stat$n)) n <- as.integer(colMeans(stat$n))
-         ww <- stat$ww[rws,]
-         for (i in 1:nt) {
-           seb2[,i] <- (n[i]-2)*seb2[,i]
-         }
-         yy <- (b2 + seb2)*ww
-         yy <- colMeans(yy)
-         wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
-         if(any(is.na(wy))) stop("Missing values in wy")
-       }
+  if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="serial") 
+    analysis <- "st-blr-sumstat-sparse-ld"
+  
+  message(paste("Type of analysis chosen:",analysis))  
 
-       if(is.null(chr)) chromosomes <- 1:Glist$nchr
-       if(!is.null(chr)) chromosomes <- chr
-       if(is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
-       
-       bm <- dm <- fit <- res <- vector(length=Glist$nchr,mode="list")
-       names(bm) <- names(dm) <- names(fit) <- names(res) <- 1:Glist$nchr
-       for (chr in chromosomes){
-         if(is.null(LD[[chr]])) {
-           if(verbose) print(paste("Extract sparse LD matrix for chromosome:",chr))
-           LD[[chr]] <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
-         } 
-         rsidsLD <- names(LD[[chr]]$values)
-         clsLD <- match(rsidsLD,Glist$rsids[[chr]])
-         bmchr <- NULL
-         for (trait in 1:nt) {
-           if(verbose) print( paste("Fit",methods[method+1], "on chromosome:",chr,"for trait",trait))
-           LDvalues <- lapply(LD[[chr]]$values,function(x){x*n[trait]})
-           fit[[chr]] <- sbayes_sparse(yy=yy[trait], 
-                                       wy=wy[rsidsLD,trait],
-                                       b=b[rsidsLD,trait], 
-                                       LDvalues=LDvalues, 
-                                       LDindices=LD[[chr]]$indices, 
-                                       method=method, 
-                                       nit=nit, 
-                                       n=n[trait], 
-                                       pi=pi,
-                                       nue=nue, 
-                                       nub=nub, 
-                                       h2=h2, 
-                                       lambda=lambda, 
-                                       vb=vb, 
-                                       ve=ve, 
-                                       updateB=updateB, 
-                                       updateE=updateE, 
-                                       updatePi=updatePi)
-           bmchr <- cbind(bmchr, fit[[chr]]$bm)
-         }
-         colnames(bmchr) <- trait_names
-         res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
+  # Single and multiple trait BLR based on GRMs    
+  if(!is.null(GRMlist)) {
+    fit <- bmm(y=y, X=X, W=W, GRMlist=GRMlist,
+               vg=vg, ve=ve, nug=nug, nue=nue,
+               vg_prior=vg_prior, ve_prior=ve_prior,
+               updateG=updateB, updateE=updateE,
+               nit=nit, nburn=nburn, tol=tol, verbose=verbose) 
+  } 
+  
+  
+  # Single trait BLR using y and W   
+  if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") {
+    
+    fit <- bayes(y=y, X=X, W=W, b=b, 
+                 badj=badj, seb=seb, LD=LD, n=n,
+                 vg=vg, vb=vb, ve=ve, 
+                 ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
+                 h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
+                 nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
+  }
+  
+  
+  # Single trait BLR using y and W and sbayes method 
+  if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") {
+    
+    fit <- sbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
+                  vg=vg, vb=vb, ve=ve, 
+                  ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
+                  h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
+                  nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
+  }
+  
+  # Multiple trait BLR using y and W
+  if(nt>1 && !is.null(y) && !is.null(W)) {
+    fit <- mtbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
+                   vg=vg, vb=vb, ve=ve, 
+                   ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
+                   h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
+                   nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) 
+  }
+  
+  
+  
+  # Single trait BLR using y and sparse LD provided Glist
+  if( nt==1 && !is.null(y) && algorithm=="sparse") {
+    
+    if(is.null(Glist)) stop("Please provide Glist")
+    fit <- NULL
+    if(is.matrix(y)) ids <- rownames(y)
+    if(is.vector(y)) ids <- names(y)
+    rws <- match(ids,Glist$ids)
+    if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
+    n <- length(y)
+    
+    if(is.null(chr)) chromosomes <- 1:Glist$nchr
+    if(!is.null(chr)) chromosomes <- chr
+    
+    bm <- dm <- fit <- stat <- vector(length=Glist$nchr,mode="list")
+    names(bm) <- names(dm) <- names(fit) <- names(stat) <- 1:Glist$nchr
+    
+    yy <- sum((y-mean(y))**2)
+    
+    if(is.null(covs)) {
+      covs <- vector(length=Glist$nchr,mode="list")
+      names(covs) <- 1:Glist$nchr
+      for (chr in chromosomes){
+        print(paste("Computing summary statistics for chromosome:",chr))
+        covs[[chr]] <- cvs(y=y,Glist=Glist,chr=chr)
+      }
+    } 
+    
+    if(is.null(nit_local)) nit_local <- nit
+    if(is.null(nit_global)) nit_global <- 1
+    
+    for (it in 1:nit_global) {
+      for (chr in chromosomes){
+        if(verbose) print(paste("Extract sparse LD matrix for chromosome:",chr))
+        LD <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
+        LD$values <- lapply(LD$values,function(x){x*n})
+        rsidsLD <- names(LD$values)
+        clsLD <- match(rsidsLD,Glist$rsids[[chr]])
+        wy <- covs[[chr]][rsidsLD,"wy"]
+        b <- rep(0,length(wy))
+        if(it>1) {
+          b <- fit[[chr]]$b
+          if(updateB) vb <- fit[[chr]]$param[1]
+          if(updateE) ve <- fit[[chr]]$param[2]
+          if(updatePi) pi <- fit[[chr]]$param[3]
+        }
+        if(verbose) print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
+        fit[[chr]] <- sbayes_sparse(yy=yy, 
+                                    wy=wy,
+                                    b=b, 
+                                    LDvalues=LD$values, 
+                                    LDindices=LD$indices, 
+                                    method=method, 
+                                    nit=nit_local, 
+                                    n=n, 
+                                    pi=pi,
+                                    nue=nue, 
+                                    nub=nub, 
+                                    h2=h2, 
+                                    lambda=lambda, 
+                                    vb=vb, 
+                                    ve=ve, 
+                                    updateB=updateB, 
+                                    updateE=updateE, 
+                                    updatePi=updatePi)
+        stat[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
                                   pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
-                                  a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=bmchr)
-         rownames(res[[chr]]) <- rsidsLD
-         LD[[chr]]$values <- NULL
-         LD[[chr]]$indices <- NULL
-       }
-       res <- do.call(rbind, res)
-       rownames(res) <- res$rsids
-       fit$stat <- res
-     }
-     
-     fit$method <- methods[method+1]
-          
-     return(fit)
-}
+                                  a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm)
+        rownames(stat[[chr]]) <- rsidsLD
+      }
+    }
+    stat <- do.call(rbind, stat)
+    rownames(stat) <- stat$rsids
+    fit$stat <- stat
+    fit$covs <- covs
+  }
+  
+  
+  # Single trait BLR using y and dense LD
+  if( nt==1 && !is.null(y) &&  algorithm=="dense") {
+    
+    overlap <- 0
+    
+    if(is.null(Glist)) stop("Please provide Glist")
+    fit <- NULL
+    if(is.matrix(y)) ids <- rownames(y)
+    if(is.vector(y)) ids <- names(y)
+    rws <- match(ids,Glist$ids)
+    if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
+    n <- length(y)
+    
+    if(is.null(chr)) chromosomes <- 1:Glist$nchr
+    if(!is.null(chr)) chromosomes <- chr
+    
+    rsids <- unlist(Glist$rsidsLD)
+    cls <- lapply(Glist$rsids,function(x) { 
+      splitWithOverlap(na.omit(match(rsids,x)),msize,0)})
+    vblist <- lapply(sapply(cls,length),function(x) 
+    {vector(length=x, mode="numeric")})
+    velist <- lapply(sapply(cls,length),function(x) 
+    {vector(length=x, mode="numeric")})
+    pilist <- lapply(sapply(cls,length),function(x) 
+    {vector(length=x, mode="numeric")})
+    b <- lapply(Glist$mchr,function(x){rep(0,x)})
+    bm <- lapply(Glist$mchr,function(x){rep(0,x)})
+    dm <- lapply(Glist$mchr,function(x){rep(0,x)})
+    
+    if(is.null(nit_local)) nit_local <- nit
+    if(is.null(nit_global)) nit_global <- 1
+    
+    for (it in 1:nit_global) {
+      e <- y-mean(y)
+      yy <- sum(e**2)
+      for (chr in 1:length(Glist$nchr)) {
+        for (i in 1:length(cls[[chr]])) {
+          wy <- computeWy(y=e,Glist=Glist,chr=chr,cls=cls[[chr]][[i]])
+          WW <- computeWW(Glist=Glist, chr=chr, cls=cls[[chr]][[i]], rws=rws)
+          if(it>1) {
+            if(updateB) vb <- vblist[[chr]][i]
+            if(updateE) ve <- velist[[chr]][i]
+            if(updatePi) pi <- pilist[[chr]][i]
+          }
+          fitS <- computeB(wy=wy, yy=yy, WW=WW, n=n,
+                           b=b[[chr]][cls[[chr]][[i]]],
+                           ve=ve, vb=vb, pi=pi,
+                           nub=nub, nue=nue,
+                           updateB=updateB, updateE=updateE, updatePi=updatePi,
+                           nit=nit, nburn=nburn, method=method) 
+          b[[chr]][cls[[chr]][[i]]] <- fitS$b
+          bm[[chr]][cls[[chr]][[i]]] <- fitS$bm
+          dm[[chr]][cls[[chr]][[i]]] <- fitS$dm
+          vblist[[chr]][i] <- fitS$param[1]
+          velist[[chr]][i] <- fitS$param[2]
+          pilist[[chr]][i] <- fitS$param[3]
+          grs <- computeGRS(Glist = Glist, chr = chr, 
+                            cls = cls[[chr]][[i]], 
+                            b=bm[[chr]][cls[[chr]][[i]]])  
+          e <- e - grs[rws,]
+        }
+      }
+    }   
+    bm <- unlist(bm)
+    dm <- unlist(dm)
+    names(bm) <- names(dm) <- unlist(Glist$rsids)
+    stat <- data.frame(rsids=rsids,
+                       chr=unlist(Glist$chr)[rsids],
+                       pos=unlist(Glist$pos)[rsids], 
+                       a1=unlist(Glist$a1)[rsids],
+                       a2=unlist(Glist$a2)[rsids], 
+                       af=unlist(Glist$af)[rsids],
+                       bm=bm[rsids])
+    fit$stat <- stat
+    
+  }
+  
+  # Single trait BLR using summary statistics and sparse LD provided in Glist
+#  if( nt==1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
+  if(analysis=="st-blr-sumstat-sparse-ld") {
+    # single trait summary statistics
+    if(is.data.frame(stat)) {
+      nt <- 1
+      rsidsLD <- unlist(Glist$rsidsLD)
+      b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
+      rownames(b) <- rownames(wy) <- rsidsLD
+      trait_names <- "badj"       
+      stat <- stat[rownames(stat)%in%rsidsLD,]
+      b2 <- stat$b^2
+      seb2 <- stat$seb^2
+      if(!is.null(stat$dfe)) n <- as.integer(mean(stat$dfe)+2)
+      if(!is.null(stat$n)) n <- as.integer(mean(stat$n))
+      if(!is.null(stat$ww)) ww <- stat$ww
+      if(!is.null(stat$n)) ww <- stat$n
+      yy <- (b2 + (n-2)*seb2)*ww
+      yy <- mean(yy)
+      if(!is.null(stat$wy)) wy[rownames(stat),1] <- stat$wy
+      if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$n
+      if(any(is.na(wy))) stop("Missing values in wy")
+    }
+    
+    # multiple trait summary statistics
+    if( !is.data.frame(stat) && is.list(stat)) {
+      nt <- ncol(stat$b)
+      trait_names <- colnames(stat$b)
+      if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
+      rsidsLD <- unlist(Glist$rsidsLD)
+      b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
+      rownames(b) <- rownames(wy) <- rsidsLD
+      colnames(b) <- colnames(wy) <- trait_names
+      rws <- rownames(stat$b)%in%rsidsLD 
+      b2 <- (stat$b[rws,])^2
+      seb2 <- (stat$seb[rws,])^2
+      if(!is.null(stat$dfe)) n <- as.integer(colMeans(stat$dfe)+2)
+      if(!is.null(stat$n)) n <- as.integer(colMeans(stat$n))
+      ww <- stat$ww[rws,]
+      for (i in 1:nt) {
+        seb2[,i] <- (n[i]-2)*seb2[,i]
+      }
+      yy <- (b2 + seb2)*ww
+      yy <- colMeans(yy)
+      wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
+      if(any(is.na(wy))) stop("Missing values in wy")
+    }
+    
+    if(is.null(chr)) chromosomes <- 1:Glist$nchr
+    if(!is.null(chr)) chromosomes <- chr
+    if(is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
+    
+    bm <- dm <- fit <- res <- vector(length=Glist$nchr,mode="list")
+    names(bm) <- names(dm) <- names(fit) <- names(res) <- 1:Glist$nchr
+    for (chr in chromosomes){
+      if(is.null(LD[[chr]])) {
+        if(verbose) print(paste("Extract sparse LD matrix for chromosome:",chr))
+        LD[[chr]] <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
+      } 
+      rsidsLD <- names(LD[[chr]]$values)
+      clsLD <- match(rsidsLD,Glist$rsids[[chr]])
+      bmchr <- NULL
+      for (trait in 1:nt) {
+        if(verbose) print( paste("Fit",methods[method+1], "on chromosome:",chr,"for trait",trait))
+        LDvalues <- lapply(LD[[chr]]$values,function(x){x*n[trait]})
+        fit[[chr]] <- sbayes_sparse(yy=yy[trait], 
+                                    wy=wy[rsidsLD,trait],
+                                    b=b[rsidsLD,trait], 
+                                    LDvalues=LDvalues, 
+                                    LDindices=LD[[chr]]$indices, 
+                                    method=method, 
+                                    nit=nit, 
+                                    n=n[trait], 
+                                    pi=pi,
+                                    nue=nue, 
+                                    nub=nub, 
+                                    h2=h2, 
+                                    lambda=lambda, 
+                                    vb=vb, 
+                                    ve=ve, 
+                                    updateB=updateB, 
+                                    updateE=updateE, 
+                                    updatePi=updatePi)
+        bmchr <- cbind(bmchr, fit[[chr]]$bm)
+      }
+      colnames(bmchr) <- trait_names
+      res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
+                               pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
+                               a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=bmchr)
+      rownames(res[[chr]]) <- rsidsLD
+      LD[[chr]]$values <- NULL
+      LD[[chr]]$indices <- NULL
+    }
+    res <- do.call(rbind, res)
+    rownames(res) <- res$rsids
+    fit$stat <- res
+    fit$method <- methods[method+1]
+  }
+  
+  # Multi trait BLR using summary statistics and sparse LD provided in Glist
+#  if( nt>1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
 
+  if(analysis=="mt-blr-sumstat-sparse-ld") {
+  
+    
+    # multiple trait summary statistics
+    trait_names <- colnames(stat$b)
+    if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
+    rsidsLD <- unlist(Glist$rsidsLD)
+    b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
+    rownames(b) <- rownames(wy) <- rsidsLD
+    colnames(b) <- colnames(wy) <- trait_names
+    rws <- rownames(stat$b)%in%rsidsLD
+    b2 <- (stat$b[rws,])^2
+    seb2 <- (stat$seb[rws,])^2
+    if(!is.null(stat$dfe)) n <- as.integer(colMeans(stat$dfe)+2)
+    if(!is.null(stat$n)) n <- as.integer(colMeans(stat$n))
+    ww <- stat$ww[rws,]
+    for (i in 1:nt) {
+      seb2[,i] <- (n[i]-2)*seb2[,i]
+    }
+    yy <- (b2 + seb2)*ww
+    yy <- colMeans(yy)
+    wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
+    if(any(is.na(wy))) stop("Missing values in wy")
+    
+    if(is.null(chr)) chromosomes <- 1:Glist$nchr
+    if(!is.null(chr)) chromosomes <- chr
+    if(is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
+    
+    bm <- dm <- fit <- res <- vector(length=Glist$nchr,mode="list")
+    names(bm) <- names(dm) <- names(fit) <- names(res) <- 1:Glist$nchr
+    for (chr in chromosomes){
+      if(is.null(LD[[chr]])) {
+        if(verbose) print(paste("Extract sparse LD matrix for chromosome:",chr))
+        LD[[chr]] <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
+      }
+      rsidsLD <- names(LD[[chr]]$values)
+      clsLD <- match(rsidsLD,Glist$rsids[[chr]])
+      bmchr <- NULL
+      fit[[chr]] <- mt_sbayes_sparse(yy=yy,
+                                     wy=wy[rsidsLD,],
+                                     b=b[rsidsLD,],
+                                     LDvalues=LD[[chr]]$values,
+                                     LDindices=LD[[chr]]$indices,
+                                     n=n,
+                                     nit=nit,
+                                     pi=pi,
+                                     nue=nue,
+                                     nub=nub,
+                                     h2=h2,
+                                     vb=vb,
+                                     ve=ve,
+                                     ssb_prior=ssb_prior,
+                                     sse_prior=sse_prior,
+                                     updateB=updateB,
+                                     updateE=updateE,
+                                     updatePi=updatePi,
+                                     method=method)
+      res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
+                               pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
+                               a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],
+                               bm=fit[[chr]]$bm)
+      rownames(res[[chr]]) <- rsidsLD
+      LD[[chr]]$values <- NULL
+      LD[[chr]]$indices <- NULL
+    }
+    res <- do.call(rbind, res)
+    rownames(res) <- res$rsids
+    fit$stat <- res
+    fit$method <- methods[method+1]
+    
+  }
+  return(fit)
+  
+}
 
 # Individual level data using W 
 bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
@@ -548,6 +653,115 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
 }
 
 
+mt_sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, 
+                             LDvalues=NULL,LDindices=NULL, n=NULL,
+                             vg=NULL, vb=NULL, ve=NULL, 
+                             ssb_prior=NULL, sse_prior=NULL, 
+                             h2=NULL, pi=NULL, updateB=NULL, 
+                             updateE=NULL, updatePi=NULL, models=NULL,
+                             nub=NULL, nue=NULL, nit=NULL, method=NULL) {
+  
+  nt <- length(yy)
+  m <- length(LDvalues)
+  
+  if(method==0) {
+    # BLUP and we do not estimate parameters
+    updateB=FALSE;
+    updateE=FALSE;
+  }
+  
+  if(method==2) stop("Multiple trait not yet implemented for Bayes A") 
+  if(method==3) stop("Multiple trait not yet implemented for Bayesian Lasso")
+  
+  if(is.null(b)) b <- lapply(1:nt,function(x){rep(0,m)}) 
+  
+  if(is.null(models)) {
+    models <- rep(list(0:1), nt)
+    models <- t(do.call(expand.grid, models))
+    models <- split(models, rep(1:ncol(models), each = nrow(models)))
+    pi <- c(0.999,rep(0.001,length(models)-1)) 
+  } 
+  if(is.character(models)) {
+    if(models=="restrictive") {
+      models <- list(rep(0,nt),rep(1,nt))
+      pi <- c(0.999,0.001)
+    }
+  }
+  
+  if(is.null(h2)) h2 <- 0.5
+  if(is.null(ve)) ve <- diag(yy/n,nt)
+  if(method<4 && is.null(vb)) vb <- diag(h2/m,nt)
+  if(method>=4 && is.null(vb)) vb <- diag(h2/(m*pi[length(models)]),nt)
+  if(is.null(vg)) vg <- diag(diag(ve))*h2
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*0.001)
+  if(is.null(sse_prior)) sse_prior <- nue*diag(diag(ve))
+  
+  fit <- .Call("_qgg_mtsbayes",
+               wy=split(wy, rep(1:ncol(wy), each = nrow(wy))),
+               yy=yy,
+               b = split(b, rep(1:ncol(b), each = nrow(b))),
+               LDvalues=LDvalues, 
+               LDindices=LDindices, 
+               B = vb,
+               E = ve,
+               ssb_prior=split(ssb_prior, rep(1:ncol(ssb_prior), each = nrow(ssb_prior))),
+               sse_prior=split(sse_prior, rep(1:ncol(sse_prior), each = nrow(sse_prior))),
+               models=models,
+               pi=pi,
+               nub=nub,
+               nue=nue,
+               updateB = updateB,
+               updateE = updateE,
+               updatePi = updatePi,
+               n=n,
+               nit=nit,
+               method=as.integer(method))
+  
+  fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
+  fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
+  trait_names <- names(yy)
+  if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
+  colnames(fit[[6]]) <- rownames(fit[[6]]) <- trait_names
+  colnames(fit[[7]]) <- rownames(fit[[7]]) <- trait_names
+  fit[[11]] <- matrix(unlist(fit[[11]]), ncol = nt, byrow = TRUE)
+  fit[[12]] <- matrix(unlist(fit[[12]]), ncol = nt, byrow = TRUE)
+  colnames(fit[[11]]) <- rownames(fit[[11]]) <- trait_names
+  colnames(fit[[12]]) <- rownames(fit[[12]]) <- trait_names
+  # add colnames/rownames e, g and gm
+  # add colnames/rownames rg and covg
+  fit[[13]] <- fit[[13]][[1]]
+  fit[[14]] <- fit[[14]][[1]]
+  fit[[15]] <- fit[[15]][[1]]
+  fit[[16]] <- fit[[6]]
+  fit[[17]] <- fit[[7]]
+  if(sum(diag(fit[[16]]))>0) fit[[16]] <- cov2cor(fit[[16]])
+  if(sum(diag(fit[[17]]))>0)  fit[[17]] <- cov2cor(fit[[17]])
+  for(i in 1:nt){
+    names(fit[[1]][[i]]) <- names(LDvalues)
+    names(fit[[2]][[i]]) <- names(LDvalues)
+    names(fit[[10]][[i]]) <- names(LDvalues)
+  }
+  names(fit[[1]]) <- trait_names
+  names(fit[[2]]) <- trait_names
+  names(fit[[3]]) <- trait_names
+  names(fit[[4]]) <- trait_names
+  names(fit[[5]]) <- trait_names
+  names(fit[[8]]) <- trait_names
+  names(fit[[9]]) <- trait_names
+  names(fit[[13]]) <- sapply(models,paste,collapse="_")
+  names(fit[[14]]) <- sapply(models,paste,collapse="_")
+  
+  names(fit) <- c("bm","dm","coef","vbs","ves","covb","cove",
+                  "wy","r","b","vb","ve","pi","pim","order",
+                  "rb","re")
+  fit$bm <- as.matrix(as.data.frame(fit$bm))
+  fit$dm <- as.matrix(as.data.frame(fit$dm))
+  fit$b <- as.matrix(as.data.frame(fit$b))
+  return(fit)
+}
+
+
 mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                   vg=NULL, vb=NULL, ve=NULL, 
                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
@@ -576,6 +790,7 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   if(!scaleY) y <- lapply(y,function(x){x-mean(x) })
   
   if(is.null(b)) b <- lapply(1:nt,function(x){rep(0,m)}) 
+  if(is.matrix(b)) b <- split(b, rep(1:ncol(b), each = nrow(b)))
   
   if(is.null(models)) {
     models <- rep(list(0:1), nt)
@@ -1365,72 +1580,4 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   
   return(fit) # return posterior samples of sigma 
 }
-
-
-
-# if(nt==1 && algorithm=="sbayes" && !is.null(Glist)) {
-#   
-#   if(is.matrix(y)) ids <- rownames(y)
-#   if(is.vector(y)) ids <- names(y)
-#   rws <- match(ids,Glist$ids)
-#   if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
-# 
-#   if(is.null(chr)) chromosomes <- 1:Glist$nchr
-#   if(!is.null(chr)) chromosomes <- chr
-#   fit <- vector(length=length(chromosomes),mode="list")
-#   names(fit) <- chromosomes
-#   
-# 
-#   e <- y
-#   g <- rep(0,Glist$n)
-#   
-#   for (chr in chromosomes) {
-#     rsidsCVS <- Glist$rsids[[chr]]
-#     if(!is.null(rsids)) rsidsCVS <- Glist$rsids[[chr]][Glist$rsids[[chr]]%in%rsids]
-#     clsCVS <- match(rsidsCVS,Glist$rsids[[chr]])
-#     clsCVS <- clsCVS[!is.na(clsCVS)]
-#     covs <- cvs(y=e,Glist=Glist,chr=chr, cls=clsCVS)
-#     mlogp <- -log10(covs$p[[1]])
-#     if(any(is.na(mlogp))) {
-#       print(paste("Number of marker removed:",sum(is.na(mlogp))))
-#       mlogp <- mlogp[!is.na(mlogp)]
-#     }
-#     if(!is.null(rsids)) {
-#       print(paste("Number of markers used:",sum(names(mlogp)%in%rsids),"from chromosome:",chr))
-#       mlogp <- mlogp[names(mlogp)%in%rsids]
-#     }
-#     cls <- match(names(mlogp),Glist$rsids[[chr]])
-#     m <- length(mlogp) 
-#     o <- order(mlogp,decreasing=TRUE)
-#     cls <- splitWithOverlap(cls[o],1000,0)
-#     sets <- splitWithOverlap((1:m)[o],1000,0)
-#     dm <- bm <- rep(0,m)
-#     names(dm) <- names(bm) <- names(mlogp)
-#     vem <- vbm <- pim <- vector(length=length(sets),mode="list")
-#     for (i in 1:length(sets)) {
-#       W <- getG(Glist, chr=chr, scale=TRUE, cls=cls[[i]])
-#       LD <- crossprod(W[rws,])
-#       fitset <- sbayes(y=e, X=X, W=W[rws,], b=b, badj=badj, seb=seb, LD=LD, n=n,
-#                        vg=vg, vb=vb, ve=ve, 
-#                        ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=FALSE,
-#                        h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-#                        nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)
-#       gset <- crossprod(t(W),fitset$bm)
-#       g <- g + gset
-#       e <- e - gset[rws,]
-#       dm[sets[[i]]] <- fitset$dm
-#       bm[sets[[i]]] <- fitset$bm
-#       vem[[i]] <- fitset$ve
-#       vbm[[i]] <- fitset$vb
-#       pim[[i]] <- fitset$Pi
-#       print(paste("Finished segment:",i,"out of",length(sets),"segments on chromosome:",chr))
-#     }
-#     fit[[chr]] <- list(bm=bm,dm=dm,E=vem,B=vbm,Pi=pim)
-#   }
-#   fit$g <- g[rws,]
-#   fit$gtrain <- g[rws,]
-#   fit$gtest <- g[-rws,]
-#   fit$e <- e
-# }
-
 
