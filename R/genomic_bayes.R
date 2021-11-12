@@ -1440,13 +1440,14 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
                 vg_prior=NULL, ve_prior=NULL,
                 updateG=TRUE, updateE=TRUE,
                 nit=500, nburn=0, tol=0.001, verbose=FALSE) {
-  
+  if(is.vector(y)) y <- as.matrix(y)
   n <- nrow(y)                            # number of observation
   nt <- ncol(y)                           # number of traits
   tnames <- colnames(y)
   if(is.null(tnames)) tnames <- paste0("T",1:nt)
   e <- matrix(0,nrow=n,ncol=nt)
   mu <- matrix(0,nrow=n,ncol=nt)
+  mus <- matrix(0,nrow=n,ncol=nt)
   psum <- matrix(0,nrow=n,ncol=nt)
   
   nset <- length(GRMlist)                   # number of sets
@@ -1524,10 +1525,10 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
       
       # inverse chisquare
       if (nt==1) {
-        scg <- sum((1/D[[j]])*a**2) + (vg_prior[j]*(nug[j]+2))/nug[j]	# => S = (mode*(df+2))/df         
+        scg <- sum((1/D[[j]])*a**2) + (vg_prior[[j]]*(nug[j]+2))/nug[j]	# => S = (mode*(df+2))/df         
         #scg <- sum((1/D[[j]])*a**2) + (vg[j]*(nug[j]+2))/nug[j]	# => S = (mode*(df+2))/df         
         vg[j] <- scg/rchisq(n=1, df=df, ncp=0)    
-        vgs[[j]][i,] <- vg[j]
+        vgs[[j]][i,] <- vg[[j]]
       }
       
       # inverse wishart
@@ -1546,12 +1547,14 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
         rhs <- sum(yadj)
         lhs <- (n+ve[t,t]/100000)
         mu[,t] <- rnorm(1,mean=rhs/lhs,sd=1/sqrt(lhs))
+        if(nit>nburn) mus[,t] <- mus[,t] + mu[,t]
       }  
     }
     if(!is.null(X)) {
       for (t in 1:nt) {
         yadj <- y[,t]-rowSums(as.matrix(g[[t]])) 
         mu[,t] <- X%*%solve(t(X)%*%X)%*%t(X)%*%yadj
+        if(nit>nburn) mus[,t] <- mus[,t] + mu[,t]
       }  
     }
     
@@ -1582,6 +1585,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
       if(nit>nburn) gm[[t]][,j] <- gm[[t]][,j]/(nit-nburn) 
     } 
   }
+  mus <- mus/(nit-nburn)
   vem <- vem/(nit-nburn)  
   colnames(vem) <- rownames(vem) <- tnames
   
@@ -1620,7 +1624,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   }
   fit$gset <- gset
   fit$g <- Reduce(`+`, fit$gset)
-  
+  fit$mu <- colMeans(mus) 
   return(fit) # return posterior samples of sigma 
 }
 
