@@ -255,14 +255,16 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   return(Glist)
 }
 
-gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT=TRUE, 
+gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO=NULL,excludeCGAT=TRUE,
                     excludeINDEL=TRUE, excludeDUPS=TRUE, excludeHWE=1e-12, excludeMHC=FALSE, assembly="GRCh37") {
-
+# excludeINFO is a numeric value of the info score used for filtering
   rsids <- unlist(Glist$rsids)
   if(is.null(Glist$study_ids)) Glist$study_ids <- Glist$ids
   if(!is.null(excludeMAF)) isMAF <- unlist(lapply(Glist$maf, function(x){x<=excludeMAF}))
   if(!is.null(excludeMISS)) isMISS <- unlist(lapply(Glist$nmiss,function(x) {x/length(Glist$study_ids)>excludeMISS}))
   if(!is.null(excludeHWE)) isHWE <- unlist(hwe(Glist)) < excludeHWE 
+  
+  
   isHWE[is.na(isHWE)] <- TRUE
   if(excludeMHC) {
     if(assembly=="GRCh37"){
@@ -306,6 +308,13 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeCGAT
     message(paste("Number of markers excluded by duplicated rsids", sum(isDUPS)))
   }
   
+  if(!is.null(excludeINFO)){
+    rsidsINFO <- unlist(Glist$info)
+    rsidsINFO <- rsidsINFO[rsidsINFO>excludeINFO]
+    exINFO <- length(unlist(Glist$info)) - length(rsidsINFO)
+    rsidsQC <- rsidsQC[names(rsidsQC)%in%names(rsidsINFO)]
+    message(paste("Number of markers excluded by info score", exINFO))
+  }
 
   #if(excludeCG_AT) rsidsQC <- isMAF | isMISS | isHWE | isCGAT
   rsidsQC <- names(rsidsQC)[!rsidsQC]
