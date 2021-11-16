@@ -381,7 +381,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           ssb = 0.0;
           if (t1==t2) {
             for (int i=0; i < m; i++) {
-              if( (d[t1][i]==1) ) {
+              if( d[t1][i]==1 ) {
                 ssb = ssb + b[t1][i]*b[t1][i];  
                 dfb = dfb + 1.0;
               }
@@ -390,7 +390,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           } 
           if (t1!=t2) {
             for (int i=0; i < m; i++) {
-              if( (d[t1][i]==1) && (d[t2][i]==1) ) {
+              if( d[t1][i]==1 && d[t2][i]==1 ) {
                 ssb = ssb + b[t1][i]*b[t2][i];  
               }
             }
@@ -825,7 +825,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           ssb = 0.0;
           if (t1==t2) {
             for (int i=0; i < m; i++) {
-              if( (d[t1][i]==1) ) {
+              if( d[t1][i]==1 ) {
                 ssb = ssb + b[t1][i]*b[t1][i];  
                 dfb = dfb + 1.0;
               }
@@ -834,7 +834,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           } 
           if (t1!=t2) {
             for (int i=0; i < m; i++) {
-              if( (d[t1][i]==1) && (d[t2][i]==1) ) {
+              if( d[t1][i]==1 && d[t2][i]==1 ) {
                 ssb = ssb + b[t1][i]*b[t2][i];  
               }
             }
