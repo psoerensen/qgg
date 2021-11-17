@@ -1150,7 +1150,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   
   # align marker and stat object
   marker <- marker[marker_in_stat,]
-  stat <- stat[stat$marker%in%marker$rsids,]
+  stat <- stat[marker$rsids,]
   
   
   if(!is.null(stat$effect_allele)) aligned <- stat$effect_allele==marker$a1
