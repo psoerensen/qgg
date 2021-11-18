@@ -1109,10 +1109,11 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   # minimal option 2:
   # marker, effect_allele, sign, p, n             (limited quality control)
   
-  marker <- data.frame(rsids=unlist(Glist$rsids),unlist(Glist$cpra),
+  marker <- data.frame(rsids=unlist(Glist$rsids),cpra=unlist(Glist$cpra),
                        chr=unlist(Glist$chr), pos=unlist(Glist$position), 
                        a1=unlist(Glist$a1), a2=unlist(Glist$a2),
-                       af=unlist(Glist$af))
+                       af=unlist(Glist$af),stringsAsFactors = FALSE)
+  
   rownames(marker) <- marker$rsids
   
   message("Filtering markers based on information in Glist:")
