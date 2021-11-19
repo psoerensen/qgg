@@ -281,7 +281,7 @@ rsq <- function(h2=NULL,me=NULL,n=NULL) {
 #' @export
 #' 
 
-adjustB <- function(h2=NULL, rg=null, b=NULL,  n=NULL, me=60000, method="ols") {
+adjustB <- function(h2=NULL, rg=null, b=NULL,  n=NULL, me=60000, method="ols", returnW=FALSE) {
   
   if(is.null(b)) stop("Marker effect matrix b is missing")
   if(is.null(h2)) stop("Heritability vector h2 is missing")
@@ -317,5 +317,7 @@ adjustB <- function(h2=NULL, rg=null, b=NULL,  n=NULL, me=60000, method="ols") {
   weights <- invVS%*%CS
   b <- t(tcrossprod(weights,b))
   colnames(b) <- cnames
-  return(b)
+  if(returnW==FALSE){return(b)}
+  if(returnW==TRUE){return(list(b=b, weights=weights))}
+  
 }
