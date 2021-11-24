@@ -1380,7 +1380,6 @@ checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, exc
 adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b", 
                     r2 = 0.9, ldSets = NULL, threshold = 1, header=NULL,
                     method = "pruning") {
-  if(is.data.frame(stat)) {
     p <- stat$p
     if(is.null(stat$p)) pstat <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
     names(p) <- rownames(stat)
@@ -1392,23 +1391,49 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
     p[p>0] <- 1
     if(is.null(header)) header <- c("rsids","chr","pos","allele","a1","a2","af")
     
-    if(statistics=="b") {
-      b <- stat[rownames(p),"b"]
-      badj <- p*stat[rownames(p),"b"]
-      colnames(badj) <- paste0("b_",threshold)
-      if(any(colnames(stat)%in%header)) statadj <- data.frame(stat[rownames(badj),colnames(stat)%in%header],b,badj)
-      if(!any(colnames(stat)%in%header)) statadj <- as.matrix(data.frame(b,badj))
-      return(statadj)
+    
+    if(is.data.frame(stat)) {
+         if(statistics=="b") {
+              b <- stat[rownames(p),"b"]
+              badj <- p*b
+              #badj <- p*stat[rownames(p),"b"]
+              colnames(badj) <- paste0("b_",threshold)
+              if(any(colnames(stat)%in%header)) statadj <- data.frame(stat[rownames(badj),colnames(stat)%in%header],b,badj)
+              if(!any(colnames(stat)%in%header)) statadj <- as.matrix(data.frame(b,badj))
+              return(statadj)
+         }
+         if(statistics=="z") {
+              z <- stat[rownames(p),"b"]/stat[rownames(p),"seb"]
+              zadj <- p*zadj
+              #zadj <- p*stat[rownames(p),"b"]/stat[rownames(p),"seb"]
+              colnames(zadj) <- paste0("z_",threshold)
+              if(any(colnames(stat)%in%header)) statadj <- data.frame(stat[rownames(zadj),colnames(stat)%in%header],z,zadj)
+              if(!any(colnames(stat)%in%header)) statadj <- as.matrix(data.frame(z,zadj))
+              return(statadj)
+         }
     }
-    if(statistics=="z") {
-      z <- stat[rownames(p),"b"]/stat[rownames(p),"seb"]
-      zadj <- p*stat[rownames(p),"b"]/stat[rownames(p),"seb"]
-      colnames(zadj) <- paste0("z_",threshold)
-      if(any(colnames(stat)%in%header)) statadj <- data.frame(stat[rownames(zadj),colnames(stat)%in%header],z,zadj)
-      if(!any(colnames(stat)%in%header)) statadj <- as.matrix(data.frame(z,zadj))
-      return(statadj)
+    if(is.list(stat)) {
+         cls <- rep(1:ncol(stat$b),each=length(threshold))
+         if(statistics=="b") {
+              b <- stat$b[rownames(p),]
+              badj <- p*b[,cls]
+              colnames(b) <- paste0("b_",colnames(b))
+              colnames(badj) <- paste0("b_",colnames(p))
+              if(!is.null(stat$marker)) statadj <- data.frame(stat$marker[rownames(badj),colnames(stat$marker)%in%header],b,badj)
+              if(is.null(stat$marker)) statadj <- as.matrix(data.frame(b,badj))
+              return(statadj)
+         }
+         if(statistics=="z") {
+              z <- stat$b[rownames(p),]/stat$seb[rownames(p),]
+              zadj <- p*z[,cls]
+              colnames(z) <- paste0("z_",colnames(z))
+              colnames(zadj) <- paste0("z_",colnames(p))
+              if(!is.null(stat$marker)) statadj <- data.frame(stat$marker[rownames(zadj),colnames(stat$marker)%in%header],z,zadj)
+              if(is.null(stat$marker)) statadj <- as.matrix(data.frame(z,zadj))
+              return(statadj)
+         }
     }
-  }
+    
 }
 
 
