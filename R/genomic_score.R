@@ -281,7 +281,7 @@ rsq <- function(h2=NULL,me=NULL,n=NULL) {
 #' @export
 #' 
 
-adjustB <- function(h2=NULL, rg=null, b=NULL,  n=NULL, me=60000, method="ols", returnW=FALSE) {
+smtw <- function(h2=NULL, rg=null, b=NULL,  n=NULL, me=60000, method="ols", returnW=FALSE) {
   
   if(is.null(b)) stop("Marker effect matrix b is missing")
   if(is.null(h2)) stop("Heritability vector h2 is missing")
