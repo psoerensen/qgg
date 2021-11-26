@@ -281,8 +281,9 @@ rsq <- function(h2=NULL,me=NULL,n=NULL) {
 #' @export
 #' 
 
-smtw <- function(h2=NULL, rg=null, b=NULL,  n=NULL, me=60000, method="ols", returnW=FALSE) {
-  
+smtw <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000, method="ols", returnW=FALSE) {
+  if(!is.null(z)) b <- z
+  if(!is.null(stat)) b <- stat$b/stat$seb     
   if(is.null(b)) stop("Marker effect matrix b is missing")
   if(is.null(h2)) stop("Heritability vector h2 is missing")
   if(is.null(rg)) stop("Correlation matrix rg is missing")
