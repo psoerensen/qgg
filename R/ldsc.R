@@ -106,6 +106,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, in
                h2 <- matrix(h2,ncol=2,byrow=TRUE)
                rownames(h2) <- colnames(z)
                colnames(h2) <- c("intercept","h2")
+               h2 <- h2[,2]
           }
           if(!intercept) {
                h2 <- matrix(h2,ncol=1,byrow=TRUE)
@@ -113,7 +114,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, in
                colnames(h2) <- "h2"
           }
           result <- h2
-          
+
           #---------------------------------#
           # Block Jackknife to estimate h2 SE
           if(SE.h2==TRUE){
@@ -169,13 +170,10 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, in
                     h2 <- cbind(h2,SE,P)
                     colnames(h2)[2:3] <- c("SE","P")
                     h2[h2[,1]<0,1] <- h2[h2[,1]<0,2] <-  h2[h2[,1]<0,3] <- NA
-                    if(intercept) result <- h2[t1,2]
-                    if(!intercept) result <- h2[t1]
+                    result <- h2
                }
           }
-         
 
-     
      if(what=="rg") {
           rg <- matrix(0,nt,nt)
           rownames(rg) <- colnames(rg) <- colnames(z)
