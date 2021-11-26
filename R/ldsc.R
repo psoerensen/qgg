@@ -60,9 +60,10 @@
 #'
 #' @export 
 
-ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
+ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, stat=NULL, n=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
      if(!is.null(Glist) & is.null(ldscores) ) ldscores <- unlist(Glist$ldscores)
      
+     if(!is.null(stat)) z <- stat$b/stat$seb
      if(!is.null(z)) nt <- ncol(z)
      
      if(!is.null(b)) {
