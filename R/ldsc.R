@@ -169,7 +169,8 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, in
                     h2 <- cbind(h2,SE,P)
                     colnames(h2)[2:3] <- c("SE","P")
                     h2[h2[,1]<0,1] <- h2[h2[,1]<0,2] <-  h2[h2[,1]<0,3] <- NA
-                    result <- h2
+                    if(intercept) result <- h2[t1,2]
+                    if(!intercept) result <- h2[t1]
                }
           }
          
