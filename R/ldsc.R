@@ -200,6 +200,12 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, n=NULL, in
                rg[t2,t1] <- rg[t1,t2]
           }
           rownames(rg) <- colnames(rg) <- colnames(z)
+          for (i in 1:ncol(rg)) {
+               for (j in i:ncol(rg)) {
+                    rg[j,i] <- rg[i,j]
+               }
+          }
+          diag(rg) <- 1 
           result <- rg
           
                #---------------------------------#
