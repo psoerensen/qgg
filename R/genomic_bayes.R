@@ -1424,7 +1424,8 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
               return(statadj)
          }
          if(statistics=="z") {
-              z <- stat$b[rownames(p),]/stat$seb[rownames(p),]
+              z <- stat$z[rownames(p),]
+              if(is.null(z)) z <- stat$b[rownames(p),]/stat$seb[rownames(p),]
               zadj <- p*z[,cls]
               colnames(z) <- paste0("z_",colnames(z))
               colnames(zadj) <- paste0("z_",colnames(p))
