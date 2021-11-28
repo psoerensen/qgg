@@ -80,7 +80,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
      }
      if ( !is.null(bedfiles))  {
           prs <- run_gscore(bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, stat = stat, 
-                            ids = ids, scale = scale, impute = impute, msize = msize, ncores = ncores, verbose=FALSE)
+                            ids = ids, scale = scale, impute = impute, msize = msize, ncores = ncores, verbose=verbose)
      }   
      return(prs)
 }
