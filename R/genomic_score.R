@@ -162,7 +162,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
           message(paste("Processing bed file", Glist$bedfiles[chr]))
           nt <- ncol(S)
           grs <- matrix(0,nrow=nt,ncol=Glist$n)
-          rsidsChr <- splitWithOverlap(rsids,msize,0)
+          rsids <- splitWithOverlap(rsids,msize,0)
           nsets <- length(rsids)
           print(paste("Processing chromose", chr))
           for (set in 1:nsets) {
