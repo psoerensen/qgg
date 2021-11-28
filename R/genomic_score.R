@@ -142,6 +142,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      if (is.vector(S)) S <- as.matrix(S)
      S <- apply(S, 2, as.numeric)
      colnames(S) <- colnames(stat)[-c(1:6)]
+     rownames(S) <- rownames(stat)
      rsids <- as.character(stat$rsids)
      af <- stat$af
      
