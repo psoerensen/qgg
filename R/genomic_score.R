@@ -281,7 +281,7 @@ rsq <- function(h2=NULL,me=NULL,n=NULL) {
 #' @export
 #' 
 
-smtw <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000, method="ols", returnW=FALSE) {
+smtw <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000, method="ols", returnWeights=FALSE) {
   if(!is.null(z)) b <- z
   if(!is.null(stat)) b <- stat$b/stat$seb     
   if(!is.null(stat)) n <- colMeans(stat$n)     
@@ -320,7 +320,9 @@ smtw <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000, 
   weights <- invVS%*%CS
   b <- t(tcrossprod(weights,b))
   colnames(b) <- cnames
-  if(returnW==FALSE){return(b)}
-  if(returnW==TRUE){return(list(b=b, weights=weights))}
+  if(!is.null(stat)) stat$z <- b
+  if(!is.null(stat)) {return(stat)}
+  if(returnWeights==FALSE){return(b)}
+  if(returnWeights==TRUE){return(list(b=b, weights=weights))}
   
 }
