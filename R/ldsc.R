@@ -64,6 +64,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, stat=NULL,
      if(!is.null(Glist) & is.null(ldscores) ) ldscores <- unlist(Glist$ldscores)
      
      if(!is.null(stat)) z <- stat$b/stat$seb
+     if(!is.null(stat)) n <- colMeans(stat$n)
      if(!is.null(z)) nt <- ncol(z)
      
      if(!is.null(b)) {
@@ -200,13 +201,15 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, stat=NULL,
                rg[t2,t1] <- rg[t1,t2]
           }
           rownames(rg) <- colnames(rg) <- colnames(z)
+          result <- NULL
+          result$h2 <- diag(rg)
           for (i in 1:ncol(rg)) {
                for (j in i:ncol(rg)) {
                     rg[j,i] <- rg[i,j]
                }
           }
           diag(rg) <- 1 
-          result <- rg
+          result$rg <- rg
           
                #---------------------------------#
      # Block Jackknife to estimate rg SE
