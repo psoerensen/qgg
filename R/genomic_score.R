@@ -158,7 +158,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      
      
      # multiple core using openblas
-     if(ncores>0) {
+     if(ncores>1) {
           message(paste("Processing bed file", Glist$bedfiles[chr]))
           nt <- ncol(S)
           grs <- matrix(0,nrow=nt,ncol=Glist$n)
