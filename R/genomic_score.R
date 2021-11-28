@@ -70,7 +70,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
           for (chr in chromosomes) {
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                  prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
-                                      ids = ids, scale = scale, ncores = ncores)
+                                      ids = ids, scale = scale, ncores = ncores, msize = msize)
                  if (chr==chromosomes[1]) prs <- prschr
                  if (!chr==chromosomes[1]) prs <- prs + prschr
                  
@@ -86,7 +86,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
 }
 
 
-run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = scale, impute = TRUE, msize = 100, ncores = 1) {
+run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = NULL, impute = TRUE, msize = 100, ncores = 1) {
      
      if(sum(is.na(stat))>0) stop("stat object contains NAs") 
      if(is.null(Glist) & is.null(bedfiles)) stop("Please provide Glist or bedfile")
@@ -156,7 +156,26 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      }
      if(!file.exists(Glist$bedfiles[chr])) stop(paste("bed file does not exists:"),Glist$bedfiles[chr]) 
      
-
+     
+     # multiple core using openblas
+     if(ncores>0) {
+          message(paste("Processing bed file", Glist$bedfiles[chr]))
+          nt <- ncol(S)
+          grs <- matrix(0,nrow=nt,ncol=Glist$n)
+          rsidsChr <- splitWithOverlap(rsids,msize,0)
+          nsets <- length(rsids)
+          print(paste("Processing chromose", chr))
+          for (set in 1:nsets) {
+               cls <- match(rsids[[set]],Glist$rsids[[chr]])
+               W <- getG(Glist=Glist, cls=cls, chr=chr, scale=scale)
+               grs <- grs + tcrossprod(t(S[rsids[[set]],]),W)
+               if(verbose) print(paste("Processing segment",set, "of", nsets,"on chromosome", chr))
+          }
+          grs <- t(grs)
+          rownames(grs) <- Glist$ids
+          colnames(grs) <- colnames(S)
+     }
+     
      # single core
      if(ncores==1) {
           message(paste("Processing bed file", Glist$bedfiles[chr]))
