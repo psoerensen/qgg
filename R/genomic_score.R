@@ -70,7 +70,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
           for (chr in chromosomes) {
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                  prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
-                                      ids = ids, scale = scale, ncores = ncores, msize = msize)
+                                      ids = ids, scale = scale, ncores = ncores, msize = msize, verbose=verbose)
                  if (chr==chromosomes[1]) prs <- prschr
                  if (!chr==chromosomes[1]) prs <- prs + prschr
                  
