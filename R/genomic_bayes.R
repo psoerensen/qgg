@@ -1437,7 +1437,15 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
     
 }
 
+#'
+#' @export
+#'
 
+getStat <- function(stat=NULL, cls=NULL, rws=NULL) {
+     if(is.null(rws)) rws <- 1:nrow(stat[[1]])
+     for(i in 1:7) { stat[[i]] <- stat[[i]][rws,cls] }
+     return(stat)
+}
 
 
 ################################################################################
