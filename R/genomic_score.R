@@ -52,7 +52,7 @@
 #' @export
 #'
 
-gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1) {
+gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
      
      if ( !is.null(Glist))  {
           prs <- NULL
@@ -80,13 +80,13 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
      }
      if ( !is.null(bedfiles))  {
           prs <- run_gscore(bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, stat = stat, 
-                            ids = ids, scale = scale, impute = impute, msize = msize, ncores = ncores)
+                            ids = ids, scale = scale, impute = impute, msize = msize, ncores = ncores, verbose=FALSE)
      }   
      return(prs)
 }
 
 
-run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = NULL, impute = TRUE, msize = 100, ncores = 1) {
+run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = NULL, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
      
      if(sum(is.na(stat))>0) stop("stat object contains NAs") 
      if(is.null(Glist) & is.null(bedfiles)) stop("Please provide Glist or bedfile")
