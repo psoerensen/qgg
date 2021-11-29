@@ -317,7 +317,7 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
         m <- length(rsidsStat)
         indx1 <- rep(T, m)
         indx2 <- rep(F, m)
-        message(paste("Pruning stat column:", colnames(pstat)[i],"for threshold:",thold))
+        message(paste("Pruning stat column:", colnames(pstat)[i],"using threshold:",thold))
         for (chr in chromosomes) {
           #if (!is.null(Glist)) {
           #message(paste("Pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
