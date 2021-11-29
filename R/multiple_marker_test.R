@@ -320,7 +320,7 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
         message(paste("Pruning stat column:", colnames(pstat)[i],"for threshold:",thold))
         for (chr in chromosomes) {
           #if (!is.null(Glist)) {
-          message(paste("Pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
+          #message(paste("Pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
           #if(i==1) setsChr[[chr]] <- getLDsets(Glist = Glist, r2 = r2, chr = chr)
           #if(i==1) setsChr[[chr]] <- mapSets(sets = setsChr[[chr]], rsids = rsidsStat)
           #}
