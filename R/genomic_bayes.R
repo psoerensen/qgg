@@ -1413,7 +1413,7 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
          }
     }
     if(is.list(stat)) {
-         cls <- rep(1:ncol(stat$b),each=length(threshold))
+         cls <- rep(1:ncol(stat$b),times=length(threshold))
          if(statistics=="b") {
               b <- stat$b[rownames(p),]
               badj <- p*b[,cls]
