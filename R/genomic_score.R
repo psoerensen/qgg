@@ -165,7 +165,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
           grs <- matrix(0,nrow=nt,ncol=Glist$n)
           rsids <- splitWithOverlap(rsids,msize,0)
           nsets <- length(rsids)
-          print(paste("Processing chromose", chr))
+          print(paste("Processing chromosome", chr))
           for (set in 1:nsets) {
                cls <- match(rsids[[set]],Glist$rsids[[chr]])
                W <- getG(Glist=Glist, cls=cls, chr=chr, scale=scale)
