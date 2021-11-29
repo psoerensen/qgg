@@ -339,7 +339,7 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
               }
             }
           }
-          message(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
+          #message(paste("Finished pruning chromosome:", chr, "for stat column:", colnames(pstat)[i]))
         }
         if (method == "clumping") {
           pstat[indx1, i] <- 0
