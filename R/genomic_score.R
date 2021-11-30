@@ -335,7 +335,7 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000,
             #if (method=="blup") CS[i,j] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
             #if (method=="ols") CS[i,j] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
             if (method=="blup") CS[j,i] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
-            if (method=="ols") CS[j,i] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
+            if (method=="ols") CS[j,i] <- (rg[i,j]*sqrt(h2[j])*sqrt(h2[i]))/m
        }
   }
   invVS <- solve(VS)
