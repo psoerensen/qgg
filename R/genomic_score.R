@@ -230,13 +230,6 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
   return(neff)
 }
 
-# compute r-squared
-rsq <- function(h2=NULL,me=NULL,n=NULL) {
-  phi <- me/n
-  rsq <- (phi + h2 - sqrt((phi+h2)**2 - 4*phi*h2**2))/(2*phi)
-  rsq
-}
-
 
 #' Adjust marker effects based on correlated information
 #'
@@ -301,7 +294,7 @@ rsq <- function(h2=NULL,me=NULL,n=NULL) {
 #' @export
 #' 
 
-mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000, method="ols", statistics="b",returnWeights=FALSE) {
+mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=60000, method="ols", statistics="z",returnWeights=FALSE) {
   if(!is.null(z)) b <- z
   if(!is.null(stat) && statistics=="b") b <- stat$b     
   if(!is.null(stat) && statistics=="z") b <- stat$b/stat$seb     
@@ -314,7 +307,7 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000,
   m <- nrow(b)
   
   # compute r2
-  r2 <- rsq(h2=h2,me=me,n=n)
+  r2 <- rsq(h2=h2,meff=meff,n=n)
   
   # V_sblup
   if (method=="blup") VS <- diag(r2/m)
@@ -333,8 +326,6 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000,
   CS <- matrix(0,nt,nt)
   for(i in 1:nt) {
        for(j in 1:nt) {
-            #if (method=="blup") CS[i,j] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
-            #if (method=="ols") CS[i,j] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
             if (method=="blup") CS[j,i] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
             if (method=="ols") CS[j,i] <- (rg[i,j]*sqrt(h2[j])*sqrt(h2[i]))/m
        }
@@ -342,16 +333,24 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000,
   invVS <- solve(VS)
   weights <- invVS%*%CS
   b <- b%*%weights
-  #b <- t(tcrossprod(weights,b))
   colnames(b) <- cnames
-  if(!is.null(stat)) stat$z <- b/stat$seb
-  if(returnWeights==TRUE) {
-       stat$weights <- weights
-       stat$CS <- CS
-       stat$VS <- VS
+  if(!is.null(stat)) {
+       stat$z <- b/stat$seb
+       if(returnWeights==TRUE) {
+            stat$weights <- weights
+            stat$CS <- CS
+            stat$VS <- VS
+       }
   }
   if(!is.null(stat)) {return(stat)}
   #if(returnWeights==FALSE){return(b)}
   #if(returnWeights==TRUE){return(list(b=b, weights=weights))}
-  
 }
+
+# compute r-squared
+rsq <- function(h2=NULL,meff=NULL,n=NULL) {
+     phi <- meff/n
+     rsq <- (phi + h2 - sqrt((phi+h2)**2 - 4*phi*h2**2))/(2*phi)
+     rsq
+}
+
