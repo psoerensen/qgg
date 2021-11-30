@@ -301,7 +301,7 @@ rsq <- function(h2=NULL,me=NULL,n=NULL) {
 #' @export
 #' 
 
-mtAdj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000, method="ols", returnWeights=FALSE) {
+mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000, method="ols", returnWeights=FALSE) {
   if(!is.null(z)) b <- z
   if(!is.null(stat)) b <- stat$b/stat$seb     
   if(!is.null(stat)) n <- colMeans(stat$n)     
@@ -322,8 +322,8 @@ mtAdj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000,
   for(i in 1:nt) {
     for(j in i:nt) {
       if(!i==j) {
-        if (method=="blup") VS[i,j] <- (rg[i,j]*r2[i]*r2[j])/(sqrt(h2[i]*h2[j])/m)
-        if (method=="ols") VS[i,j] <- rg[i,j]*sqrt(h2[i])*sqrt(h2[j])/m
+        if (method=="blup") VS[i,j] <- (rg[i,j]*r2[i]*r2[j])/(sqrt(h2[i])*sqrt(h2[j])*m)
+        if (method=="ols") VS[i,j] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
         VS[j,i] <- VS[i,j]
       }
     }
@@ -332,7 +332,7 @@ mtAdj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000,
   CS <- matrix(0,nt,nt)
   for(i in 1:nt) {
     for(j in 1:nt) {
-      if (method=="blup") CS[i,j] <- (rg[i,j]*r2[j]*sqrt(h2[i])/sqrt(h2[j]))/m
+      if (method=="blup") CS[i,j] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
       if (method=="ols") CS[i,j] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
     }
   }
@@ -341,7 +341,11 @@ mtAdj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000,
   b <- t(tcrossprod(weights,b))
   colnames(b) <- cnames
   if(!is.null(stat)) stat$z <- b
-  if(returnWeights==TRUE) stat$weights <- weights
+  if(returnWeights==TRUE) {
+       stat$weights <- weights
+       stat$CS <- CS
+       stat$VS <- VS
+  }
   if(!is.null(stat)) {return(stat)}
   #if(returnWeights==FALSE){return(b)}
   #if(returnWeights==TRUE){return(list(b=b, weights=weights))}
