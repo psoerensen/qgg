@@ -331,10 +331,12 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000,
   # C_sblup
   CS <- matrix(0,nt,nt)
   for(i in 1:nt) {
-    for(j in 1:nt) {
-      if (method=="blup") CS[i,j] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
-      if (method=="ols") CS[i,j] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
-    }
+       for(j in 1:nt) {
+            #if (method=="blup") CS[i,j] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
+            #if (method=="ols") CS[i,j] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
+            if (method=="blup") CS[j,i] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
+            if (method=="ols") CS[j,i] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
+       }
   }
   invVS <- solve(VS)
   weights <- invVS%*%CS
