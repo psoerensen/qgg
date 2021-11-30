@@ -301,9 +301,10 @@ rsq <- function(h2=NULL,me=NULL,n=NULL) {
 #' @export
 #' 
 
-mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000, method="ols", returnWeights=FALSE) {
+mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000, method="ols", statistics="b",returnWeights=FALSE) {
   if(!is.null(z)) b <- z
-  if(!is.null(stat)) b <- stat$b/stat$seb     
+  if(!is.null(stat) && statistics=="b") b <- stat$b     
+  if(!is.null(stat) && statistics=="z") b <- stat$b/stat$seb     
   if(!is.null(stat)) n <- colMeans(stat$n)     
   if(is.null(b)) stop("Marker effect matrix b is missing")
   if(is.null(h2)) stop("Heritability vector h2 is missing")
@@ -343,7 +344,7 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000,
   b <- b%*%weights
   #b <- t(tcrossprod(weights,b))
   colnames(b) <- cnames
-  if(!is.null(stat)) stat$z <- b
+  if(!is.null(stat)) stat$z <- b/stat$seb
   if(returnWeights==TRUE) {
        stat$weights <- weights
        stat$CS <- CS
