@@ -338,7 +338,7 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, me=60000,
   }
   invVS <- solve(VS)
   weights <- invVS%*%CS
-  b <- crossprod(b,weights)
+  b <- b%*%weights
   #b <- t(tcrossprod(weights,b))
   colnames(b) <- cnames
   if(!is.null(stat)) stat$z <- b
