@@ -1381,12 +1381,11 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
                     r2 = 0.9, ldSets = NULL, threshold = 1, header=NULL,
                     method = "pruning") {
     p <- stat$p
-    if(is.null(stat$p)) pstat <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
-    names(p) <- rownames(stat)
+    if(is.null(stat$p)) p <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
+    if(is.data.frame(stat)) names(p) <- rownames(stat)
     
     if(is.null(ldSets)) {p <- adjLD(Glist=Glist, stat=p, r2=r2, threshold=threshold)}
     if(!is.null(ldSets)) {p <- adjLD(Glist=Glist, stat=p, r2=r2, threshold=threshold, ldSets=ldSets)}
-    
     
     p[p>0] <- 1
     if(is.null(header)) header <- c("rsids","chr","pos","allele","a1","a2","af")
