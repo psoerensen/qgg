@@ -288,9 +288,9 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 #' h2 <- ldsc(Glist, z=z, n=c(500,500), what="h2")
 #' rg <- ldsc(Glist, z=z, n=c(500,500), what="rg")
 #' 
-#' # Adjust summary statistics using estiamted genetic parameters
+#' # Adjust summary statistics using estimated genetic parameters
 #' b <- cbind(b1=maLM1[,"b"],b2=maLM2[,"b"])
-#' badj <- adjustB( h2=h2[,2], rg=rg, b=b, n=c(500,500), method="ols")
+#' badj <- mtadj( h2=h2, rg=rg, b=b, n=c(500,500), method="ols")
 #' 
 #' @export
 #' 
