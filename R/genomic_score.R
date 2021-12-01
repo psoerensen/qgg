@@ -223,6 +223,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
 }
 
 
+# compute effective number of observations
 neff <- function(seb=NULL,af=NULL,Vy=1) {
   seb2 <- seb**2
   vaf <- 2*af*(1-af)
@@ -298,9 +299,11 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NULL, meff=60000, method="ols", statistics="z") {
   
   if(!is.null(z)) b <- z
-  if(!is.null(stat)) b <- stat$b     
-  if(!is.null(stat) && statistics=="z") b <- stat$b/stat$seb     
-  if(!is.null(stat)) n <- colMeans(stat$n)     
+  if(!is.null(stat)) {
+    b <- stat$b
+    if(statistics=="z") b <- stat$b/stat$seb     
+    n <- colMeans(stat$n)
+  }
   m <- mtotal
   if(is.null(mtotal)) m <- nrow(b)
   
@@ -342,8 +345,8 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NU
   b <- b%*%weights
   colnames(b) <- cnames
   if(!is.null(stat)) {
-    stat$z <- b/stat$seb
-    if(statistics=="b") stat$badj <- b
+    if(statistics=="z") stat$z <- b
+    if(statistics=="b") stat$b <- b
     stat$weights <- weights
     stat$CS <- CS
     stat$VS <- VS
@@ -355,7 +358,7 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NU
   }
 }
 
-# compute r-squared
+# compute expected r-squared
 rsq <- function(h2=NULL,meff=NULL,n=NULL) {
   phi <- meff/n
   rsq <- (phi + h2 - sqrt((phi+h2)**2 - 4*phi*h2**2))/(2*phi)
