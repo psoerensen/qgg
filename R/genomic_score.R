@@ -295,7 +295,7 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 #' @export
 #' 
 
-mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=60000, method="ols", statistics="z",returnWeights=FALSE) {
+mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=60000, method="ols", statistics="z") {
      
   if(!is.null(z)) b <- z
   if(!is.null(stat)) b <- stat$b     
@@ -343,11 +343,9 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=6000
   if(!is.null(stat)) {
        stat$z <- b/stat$seb
        if(statistics="b") stat$badj <- b
-       if(returnWeights==TRUE) {
-            stat$weights <- weights
-            stat$CS <- CS
-            stat$VS <- VS
-       }
+       stat$weights <- weights
+       stat$CS <- CS
+       stat$VS <- VS
        return(stat)
   }
   if(is.null(stat)) {
