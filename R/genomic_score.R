@@ -348,8 +348,8 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NU
     if(statistics=="z") stat$z <- b
     if(statistics=="b") stat$b <- b
     stat$weights <- weights
-    stat$CS <- CS
-    stat$VS <- VS
+    stat$cvblup <- CS
+    stat$vblup <- VS
     return(stat)
   }
   if(is.null(stat)) {
