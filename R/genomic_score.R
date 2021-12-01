@@ -235,8 +235,9 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 #'
 #'
 #' @description
-#' The adjustB function use selection index theory to find the optimal weights across n traits, which is used to adjust marker effects by n correlated traits.
-#'
+#' The mtadj function use selection index theory to find the optimal weights across n traits, which is used to adjust marker effects by n correlated traits.
+#' (https://www.nature.com/articles/s41467-017-02769-6)
+#'    
 #' @param h2 vector of heritability estimates
 #' @param rg n-by-n matrix of genetic correlations
 #' @param n vector of sample size used to estimate marker effects for each trait
@@ -296,13 +297,15 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 
 mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=60000, method="ols", statistics="z",returnWeights=FALSE) {
   if(!is.null(z)) b <- z
-  if(!is.null(stat) && statistics=="b") b <- stat$b     
+  if(!is.null(stat)) b <- stat$b     
   if(!is.null(stat) && statistics=="z") b <- stat$b/stat$seb     
   if(!is.null(stat)) n <- colMeans(stat$n)     
+  
   if(is.null(b)) stop("Marker effect matrix b is missing")
   if(is.null(h2)) stop("Heritability vector h2 is missing")
   if(is.null(rg)) stop("Correlation matrix rg is missing")
   if(is.null(n)) stop("n missing")
+  
   cnames <- colnames(b)
   m <- nrow(b)
   
@@ -310,12 +313,13 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=6000
   r2 <- rsq(h2=h2,meff=meff,n=n)
   
   # V_sblup
-  if (method=="blup") VS <- diag(r2/m)
-  if (method=="ols") VS <- diag(h2/m + 1/n)
+  if (method=="blup") VS <- diag(r2/m)       # eq. 18
+  if (method=="ols") VS <- diag(h2/m + 1/n)  # eq. 25 
   nt <- ncol(VS)
   for(i in 1:nt) {
     for(j in i:nt) {
       if(!i==j) {
+        # eq. 19 and 26     
         if (method=="blup") VS[i,j] <- (rg[i,j]*r2[i]*r2[j])/(sqrt(h2[i])*sqrt(h2[j])*m)
         if (method=="ols") VS[i,j] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
         VS[j,i] <- VS[i,j]
@@ -326,6 +330,7 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=6000
   CS <- matrix(0,nt,nt)
   for(i in 1:nt) {
        for(j in 1:nt) {
+            # eq. 20 and 27      
             if (method=="blup") CS[j,i] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
             if (method=="ols") CS[j,i] <- (rg[i,j]*sqrt(h2[j])*sqrt(h2[i]))/m
        }
