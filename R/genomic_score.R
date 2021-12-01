@@ -295,12 +295,14 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 #' @export
 #' 
 
-mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=60000, method="ols", statistics="z") {
+mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NULL, meff=60000, method="ols", statistics="z") {
      
   if(!is.null(z)) b <- z
   if(!is.null(stat)) b <- stat$b     
   if(!is.null(stat) && statistics=="z") b <- stat$b/stat$seb     
   if(!is.null(stat)) n <- colMeans(stat$n)     
+  m <- mtotal
+  if(is.null(mtotal)) m <- nrow(b)
   
   if(is.null(b)) stop("Marker effect matrix b is missing")
   if(is.null(h2)) stop("Heritability vector h2 is missing")
@@ -308,8 +310,7 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=6000
   if(is.null(n)) stop("n missing")
   
   cnames <- colnames(b)
-  m <- nrow(b)
-  
+
   # compute r2
   r2 <- rsq(h2=h2,meff=meff,n=n)
   
