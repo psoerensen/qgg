@@ -296,6 +296,7 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 #' 
 
 mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=60000, method="ols", statistics="z",returnWeights=FALSE) {
+     
   if(!is.null(z)) b <- z
   if(!is.null(stat)) b <- stat$b     
   if(!is.null(stat) && statistics=="z") b <- stat$b/stat$seb     
@@ -346,10 +347,12 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, meff=6000
             stat$CS <- CS
             stat$VS <- VS
        }
+       return(stat)
   }
-  if(!is.null(stat)) {return(stat)}
-  #if(returnWeights==FALSE){return(b)}
-  #if(returnWeights==TRUE){return(list(b=b, weights=weights))}
+  if(is.null(stat)) {
+    if(!is.null(z)) return(list(z=b, weights=weights, CS=CS, VS=VS))
+    if(is.null(z)) return(list(b=b, weights=weights, CS=CS, VS=VS))
+  }
 }
 
 # compute r-squared
