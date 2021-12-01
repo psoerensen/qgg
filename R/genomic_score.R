@@ -296,7 +296,7 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 #' 
 
 mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NULL, meff=60000, method="ols", statistics="z") {
-     
+  
   if(!is.null(z)) b <- z
   if(!is.null(stat)) b <- stat$b     
   if(!is.null(stat) && statistics=="z") b <- stat$b/stat$seb     
@@ -310,7 +310,7 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NU
   if(is.null(n)) stop("n missing")
   
   cnames <- colnames(b)
-
+  
   # compute r2
   r2 <- rsq(h2=h2,meff=meff,n=n)
   
@@ -331,23 +331,23 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NU
   # C_sblup
   CS <- matrix(0,nt,nt)
   for(i in 1:nt) {
-       for(j in 1:nt) {
-            # eq. 20 and 27      
-            if (method=="blup") CS[j,i] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
-            if (method=="ols") CS[j,i] <- (rg[i,j]*sqrt(h2[j])*sqrt(h2[i]))/m
-       }
+    for(j in 1:nt) {
+      # eq. 20 and 27      
+      if (method=="blup") CS[j,i] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
+      if (method=="ols") CS[j,i] <- (rg[i,j]*sqrt(h2[j])*sqrt(h2[i]))/m
+    }
   }
   invVS <- solve(VS)
   weights <- invVS%*%CS
   b <- b%*%weights
   colnames(b) <- cnames
   if(!is.null(stat)) {
-       stat$z <- b/stat$seb
-       if(statistics=="b") stat$badj <- b
-       stat$weights <- weights
-       stat$CS <- CS
-       stat$VS <- VS
-       return(stat)
+    stat$z <- b/stat$seb
+    if(statistics=="b") stat$badj <- b
+    stat$weights <- weights
+    stat$CS <- CS
+    stat$VS <- VS
+    return(stat)
   }
   if(is.null(stat)) {
     if(!is.null(z)) return(list(z=b, weights=weights, CS=CS, VS=VS))
@@ -357,8 +357,38 @@ mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NU
 
 # compute r-squared
 rsq <- function(h2=NULL,meff=NULL,n=NULL) {
-     phi <- meff/n
-     rsq <- (phi + h2 - sqrt((phi+h2)**2 - 4*phi*h2**2))/(2*phi)
-     rsq
+  phi <- meff/n
+  rsq <- (phi + h2 - sqrt((phi+h2)**2 - 4*phi*h2**2))/(2*phi)
+  rsq
 }
 
+
+# compute mtadj weight
+mtweights <- function(h2=NULL,rg=NULL, m=NULL, meff=NULL, n=NULL) {
+  r2 <- rsq(h2=h2,meff=meff,n=n) 
+  
+  # V_sblup
+  if (method=="blup") VS <- diag(r2/m)       # eq. 18
+  if (method=="ols") VS <- diag(h2/m + 1/n)  # eq. 25 
+  nt <- ncol(VS)
+  for(i in 1:nt) {
+    for(j in i:nt) {
+      if(!i==j) {
+        # eq. 19 and 26     
+        if (method=="blup") VS[i,j] <- (rg[i,j]*r2[i]*r2[j])/(sqrt(h2[i])*sqrt(h2[j])*m)
+        if (method=="ols") VS[i,j] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
+        VS[j,i] <- VS[i,j]
+      }
+    }
+  }
+  # C_sblup
+  CS <- matrix(0,nt,nt)
+  for(i in 1:nt) {
+    for(j in 1:nt) {
+      # eq. 20 and 27      
+      if (method=="blup") CS[j,i] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
+      if (method=="ols") CS[j,i] <- (rg[i,j]*sqrt(h2[j])*sqrt(h2[i]))/m
+    }
+  }
+  return(list(VS=VS, CS=CS))
+}
