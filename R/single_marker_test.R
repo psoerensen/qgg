@@ -92,10 +92,10 @@
 #' @export
 #'
 #' 
-glma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL,  fit = NULL,
+glma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL,  fit = NULL, verbose=FALSE,
                  statistic = "mastor", ids = NULL, rsids = NULL, msize = 100, scale = TRUE) {
   if (is.null(fit)) {
-    ma <- sma(y = y, X = X, W = W, Glist = Glist, chr=chr, ids = ids, rsids = rsids, msize = msize, scale = scale)
+    ma <- sma(y = y, X = X, W = W, Glist = Glist, chr=chr, ids = ids, rsids = rsids, msize = msize, scale = scale, verbose=verbose)
     return(ma)
   }
   if (!is.null(fit)) {
@@ -170,7 +170,7 @@ plotma <- function(ma = NULL, chr = NULL, rsids = NULL, thresh = 5) {
 
 
 sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL, rsids = NULL,
-                msize = 100, scale = TRUE) {
+                msize = 100, scale = TRUE, verbose=FALSE) {
   if (is.list(y)) {
     if(is.null(names(y))) names(y) <- paste0("T",1:length(y)) 
     y <- as.matrix(as.data.frame(y))
@@ -232,7 +232,7 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
         dfe[cls, ] <- res[[5]]
         ww[cls, ] <- res[[6]]
         wy[cls, ] <- res[[7]]
-        #message(paste("Finished block", i, "out of", nsets, "blocks"))
+        if(verbose) message(paste("Finished chromosome segment", i, "out of", nsets))
       }
       cls <- unlist(sets)
       ma[[chr]] <- list(b = s[cls, ], seb = se[cls, ], stat = stat[cls, ], p = p[cls, ],
