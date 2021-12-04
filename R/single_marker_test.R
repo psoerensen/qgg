@@ -199,6 +199,7 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
     ma <- vector(length=Glist$nchr,mode="list")
     if(is.null(chr)) chromosomes <- 1:Glist$nchr
     if(!is.null(chr)) chromosomes <- chr
+    message("Type of analysis: glma")
     for (chr in  chromosomes) {
       message(paste("Processing chromosome:", chr, "out of", Glist$nchr, "chromosomes"))
       m <- Glist$mchr[chr]
@@ -301,3 +302,62 @@ smlm <- function(y = NULL, X = NULL, W = NULL) {
   res <- list(b = coef, seb = se, stat = tt, p = ptt, dfe = dfe, ww = ww, wy = Wy)
   return(res)
 }
+
+
+#' @export
+#'
+
+cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
+                rws = NULL, cls = NULL, impute = TRUE, scale = TRUE) {
+  
+  if(is.null(cls)) cls <- 1:Glist$mchr[chr]
+  af <- Glist$af[[chr]][cls]
+  ids <- NULL
+  if(is.matrix(y)) ids <- rownames(y)
+  if(is.vector(y)) ids <- names(y)
+  if(is.vector(y)) y <- as.matrix(y)
+  nt <- ncol(y)
+  for (i in 1:ncol(y)) {
+    y[,i] <- y[,i] - mean(y[,i])
+  }
+  if(is.null(ids)) stop("No names/rownames provided for y")
+  if(!is.null(ids)) {
+    if(any(is.na(match(ids,Glist$ids))))  stop("Names/rownames for y does match rownames for W")
+    if(any(is.na(Glist$ids%in%ids)))  stop("Names/rownames for y does match rownames for W")
+  }
+  rws <- match(ids,Glist$ids)
+  if(any(is.na(rws))) stop("Some ids in y does not match individuals in Glist$ids")
+  dfe <- nrow(y)-1
+  ylist <- lapply(1:nt,function(x) {rep(0,Glist$n)})
+  weights <- lapply(1:nt,function(x) {rep(0,Glist$n)})
+  for (i in 1:nt) {
+    ylist[[i]][rws] <- y[,i]
+    weights[[i]][rws] <- 1.0
+  }
+  if(!file.exists(Glist$bedfiles[chr])) stop(paste("Bedfile:", Glist$bedfiles[chr],"does not exist"))
+  covs <- .Call("_qgg_summarybed", 
+                Glist$bedfiles[chr], 
+                n=Glist$n,
+                cls=cls,
+                af=af,
+                weights=weights,
+                y=ylist)
+  
+  res <- vector(length=nt,mode="list")
+  names(res) <- colnames(y)
+  for ( i in 1:nt) {
+    rsids <- Glist$rsids[[chr]][cls]
+    ww <- covs[[1]][[i]]
+    wy <- covs[[2]][[i]]
+    b <- (covs[[2]][[i]]/covs[[1]][[i]])
+    seb <- 1/sqrt(covs[[1]][[i]])
+    tstat <- (covs[[2]][[i]]/covs[[1]][[i]])*sqrt(covs[[1]][[i]])
+    p <- 2 * pt(-abs(tstat), df = dfe - 2)
+    res[[i]] <- data.frame(rsids,ww,wy,b,seb,tstat,p)
+    rownames(res[[i]]) <- rsids
+  }
+  if(nt==1) res <- res[[1]]
+  return(res)
+}
+
+
