@@ -193,12 +193,13 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, stat=NULL,
                     y <- Z1[rws]*Z2[rws]
                     XtX <- crossprod(X)
                     Xy <- crossprod(X,y)
-                    if(intercept & !any(is.na(h2[c(t1,t2),2]))) rg[t1,t2] <- solve(XtX, Xy)[2]/(sqrt(h2[t1,2])*sqrt(h2[t2,2]))
-                    if(!intercept & !any(is.na(h2[c(t1,t2)]))) rg[t1,t2] <- solve(XtX, Xy)[2]/(sqrt(h2[t1])*sqrt(h2[t2]))
+                    if(intercept && !any(is.na(h2[c(t1,t2),2]))) rg[t1,t2] <- solve(XtX, Xy)[2]/(sqrt(h2[t1,2])*sqrt(h2[t2,2]))
+                    #if(!intercept & !any(is.na(h2[c(t1,t2)]))) rg[t1,t2] <- solve(XtX,Xy)[2]/(sqrt(h2[t1])*sqrt(h2[t2]))
+                    if(!intercept && !any(is.na(h2[c(t1,t2)]))) rg[t1,t2] <- (Xy[2]/XtX[2,2])/(sqrt(h2[t1])*sqrt(h2[t2]))
                }
                if(intercept) rg[t1,t1] <- h2[t1,2]
                if(!intercept) rg[t1,t1] <- h2[t1]
-               rg[t2,t1] <- rg[t1,t2]
+               #rg[t2,t1] <- rg[t1,t2]
           }
           rownames(rg) <- colnames(rg) <- colnames(z)
           result <- NULL
