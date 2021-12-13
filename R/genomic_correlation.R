@@ -386,6 +386,54 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4) {
   return(unlist(ldscores2))
 }
 
+ldscoremap <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL) {
+  
+  chromosomes <- chr
+  
+  if(is.null(chr)) chromosomes <- 1:Glist$nchr  
+  
+  ldscores2 <- vector(length=length(chromosomes),mode="list")
+  
+  for (chr in chromosomes) {
+    message(paste("Compute LD scores for chromosome:",chr))
+    rsids <- Glist$rsidsLD[[chr]]
+    m <- length(rsids)
+    msize <- Glist$msize
+    
+    # LD indexes
+    k1 <- rep(1, m)
+    k1[1:msize] <- msize - 1:msize + 2
+    k2 <- rep((2 * msize + 1), m)
+    k2[(m - msize + 1):m] <- msize + m - ((m - msize + 1):m) + 1
+    
+    ldchr <- rep(0,m)
+    names(ldchr) <- rsids
+    
+    map <- Glist$map[[chr]][rsids]
+    map[is.na(map)] <- 10000
+    ldmap <- c(rep(NA, msize),map, rep(NA, msize))
+    
+    nld <- 1:as.integer(msize * 2 + 1)
+    
+    fnLD <- Glist$ldfiles[[chr]]
+    bfLD <- file(fnLD, "rb")
+    
+    for (j in 1:m) {
+      ld <- readBin(bfLD, "numeric", n = (2*msize+1), size = nbytes, endian = "little")
+      rwsLD <- k1[j]:k2[j]
+      ld <- ld[rwsLD]
+      rwsMAP <- (nld + j - 1)
+      mapdiff <- abs(ldmap[rwsMAP][rwsLD]-map[j])
+      if(!is.null(cm)) ld <- ld[mapdiff<cm]
+      ldchr[j] <- sum(ld**2)
+    }
+    close(bfLD)
+    ldscores2[[chr]] <- ldchr
+  }
+  
+  return(unlist(ldscores2))
+}
+
 neff <- function(seb=NULL,af=NULL,Vy=1) {
   seb2 <- seb**2
   vaf <- 2*af*(1-af)
