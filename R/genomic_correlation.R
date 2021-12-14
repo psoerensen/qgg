@@ -62,6 +62,10 @@
 
 ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, stat=NULL, n=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
   if(!is.null(Glist) & is.null(ldscores) ) ldscores <- unlist(Glist$ldscores)
+  ldscores <- unlist(ldscores)
+  
+  if(any(is.na(ldscores))) stop("Missing values in ldscores")
+  if(is.null(names(ldscores))) stop("Missing names in ldscores")
   
   if(!is.null(stat)) z <- stat$b/stat$seb
   if(!is.null(stat)) n <- colMeans(stat$n)
@@ -413,6 +417,7 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=N
       if(is.null(cm) && is.null(kb)) ldchr[j] <- sum(ld**2)
     }
     close(bfLD)
+    ldchr <- ldchr[ldchr>0]
     ldscores2[[chr]] <- ldchr
   }
   
