@@ -79,7 +79,7 @@
 
 gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ldfiles = NULL,
                   bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
-                  overwrite = FALSE, msize = 100, r2=NULL, ncores = 1) {
+                  overwrite = FALSE, msize = 100, r2=NULL, kb=NULL, cm=NULL, ncores = 1) {
 
   if (task == "prepare") {
     nfiles <- length(bedfiles)
@@ -114,6 +114,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     Glist$position <- vector(mode = "list", length = nfiles)
     Glist$chr <- vector(mode = "list", length = nfiles)
     Glist$cpra <- vector(mode = "list", length = nfiles)
+    Glist$map <- vector(mode = "list", length = nfiles)
     
     Glist$nmiss <- vector(mode = "list", length = nfiles)
     Glist$af <- vector(mode = "list", length = nfiles)
@@ -134,6 +135,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
       Glist$a1[[chr]] <- as.character(bim[, 5])
       Glist$a2[[chr]] <- as.character(bim[, 6])
       Glist$position[[chr]] <- as.numeric(bim[, 4])
+      Glist$map[[chr]] <- as.numeric(bim[, 3])
       Glist$rsids[[chr]] <- as.character(bim[, 2])
       Glist$mchr[chr] <- length(Glist$rsids[[chr]]) 
       Glist$chr[[chr]] <- as.character(bim[, 1])
@@ -148,6 +150,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
       names(Glist$a1[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$a2[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$position[[chr]]) <- Glist$rsids[[chr]]
+      names(Glist$map[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$het[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$hom[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$n0[[chr]]) <- Glist$rsids[[chr]]
@@ -197,6 +200,33 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
       Glist$ldSets[[i]] <- ldSets
     }
   }  
+  
+  if (task == "geneticmap") {
+    message("Add Genetic map to Glist")
+    if(is.null(Glist)) stop("Please provide Glist")
+    if(is.null(mapfiles)) stop("Please provide mapfiles")
+    Glist$map <- NULL
+    for (chr in 1:Glist$nchr) {
+      Glist$map[[chr]] <- rep(NA,Glist$mchr[chr])
+      names(Glist$map[[chr]]) <- Glist$rsids[[chr]]
+      map <- fread(mapfiles[chr],data.table=F)
+      dups <- bim[duplicated(map[,2]),2]
+      map <- map[!map[,2]%in%dups,]
+      map <- map[map[,2]%in%Glist$rsids[[chr]],]
+      rownames(map) <- map[,2]
+      Glist$map[[chr]][rownames(map)] <- map[,3]
+    }
+    return(Glist)
+  }
+  if (task == "ldscores") {
+    message("Computing ldscores")
+    ldscores <- NULL
+    for (chr in 1:22) { 
+      ldscores[[chr]] <- ldscore(Glist=Glist, chr=chr, cm=cm) 
+    }
+    return(ldscores)
+  }
+  
   return(Glist)
 }
 
