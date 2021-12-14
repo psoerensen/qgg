@@ -78,7 +78,8 @@
 #'
 
 gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ldfiles = NULL,
-                  bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
+                  bedfiles = NULL, bimfiles = NULL, famfiles = NULL, mapfiles=NULL, 
+                  ids = NULL, rsids = NULL,
                   overwrite = FALSE, msize = 100, r2=NULL, kb=NULL, cm=NULL, ncores = 1) {
 
   if (task == "prepare") {
