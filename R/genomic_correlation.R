@@ -372,13 +372,14 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=N
     names(ldchr) <- rsids
     
     if(!is.null(kb)) kb <- kb*1000
+    if(!is.null(cm)) cm <- cm*1000000
     
     map <- Glist$map[[chr]][rsids]
-    if(any(is.na(map))) stop("Missing values in Glist$map")
+    #if(!is.null(cm)) if(any(is.na(map))) stop("Missing values in Glist$map")
     ldmap <- c(rep(NA, msize),map, rep(NA, msize))
     
     pos <- Glist$pos[[chr]][rsids]
-    if(any(is.na(pos))) stop("Missing values in Glist$pos")
+    #if(!is.null(kb)) if(any(is.na(pos))) stop("Missing values in Glist$pos")
     ldpos <- c(rep(NA, msize),pos, rep(NA, msize))
     
     nld <- 1:as.integer(msize * 2 + 1)
@@ -391,11 +392,25 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=N
       rwsLD <- k1[j]:k2[j]
       ld <- ld[rwsLD]
       rwsMAP <- rwsPOS <- (nld + j - 1)
-      mapdiff <- abs(ldmap[rwsMAP][rwsLD]-map[j])
-      posdiff <- abs(ldpos[rwsPOS][rwsLD]-pos[j])
-      if(!is.null(cm)) ld <- ld[mapdiff<cm]
-      if(!is.null(kb)) ld <- ld[posdiff<kb]
-      ldchr[j] <- sum(ld**2)
+      if(!is.null(kb)) {
+        if(!is.na(pos[j])) {
+          posdiff <- abs(ldpos[rwsPOS][rwsLD]-pos[j])
+          ld <- ld[!is.na(posdiff)]
+          posdiff <- posdiff[!is.na(posdiff)]
+          ld <- ld[posdiff<kb]
+          ldchr[j] <- sum(ld**2)
+        }
+      }
+      if(!is.null(cm)) {
+        if(!is.na(map[j])) {
+          mapdiff <- abs(ldmap[rwsMAP][rwsLD]-map[j])
+          ld <- ld[!is.na(mapdiff)]
+          mapdiff <- mapdiff[!is.na(mapdiff)]
+          ld <- ld[mapdiff<cm]
+          ldchr[j] <- sum(ld**2)
+        }  
+      }
+      if(is.null(cm) && is.null(kb)) ldchr[j] <- sum(ld**2)
     }
     close(bfLD)
     ldscores2[[chr]] <- ldchr
