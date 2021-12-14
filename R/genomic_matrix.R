@@ -220,6 +220,9 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
   }
   if (task == "ldscores") {
     message("Computing ldscores")
+    if(is.null(Glist)) stop("Please provide Glist")
+    if(!is.null(cm)) message(paste("Computing ldscores using cm:",cm))
+    if(!is.null(kb)) message(paste("Computing ldscores using kb:",kb))
     ldscores <- NULL
     for (chr in 1:22) { 
       ldscores[[chr]] <- ldscore(Glist=Glist, chr=chr, cm=cm) 
