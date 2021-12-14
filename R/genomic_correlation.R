@@ -376,7 +376,7 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=N
     names(ldchr) <- rsids
     
     if(!is.null(kb)) kb <- kb*1000
-    if(!is.null(cm)) cm <- cm*1000000
+    #if(!is.null(cm)) cm <- cm*1000000
     
     map <- Glist$map[[chr]][rsids]
     #if(!is.null(cm)) if(any(is.na(map))) stop("Missing values in Glist$map")
