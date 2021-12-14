@@ -348,45 +348,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, stat=NULL,
 }
 
 
-ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4) {
-  
-  chromosomes <- chr
-  
-  if(is.null(chr)) chromosomes <- 1:22  
-  
-  ldscores2 <- vector(length=length(chromosomes),mode="list")
-  
-  for (chr in chromosomes) {
-    message(paste("Compute LD scores for chromosome:",chr))
-    rsids <- Glist$rsidsLD[[chr]]
-    m <- length(rsids)
-    msize <- Glist$msize
-    
-    # LD indexes
-    k1 <- rep(1, m)
-    k1[1:msize] <- msize - 1:msize + 2
-    k2 <- rep((2 * msize + 1), m)
-    k2[(m - msize + 1):m] <- msize + m - ((m - msize + 1):m) + 1
-    
-    ldchr <- rep(0,m)
-    names(ldchr) <- rsids
-    
-    fnLD <- Glist$ldfiles[[chr]]
-    bfLD <- file(fnLD, "rb")
-    
-    for (j in 1:m) {
-      rwsLD <- k1[j]:k2[j]
-      ld <- readBin(bfLD, "numeric", n = (2*msize+1), size = nbytes, endian = "little")
-      ldchr[j] <- sum(ld[rwsLD]**2)
-    }
-    close(bfLD)
-    ldscores2[[chr]] <- ldchr
-  }
-  
-  return(unlist(ldscores2))
-}
-
-ldscoremap <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL) {
+ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=NULL) {
   
   chromosomes <- chr
   
@@ -409,9 +371,15 @@ ldscoremap <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL) {
     ldchr <- rep(0,m)
     names(ldchr) <- rsids
     
+    if(!is.null(kb)) kb <- kb*1000
+    
     map <- Glist$map[[chr]][rsids]
-    map[is.na(map)] <- 10000
+    if(any(is.na(map))) stop("Missing values in Glist$map")
     ldmap <- c(rep(NA, msize),map, rep(NA, msize))
+    
+    pos <- Glist$pos[[chr]][rsids]
+    if(any(is.na(pos))) stop("Missing values in Glist$pos")
+    ldpos <- c(rep(NA, msize),pos, rep(NA, msize))
     
     nld <- 1:as.integer(msize * 2 + 1)
     
@@ -422,9 +390,11 @@ ldscoremap <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL) {
       ld <- readBin(bfLD, "numeric", n = (2*msize+1), size = nbytes, endian = "little")
       rwsLD <- k1[j]:k2[j]
       ld <- ld[rwsLD]
-      rwsMAP <- (nld + j - 1)
+      rwsMAP <- rwsPOS <- (nld + j - 1)
       mapdiff <- abs(ldmap[rwsMAP][rwsLD]-map[j])
+      posdiff <- abs(ldpos[rwsPOS][rwsLD]-pos[j])
       if(!is.null(cm)) ld <- ld[mapdiff<cm]
+      if(!is.null(kb)) ld <- ld[posdiff<kb]
       ldchr[j] <- sum(ld**2)
     }
     close(bfLD)
@@ -433,6 +403,7 @@ ldscoremap <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL) {
   
   return(unlist(ldscores2))
 }
+
 
 neff <- function(seb=NULL,af=NULL,Vy=1) {
   seb2 <- seb**2
