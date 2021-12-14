@@ -211,11 +211,12 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
       Glist$map[[chr]] <- rep(NA,Glist$mchr[chr])
       names(Glist$map[[chr]]) <- Glist$rsids[[chr]]
       map <- fread(mapfiles[chr],data.table=F)
-      dups <- bim[duplicated(map[,2]),2]
+      dups <- map[duplicated(map[,2]),2]
       map <- map[!map[,2]%in%dups,]
       map <- map[map[,2]%in%Glist$rsids[[chr]],]
       rownames(map) <- map[,2]
       Glist$map[[chr]][rownames(map)] <- map[,3]
+      message(paste("Finished processing map file", mapfiles[chr]))
     }
     return(Glist)
   }
