@@ -69,9 +69,9 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   # data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
   # list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
   
-  fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb")
+  fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb","n")
   fm_external <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
-                   "effect_allele_freq","effect", "effect_se")
+                   "effect_allele_freq","effect", "effect_se", "effect_n")
   
   format <- "unknown"
   if(all(fm_internal%in%colnames(stat))) format <- "internal"
@@ -84,6 +84,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     print(fm_internal)
     stop("please revised your stat object according to these ")
   }
+  if(format=="external") stat <- stat[,fm_external]
   
   # external summary statistic column format
   # optimal format:
@@ -168,8 +169,8 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     message("")
     stat <- stat[!excludeMAFDIFF,]
     marker <- marker[!excludeMAFDIFF,]
-    if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
-    colnames(stat)[1:8] <- fm_internal
+    #if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
+    colnames(stat) <- fm_internal
     
   }  
   
