@@ -69,9 +69,9 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   # data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
   # list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
   
-  fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb","n")
+  fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb","p","n")
   fm_external <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
-                   "effect_allele_freq","effect", "effect_se", "effect_n")
+                   "effect_allele_freq","effect", "effect_se", "effect_p", "effect_n")
   
   format <- "unknown"
   if(all(fm_internal%in%colnames(stat))) format <- "internal"
