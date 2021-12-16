@@ -365,33 +365,3 @@ rsq <- function(h2=NULL,meff=NULL,n=NULL) {
   rsq
 }
 
-
-# compute mtadj weight
-mtweights <- function(h2=NULL,rg=NULL, m=NULL, meff=NULL, n=NULL) {
-  r2 <- rsq(h2=h2,meff=meff,n=n) 
-  
-  # V_sblup
-  if (method=="blup") VS <- diag(r2/m)       # eq. 18
-  if (method=="ols") VS <- diag(h2/m + 1/n)  # eq. 25 
-  nt <- ncol(VS)
-  for(i in 1:nt) {
-    for(j in i:nt) {
-      if(!i==j) {
-        # eq. 19 and 26     
-        if (method=="blup") VS[i,j] <- (rg[i,j]*r2[i]*r2[j])/(sqrt(h2[i])*sqrt(h2[j])*m)
-        if (method=="ols") VS[i,j] <- (rg[i,j]*sqrt(h2[i])*sqrt(h2[j]))/m
-        VS[j,i] <- VS[i,j]
-      }
-    }
-  }
-  # C_sblup
-  CS <- matrix(0,nt,nt)
-  for(i in 1:nt) {
-    for(j in 1:nt) {
-      # eq. 20 and 27      
-      if (method=="blup") CS[j,i] <- rg[i,j]*(r2[j]/m)*(sqrt(h2[i])/sqrt(h2[j]))
-      if (method=="ols") CS[j,i] <- (rg[i,j]*sqrt(h2[j])*sqrt(h2[i]))/m
-    }
-  }
-  return(list(VS=VS, CS=CS))
-}
