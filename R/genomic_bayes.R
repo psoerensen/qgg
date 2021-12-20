@@ -23,6 +23,20 @@
 #' @param nsave is the number of samples to save
 #' @param tol is the tolerance
 #'
+#' @return Returns a list structure including
+#' \item{b}{vector or matrix (mxt) of posterior means for marker effects}
+#' \item{d}{vector or matrix (mxt) of posterior means for marker inclusion probabilities}
+#' \item{vb}{scalar or vector (t) of posterior means for marker variances}
+#' \item{vg}{scalar or vector (t) of posterior means for genomic variances}
+#' \item{ve}{scalar or vector (t) of posterior means for residual variances}
+#' \item{rb}{matrix (txt) of posterior means for marker correlations}
+#' \item{rg}{matrix (txt) of posterior means for genomic correlations}
+#' \item{re}{matrix (txt) of posterior means for residual correlations}
+#' \item{pi}{vector (1xnmodels) of posterior probabilities for models}
+#' \item{h2}{vector (1xt) of posterior means for model probability}
+#' \item{param}{ a list current parameters (same information as item listed above) used for restart of the analysis}
+#' \item{stat}{matrix (mxt) of marker information and effects used for genomic risk scoring}
+
 
 #' @author Peter Sørensen
 
@@ -403,7 +417,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       colnames(bmchr) <- trait_names
       res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
                                pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
-                               a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=bmchr)
+                               a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],b=bmchr)
       rownames(res[[chr]]) <- rsidsLD
       LD[[chr]]$values <- NULL
       LD[[chr]]$indices <- NULL
@@ -413,6 +427,19 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$stat <- res
     fit$method <- methods[method+1]
   }
+  
+  # fit$b vector or matrix (m or mxt)
+  # fit$d vector or matrix (m or mxt)
+  # fit$vb scalar or vector (t)
+  # fit$vg scalar or vector (t)
+  # fit$ve scalar or vector (t)
+  # fit$rb matrix (txt)
+  # fit$rg matrix (txt)
+  # fit$re matrix (txt)
+  # fit$pi vector (models)
+  # fit$h2 scalar or vector (t)
+  # $param
+  # $stat
   
   # Multi trait BLR using summary statistics and sparse LD provided in Glist
   #  if( nt>1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
