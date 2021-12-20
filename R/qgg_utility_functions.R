@@ -119,7 +119,7 @@ hwe <- function(Glist=NULL){
 predict_r2_st = function(h2x, Nx, Me, M){
   b = M / (M + Me)
   r_uu = sqrt(h2x)*sqrt((b * h2x ) / (b * h2x  +  Me / (Nx)))
-  return(r_uu)
+  return(r_uu**2)
 }
 
 # Multi-trait (2-traits) prediction of R2 for continous trait
@@ -131,7 +131,7 @@ predict_r2_mt = function(h2x, Nx, h2y, Ny, rg, Me, M){
   P = matrix(c(r2_uu1, r2_uu1 * r2_uu2 * rg * rg,
                r2_uu2 * r2_uu1 * rg * rg, rg^2 * r2_uu2), nrow=2, byrow=T)
   r_uu = sqrt(t(g) %*% solve(P) %*% g)
-  return(r_uu[1,1])
+  return(r_uu[1,1]**2)
 }
 
 
