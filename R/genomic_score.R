@@ -175,6 +175,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
           grs <- t(grs)
           rownames(grs) <- Glist$ids
           colnames(grs) <- colnames(S)
+          gc()
      }
      
      # single core
