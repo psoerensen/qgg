@@ -53,9 +53,29 @@
 #' @export
 #'
 
+# grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
+#                 W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL,
+#                 overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm") {
+#   if (task == "grm") {
+#     GRM <- computeGRM(
+#       Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
+#       W = W, method = method, scale = scale, msize = msize, ncores = ncores,
+#       fnG = fnG, overwrite = overwrite, returnGRM = returnGRM, miss = miss
+#     )
+#     return(GRM)
+#   }
+#   if (task == "eigen") {
+#     eig <- eigenGRM(GRM = GRM, GRMlist = GRMlist, method = "default", ncores = ncores)
+#     return(eig)
+#   }
+# }
+
 grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
                 W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL,
-                overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm") {
+                overwrite = FALSE, returnGRM = FALSE, miss = 0, pedigree=NULL, task = "grm") {
+  if(!is.null(pedigree)) {
+    return(prm(pedigree=pedigree))
+  } 
   if (task == "grm") {
     GRM <- computeGRM(
       Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
@@ -68,6 +88,35 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
     eig <- eigenGRM(GRM = GRM, GRMlist = GRMlist, method = "default", ncores = ncores)
     return(eig)
   }
+}
+
+prm <- function(pedigree=NULL) {
+  n <- nrow(pedigree)
+  A <- matrix(0,ncol=n,nrow=n)
+  rownames(A) <- colnames(A) <- as.character(pedigree[,1])
+  A[1, 1] <- 1
+  for (i in 2:n) {
+    if (pedigree[i,2] == 0 && pedigree[i,3] == 0) {
+      A[i, i] <- 1
+      for (j in 1:(i - 1)) A[j, i] <- A[i, j] <- 0
+    }
+    if (pedigree[i,2] == 0 && pedigree[i,3] != 0) {
+      A[i, i] <- 1
+      for (j in 1:(i - 1)) A[j, i] <- A[i, j] <- 0.5 *
+          (A[j, as.character(pedigree[i,3])])
+    }
+    if (pedigree[i,2] != 0 && pedigree[i,3] == 0) {
+      A[i, i] <- 1
+      for (j in 1:(i - 1)) A[j, i] <- A[i, j] <- 0.5 *
+          (A[j, as.character(pedigree[i,2])])
+    }
+    if (pedigree[i,2] != 0 && pedigree[i,3] != 0) {
+      A[i, i] <- 1 + 0.5 * (A[as.character(pedigree[i,3]), as.character(pedigree[i,2])])
+      for (j in 1:(i - 1)) A[j, i] <- A[i, j] <- 0.5 *
+          (A[j, as.character(pedigree[i,2])] + A[j, as.character(pedigree[i,3])])
+    }
+  }
+  return(A)
 }
 
 
