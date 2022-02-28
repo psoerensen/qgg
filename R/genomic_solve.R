@@ -192,3 +192,34 @@ gsqr <- function(y = NULL, X = NULL, W = NULL, sets = NULL, msets = 100,
   return(fit)
 }
 
+#' @export
+mme = function(y=NULL, X=NULL, W=NULL, Z=NULL, GRM=NULL, Ve=NULL, Va=NULL) {
+  
+  #XX <- t(X) %*% RI %*% X
+  #XZ <- t(X) %*% RI %*% Z
+  #ZZ <- (t(Z) %*% RI %*% Z) + GI
+  #Xy <- t(X) %*% RI %*% y
+  #Zy <- t(Z) %*% RI %*% y
+  if(is.null(Z)) Z <- diag(1,nrow=length(y))
+  Cxx <- crossprod(X,X)/Ve
+  Cxz <- crossprod(X,Z)/Ve
+  Czz <- crossprod(Z,Z)/Ve + solve(GRM*Va)
+  Xy <- crossprod(X,y)/Ve
+  Zy <- crossprod(Z,y)/Ve
+  
+  lhs <- rbind(cbind(Cxx,Cxz),cbind(t(Cxz),Czz))
+  rhs <- rbind(Xy,Zy)
+  C <- solve(lhs)
+  sol <- crossprod(C,rhs)
+  aii <- diag(GRM)
+  cii <- diag(C)
+  fixed <- c(rep(TRUE,ncol(Cxx)),rep(FALSE,ncol(Czz)))
+  random <- !fixed
+  a <- sol[random] 
+  pev <- cii[random]*Ve
+  sep <- sqrt(pev)
+  rel <- (aii-cii[random]*Va/Ve)*aii
+  b <- sol[fixed]
+  seb <- cii[fixed]
+  return(list(b=b,seb=seb,a=a,pev=pev,sep=sep,rel=rel))
+}
