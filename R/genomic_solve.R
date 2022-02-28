@@ -218,7 +218,7 @@ mme = function(y=NULL, X=NULL, W=NULL, Z=NULL, GRM=NULL, Ve=NULL, Va=NULL) {
   a <- sol[random] 
   pev <- cii[random]*Ve
   sep <- sqrt(pev)
-  rel <- (aii-cii[random]*Va/Ve)*aii
+  rel <- (aii-cii[random]*Ve/Va)*aii
   b <- sol[fixed]
   seb <- cii[fixed]
   return(list(b=b,seb=seb,a=a,pev=pev,sep=sep,rel=rel))
