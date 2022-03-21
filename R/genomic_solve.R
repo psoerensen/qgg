@@ -84,13 +84,15 @@ gsolve <- function(y = NULL, X = NULL, GRM=NULL, Va=NULL, Ve=NULL, Glist = NULL,
     rownames(Z) <- colnames(Z) <- rownames(GRM[[1]])
     norecords <- !rownames(GRM[[1]])%in%rownames(X) 
     diag(Z)[norecords] <- 0
-    C <- crossprod(Z,Z)/Ve + solve(GRM[[1]]*Va)
+    h2 <- Va/(Va+Ve)
+    lambda <- (1-h2)/h2
+    C <- crossprod(Z,Z) + solve(GRM[[1]])*lambda
     C <- solve(C)
     aii <- diag(GRM[[1]])
     cii <- diag(C)
     pev <- cii*Ve
     sep <- sqrt(pev)
-    rel <- (1-pev/(Va*aii))
+    rel <- 1-cii*lambda
     fit <- data.frame(rel=rel,pev=pev,sep=sep)
     return(fit)
   }
