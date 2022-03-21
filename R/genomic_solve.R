@@ -61,7 +61,7 @@
 #' @export
 
 
-gsolve <- function(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL, rsids = NULL,
+gsolve <- function(y = NULL, X = NULL, GRM=NULL, Va=NULL, Ve=NULL, Glist = NULL, W = NULL, ids = NULL, rsids = NULL,
                    sets = NULL, validate = NULL, scale = TRUE, lambda = NULL, weights = FALSE,
                    maxit = 500, tol = 0.00001, method = "gsru", ncores = 1) {
   if (!is.null(W)) {
@@ -79,6 +79,22 @@ gsolve <- function(y = NULL, X = NULL, Glist = NULL, W = NULL, ids = NULL, rsids
     }
     return(fit)
   }
+  if (!is.null(GRM)){
+    Z <- diag(1,nrow(GRM[[1]]))
+    rownames(Z) <- colnames(Z) <- rownames(GRM[[1]])
+    norecords <- !rownames(GRM[[1]])%in%rownames(X) 
+    diag(Z)[norecords] <- 0
+    C <- crossprod(Z,Z)/Ve + solve(GRM[[1]]*Va)
+    C <- solve(C)
+    aii <- diag(GRM[[1]])
+    cii <- diag(C)
+    pev <- cii*Ve
+    sep <- sqrt(pev)
+    rel <- (1-pev/(Va*aii))
+    fit <- data.frame(rel=rel,pev=pev,sep=sep)
+    return(fit)
+  }
+  
   if (!is.null(Glist)) {
 
     nt <- 1
