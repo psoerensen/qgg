@@ -74,9 +74,9 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
                 W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL,
                 overwrite = FALSE, returnGRM = FALSE, miss = 0, pedigree=NULL, task = "grm") {
   if(!is.null(pedigree)) {
-    return(prm(pedigree=pedigree, task=task))
+    return(prm(pedigree=pedigree, task="additive"))
   } 
-  if (task == "grm") {
+  if (task == "grm" & is.null(pedigree)) {
     GRM <- computeGRM(
       Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
       W = W, method = method, scale = scale, msize = msize, ncores = ncores,
