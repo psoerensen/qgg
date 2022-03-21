@@ -74,7 +74,7 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
                 W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL,
                 overwrite = FALSE, returnGRM = FALSE, miss = 0, pedigree=NULL, task = "grm") {
   if(!is.null(pedigree)) {
-    return(prm(pedigree=pedigree))
+    return(prm(pedigree=pedigree, task=task))
   } 
   if (task == "grm") {
     GRM <- computeGRM(
@@ -90,7 +90,7 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
   }
 }
 
-prm <- function(pedigree=NULL) {
+prm <- function(pedigree=NULL, task="additive") {
   n <- nrow(pedigree)
   A <- matrix(0,ncol=n,nrow=n)
   rownames(A) <- colnames(A) <- as.character(pedigree[,1])
@@ -115,6 +115,26 @@ prm <- function(pedigree=NULL) {
       for (j in 1:(i - 1)) A[j, i] <- A[i, j] <- 0.5 *
           (A[j, as.character(pedigree[i,2])] + A[j, as.character(pedigree[i,3])])
     }
+  }
+  if(task=="dominance"){
+    n <- ncol(A)
+    D <- matrix(0,ncol=n,nrow=n)
+    for(i in 1:n){
+      for(j in 1:n){
+        si <- pedigree[i,2]
+        sj <- pedigree[j,2]
+        di <- pedigree[i,3]
+        dj <- pedigree[j,3]
+        u1 <- ifelse(length(A[si,sj])>0,A[si,sj],0)
+        u2 <- ifelse(length(A[di,dj])>0,A[di,dj],0)
+        u3 <- ifelse(length(A[si,dj])>0,A[si,dj],0)
+        u4 <- ifelse(length(A[sj,di])>0,A[sj,di],0)
+        D[i,j] <- D[j,i] <- 0.25*(u1*u2+u3*u4)
+      }
+    }
+    diag(D)<-1
+    A<-D
+    D<-NULL
   }
   return(A)
 }
