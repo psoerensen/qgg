@@ -1131,6 +1131,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   mus <- matrix(0,nrow=n,ncol=nt)
   psum <- matrix(0,nrow=n,ncol=nt)
   
+
   nset <- length(GRMlist)                   # number of sets
   setnames <- names(GRMlist)
   if(is.null(setnames)) setnames <- paste0("Set",1:nset) 
@@ -1165,6 +1166,8 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   idsT <- rownames(y)
   idsV <- idsG[!idsG%in%idsT]
   train <- match(idsT,idsG)
+
+  if(any(!idsT%in%idsG)) stop("Some ids in y not in GRM")
   
   # eigen value decomposition of the GRM5 matrices
   U <- D <- vector(length=nset,mode="list")
@@ -1297,9 +1300,15 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   
   for ( set in 1:nset ){
     for (t1 in 1:nt) {
-      gset[[set]][idsT,t1] <- gm[[t1]][,set]
-      for (t2 in 1:nt) {
-        gset[[set]][idsV,t1] <- gset[[set]][idsV,t1] + (GRMlist[[set]][idsV,idsT]*vgm[t1,t2])%*%gm[[t2]][,set]
+      isDups <- duplicated(idsT)
+      ghat <- gm[[t1]][!isDups,set]
+      names(ghat) <- idsT[!isDups]
+      gset[[set]][names(ghat),t1] <- ghat
+      #gset[[set]][idsT,t1] <- gm[[t1]][,set]
+      if(length(idsV)>0) {
+        for (t2 in 1:nt) {
+          gset[[set]][idsV,t1] <- gset[[set]][idsV,t1] + (GRMlist[[set]][idsV,idsT]*vgm[t1,t2])%*%gm[[t2]][,set]
+        }
       }
     }
   }
