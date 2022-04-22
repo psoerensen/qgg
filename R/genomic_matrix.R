@@ -79,7 +79,7 @@
 
 gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ldfiles = NULL,
                   bedfiles = NULL, bimfiles = NULL, famfiles = NULL, mapfiles=NULL, 
-                  ids = NULL, rsids = NULL,
+                  ids = NULL, rsids = NULL, assembly=NULL,
                   overwrite = FALSE, msize = 100, r2=NULL, kb=NULL, cm=NULL, ncores = 1) {
 
   if (task == "prepare") {
@@ -119,6 +119,8 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     
     Glist$nmiss <- vector(mode = "list", length = nfiles)
     Glist$af <- vector(mode = "list", length = nfiles)
+    Glist$af1 <- vector(mode = "list", length = nfiles)
+    Glist$af2 <- vector(mode = "list", length = nfiles)
     Glist$maf <- vector(mode = "list", length = nfiles)
     Glist$hom <- vector(mode = "list", length = nfiles)
     Glist$het <- vector(mode = "list", length = nfiles)
@@ -147,6 +149,8 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
       message(paste("Finished processing bed file", bedfiles[chr]))
       names(Glist$nmiss[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$af[[chr]]) <- Glist$rsids[[chr]]
+      Glist$af1[[chr]] <- Glist$af[[chr]]
+      Glist$af2[[chr]] <- 1-Glist$af[[chr]]
       names(Glist$maf[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$a1[[chr]]) <- Glist$rsids[[chr]]
       names(Glist$a2[[chr]]) <- Glist$rsids[[chr]]
@@ -163,7 +167,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     }
 
     Glist$nchr <- length(Glist$bedfiles)
-    
+    Glist$assembly <- assembly
 
   }
      # if (task == "combine") {
@@ -245,7 +249,9 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   
   rws <- 1:n
   if (!is.null(ids)) rws <- match(ids, Glist$ids)
-  if (!is.null(Glist$study_ids)) warning("Study ids used in calculating genotype frequencies etc.")
+  if (!is.null(Glist$study_ids)) {
+    warning("Study ids used in calculating genotype frequencies etc.")
+  }
   nr <- length(rws)
 
   if (is.null(cls)) cls <- 1:m
@@ -456,6 +462,10 @@ if(scale) W <- .Call("_qgg_readW", bedfiles, Glist$n,cls,af)
 if(!scale) W <- .Call("_qgg_readG", bedfiles, Glist$n,cls)
 colnames(W) <- Glist$rsids[[chr]][cls]
 rownames(W) <- Glist$ids
+if (!is.null(ids)) {
+  rws <- match(ids,Glist$ids)
+  if(any(is.na(rws))) stop("Some ids not found in Glist")
+}
 if(!is.null(rws)) W <- W[rws,]
 if(is.integer(impute)) W[W==impute] <- impute
 return(W)
