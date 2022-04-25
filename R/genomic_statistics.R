@@ -89,6 +89,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   if(all(fm_external2%in%colnames(stat))) {
     format <- "external"
     fm_external <- fm_external2
+    fm_internal <- fm_internal[1:9]
   }
   if(format=="unknown") {
     message("Column headings for stat object not found")
