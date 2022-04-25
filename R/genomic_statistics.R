@@ -59,11 +59,16 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
                    excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE,
                    excludeMISS=0.05, excludeHWE=1e-12) {
   
-  
+  # we use cpra to link sumstats and Glist
+  cpra <- unlist(Glist$cpra)
+  rsids <- unlist(Glist$rsids)
+
   # stat is a data.frame
   if(!is.data.frame(stat)) stop("stat should be  a data frame")
-  if(!is.null(stat$marker)) rownames(stat) <- stat$marker
+  #if(!is.null(stat$marker)) rownames(stat) <- stat$marker
   if(!is.null(stat$rsids)) rownames(stat) <- stat$rsids
+  
+  
   
   # internal summary statistic column format
   # data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
@@ -84,7 +89,33 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     print(fm_internal)
     stop("please revised your stat object according to these ")
   }
-  if(format=="external") stat <- stat[,fm_external]
+  if(format=="external") {
+    stat <- stat[,fm_external]
+    cpra1 <- paste(stat[,"chromosome"],stat[,"position"],stat[,"effect_allele"],stat[,"non_effect_allele"],sep="_")
+    cpra2 <- paste(stat[,"chromosome"],stat[,"position"],stat[,"non_effect_allele"],stat[,"effect_allele"],sep="_")
+
+    mapped <- cpra1%in%cpra | cpra2%in%cpra
+    message("Map markers based on cpra")
+    message(paste("Number of markers in stat mapped to marker ids in Glist:",sum(mapped)))
+    message(paste("Number of markers in stat not mapped to marker ids in Glist:",sum(!mapped)))
+    
+    stat <- stat[mapped,]
+    cpra1 <- cpra1[mapped]
+    cpra2 <- cpra2[mapped]
+    rws1 <- match(cpra1,cpra)
+    rws2 <- match(cpra2,cpra)
+    
+    stat$marker[!is.na(rws1)] <- rsids[rws1[!is.na(rws1)]]
+    stat$marker[!is.na(rws2)] <- rsids[rws2[!is.na(rws2)]]
+    
+    isdup <- duplicated(stat$marker)
+    if(any(isdup)) message("Removing markers with duplicated ids")
+    if(any(isdup)) message(paste("Number of markers duplicated in stat:",sum(isdup)))
+    stat <- stat[!isdup,] 
+    rownames(stat) <- stat$marker    
+    
+  }
+  
   
   # external summary statistic column format
   # optimal format:
