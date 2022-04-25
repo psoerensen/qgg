@@ -75,16 +75,27 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   # list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
   
   fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb","p","n")
-  fm_external <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
+  fm_external1 <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
                    "effect_allele_freq","effect", "effect_se", "effect_p", "effect_n")
+  fm_external2 <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
+                    "effect_allele_freq","effect", "effect_se", "effect_p")
   
   format <- "unknown"
   if(all(fm_internal%in%colnames(stat))) format <- "internal"
-  if(all(fm_external%in%colnames(stat))) format <- "external"
+  if(all(fm_external1%in%colnames(stat))) {
+    format <- "external"
+    fm_external <- fm_external1
+  }
+  if(all(fm_external2%in%colnames(stat))) {
+    format <- "external"
+    fm_external <- fm_external2
+  }
   if(format=="unknown") {
     message("Column headings for stat object not found")
     message("Column headings for stat object should be:")
-    print(fm_external)
+    print(fm_external1)
+    message("or:")
+    print(fm_external2)
     message("or:")
     print(fm_internal)
     stop("please revised your stat object according to these ")
