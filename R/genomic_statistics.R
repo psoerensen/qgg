@@ -216,7 +216,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     marker <- marker[!excludeMAFDIFF,]
     #if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
     colnames(stat) <- fm_internal
-    if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
+    #if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
   }  
   
   if(format=="internal") {
@@ -238,8 +238,10 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     message("")
     stat <- stat[!excludeMAFDIFF,]
     marker <- marker[!excludeMAFDIFF,]
-    if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
+    #if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
   }  
+  
+  if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)
   
   #if(!is.null(filename)) png(file=filename)
 
