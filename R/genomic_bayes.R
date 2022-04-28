@@ -678,8 +678,8 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
   #if(verbose) {
     message("Starting values")
     message(paste("Ve:",ve))
-    message(paste("Vg:",ve))
-    message(paste("Vb:",ve))
+    message(paste("Vg:",vg))
+    message(paste("Vb:",vb))
     message(paste("Pi:",pi))
   #}
   
