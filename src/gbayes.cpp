@@ -686,7 +686,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         //lhs0 = 1.0/vb;
-        lhs0 = ww[i]/ve + 1.0/vb;
+        //lhs0 = ww[i]/ve + 1.0/vb;
+        lhs0 = ww[i]/ve;
         lhs1 = ww[i]/ve + 1.0/vb;
         rhs0 = 0.0;
         rhs1 = 0.0;
