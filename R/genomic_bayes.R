@@ -658,17 +658,17 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                           nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
   m <- length(LDvalues)
-  vy <- yy
+  vy <- yy/(n-1)
   if(is.null(pi)) pi <- 0.001
   if(is.null(h2)) h2 <- 0.5
-  if(is.null(ve)) ve <- 1
-  #if(is.null(ve)) ve <- vy*(1-h2)
-  if(is.null(vg)) vg <- ve*h2
-  #if(is.null(vg)) vg <- vy*h2
-  if(method<4 && is.null(vb)) vb <- (ve*h2)/m
-  if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
-  #if(method<4 && is.null(vb)) vb <- vg/m
-  #if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
+  #if(is.null(ve)) ve <- 1
+  if(is.null(ve)) ve <- vy*(1-h2)
+  #if(is.null(vg)) vg <- ve*h2
+  if(is.null(vg)) vg <- vy*h2
+  #if(method<4 && is.null(vb)) vb <- (ve*h2)/m
+  #if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+  if(method<4 && is.null(vb)) vb <- vg/m
+  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
   if(is.null(lambda)) lambda <- rep(ve/vb,m)
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
