@@ -79,6 +79,8 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
                    "effect_allele_freq","effect", "effect_se", "effect_p", "effect_n")
   fm_external2 <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
                     "effect_allele_freq","effect", "effect_se", "effect_p")
+  #fm_external3 <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
+  #                  "effect_allele_freq","OR", "OR_se", "OR_p", "OR_n")
   
   format <- "unknown"
   if(all(fm_internal%in%colnames(stat))) format <- "internal"
@@ -214,7 +216,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     marker <- marker[!excludeMAFDIFF,]
     #if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
     colnames(stat) <- fm_internal
-    
+    if(is.null(stat$n)) stat$n <- neff(seb=stat$effect_se,af=stat$effect_allele_freq)
   }  
   
   if(format=="internal") {
@@ -240,7 +242,8 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   }  
   
   #if(!is.null(filename)) png(file=filename)
-  
+
+    
   if(-!is.null(stat$info)) {
     lowINFO <- stat$info < excludeINFO
     message(paste("Number of markers excluded by low INFO score:", sum(lowINFO)))
