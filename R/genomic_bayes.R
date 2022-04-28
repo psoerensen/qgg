@@ -675,13 +675,13 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
   if(is.null(sse_prior)) sse_prior <- nue*ve
   if(is.null(b)) b <- rep(0,m)
   
-  if(verbose) {
+  #if(verbose) {
     message("Starting values")
     message(paste("Ve:",ve))
     message(paste("Vg:",ve))
     message(paste("Vb:",ve))
     message(paste("Pi:",pi))
-  }
+  #}
   
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy, 
