@@ -701,7 +701,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         rhs = r[i]/ve + ww[i]*b[i]/ve;
         ri =r[i] + ww[i]*b[i];
         v0 = ww[i]*ve;
-        v1 = ww[i]*ve + ww[i]*ww[i]*va;
+        v1 = ww[i]*ve + ww[i]*ww[i]*vb;
         //like0 = sqrt((1.0/lhs))*std::exp(-0.5*(1.0/lhs0)*rhs0*rhs0);
         //like1 = sqrt((1.0/lhs))*std::exp(-0.5*(1.0/lhs1)*rhs1*rhs1);
         like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
