@@ -589,7 +589,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   int m = b.size();
   
   double rhs, lhs, bn, conv, diff;
-  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, v0, v1, ri;
+  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, v0, v1, ri,vei;
   double ssb, sse, ssg, dfb, dfe, chi2;
   double xtau, tau, lambda_tau, mu_tau, z, z2, u;
   
@@ -601,7 +601,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   std::vector<double> dm(m),bm(m);
   std::vector<double> ves(nit),vbs(nit),pis(nit);
   
-  std::vector<double> x2(m);
+  std::vector<double> x2(m),vadj(m),;
   std::vector<int> order(m);
   
   
@@ -635,6 +635,11 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*b[i];
       }
     }
+  }
+
+  // adjust sparseld
+  for ( int i = 0; i < m; i++) {
+    vadj[i] = m-LDindices[i].size();
   }
   
   // Start Gibbs sampler
@@ -686,19 +691,14 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         //lhs0 = 1.0/vb;
-        //lhs0 = ww[i]/ve + 1.0/vb;
         //lhs0 = ww[i]/ve;
-        //lhs0 = ww[i];
-        //lhs1 = ww[i]/ve + 1.0/vb;
-        //lhs1 = ww[i] + ve/vb;
+        //lhs0 = ww[i]/ve + 1.0/vb;
         //rhs0 = 0.0;
-        //rhs1 = 0.0;
-        //rhs0 = r[i] + ww[i]*b[i];
-        //rhs0 = r[i]/ve + ww[i]*b[i]/ve;
         //rhs1 = r[i]/ve + ww[i]*b[i]/ve;
         //rhs1 = r[i] + ww[i]*b[i];
-        lhs = ww[i] + 1/vb;
-        rhs = r[i]/ve + ww[i]*b[i]/ve;
+        lhs0 = ww[i]/ve;
+        lhs1 = ww[i]/ve + 1/vb;
+        rhs = (r[i] + ww[i]*b[i])/ve;
         ri =r[i] + ww[i]*b[i];
         v0 = ww[i]*ve;
         v1 = ww[i]*ve + ww[i]*ww[i]*vb;
@@ -708,14 +708,26 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
         like0 = like0*(1.0-pi); 
         like1 = like1*pi;
-        p0 = like0/(like0+like1); 
+        p0 = like0/(like0+like1);
+
+        like0 = std::log(1.0-pi);
+        
+        vei = vadj[i]*vg + ve;
+        rhs = r[i] + ww[i]*b[i];
+        lhs = ww[i]/ve;
+        ldV = log(vb * lhs + 1);
+        bhat = rhs / (ww[i] + vei/vb);
+        like1 = -0.5 * (ldV - (rhs * bhat /vei)) + std::log(1.0-pi);
+        p0 = 1/(std::exp(like1 - like0)+1.0);	
         d[i]=0;
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
         if(u>p0) d[i]=1;
         bn=0.0;
         if(d[i]==1) {
-          std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(1.0/lhs1));
+          //std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(1.0/lhs1));
+          lhs = ww[i] + vei/vb;
+          std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
           bn = rnorm(gen);
         } 
         diff = bn-b[i];
