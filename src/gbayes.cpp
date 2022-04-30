@@ -730,7 +730,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         if(d[i]==1) {
           std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(1.0/lhs1));
           //lhs = ww[i] + vei/vb;
-          std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
+          //std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
           bn = rnorm(gen);
         } 
         diff = bn-b[i];
