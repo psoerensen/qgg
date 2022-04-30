@@ -589,7 +589,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   int m = b.size();
   
   double rhs, lhs, bn, conv, diff;
-  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, v0, v1, ri,vei, ldV,bhat;
+  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, v0, v1, ri,vei, ldV, bhat;
   double ssb, sse, ssg, dfb, dfe, chi2;
   double xtau, tau, lambda_tau, mu_tau, z, z2, u;
   
@@ -601,7 +601,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   std::vector<double> dm(m),bm(m);
   std::vector<double> ves(nit),vbs(nit),pis(nit);
   
-  std::vector<double> x2(m),vadj(m),;
+  std::vector<double> x2(m),vadj(m);
   std::vector<int> order(m);
   
   
