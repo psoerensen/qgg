@@ -717,7 +717,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         lhs = ww[i]/ve;
         ldV = log(vb * lhs + 1);
         bhat = rhs / (ww[i] + vei/vb);
-        like1 = -0.5 * (ldV - (rhs * bhat /vei)) + std::log(1.0-pi);
+        like1 = -0.5 * (ldV - (rhs * bhat /vei)) + std::log(pi);
         p0 = 1/(std::exp(like1 - like0)+1.0);	
         d[i]=0;
         std::uniform_real_distribution<double> runif(0.0, 1.0);
