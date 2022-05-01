@@ -707,17 +707,16 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         like1 <- std::log(std::sqrt(ve/(vb*ww[i]+ve))) + 0.5*(vb*ww[i]*ww[i]*b[i]*b[i])/(ve*(vb*ww[i]+ve)) + log(pi);
         p1 = 1.0/(std::exp(like0-like1)+1.0);
         p0 = 1.0-p1;
-          
         //rhs = (r[i] + ww[i]*b[i])/ve;
         //ri =r[i] + ww[i]*b[i];
-        //v0 = ww[i]*ve;
-        //v1 = ww[i]*ve + ww[i]*ww[i]*vb;
+        v0 = ww[i]*ve;
+        v1 = ww[i]*ve + ww[i]*ww[i]*vb;
         //p0 = like0/(like0+like1);
-        //like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
-        //like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
-        //like0 = like0*(1.0-pi); 
-        //like1 = like1*pi;
-        //p0 = like0/(like0+like1);
+        like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
+        like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
+        like0 = like0*(1.0-pi); 
+        like1 = like1*pi;
+        p0 = like0/(like0+like1);
         //like0 = std::log(1.0-pi);
         //vei = vadj[i]*vg + ve;
         //rhs = r[i] + ww[i]*b[i];
@@ -733,10 +732,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         if(u>p0) d[i]=1;
         bn=0.0;
         if(d[i]==1) {
-          rhs1 = (r[i] + ww[i]*b[i])/ve;
-          lhs1 = ww[i]/ve + 1/vb;
-          
-          std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(1.0/lhs1));
+          //rhs1 = (r[i] + ww[i]*b[i])/ve;
+          //lhs1 = ww[i]/ve + 1.0/vb;
+          //std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(1.0/lhs1));
+          rhs1 = r[i] + ww[i]*b[i];
+          lhs1 = ww[i] + ve/vb;
+          std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(ve/lhs1));
           //lhs = ww[i] + vei/vb;
           //std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
           bn = rnorm(gen);
