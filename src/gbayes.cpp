@@ -658,11 +658,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         lhs = ww[i] + lambda[i];
         rhs = r[i] + ww[i]*b[i];
         bn = rhs/lhs;
-        diff = bn-b[i];
+        diff = (bn-b[i])*double(n);
+        //diff = bn-b[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
           r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
         }
-        conv = conv + diff*diff;
+        conv = conv + (bn-b[i])*(bn-b[i]);
         b[i] = bn;
       }
     }
@@ -677,11 +678,11 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         bn=0.0;
         if(mask[i]==1) {
           bn = rnorm(gen);
-          diff = bn-b[i];
+          diff = (bn-b[i])*double(n);
           for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
           }
-          conv = conv + diff*diff;
+          conv = conv + (bn-b[i])*(bn-b[i]);
         }
         b[i] = bn;
       }
@@ -690,12 +691,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        //lhs0 = 1.0/vb;
-        //lhs0 = ww[i]/ve;
-        //lhs0 = ww[i]/ve + 1.0/vb;
-        //rhs0 = 0.0;
-        //rhs1 = r[i]/ve + ww[i]*b[i]/ve;
-        //rhs1 = r[i] + ww[i]*b[i];
         rhs0 = 0.0;
         rhs1 = (r[i] + ww[i]*b[i])/ve;
         lhs =  ww[i]/ve + 1/vb;
@@ -708,15 +703,16 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         p1 = 1.0/(std::exp(like0-like1)+1.0);
         p0 = 1.0-p1;
         //rhs = (r[i] + ww[i]*b[i])/ve;
+        // version 2
         ri =r[i] + ww[i]*b[i];
         v0 = ww[i]*ve;
         v1 = ww[i]*ve + ww[i]*ww[i]*vb;
-        //p0 = like0/(like0+like1);
         like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
         like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
         like0 = like0*(1.0-pi); 
         like1 = like1*pi;
         p0 = like0/(like0+like1);
+        // version 3
         //like0 = std::log(1.0-pi);
         //vei = vadj[i]*vg + ve;
         //rhs = r[i] + ww[i]*b[i];
@@ -742,12 +738,13 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           //std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
           bn = rnorm(gen);
         } 
-        diff = bn-b[i];
+        diff = (bn-b[i])*double(n);
+        //diff = bn-b[i];
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
           }
-          conv = conv + diff*diff;
+          conv = conv + (bn-b[i])*(bn-b[i]);
         }
         b[i] = bn;
       }
