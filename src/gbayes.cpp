@@ -700,18 +700,18 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         like1 = sqrt((1.0/lhs1))*std::exp(-0.5*(1.0/lhs1)*rhs1*rhs1);
         like0 <- log(1.0-pi);
         like1 <- std::log(std::sqrt(ve/(vb*ww[i]+ve))) + 0.5*(vb*ww[i]*ww[i]*b[i]*b[i])/(ve*(vb*ww[i]+ve)) + log(pi);
-        p1 = 1.0/(std::exp(like0-like1)+1.0);
-        p0 = 1.0-p1;
+        p0 = 1.0/(std::exp(like1-like0)+1.0);
+        //p0 = 1.0-p1;
         //rhs = (r[i] + ww[i]*b[i])/ve;
         // version 2
-        ri =r[i] + ww[i]*b[i];
-        v0 = ww[i]*ve;
-        v1 = ww[i]*ve + ww[i]*ww[i]*vb;
-        like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
-        like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
-        like0 = like0*(1.0-pi); 
-        like1 = like1*pi;
-        p0 = like0/(like0+like1);
+        //ri =r[i] + ww[i]*b[i];
+        //v0 = ww[i]*ve;
+        //v1 = ww[i]*ve + ww[i]*ww[i]*vb;
+        //like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
+        //like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
+        //like0 = like0*(1.0-pi); 
+        //like1 = like1*pi;
+        //p0 = like0/(like0+like1);
         // version 3
         //like0 = std::log(1.0-pi);
         //vei = vadj[i]*vg + ve;
