@@ -393,7 +393,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       bmchr <- NULL
       for (trait in 1:nt) {
         if(verbose) print( paste("Fit",methods[method+1], "on chromosome:",chr,"for trait",trait))
-        LDvalues <- lapply(LD[[chr]]$values,function(x){x*n[trait]})
+        #LDvalues <- lapply(LD[[chr]]$values,function(x){x*n[trait]})
+        LDvalues <- LD[[chr]]$values
         fit[[chr]] <- sbayes_sparse(yy=yy[trait], 
                                     wy=wy[rsidsLD,trait],
                                     b=b[rsidsLD,trait], 
