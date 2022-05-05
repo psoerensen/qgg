@@ -565,6 +565,7 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
 
 // [[Rcpp::export]]
 std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
+                                              std::vector<double> ww, 
                                               std::vector<std::vector<double>> LDvalues, 
                                               std::vector<std::vector<int>> LDindices, 
                                               std::vector<double> b, 
@@ -595,7 +596,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   std::vector<int> d(m);
   
-  std::vector<double> ww(m),r(m);
+  //std::vector<double> ww(m),r(m);
+  std::vector<double> r(m);
   
   std::vector<int> mask(m);
   std::vector<double> dm(m),bm(m);
@@ -611,7 +613,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     dm[i] = 0.0;
     bm[i] = 0.0;
     //ww[i] = LD[i][i];
-    ww[i] = (double)n;
+    //ww[i] = (double)n;
     r[i] = wy[i];
     x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
     if(wy[i]==0.0) mask[i]=0;
