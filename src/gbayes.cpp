@@ -677,8 +677,11 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
         bn = rnorm(gen);
         diff = (bn-b[i])*ww[i];
+        //for (size_t j = 0; j < LDindices[i].size(); j++) {
+        //  r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+        //}
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+          r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
         }
         b[i] = bn;
       }
@@ -714,25 +717,25 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
     // Sample marker effects (Lasso)
     
-    // Sample marker effects (Mixed, BayesA, Lasso)
-    if ( method==1 || method==2 || method==3 ) {
-      for ( int isort = 0; isort < m; isort++) {
-        int i = order[isort];
-        lhs = ww[i] + lambda[i];
-        rhs = r[i] + ww[i]*b[i];
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
-        bn=0.0;
-        if(mask[i]==1) {
-          bn = rnorm(gen);
-          diff = (bn-b[i])*double(n);
-          for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
-          }
-          conv = conv + (bn-b[i])*(bn-b[i]);
-        }
-        b[i] = bn;
-      }
-    }
+    // // Sample marker effects (Mixed, BayesA, Lasso)
+    // if ( method==1 || method==2 || method==3 ) {
+    //   for ( int isort = 0; isort < m; isort++) {
+    //     int i = order[isort];
+    //     lhs = ww[i] + lambda[i];
+    //     rhs = r[i] + ww[i]*b[i];
+    //     std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
+    //     bn=0.0;
+    //     if(mask[i]==1) {
+    //       bn = rnorm(gen);
+    //       diff = (bn-b[i])*double(n);
+    //       for (size_t j = 0; j < LDindices[i].size(); j++) {
+    //         r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
+    //       }
+    //       conv = conv + (bn-b[i])*(bn-b[i]);
+    //     }
+    //     b[i] = bn;
+    //   }
+    // }
     // Sample marker effects (BayesC)
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
