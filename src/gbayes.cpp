@@ -591,6 +591,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   double rhs, lhs, bn, conv, diff;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1, v0, v1, ri, vei, ldV, bhat;
   double ssb, sse, ssg, dfb, dfe, chi2;
+  double ssg_prior, nug;
   double xtau, tau, lambda_tau, mu_tau, z, z2, u;
   
   std::vector<int> d(m);
@@ -622,6 +623,10 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     pis[i] = 0.0;
   }
   
+  // should be added as argument to function
+  nug=nub;
+  ssg_prior=((nug-2.0)/nug)*vg
+    
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
   std::sort(  std::begin(order), 
@@ -805,27 +810,37 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         dm[i] = dm[i] + 1.0;
       }
     }
+    // marker variance
     if(updateB) {
       std::chi_squared_distribution<double> rchisq(dfb+nub);
       chi2 = rchisq(gen);
-      vb = (ssb + ssb_prior)/chi2 ;
+      //vb = (ssb + ssb_prior)/chi2 ;
+      vb = (ssb + ssb_prior*nub)/chi2 ;
       vbs[it] = vb; 
     }
     
+
+    
     // Sample residual variance
     if(updateE) {
-      dfe = n + nue;
       ssg = 0.0;
       sse = 0.0;
       for ( int i = 0; i < m; i++) {
         ssg = ssg + b[i] * (wy[i] -  r[i]);
         sse = sse + b[i] * (r[i] + wy[i]);
       }
+      // residual variance
+      dfe = n + nue;
       sse = yy - sse;
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
       ve = (sse + sse_prior)/chi2 ;
       ves[it] = ve;
+      // genetic variance
+      dfg = n + nug;
+      std::chi_squared_distribution<double> rchisq(dfg);
+      chi2 = rchisq(gen);
+      vg = (ssg + ssg_prior*nug)/chi2;
     }
     
     // Update lambda's for BLUP/Mixed
