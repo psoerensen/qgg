@@ -823,10 +823,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     
     // Sample residual variance
     if(updateE) {
-      ssg = 0.0;
       sse = 0.0;
       for ( int i = 0; i < m; i++) {
-        ssg = ssg + b[i] * (wy[i] -  r[i]);
         sse = sse + b[i] * (r[i] + wy[i]);
       }
       // residual variance
@@ -836,7 +834,14 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       chi2 = rchisq(gen);
       ve = (sse + sse_prior)/chi2 ;
       ves[it] = ve;
-      // genetic variance
+    }
+    
+    // Sample genetic variance
+    if(updateE) {
+      ssg = 0.0;
+      for ( int i = 0; i < m; i++) {
+        ssg = ssg + b[i] * (wy[i] -  r[i]);
+      }
       dfg = n + nug;
       std::chi_squared_distribution<double> rchisq(dfg);
       chi2 = rchisq(gen);
