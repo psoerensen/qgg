@@ -639,7 +639,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   // adjust sparseld
   for ( int i = 0; i < m; i++) {
-    vadj[i] = m-LDindices[i].size();
+    vadj[i] = (m-LDindices[i].size())/m;
   }
   
   // Start Gibbs sampler
