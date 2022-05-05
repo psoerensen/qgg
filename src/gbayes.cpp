@@ -590,7 +590,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   double rhs, lhs, bn, conv, diff;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1, v0, v1, ri, vei, ldV, bhat;
-  double ssb, sse, ssg, dfb, dfe, chi2;
+  double ssb, sse, ssg, dfb, dfe, dfg, chi2;
   double ssg_prior, nug;
   double xtau, tau, lambda_tau, mu_tau, z, z2, u;
   
