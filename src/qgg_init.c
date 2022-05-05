@@ -62,7 +62,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_qgg_riwishart",             (DL_FUNC) &_qgg_riwishart,              2},
     {"_qgg_rwishart",              (DL_FUNC) &_qgg_rwishart,               2},
     {"_qgg_sbayes",                (DL_FUNC) &_qgg_sbayes,                19},
-    {"_qgg_sbayes_spa",                (DL_FUNC) &_qgg_sbayes_spa,                20},
+    {"_qgg_sbayes_spa",                (DL_FUNC) &_qgg_sbayes_spa,                21},
     {"_qgg_solvebed",              (DL_FUNC) &_qgg_solvebed,               8},
     {"_qgg_summarybed",            (DL_FUNC) &_qgg_summarybed,             6},
     {NULL, NULL, 0}
