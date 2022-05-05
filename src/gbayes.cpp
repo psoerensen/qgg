@@ -837,16 +837,16 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     }
     
     // Sample genetic variance
-    if(updateE) {
-      ssg = 0.0;
-      for ( int i = 0; i < m; i++) {
-        ssg = ssg + b[i] * (wy[i] -  r[i]);
-      }
-      dfg = n + nug;
-      std::chi_squared_distribution<double> rchisq(dfg);
-      chi2 = rchisq(gen);
-      vg = (ssg + ssg_prior*nug)/chi2;
-    }
+    //if(updateE) {
+    //  ssg = 0.0;
+    //  for ( int i = 0; i < m; i++) {
+    //    ssg = ssg + b[i] * (wy[i] -  r[i]);
+    //  }
+    //  dfg = n + nug;
+    //  std::chi_squared_distribution<double> rchisq(dfg);
+    //  chi2 = rchisq(gen);
+    //  vg = (ssg + ssg_prior*nug)/chi2;
+    //}
     
     // Update lambda's for BLUP/Mixed
     if ( method==1 ) {
