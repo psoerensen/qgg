@@ -337,8 +337,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     if(is.data.frame(stat)) {
       nt <- 1
       rsidsLD <- unlist(Glist$rsidsLD)
-      b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
-      rownames(b) <- rownames(wy) <- rsidsLD
+      b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
+      rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
       trait_names <- "badj"       
       stat <- stat[rownames(stat)%in%rsidsLD,]
       b2 <- stat$b^2
@@ -350,7 +350,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       if(!is.null(stat$n)) ww <- stat$n
       
       stat$ww <- 1/(stat$seb + (stat$b**2)/stat$n)
-      ww <- stat$ww
+      ww[rownames(stat),1] <- stat$ww
       
       yy <- (b2 + (n-2)*seb2)*ww
       yy <- mean(yy)
@@ -404,7 +404,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
         LDvalues <- LD[[chr]]$values
         fit[[chr]] <- sbayes_sparse(yy=yy[trait], 
                                     wy=wy[rsidsLD,trait],
-                                    ww=ww,
+                                    ww=ww[rsidsLD,trait],
                                     b=b[rsidsLD,trait], 
                                     LDvalues=LDvalues, 
                                     LDindices=LD[[chr]]$indices, 
