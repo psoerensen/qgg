@@ -601,13 +601,14 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   std::vector<double> dm(m),bm(m);
   std::vector<double> ves(nit),vbs(nit),pis(nit);
   
-  std::vector<double> x2(m),vadj(m);
+  std::vector<double> x2(m),vadj(m),vbi(m);
   std::vector<int> order(m);
   
   
   // Initialize variables
   for ( int i = 0; i < m; i++) {
     mask[i]=1;
+    vbi[i]=vb;
     dm[i] = 0.0;
     bm[i] = 0.0;
     r[i] = wy[i];
@@ -638,7 +639,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   // adjust sparseld
   for ( int i = 0; i < m; i++) {
-    vadj[i] = m-LDindices[i].size();
+    vbadj[i] = m-LDindices[i].size();
   }
   
   // Start Gibbs sampler
@@ -671,17 +672,14 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        //vei = vadj[i]*vg + ve;
-        lhs = ww[i] + ve/vb;
+        vei = vadj[i]*vg + ve;
+        lhs = ww[i] + vei/vb;
         rhs = r[i] + ww[i]*b[i];
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
+        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei/lhs));
         bn = rnorm(gen);
         diff = (bn-b[i])*ww[i];
-        //for (size_t j = 0; j < LDindices[i].size(); j++) {
-        //  r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-        //}
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
         b[i] = bn;
       }
@@ -692,12 +690,11 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        //vei = vadj[i]*vg + ve;
-        //lhs = ww[i] + ve/vb;
-        lhs = ww[i] + lambda[i];
+        vei = vadj[i]*vg + ve;
+        lhs = ww[i] + vei/vbi[i];
         rhs = r[i] + ww[i]*b[i];
-        //std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei/lhs));
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
+        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei/lhs));
+        //std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
         bn = rnorm(gen);
         diff = (bn-b[i])*ww[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
@@ -708,9 +705,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         ssb = b[i]*b[i];
         std::chi_squared_distribution<double> rchisq(dfb);
         chi2 = rchisq(gen);
-        vbi = (ssb + ssb_prior)/chi2 ;
-        lambda[i] = ve/vbi;
-        //lambda[i] = vei/vb;
+        vbi[i] = (ssb + ssb_prior)/chi2 ;
       }
     }
 
