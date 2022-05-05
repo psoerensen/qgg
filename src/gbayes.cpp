@@ -639,7 +639,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   // adjust sparseld
   for ( int i = 0; i < m; i++) {
-    vbadj[i] = m-LDindices[i].size();
+    vadj[i] = m-LDindices[i].size();
   }
   
   // Start Gibbs sampler
@@ -656,7 +656,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        lhs = ww[i] + ve/vb;
+        vei = vadj[i]*vg + ve;
+        lhs = ww[i] + vei/vb;
         rhs = r[i] + ww[i]*b[i];
         bn = rhs/lhs;
         diff = (bn-b[i])*ww[i];
@@ -694,7 +695,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         lhs = ww[i] + vei/vbi[i];
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei/lhs));
-        //std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
         bn = rnorm(gen);
         diff = (bn-b[i])*ww[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
