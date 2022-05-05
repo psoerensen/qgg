@@ -350,7 +350,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       #if(!is.null(stat$n)) ww[rownames(stat),1] <- stat$n
       
       stat$ww <- 1/(stat$seb + (stat$b**2)/stat$n)
-      ww[rownames(stat),1] <- stat$ww
+      ww[rownames(stat),1] <- 1/(stat$seb + (stat$b**2)/stat$n)
       
       yy <- (b2 + (n-2)*seb2)*ww
       yy <- mean(yy)
