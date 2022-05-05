@@ -625,7 +625,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   // should be added as argument to function
   nug=nub;
-  ssg_prior=((nug-2.0)/nug)*vg
+  ssg_prior=((nug-2.0)/nug)*vg;
     
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
