@@ -220,6 +220,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
           if(updateE) ve <- fit[[chr]]$param[2]
           if(updatePi) pi <- fit[[chr]]$param[3]
         }
+        stop("Need to add ww to sbayes_sparse - use cvs function to get it")
         if(verbose) print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
         fit[[chr]] <- sbayes_sparse(yy=yy, 
                                     wy=wy,
@@ -344,11 +345,17 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       seb2 <- stat$seb^2
       if(!is.null(stat$dfe)) n <- as.integer(mean(stat$dfe)+2)
       if(!is.null(stat$n)) n <- as.integer(mean(stat$n))
+
       if(!is.null(stat$ww)) ww <- stat$ww
       if(!is.null(stat$n)) ww <- stat$n
+      
+      stat$ww <- 1/(stat$seb + (stat$b**2)/stat$n)
+      ww <- stat$ww
+      
       yy <- (b2 + (n-2)*seb2)*ww
       yy <- mean(yy)
       if(!is.null(stat$wy)) wy[rownames(stat),1] <- stat$wy
+      if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$ww
       if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$n
       if(any(is.na(wy))) stop("Missing values in wy")
     }
@@ -397,6 +404,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
         LDvalues <- LD[[chr]]$values
         fit[[chr]] <- sbayes_sparse(yy=yy[trait], 
                                     wy=wy[rsidsLD,trait],
+                                    ww=ww,
                                     b=b[rsidsLD,trait], 
                                     LDvalues=LDvalues, 
                                     LDindices=LD[[chr]]$indices, 
@@ -652,7 +660,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
 
 
 # Single trait BLR using summary statistics and sparse LD provided in Glist 
-sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL, 
+sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL, 
                           LDvalues=NULL,LDindices=NULL, n=NULL,
                           vg=NULL, vb=NULL, ve=NULL, 
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
@@ -686,6 +694,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, b=NULL, badj=NULL, seb=NULL,
   
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy, 
+               ww=ww, 
                LDvalues=LDvalues, 
                LDindices=LDindices, 
                b = b,
