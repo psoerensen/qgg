@@ -134,12 +134,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // sbayes_spa
-std::vector<std::vector<double>> sbayes_spa(std::vector<double> wy, std::vector<std::vector<double>> LDvalues, std::vector<std::vector<int>> LDindices, std::vector<double> b, std::vector<double> lambda, double yy, double pi, double vg, double vb, double ve, double ssb_prior, double sse_prior, double nub, double nue, bool updateB, bool updateE, bool updatePi, int n, int nit, int method);
-RcppExport SEXP _qgg_sbayes_spa(SEXP wySEXP, SEXP LDvaluesSEXP, SEXP LDindicesSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP yySEXP, SEXP piSEXP, SEXP vgSEXP, SEXP vbSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nSEXP, SEXP nitSEXP, SEXP methodSEXP) {
+std::vector<std::vector<double>> sbayes_spa(std::vector<double> wy, std::vector<double> ww, std::vector<std::vector<double>> LDvalues, std::vector<std::vector<int>> LDindices, std::vector<double> b, std::vector<double> lambda, double yy, double pi, double vg, double vb, double ve, double ssb_prior, double sse_prior, double nub, double nue, bool updateB, bool updateE, bool updatePi, int n, int nit, int method);
+RcppExport SEXP _qgg_sbayes_spa(SEXP wySEXP, SEXP wwSEXP, SEXP LDvaluesSEXP, SEXP LDindicesSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP yySEXP, SEXP piSEXP, SEXP vgSEXP, SEXP vbSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nSEXP, SEXP nitSEXP, SEXP methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::vector<double> >::type wy(wySEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type ww(wwSEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type LDvalues(LDvaluesSEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<int>> >::type LDindices(LDindicesSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type b(bSEXP);
@@ -159,7 +160,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
-    rcpp_result_gen = Rcpp::wrap(sbayes_spa(wy, LDvalues, LDindices, b, lambda, yy, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method));
+    rcpp_result_gen = Rcpp::wrap(sbayes_spa(wy, ww, LDvalues, LDindices, b, lambda, yy, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method));
     return rcpp_result_gen;
 END_RCPP
 }
