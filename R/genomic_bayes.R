@@ -347,7 +347,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       if(!is.null(stat$n)) n <- as.integer(mean(stat$n))
 
       if(!is.null(stat$ww)) ww <- stat$ww
-      if(!is.null(stat$n)) ww <- stat$n
+      if(!is.null(stat$n)) ww[rownames(stat),1] <- stat$n
       
       stat$ww <- 1/(stat$seb + (stat$b**2)/stat$n)
       ww[rownames(stat),1] <- stat$ww
@@ -356,7 +356,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       yy <- mean(yy)
       if(!is.null(stat$wy)) wy[rownames(stat),1] <- stat$wy
       if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$ww
-      if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$n
+      #if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$n
       if(any(is.na(wy))) stop("Missing values in wy")
     }
     
