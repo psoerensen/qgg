@@ -688,9 +688,14 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
     // Compute marker effects (BayesA)
     if (method==2) {
+      dfb = 1.0 + nub;
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
+        ssb = b[i]*b[i];
+        std::chi_squared_distribution<double> rchisq(dfb);
+        chi2 = rchisq(gen);
+        vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
         vei = vadj[i]*vg + ve;
         lhs = ww[i] + vei/vbi[i];
         rhs = r[i] + ww[i]*b[i];
@@ -701,11 +706,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
         b[i] = bn;
-        dfb = 1.0 + nub;
-        ssb = b[i]*b[i];
-        std::chi_squared_distribution<double> rchisq(dfb);
-        chi2 = rchisq(gen);
-        vbi[i] = (ssb + ssb_prior)/chi2 ;
       }
     }
 
