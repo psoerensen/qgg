@@ -588,7 +588,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   int m = b.size();
   
   double rhs, lhs, bn, conv, diff;
-  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1, v0, v1, ri, vei, ldV, bhat;
+  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1, v0, v1, ri, ldV, bhat;
   double ssb, sse, ssg, dfb, dfe, dfg, chi2;
   double ssg_prior, nug;
   double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin, vy;
@@ -596,7 +596,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
   std::vector<int> d(m);
 
-  std::vector<double> r(m);
+  std::vector<double> r(m),vei(m);
   
   std::vector<int> mask(m);
   std::vector<double> dm(m),bm(m);
@@ -621,6 +621,13 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     vbs[i] = 0.0;
     ves[i] = 0.0;
     pis[i] = 0.0;
+  }
+
+  // adjust sparseld
+  for ( int i = 0; i < m; i++) {
+    vadj[i] = (m-LDindices[i].size())/m;
+    vei[i] = vadj[i]*vg + ve;
+    //vadj[i] = 0.0;
   }
   
   // should be added as argument to function
@@ -653,12 +660,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     }
   }
   
-  // adjust sparseld
-  for ( int i = 0; i < m; i++) {
-    vadj[i] = (m-LDindices[i].size())/m;
-    //vadj[i] = 0.0;
-  }
-  
+
   // Start Gibbs sampler
   std::random_device rd;
   unsigned int local_seed;
@@ -673,8 +675,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        vei = vadj[i]*vg + ve;
-        lhs = ww[i] + vei/vb;
+        vei[i] = vadj[i]*vg + ve;
+        lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         bn = rhs/lhs;
         diff = (bn-b[i])*ww[i];
@@ -690,10 +692,10 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        vei = vadj[i]*vg + ve;
-        lhs = ww[i] + vei/vb;
+        vei[i] = vadj[i]*vg + ve;
+        lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei/lhs));
+        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
         diff = (bn-b[i])*ww[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
@@ -709,10 +711,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        vei = vadj[i]*vg + ve;
-        lhs = ww[i] + vei/vb;
+        lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei/lhs));
+        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
         diff = (bn-b[i])*ww[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
@@ -734,10 +735,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        vei = vadj[i]*vg + ve;
-        lhs = ww[i] + vei/vbi[i];
+        lhs = ww[i] + vei[i]/vbi[i];
         rhs = r[i] + ww[i]*b[i];
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei/lhs));
+        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
         diff = (bn-b[i])*ww[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
@@ -745,7 +745,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         }
         b[i] = bn;
         
-        mu_tau=sqrt(vei)*lambda[i]/std::abs(b[i]);
+        mu_tau=sqrt(vei[i])*lambda[i]/std::abs(b[i]);
         lambda_tau=lambda2;  
         std::normal_distribution<double> norm(0.0, 1.0);
         z = norm(gen);
@@ -780,10 +780,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         // version 2
-        vei = vadj[i]*vg + ve;
         ri =r[i] + ww[i]*b[i];
-        v0 = ww[i]*vei;
-        v1 = ww[i]*vei + ww[i]*ww[i]*vb;
+        v0 = ww[i]*vei[i];
+        v1 = ww[i]*vei[i] + ww[i]*ww[i]*vb;
         like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
         like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
         like0 = like0*(1.0-pi); 
@@ -796,8 +795,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         bn=0.0;
         if(d[i]==1) {
           rhs1 = r[i] + ww[i]*b[i];
-          lhs1 = ww[i] + vei/vb;
-          std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(vei/lhs1));
+          lhs1 = ww[i] + vei[i]/vb;
+          std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(vei[i]/lhs1));
           bn = rnorm(gen);
         } 
         diff = (bn-b[i])*ww[i];
@@ -843,6 +842,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
       ve = (sse + sse_prior)/chi2 ;
+      for ( int i = 0; i < m; i++) {
+        vei[i] = vadj[i]*vg + ve;
+      }
       //if(sse<0.0) {
       //  ve = sse_prior/chi2 ;
       //}
@@ -851,19 +853,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       //}
       ves[it] = ve;
     }
-    
-    // Sample genetic variance
-    //if(updateE) {
-    //  ssg = 0.0;
-    //  for ( int i = 0; i < m; i++) {
-    //    ssg = ssg + b[i] * (wy[i] -  r[i]);
-    //  }
-    //  dfg = n + nug;
-    //  std::chi_squared_distribution<double> rchisq(dfg);
-    //  chi2 = rchisq(gen);
-    //  vg = (ssg + ssg_prior*nug)/chi2;
-    //}
 
+    
     // Sample genetic variance
     //ssg = 0.0;
     //for ( int i = 0; i < m; i++) {
@@ -878,6 +869,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     //}
     //if(vg>vy) {
     //  vg = ssg_prior/chi2 ;
+    //}
+    //for ( int i = 0; i < m; i++) {
+    //  vei[i] = vadj[i]*vg + ve;
     //}
     
     // Update lambda's for BLUP/Mixed
