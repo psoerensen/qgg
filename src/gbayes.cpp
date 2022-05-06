@@ -776,89 +776,43 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         lambda[i] = sqrt(lambda2);
       }
     }
-    
 
-    // Sample marker effects (Lasso)
-    
-    // // Sample marker effects (Mixed, BayesA, Lasso)
-    // if ( method==1 || method==2 || method==3 ) {
-    //   for ( int isort = 0; isort < m; isort++) {
-    //     int i = order[isort];
-    //     lhs = ww[i] + lambda[i];
-    //     rhs = r[i] + ww[i]*b[i];
-    //     std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
-    //     bn=0.0;
-    //     if(mask[i]==1) {
-    //       bn = rnorm(gen);
-    //       diff = (bn-b[i])*double(n);
-    //       for (size_t j = 0; j < LDindices[i].size(); j++) {
-    //         r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
-    //       }
-    //       conv = conv + (bn-b[i])*(bn-b[i]);
-    //     }
-    //     b[i] = bn;
-    //   }
-    // }
     // Sample marker effects (BayesC)
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        rhs0 = 0.0;
-        rhs1 = (r[i] + ww[i]*b[i])/ve;
-        lhs =  ww[i]/ve + 1/vb;
-        lhs0 = 1/vb;
-        lhs1 = ww[i]/ve + 1/vb;
-        like0 = sqrt((1.0/lhs0))*std::exp(-0.5*(1.0/lhs0)*rhs0*rhs0);
-        like1 = sqrt((1.0/lhs1))*std::exp(-0.5*(1.0/lhs1)*rhs1*rhs1);
-        like0 <- log(1.0-pi);
-        like1 <- std::log(std::sqrt(ve/(vb*ww[i]+ve))) + 0.5*(vb*ww[i]*ww[i]*b[i]*b[i])/(ve*(vb*ww[i]+ve)) + log(pi);
-        p0 = 1.0/(std::exp(like1-like0)+1.0);
-        //p0 = 1.0-p1;
-        //rhs = (r[i] + ww[i]*b[i])/ve;
         // version 2
+        vei = vadj[i]*vg + ve;
         ri =r[i] + ww[i]*b[i];
-        v0 = ww[i]*ve;
-        v1 = ww[i]*ve + ww[i]*ww[i]*vb;
+        v0 = ww[i]*vei;
+        v1 = ww[i]*vei + ww[i]*ww[i]*vb;
         like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
         like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
         like0 = like0*(1.0-pi); 
         like1 = like1*pi;
         p0 = like0/(like0+like1);
-        // version 3
-        //like0 = std::log(1.0-pi);
-        //vei = vadj[i]*vg + ve;
-        //rhs = r[i] + ww[i]*b[i];
-        //lhs = ww[i]/ve;
-        //ldV = log(vb * lhs + 1);
-        //bhat = rhs / (ww[i] + vei/vb);
-        //like1 = -0.5 * (ldV - (rhs * bhat /vei)) + std::log(pi);
-        //p0 = 1/(std::exp(like1 - like0)+1.0);
-        //p0 = 1.0-p1;
         d[i]=0;
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
         if(u>p0) d[i]=1;
         bn=0.0;
         if(d[i]==1) {
-          //rhs1 = (r[i] + ww[i]*b[i])/ve;
-          //lhs1 = ww[i]/ve + 1.0/vb;
-          //std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(1.0/lhs1));
           rhs1 = r[i] + ww[i]*b[i];
-          lhs1 = ww[i] + ve/vb;
-          std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(ve/lhs1));
-          //lhs = ww[i] + vei/vb;
-          //std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
+          lhs1 = ww[i] + vei/vb;
+          std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(vei/lhs1));
           bn = rnorm(gen);
         } 
-        diff = (bn-b[i])*double(n);
-        //diff = bn-b[i];
+        diff = (bn-b[i])*ww[i];
+        for (size_t j = 0; j < LDindices[i].size(); j++) {
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+        }
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
           }
           conv = conv + (bn-b[i])*(bn-b[i]);
+          b[i] = bn;
         }
-        b[i] = bn;
       }
     }
     
