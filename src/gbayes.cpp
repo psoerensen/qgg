@@ -795,7 +795,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
         if(u>p0) d[i]=1;
-        bn=0.0;
+          bn=0.0;
         if(d[i]==1) {
           rhs1 = r[i] + ww[i]*b[i];
           lhs1 = ww[i] + vei/vb;
@@ -803,16 +803,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           bn = rnorm(gen);
         } 
         diff = (bn-b[i])*ww[i];
-        for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-        }
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
+            r[LDindices[i][j]] += -LDvalues[i][j]*diff;
           }
-          conv = conv + (bn-b[i])*(bn-b[i]);
-          b[i] = bn;
         }
+        b[i] = bn;
       }
     }
     
