@@ -654,10 +654,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   // adjust sparseld
   for ( int i = 0; i < m; i++) {
-    vadj[i] = 0.0;
-    if(updateE) {
-      vadj[i] = (m-LDindices[i].size())/m;
-    }
+    vadj[i] = (m-LDindices[i].size())/m;
+    //vadj[i] = 0.0;
   }
   
   // Start Gibbs sampler
@@ -834,8 +832,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       vbs[it] = vb; 
     }
     
-
-    
     // Sample residual variance
     if(updateE) {
       sse = 0.0;
@@ -848,7 +844,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
       if(sse>(sse_prior*nue)) {
-        ve = (sse + sse_prior*nue)/chi2 ;
+        ve = (sse + sse_prior)/chi2 ;
       }else{
         ve = (sse_prior*nue)/chi2 ;
       }
