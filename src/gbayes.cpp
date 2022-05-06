@@ -637,7 +637,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       lambda[i] = sqrt(lambda2); 
     }
   }
-
+  // adjust sparseld
+  for ( int i = 0; i < m; i++) {
+    //vadj[i] = (m-LDindices[i].size())/m;
+    vadj[i] = 0.0;
+  }
+  
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
   std::sort(  std::begin(order), 
@@ -653,12 +658,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     }
   }
   
-  // adjust sparseld
-  for ( int i = 0; i < m; i++) {
-    vadj[i] = (m-LDindices[i].size())/m;
-    //vadj[i] = 0.0;
-  }
-  
+
   // Start Gibbs sampler
   std::random_device rd;
   unsigned int local_seed;
