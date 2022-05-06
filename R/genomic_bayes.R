@@ -55,14 +55,14 @@
 #' y <- g + e
 #'
 #'
-#' fitM <- gbayes(y=y, W=W, method="mixed")
+#' fitM <- gbayes(y=y, W=W, method="bayesN")
 #' fitA <- gbayes(y=y, W=W, method="bayesA")
-#' fitL <- gbayes(y=y, W=W, method="blasso")
+#' fitL <- gbayes(y=y, W=W, method="bayesL")
 #' fitC <- gbayes(y=y, W=W, method="bayesC")
 #'
-#' fitM <- gbayes(y=y, W=W, method="mixed", algorithm="fastbayes")
+#' fitM <- gbayes(y=y, W=W, method="bayesN", algorithm="fastbayes")
 #' fitA <- gbayes(y=y, W=W, method="bayesA", algorithm="fastbayes")
-#' fitL <- gbayes(y=y, W=W, method="blasso", algorithm="fastbayes")
+#' fitL <- gbayes(y=y, W=W, method="bayesL", algorithm="fastbayes")
 #' fitC <- gbayes(y=y, W=W, method="bayesC", algorithm="fastbayes")
 
 
