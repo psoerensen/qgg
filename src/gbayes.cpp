@@ -848,9 +848,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
       ve = (sse + sse_prior)/chi2 ;
-      //if(sse<0.0) {
-      //  ve = sse_prior/chi2 ;
-      //}
+      if(sse<0.0) {
+        ve = sse_prior/chi2 ;
+      }
       //if(ve>vy) {
       //  ve = vy ;
       //}
