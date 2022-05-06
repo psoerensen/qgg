@@ -625,7 +625,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
   // adjust sparseld
   for ( int i = 0; i < m; i++) {
-    vadj[i] = (m-LDindices[i].size())/m;
+    vadj[i] = (double(m)-double(LDindices[i].size()))/double(m);
     vei[i] = vadj[i]*vg + ve;
     //vadj[i] = 0.0;
   }
@@ -723,8 +723,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         ssb = b[i]*b[i];
         std::chi_squared_distribution<double> rchisq(dfb);
         chi2 = rchisq(gen);
-        //vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
-        vbi[i] = (ssb + ssb_prior)/chi2 ;
+        vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
+        //vbi[i] = (ssb + ssb_prior)/chi2 ;
         
       }
     }
@@ -808,6 +808,15 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         }
         b[i] = bn;
       }
+      // Sample pi for Bayes C
+      if(updatePi) {
+        double count = dfb + 1.0;
+        std::gamma_distribution<double> rgamma(count,1.0);
+        double rg = rgamma(gen);
+        pi = rg/(double)m;
+        pis[it] = pi;
+      }
+      
     }
     
     // Sample marker variance
@@ -825,8 +834,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     if(updateB) {
       std::chi_squared_distribution<double> rchisq(dfb+nub);
       chi2 = rchisq(gen);
-      vb = (ssb + ssb_prior)/chi2;
-      //vb = (ssb + ssb_prior*nub)/chi2 ;
+      //vb = (ssb + ssb_prior)/chi2;
+      vb = (ssb + ssb_prior*nub)/chi2 ;
       vbs[it] = vb; 
     }
     
@@ -841,7 +850,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       sse = yy - sse;
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
-      ve = (sse + sse_prior)/chi2 ;
+      ve = (sse + sse_prior*nue)/chi2 ;
       for ( int i = 0; i < m; i++) {
         vei[i] = vadj[i]*vg + ve;
       }
@@ -874,51 +883,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     //  vei[i] = vadj[i]*vg + ve;
     //}
     
-    // Update lambda's for BLUP/Mixed
-    if ( method==1 ) {
-      for ( int i = 0; i < m; i++) {
-        lambda[i] = ve/vb;
-      }
-    }
-    
-    // // Sample marker specific variance for Bayes A
-    // if (method==2) {
-    //   dfb = 1.0 + nub;
-    //   for ( int i = 0; i < m; i++) { 
-    //     ssb = b[i]*b[i];
-    //     std::chi_squared_distribution<double> rchisq(dfb);
-    //     chi2 = rchisq(gen);
-    //     vb = (ssb + ssb_prior)/chi2 ;
-    //     lambda[i] = ve/vb;
-    //   }
-    // }
-    // 
-    // // Sample marker specific tau for Bayes lasso
-    // if (method==3) { 
-    //   lambda_tau = 2.0*2.0*0.5*0.5/vb;
-    //   for ( int i = 0; i < m; i++) { 
-    //     ssb = b[i]*b[i];
-    //     mu_tau = sqrt(lambda_tau/ssb);
-    //     std::normal_distribution<double> norm(0.0, 1.0);
-    //     z = norm(gen);
-    //     z2=z*z;
-    //     xtau=mu_tau+0.5*mu_tau*mu_tau*z2/lambda_tau - 0.5*(mu_tau/lambda_tau)*sqrt(4*mu_tau*lambda_tau*z2+mu_tau*mu_tau*z2*z2);
-    //     std::uniform_real_distribution<double> runif(0.0, 1.0);
-    //     u = runif(gen);
-    //     tau = mu_tau*mu_tau/xtau;
-    //     if(u <= mu_tau/(mu_tau+xtau)) tau=xtau;
-    //     lambda[i] = ve/tau;
-    //   }
-    // }
-    
-    // Sample pi for Bayes C
-    if(method==4 && updatePi) {
-      double count = dfb + 1.0;
-      std::gamma_distribution<double> rgamma(count,1.0);
-      double rg = rgamma(gen);
-      pi = rg/(double)m;
-      pis[it] = pi;
-    }
   }
   
   // Summarize results
