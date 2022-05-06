@@ -710,11 +710,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         int i = order[isort];
         if(!mask[i])   continue;
         vei = vadj[i]*vg + ve;
-        //lhs = ww[i] + vei/vbi[i];
-        lhs = ww[i] + 1.0/vbi[i];
-        rhs = (r[i] + ww[i]*b[i])/vei;
-        //if(b[i]){rhs += ww[i]*b[i];}
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(1.0/lhs));
+        lhs = ww[i] + vei/vb;
+        rhs = r[i] + ww[i]*b[i];
+        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei/lhs));
         bn = rnorm(gen);
         diff = (bn-b[i])*ww[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
