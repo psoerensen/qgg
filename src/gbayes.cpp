@@ -591,7 +591,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1, v0, v1, ri, vei, ldV, bhat;
   double ssb, sse, ssg, dfb, dfe, dfg, chi2;
   double ssg_prior, nug;
-  double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
+  double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin, vy;
   double shape, shape0, rate, rate0, lambda0, lambda2;
 
   std::vector<int> d(m);
@@ -624,6 +624,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   }
   
   // should be added as argument to function
+  vy=yy/(n-1);
   nug=nub;
   ssg_prior=((nug-2.0)/nug)*vg;
   // initialize BayesL parameters
@@ -804,8 +805,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(vei/lhs1));
           bn = rnorm(gen);
         } 
-        //diff = (bn-b[i])*ww[i];
-        diff = (bn-b[i])*double(n);
+        diff = (bn-b[i])*ww[i];
+        //diff = (bn-b[i])*double(n);
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[LDindices[i][j]] += -LDvalues[i][j]*diff;
@@ -847,11 +848,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
       ve = (sse + sse_prior)/chi2 ;
-      //if(sse>(sse_prior*nue)) {
-      //  ve = (sse + sse_prior)/chi2 ;
-      //}else{
-      //  ve = (sse_prior*nue)/chi2 ;
-      //}
+      if(sse<0.0) {
+        ve = sse_prior/chi2 ;
+      }
+      if(ve>vy) {
+        ve = vy ;
+      }
       ves[it] = ve;
     }
     
@@ -866,6 +868,22 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     //  chi2 = rchisq(gen);
     //  vg = (ssg + ssg_prior*nug)/chi2;
     //}
+
+    // Sample genetic variance
+    ssg = 0.0;
+    for ( int i = 0; i < m; i++) {
+      ssg = ssg + b[i] * (wy[i] -  r[i]);
+    }
+    dfg = n + nug;
+    std::chi_squared_distribution<double> rchisq(dfg);
+    chi2 = rchisq(gen);
+    vg = (ssg + ssg_prior*nug)/chi2;
+    if(vg<0.0) {
+      vg = ssg_prior/chi2 ;
+    }
+    if(vg>vy) {
+      vg = ssg_prior/chi2 ;
+    }
     
     // Update lambda's for BLUP/Mixed
     if ( method==1 ) {
