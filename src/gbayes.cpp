@@ -683,7 +683,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       }
     }
     
-    // Compute marker effects (BayesN (Mixed or BayesRR))
+    // Compute marker effects (BayesN or BayesRR)
     if (method==1) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
@@ -713,14 +713,17 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
         vei = vadj[i]*vg + ve;
         lhs = ww[i] + vei/vbi[i];
-        rhs = r[i] + ww[i]*b[i];
+        //rhs = r[i] + ww[i]*b[i];
+        if(b[i]){rhs += ww[i]*b[i];}
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei/lhs));
         bn = rnorm(gen);
-        diff = (bn-b[i])*ww[i];
-        for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+        if(bn) {
+          diff = (bn-b[i])*ww[i];
+          for (size_t j = 0; j < LDindices[i].size(); j++) {
+            r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+          }
+          b[i] = bn;
         }
-        b[i] = bn;
       }
     }
 
