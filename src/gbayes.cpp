@@ -609,7 +609,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   // Initialize variables
   for ( int i = 0; i < m; i++) {
     mask[i]=1;
-    vbi[i]=vb;
+    vbi[i]=vb/double(m);
     dm[i] = 0.0;
     bm[i] = 0.0;
     r[i] = wy[i];
@@ -709,26 +709,24 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        ssb = b[i]*b[i];
-        std::chi_squared_distribution<double> rchisq(dfb);
-        chi2 = rchisq(gen);
-        //vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
-        vbi[i] = (ssb + ssb_prior)/chi2 ;
         vei = vadj[i]*vg + ve;
         //lhs = ww[i] + vei/vbi[i];
         lhs = ww[i] + 1.0/vbi[i];
         rhs = (r[i] + ww[i]*b[i])/vei;
         //if(b[i]){rhs += ww[i]*b[i];}
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(1.0/lhs));
-        b[i] = 0.0;
         bn = rnorm(gen);
-        if(bn) {
-          diff = (bn-b[i])*ww[i];
-          for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-          }
-          b[i] = bn;
+        diff = (bn-b[i])*ww[i];
+        for (size_t j = 0; j < LDindices[i].size(); j++) {
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
+        b[i] = bn;
+        ssb = b[i]*b[i];
+        std::chi_squared_distribution<double> rchisq(dfb);
+        chi2 = rchisq(gen);
+        //vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
+        vbi[i] = (ssb + ssb_prior)/chi2 ;
+        
       }
     }
 
@@ -738,8 +736,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        
-        vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
         vei = vadj[i]*vg + ve;
         lhs = ww[i] + vei/vbi[i];
         rhs = r[i] + ww[i]*b[i];
