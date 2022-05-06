@@ -14,7 +14,6 @@ using namespace arma;
 #include <cmath>
 
 
-
 // [[Rcpp::export]]
 std::vector<std::vector<double>>  bayes(   std::vector<double> y,
                                            std::vector<std::vector<double>> W, 
@@ -592,8 +591,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1, v0, v1, ri, vei, ldV, bhat;
   double ssb, sse, ssg, dfb, dfe, dfg, chi2;
   double ssg_prior, nug;
-  double xtau, tau, lambda_tau, mu_tau, z, z2, u;
-  
+  double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
+  double shape, shape0, rate, rate0, lambda0, lambda2;
+
   std::vector<int> d(m);
 
   std::vector<double> r(m);
@@ -626,7 +626,17 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   // should be added as argument to function
   nug=nub;
   ssg_prior=((nug-2.0)/nug)*vg;
-    
+  // initialize BayesL parameters
+  if (method==0) {
+    dfb = (nub - 2)/nub;
+    lambda2 = 2*(1 - dfb)/(dfb)*n;
+    shape0 = 1.1;
+    rate0 = (shape0 - 1) / lambda2;
+    for ( int i = 0; i < m; i++) {
+      lambda[i] = sqrt(lambda2); 
+    }
+  }
+
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
   std::sort(  std::begin(order), 
@@ -714,6 +724,55 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       }
     }
 
+    // Compute marker effects (BayesL)
+    if (method==3) {
+      dfb = 1.0 + nub;
+      for ( int isort = 0; isort < m; isort++) {
+        int i = order[isort];
+        if(!mask[i])   continue;
+        
+        vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
+        vei = vadj[i]*vg + ve;
+        lhs = ww[i] + vei/vbi[i];
+        rhs = r[i] + ww[i]*b[i];
+        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei/lhs));
+        bn = rnorm(gen);
+        diff = (bn-b[i])*ww[i];
+        for (size_t j = 0; j < LDindices[i].size(); j++) {
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+        }
+        b[i] = bn;
+        
+        mu_tau=sqrt(vei)*lambda[i]/std::abs(b[i]);
+        lambda_tau=lambda2;  
+        std::normal_distribution<double> norm(0.0, 1.0);
+        z = norm(gen);
+        z2=z*z;
+        x_tau=mu_tau+0.5*mu_tau*mu_tau*z2/lambda_tau - 0.5*(mu_tau/lambda_tau)*sqrt(4*mu_tau*lambda_tau*z2+mu_tau*mu_tau*z2*z2);
+        std::uniform_real_distribution<double> runif(0.0, 1.0);
+        u = runif(gen);
+        tau = mu_tau*mu_tau/x_tau;
+        if(u <= mu_tau/(mu_tau+x_tau)) tau=x_tau;
+        vbin = 1.0/tau;
+        if(vbin > 0)   vbi[i] = vbin;
+        
+      }
+      // update hyperparameters
+      ssb = 0.0;
+      dfb = 0.0;
+      for ( int i = 0; i < m; i++) {
+        ssb = ssb + vbi[i]*vbi[i];
+        dfb = dfb + 1.0;
+      }
+      shape = shape0 + dfb;
+      rate = rate0 + ssb/ 2.0;
+      std::gamma_distribution<double> rgamma(shape, 1.0/rate);
+      lambda2 = rgamma(gen);
+      for ( int i = 0; i < m; i++) {
+        lambda[i] = sqrt(lambda2);
+      }
+    }
+    
 
     // Sample marker effects (Lasso)
     
