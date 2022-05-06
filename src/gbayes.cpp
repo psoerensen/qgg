@@ -655,6 +655,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   // adjust sparseld
   for ( int i = 0; i < m; i++) {
     vadj[i] = (m-LDindices[i].size())/m;
+    vadj[i] = 0.0;
   }
   
   // Start Gibbs sampler
@@ -795,7 +796,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
         if(u>p0) d[i]=1;
-          bn=0.0;
+        bn=0.0;
         if(d[i]==1) {
           rhs1 = r[i] + ww[i]*b[i];
           lhs1 = ww[i] + vei/vb;
@@ -827,7 +828,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     if(updateB) {
       std::chi_squared_distribution<double> rchisq(dfb+nub);
       chi2 = rchisq(gen);
-      //vb = (ssb + ssb_prior)/chi2 ;
       vb = (ssb + ssb_prior*nub)/chi2 ;
       vbs[it] = vb; 
     }
