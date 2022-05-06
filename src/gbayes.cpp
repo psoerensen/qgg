@@ -724,8 +724,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         std::chi_squared_distribution<double> rchisq(dfb);
         chi2 = rchisq(gen);
         vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
-        //vbi[i] = (ssb + ssb_prior)/chi2 ;
-        
       }
     }
 
@@ -800,7 +798,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           bn = rnorm(gen);
         } 
         diff = (bn-b[i])*ww[i];
-        //diff = (bn-b[i])*double(n);
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[LDindices[i][j]] += -LDvalues[i][j]*diff;
@@ -832,10 +829,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     }
     // marker variance
     if(updateB) {
-      std::chi_squared_distribution<double> rchisq(dfb+nub);
+      std::chi_squared_distribution<double> rchisq(dfb+double(nub));
       chi2 = rchisq(gen);
-      //vb = (ssb + ssb_prior)/chi2;
-      vb = (ssb + ssb_prior*nub)/chi2 ;
+      vb = (ssb + ssb_prior*double(nub))/chi2 ;
       vbs[it] = vb; 
     }
     
@@ -846,11 +842,11 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         sse = sse + b[i] * (r[i] + wy[i]);
       }
       // residual variance
-      dfe = n + nue;
+      dfe = double(n) + double(nue);
       sse = yy - sse;
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
-      ve = (sse + sse_prior*nue)/chi2 ;
+      ve = (sse + sse_prior*double(nue))/chi2 ;
       for ( int i = 0; i < m; i++) {
         vei[i] = vadj[i]*vg + ve;
       }
