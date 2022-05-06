@@ -829,7 +829,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     if(updateB) {
       std::chi_squared_distribution<double> rchisq(dfb+nub);
       chi2 = rchisq(gen);
-      vb = (ssb + ssb_prior)/chi2 ;
+      vb = (ssb + ssb_prior)/chi2;
       //vb = (ssb + ssb_prior*nub)/chi2 ;
       vbs[it] = vb; 
     }
@@ -845,11 +845,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       sse = yy - sse;
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
-      if(sse>(sse_prior*nue)) {
-        ve = (sse + sse_prior)/chi2 ;
-      }else{
-        ve = (sse_prior*nue)/chi2 ;
-      }
+      ve = (sse + sse_prior)/chi2 ;
+      //if(sse>(sse_prior*nue)) {
+      //  ve = (sse + sse_prior)/chi2 ;
+      //}else{
+      //  ve = (sse_prior*nue)/chi2 ;
+      //}
       ves[it] = ve;
     }
     
