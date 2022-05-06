@@ -711,7 +711,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         ssb = b[i]*b[i];
         std::chi_squared_distribution<double> rchisq(dfb);
         chi2 = rchisq(gen);
-        vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
+        //vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
+        vbi[i] = (ssb + ssb_prior)/chi2 ;
         vei = vadj[i]*vg + ve;
         lhs = ww[i] + vei/vbi[i];
         rhs = r[i];
@@ -828,7 +829,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     if(updateB) {
       std::chi_squared_distribution<double> rchisq(dfb+nub);
       chi2 = rchisq(gen);
-      vb = (ssb + ssb_prior*nub)/chi2 ;
+      vb = (ssb + ssb_prior)/chi2 ;
+      //vb = (ssb + ssb_prior*nub)/chi2 ;
       vbs[it] = vb; 
     }
     
