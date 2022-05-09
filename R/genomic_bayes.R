@@ -80,7 +80,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    method="mixed", algorithm="default") {
   
   # Check methods
-  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","ssvs")
+  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
   method <- match(method, methods) - 1
   if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid") 
   
