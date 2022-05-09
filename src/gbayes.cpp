@@ -586,6 +586,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   // Define local variables
   int m = b.size();
+  int nc=4;
   
   double rhs, lhs, bn, conv, diff;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1, v0, v1, ri, ldV, bhat;
@@ -593,7 +594,11 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   double ssg_prior, nug;
   double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin, vy;
   double shape, shape0, rate, rate0, lambda0, lambda2;
-
+  
+  std::vector<double> gamma(nc), pic(nc), probc(nc), logLc(nc);
+  double cumprobc, vbc, logLcAdj;
+  
+  
   std::vector<int> d(m);
 
   std::vector<double> r(m),vei(m);
@@ -644,6 +649,14 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       lambda[i] = sqrt(lambda2); 
     }
   }
+  gamma[0]=0.0;
+  gamma[1]=0.01;
+  gamma[2]=0.1;
+  gamma[3]=1.0;
+  pic[0]=0.95;
+  pic[1]=0.02;
+  pic[2]=0.02;
+  pic[3]=0.01;
 
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
@@ -707,7 +720,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
     // Compute marker effects (BayesA)
     if (method==2) {
-      dfb = 1.0 + nub;
+      dfb = 1.0 + double(nub);
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
@@ -813,26 +826,112 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         pi = rg/(double)m;
         pis[it] = pi;
       }
+
       
+      // Sample marker effects (BayesR)
+      if (method==5) {
+        for ( int isort = 0; isort < m; isort++) {
+          int i = order[isort];
+          if(!mask[i])   continue;
+          // variance class lilelihood 
+          rhs = r[i] + ww[i]*b[i];
+          for (int j = 0; j<nc ; j++) {
+            vbc = vb * gamma[j];
+            logLc[j] = (-1.0/2.0) * ( std::log( (vbc * ww[i] + vei[i])/vei[i] ) - ( (vbc *(rhs*rhs)) / (vei[i] * (vbc * ww[i] + vei[i])) ) ) + std::log(pic[j]);
+          }
+          // variance class probability 
+          std::fill(probc.begin(), probc.end(), 0.0);
+          for (int j = 0; j<nc ; j++) {
+            logLcAdj = 0.0;
+            for (int k = 0; k<nc ; k++) {
+              logLcAdj += std::exp(logLc[k] - logLc[j]);
+            }
+            probc[j] = 1.0/logLcAdj;
+          }
+          // sample variance class indicator
+          std::uniform_real_distribution<float> runif(0.0, 1.0);
+          u = runif(gen);
+          d[i]=0;
+          cumprobc = 0.0;
+          for (int j = 0; j<nc ; j++) {
+            cumprobc += probc[j];
+            if(u < cumprobc){
+              d[i] = j;
+              break;
+            }
+          }
+          // sample marker effect
+          bn=0.0;
+          if(d[i]>0) {
+            vbc = vb * gamma[d[i]];
+            lhs =1.0/(ww[i]+vei[i]/vbc);
+            std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
+            bn = rnorm(gen);
+          }
+          diff = (bn-b[i])*ww[i];
+          if(diff!=0.0) {
+            for (size_t j = 0; j < LDindices[i].size(); j++) {
+              r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+            }
+          }
+          b[i] = bn;
+        }
+        // Sample pi for Bayes R
+        std::vector<double> mclass(nc);
+        std::fill(mclass.begin(), mclass.end(), 0.0);
+        for (int i = 0; i<m ; i++) {
+          mclass[d[i]] = mclass[d[i]] + 1.0;
+        }
+        
+        if(updatePi) {
+          double phisum=0.0;
+          for (int j = 0; j<nc ; j++) {
+            std::gamma_distribution<double> rgamma(mclass[j]+1.0,1.0);
+            double rg = rgamma(gen);
+            pic[j] = rg/double(m);
+            phisum = phisum + pic[j];
+          }
+          for (int j = 0; j<nc ; j++) {
+            pic[j] = pic[j]/phisum;
+            std::cout << "Pi: " << pic[j] ;
+          }
+          std::cout << "  " << "\n";
+        }
+      }
+        
     }
     
     // Sample marker variance
     ssb = 0.0;
     dfb = 0.0;
-    for ( int i = 0; i < m; i++) {
-      bm[i] = bm[i] + b[i];
-      if(d[i]==1)   {
-        ssb = ssb + b[i]*b[i];
-        dfb = dfb + 1.0;
-        dm[i] = dm[i] + 1.0;
+    if (method<5) {
+      for ( int i = 0; i < m; i++) {
+        bm[i] = bm[i] + b[i];
+        if(d[i]==1)   {
+          ssb = ssb + b[i]*b[i];
+          dfb = dfb + 1.0;
+          dm[i] = dm[i] + 1.0;
+        }
       }
     }
+    if (method==5) {
+      for ( int i = 0; i < m; i++) {
+        bm[i] = bm[i] + b[i];
+        if(d[i]>0)   {
+          ssb = ssb + (b[i]*b[i])/gamma[d[i]];
+          dfb = dfb + 1.0;
+          dm[i] = dm[i] + 1.0;
+        }
+      }
+    }
+    
+
     // marker variance
     if(updateB) {
       std::chi_squared_distribution<double> rchisq(dfb+double(nub));
       chi2 = rchisq(gen);
       vb = (ssb + ssb_prior*double(nub))/chi2 ;
-      vbs[it] = vb; 
+      vbs[it] = vb;
     }
     
     // Sample residual variance
