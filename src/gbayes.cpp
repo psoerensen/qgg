@@ -653,10 +653,10 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   gamma[1]=0.01;
   gamma[2]=0.1;
   gamma[3]=1.0;
-  pic[0]=0.95;
-  pic[1]=0.02;
-  pic[2]=0.02;
-  pic[3]=0.01;
+  pic[0]=0.995;
+  pic[1]=0.002;
+  pic[2]=0.002;
+  pic[3]=0.001;
 
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
@@ -849,7 +849,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
             probc[j] = 1.0/logLcAdj;
           }
           // sample variance class indicator
-          std::uniform_real_distribution<float> runif(0.0, 1.0);
+          std::uniform_real_distribution<double> runif(0.0, 1.0);
           u = runif(gen);
           d[i]=0;
           cumprobc = 0.0;
