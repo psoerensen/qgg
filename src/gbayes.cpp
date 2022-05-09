@@ -658,6 +658,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   pic[2]=0.002;
   pic[3]=0.001;
 
+  std::cout << "Method: " << method << "\n";
+  
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
   std::sort(  std::begin(order), 
