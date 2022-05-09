@@ -595,7 +595,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin, vy;
   double shape, shape0, rate, rate0, lambda0, lambda2;
   
-  std::vector<double> gamma(nc), pic(nc), probc(nc), logLc(nc);
+  std::vector<double> vbscale(nc), pic(nc), probc(nc), logLc(nc);
   double cumprobc, vbc, logLcAdj;
   
   
@@ -649,16 +649,16 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       lambda[i] = sqrt(lambda2); 
     }
   }
-  gamma[0]=0.0;
-  gamma[1]=0.01;
-  gamma[2]=0.1;
-  gamma[3]=1.0;
+  vbscale[0]=0.0;
+  vbscale[1]=0.01;
+  vbscale[2]=0.1;
+  vbscale[3]=1.0;
   pic[0]=0.995;
   pic[1]=0.002;
   pic[2]=0.002;
   pic[3]=0.001;
 
-  std::cout << "Method: " << method << "\n";
+  Rcpp::Rcout << "Method: "<< method << std::endl;
   
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
@@ -828,80 +828,83 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         pi = rg/(double)m;
         pis[it] = pi;
       }
-
       
-      // Sample marker effects (BayesR)
-      if (method==5) {
-        for ( int isort = 0; isort < m; isort++) {
-          int i = order[isort];
-          if(!mask[i])   continue;
-          // variance class lilelihood 
-          rhs = r[i] + ww[i]*b[i];
-          for (int j = 0; j<nc ; j++) {
-            vbc = vb * gamma[j];
-            logLc[j] = (-1.0/2.0) * ( std::log( (vbc * ww[i] + vei[i])/vei[i] ) - ( (vbc *(rhs*rhs)) / (vei[i] * (vbc * ww[i] + vei[i])) ) ) + std::log(pic[j]);
-          }
-          // variance class probability 
-          std::fill(probc.begin(), probc.end(), 0.0);
-          for (int j = 0; j<nc ; j++) {
-            logLcAdj = 0.0;
-            for (int k = 0; k<nc ; k++) {
-              logLcAdj += std::exp(logLc[k] - logLc[j]);
-            }
-            probc[j] = 1.0/logLcAdj;
-          }
-          // sample variance class indicator
-          std::uniform_real_distribution<double> runif(0.0, 1.0);
-          u = runif(gen);
-          d[i]=0;
-          cumprobc = 0.0;
-          for (int j = 0; j<nc ; j++) {
-            cumprobc += probc[j];
-            if(u < cumprobc){
-              d[i] = j;
-              break;
-            }
-          }
-          // sample marker effect
-          bn=0.0;
-          if(d[i]>0) {
-            vbc = vb * gamma[d[i]];
-            lhs =1.0/(ww[i]+vei[i]/vbc);
-            std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
-            bn = rnorm(gen);
-          }
-          diff = (bn-b[i])*ww[i];
-          if(diff!=0.0) {
-            for (size_t j = 0; j < LDindices[i].size(); j++) {
-              r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-            }
-          }
-          b[i] = bn;
+    }
+    
+    // Sample marker effects (BayesR)
+    if (method==5) {
+      
+      for ( int isort = 0; isort < m; isort++) {
+        int i = order[isort];
+        if(!mask[i])   continue;
+        // variance class lilelihood 
+        rhs = r[i] + ww[i]*b[i];
+        v0 = ww[i]*vei[i];
+        logLc[0] = -0.5*std::log(v0) -0.5*((rhs*rhs)/v0) + std::log(pic[0]);
+        for (int j = 1; j<nc ; j++) {
+          vbc = vb * vbscale[j];
+          v1 = ww[i]*vei[i] + ww[i]*ww[i]*vbc;
+          logLc[j] = -0.5*std::log(v1) -0.5*((rhs*rhs)/v1) + std::log(pic[j]); 
         }
-        // Sample pi for Bayes R
-        std::vector<double> mclass(nc);
-        std::fill(mclass.begin(), mclass.end(), 0.0);
+
+        // variance class probability 
+        std::fill(probc.begin(), probc.end(), 0.0);
+        for (int j = 0; j<nc ; j++) {
+          logLcAdj = 0.0;
+          for (int k = 0; k<nc ; k++) {
+            logLcAdj += std::exp(logLc[k] - logLc[j]);
+          }
+          probc[j] = 1.0/logLcAdj;
+        }
+        // sample variance class indicator
+        std::uniform_real_distribution<double> runif(0.0, 1.0);
+        u = runif(gen);
+        d[i]=0;
+        cumprobc = 0.0;
+        for (int j = 0; j<nc ; j++) {
+          cumprobc += probc[j];
+          if(u < cumprobc){
+            d[i] = j;
+            break;
+          }
+        }
+        // sample marker effect
+        bn=0.0;
+        if(d[i]>0) {
+          vbc = vb * vbscale[d[i]];
+          lhs =ww[i]+vei[i]/vbc;
+          std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
+          bn = rnorm(gen);
+        }
+        diff = (bn-b[i])*ww[i];
+        if(diff!=0.0) {
+          for (size_t j = 0; j < LDindices[i].size(); j++) {
+            r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+          }
+        }
+        b[i] = bn;
+      }
+      // Sample pi for Bayes R
+      if(updatePi) {
+        std::vector<double> mc(nc);
+        std::fill(mc.begin(), mc.end(), 0.0);
         for (int i = 0; i<m ; i++) {
-          mclass[d[i]] = mclass[d[i]] + 1.0;
+          mc[d[i]] = mc[d[i]] + 1.0;
         }
-        
-        if(updatePi) {
-          double phisum=0.0;
-          for (int j = 0; j<nc ; j++) {
-            std::gamma_distribution<double> rgamma(mclass[j]+1.0,1.0);
-            double rg = rgamma(gen);
-            pic[j] = rg/double(m);
-            phisum = phisum + pic[j];
-          }
-          for (int j = 0; j<nc ; j++) {
-            pic[j] = pic[j]/phisum;
-            std::cout << "Pi: " << pic[j] ;
-          }
-          std::cout << "  " << "\n";
+        double pisum=0.0;
+        for (int j = 0; j<nc ; j++) {
+          std::gamma_distribution<double> rgamma(mc[j]+1.0,1.0);
+          double rg = rgamma(gen);
+          pic[j] = rg/double(m);
+          pisum = pisum + pic[j];
+        }
+        for (int j = 0; j<nc ; j++) {
+          pic[j] = pic[j]/pisum;
         }
       }
-        
     }
+    
+    
     
     // Sample marker variance
     ssb = 0.0;
@@ -920,9 +923,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int i = 0; i < m; i++) {
         bm[i] = bm[i] + b[i];
         if(d[i]>0)   {
-          ssb = ssb + (b[i]*b[i])/gamma[d[i]];
+          ssb = ssb + (b[i]*b[i])/vbscale[d[i]];
           dfb = dfb + 1.0;
-          dm[i] = dm[i] + 1.0;
+          dm[i] = dm[i] + double(d[i]);
         }
       }
     }
