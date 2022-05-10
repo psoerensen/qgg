@@ -768,7 +768,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         u = runif(gen);
         tau = mu_tau*mu_tau/x_tau;
         if(u <= mu_tau/(mu_tau+x_tau)) tau=x_tau;
-        vbin = 1.0/tau;
+        //vbin = 1.0/tau;
+        vbin = tau;
         if(vbin > 0)   vbi[i] = vbin;
         
       }
@@ -787,6 +788,20 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         lambda[i] = sqrt(lambda2);
       }
     }
+    
+    // lambda_tau = 2.0*2.0*0.5*0.5/vb;
+    // ssb = b[i]*b[i];
+    // mu_tau = std::sqrt(lambda_tau/ssb);
+    // std::normal_distribution<double> rnorm(0.0, 1.0);
+    // z = rnorm(gen);
+    // z2=z*z;
+    // xtau=mu_tau+0.5*mu_tau*mu_tau*z2/lambda_tau - 0.5*(mu_tau/lambda_tau)*sqrt(4*mu_tau*lambda_tau*z2+mu_tau*mu_tau*z2*z2);
+    // std::uniform_real_distribution<double> runif(0.0, 1.0);
+    // u = runif(gen);
+    // tau = mu_tau*mu_tau/xtau;
+    // if(u <= mu_tau/(mu_tau+xtau)) tau=xtau;
+    // lambda[i] = ve/tau;
+    
 
     // Sample marker effects (BayesC)
     if (method==4) {
