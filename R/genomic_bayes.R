@@ -83,7 +83,14 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
   method <- match(method, methods) - 1
   if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid") 
+
+  if(method==0) {
+    # BLUP and we do not estimate parameters
+    updateB=FALSE;
+    updateE=FALSE;
+  }
   
+    
   # Determine number of traits
   nt <- 1
   if(!is.null(y)) {
@@ -346,13 +353,13 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       if(!is.null(stat$dfe)) n <- as.integer(mean(stat$dfe)+2)
       if(!is.null(stat$n)) n <- as.integer(mean(stat$n))
 
-      if(!is.null(stat$ww)) ww <- stat$ww
+      if(!is.null(stat$ww)) ww[rownames(stat),1] <-  stat$ww
       if(!is.null(stat$n)) ww[rownames(stat),1] <- stat$n
       
-      stat$ww <- stat$n
+      #stat$ww <- stat$n
       #stat$ww <- 1/(stat$seb^2 + (stat$b^2)/stat$n)
       #ww[rownames(stat),1] <- 1/(stat$seb^2 + (stat$b^2)/stat$n)
-      ww[rownames(stat),1] <-  stat$n
+      #ww[rownames(stat),1] <-  stat$n
       
       yy <- (b2 + (n-2)*seb2)*stat$ww
       yy <- mean(yy)
@@ -385,7 +392,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
       if(any(is.na(wy))) stop("Missing values in wy")
     }
-    
+
     if(is.null(chr)) chromosomes <- 1:Glist$nchr
     if(!is.null(chr)) chromosomes <- chr
     if(is.null(LD)) LD <- vector(length=Glist$nchr,mode="list")
@@ -416,7 +423,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     pi=pi,
                                     nue=nue, 
                                     nub=nub, 
-                                    h2=h2, 
+                                    h2=h2[trait], 
                                     lambda=lambda, 
                                     vb=vb, 
                                     ve=ve, 
