@@ -909,7 +909,15 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     // Sample marker variance
     ssb = 0.0;
     dfb = 0.0;
-    if (method<5) {
+    if (method<4) {
+      for ( int i = 0; i < m; i++) {
+        bm[i] = bm[i] + b[i];
+        ssb = ssb + b[i]*b[i];
+        dfb = dfb + 1.0;
+        dm[i] = dm[i] + 1.0;
+      }
+    }
+    if (method==4) {
       for ( int i = 0; i < m; i++) {
         bm[i] = bm[i] + b[i];
         if(d[i]==1)   {
@@ -965,23 +973,23 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
     
     // Sample genetic variance
-    //ssg = 0.0;
-    //for ( int i = 0; i < m; i++) {
-    //  ssg = ssg + b[i] * (wy[i] -  r[i]);
-    //}
-    //dfg = n + nug;
-    //std::chi_squared_distribution<double> rchisq(dfg);
-    //chi2 = rchisq(gen);
-    //vg = (ssg + ssg_prior*nug)/chi2;
-    //if(vg<0.0) {
-    //  vg = ssg_prior/chi2 ;
-    //}
-    //if(vg>vy) {
-    //  vg = ssg_prior/chi2 ;
-    //}
-    //for ( int i = 0; i < m; i++) {
-    //  vei[i] = vadj[i]*vg + ve;
-    //}
+    // ssg = 0.0;
+    // for ( int i = 0; i < m; i++) {
+    //   ssg = ssg + b[i] * (wy[i] -  r[i]);
+    // }
+    // dfg = n + nug;
+    // std::chi_squared_distribution<double> rchisq(dfg);
+    // chi2 = rchisq(gen);
+    // vg = (ssg + ssg_prior*nug)/chi2;
+    // if(vg<0.0) {
+    //   vg = ssg_prior/chi2 ;
+    // }
+    // if(vg>vy) {
+    //   vg = ssg_prior/chi2 ;
+    // }
+    // for ( int i = 0; i < m; i++) {
+    //   vei[i] = vadj[i]*vg + ve;
+    // }
     
   }
   
