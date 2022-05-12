@@ -669,8 +669,10 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   // Wy - W'Wb
   for ( int i = 0; i < m; i++) {
     if (b[i]!= 0.0) {
+      diff = b[i]*ww[i];
       for (size_t j = 0; j < LDindices[i].size(); j++) {
-        r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*b[i];
+        //r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*b[i];
+        r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
       }
     }
   }
@@ -860,7 +862,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        // variance class likelihood 
+        // variance class likelihood version 1 
         rhs = r[i] + ww[i]*b[i];
         v0 = ww[i]*vei[i];
         logLc[0] = -0.5*std::log(v0) -0.5*((rhs*rhs)/v0) + std::log(pic[0]);
@@ -869,7 +871,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           v1 = ww[i]*vei[i] + ww[i]*ww[i]*vbc;
           logLc[j] = -0.5*std::log(v1) -0.5*((rhs*rhs)/v1) + std::log(pic[j]); 
         }
-
+        
         // variance class probability 
         std::fill(probc.begin(), probc.end(), 0.0);
         for (int j = 0; j<nc ; j++) {
