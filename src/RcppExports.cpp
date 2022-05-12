@@ -269,12 +269,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // mtsbayes
-std::vector<std::vector<std::vector<double>>> mtsbayes(std::vector<std::vector<double>> wy, std::vector<double> yy, std::vector<std::vector<double>> b, std::vector<std::vector<double>> LDvalues, std::vector<std::vector<int>> LDindices, arma::mat B, arma::mat E, std::vector<std::vector<double>> ssb_prior, std::vector<std::vector<double>> sse_prior, std::vector<std::vector<int>> models, std::vector<double> pi, double nub, double nue, bool updateB, bool updateE, bool updatePi, std::vector<int> n, int nit, int method);
-RcppExport SEXP _qgg_mtsbayes(SEXP wySEXP, SEXP yySEXP, SEXP bSEXP, SEXP LDvaluesSEXP, SEXP LDindicesSEXP, SEXP BSEXP, SEXP ESEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP modelsSEXP, SEXP piSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nSEXP, SEXP nitSEXP, SEXP methodSEXP) {
+std::vector<std::vector<std::vector<double>>> mtsbayes(std::vector<std::vector<double>> wy, std::vector<std::vector<double>> ww, std::vector<double> yy, std::vector<std::vector<double>> b, std::vector<std::vector<double>> LDvalues, std::vector<std::vector<int>> LDindices, arma::mat B, arma::mat E, std::vector<std::vector<double>> ssb_prior, std::vector<std::vector<double>> sse_prior, std::vector<std::vector<int>> models, std::vector<double> pi, double nub, double nue, bool updateB, bool updateE, bool updatePi, std::vector<int> n, int nit, int method);
+RcppExport SEXP _qgg_mtsbayes(SEXP wySEXP, SEXP wwSEXP, SEXP yySEXP, SEXP bSEXP, SEXP LDvaluesSEXP, SEXP LDindicesSEXP, SEXP BSEXP, SEXP ESEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP modelsSEXP, SEXP piSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nSEXP, SEXP nitSEXP, SEXP methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type wy(wySEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type ww(wwSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type yy(yySEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type b(bSEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type LDvalues(LDvaluesSEXP);
@@ -293,7 +294,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector<int> >::type n(nSEXP);
     Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
-    rcpp_result_gen = Rcpp::wrap(mtsbayes(wy, yy, b, LDvalues, LDindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method));
+    rcpp_result_gen = Rcpp::wrap(mtsbayes(wy, ww, yy, b, LDvalues, LDindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method));
     return rcpp_result_gen;
 END_RCPP
 }
