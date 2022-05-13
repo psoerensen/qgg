@@ -176,7 +176,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    vg=vg, vb=vb, ve=ve, 
                    ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                    h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                   nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm) 
+                   nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm, verbose=verbose) 
   }
   
   
@@ -464,22 +464,11 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   
   if(analysis=="mt-blr-sumstat-sparse-ld") {
     
-
-
     # multiple trait summary statistics
     nt <- ncol(stat$b)
     trait_names <- colnames(stat$b)
     if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
     rsidsLD <- unlist(Glist$rsidsLD)
-    b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
-    rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
-    colnames(b) <- colnames(wy) <- colnames(ww) <- trait_names
-    rws <- rownames(stat$b)%in%rsidsLD
-    b2 <- (stat$b[rws,])^2
-    seb2 <- (stat$seb[rws,])^2
-    if(!is.null(stat$dfe)) n <- as.integer(colMeans(stat$dfe[rws,])+2)
-    if(!is.null(stat$n)) n <- as.integer(colMeans(stat$n[rws,]))
-    
     if(is.null(stat$ww)) {
       stat$ww <- 1/(stat$seb^2 + (stat$b^2)/stat$n)
       rownames(stat$ww) <- rownames(stat$b)
@@ -488,11 +477,20 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       stat$wy <- stat$b*stat$n
       rownames(stat$wy) <- rownames(stat$b)
     }
-    ww <- stat$ww[rws,]
+    b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
+    rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
+    colnames(b) <- colnames(wy) <- colnames(ww) <- trait_names
+    
+    rws <- rownames(stat$b)%in%rsidsLD
+    if(!is.null(stat$dfe)) n <- as.integer(colMeans(stat$dfe[rws,])+2)
+    if(!is.null(stat$n)) n <- as.integer(colMeans(stat$n[rws,]))
+
+    b2 <- (stat$b[rws,])^2
+    seb2 <- (stat$seb[rws,])^2
     for (i in 1:nt) {
       seb2[,i] <- (n[i]-2)*seb2[,i]
     }
-    yy <- (b2 + seb2)*ww
+    yy <- (b2 + seb2)*stat$ww[rws,]
     yy <- colMeans(yy)
     
     wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
@@ -534,7 +532,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                      updateB=updateB,
                                      updateE=updateE,
                                      updatePi=updatePi,
-                                     method=method)
+                                     method=method,
+                                     verbose=verbose)
       res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
                                pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
                                a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],
@@ -690,7 +689,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
                           vg=NULL, vb=NULL, ve=NULL, 
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                          nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
+                          nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
   m <- length(LDvalues)
   vy <- yy/(n-1)
   if(is.null(pi)) pi <- 0.001
@@ -748,7 +747,7 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
                              ssb_prior=NULL, sse_prior=NULL, 
                              h2=NULL, pi=NULL, updateB=NULL, 
                              updateE=NULL, updatePi=NULL, models=NULL,
-                             nub=NULL, nue=NULL, nit=NULL, method=NULL) {
+                             nub=NULL, nue=NULL, nit=NULL, method=NULL, verbose=NULL) {
   
   nt <- length(yy)
   m <- length(LDvalues)
@@ -763,6 +762,7 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
   if(method==3) stop("Multiple trait not yet implemented for Bayesian Lasso")
   
   if(is.null(b)) b <- lapply(1:nt,function(x){rep(0,m)}) 
+  if(is.matrix(b)) b <- split(b, rep(1:ncol(b), each = nrow(b)))
   
   if(is.null(models)) {
     models <- rep(list(0:1), nt)
@@ -779,29 +779,35 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
   
   vy <- diag(yy/(n-1),nt)
   if(is.null(h2)) h2 <- 0.5
-  if(is.null(ve)) ve <- vy*(1-h2)
-  if(method<4 && is.null(vb)) vb <- (vy*h2)/m
-  if(method>=4 && is.null(vb)) vb <- (vy*h2)/(m*pi[length(models)]) 
-  if(is.null(vg)) vg <- vy*h2
-  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi[length(models)]))
-  if(is.null(sse_prior)) sse_prior <- nue*diag(diag(ve))
+  if(is.null(ve)) ve <- diag(diag(vy)*(1-h2))
+  if(method<4 && is.null(vb)) vb <- diag((diag(vy)*h2)/m)
+  if(method>=4 && is.null(vb)) vb <- diag((diag(vy)*h2)/(m*pi[length(models)]))
+  if(is.null(vg)) vg <- diag(diag(vy)*h2)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/m))
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi[length(models)])))
+  if(is.null(sse_prior)) sse_prior <- diag(((nue-2.0)/nue)*diag(ve))
   
-  
-  #if(is.null(h2)) h2 <- 0.5
-  #if(is.null(ve)) ve <- vy*h2
-  #if(method<4 && is.null(vb)) vb <- diag(h2/m,nt)
-  #if(method>=4 && is.null(vb)) vb <- diag(h2/(m*pi[length(models)]),nt)
-  #if(is.null(vg)) vg <- diag(diag(ve))*h2
-  #if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  #if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*0.001)
-  #if(is.null(sse_prior)) sse_prior <- nue*diag(diag(ve))
+
+  # if(is.null(h2)) h2 <- 0.5
+  # if(is.null(ve)) ve <- vy*h2
+  # if(method<4 && is.null(vb)) vb <- diag(h2/m,nt)
+  # if(method>=4 && is.null(vb)) vb <- diag(h2/(m*pi[length(models)]),nt)
+  # if(is.null(vg)) vg <- diag(diag(ve))*h2
+  # if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  # if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*0.001)
+  # if(is.null(sse_prior)) sse_prior <- nue*diag(diag(ve))
+  # 
+  # if(verbose) print( paste("Starting parameter ve:",ve))
+  # if(verbose) print( paste("Starting parameter vg:",vg))
+  # if(verbose) print( paste("Starting parameter vb:",vb))
+  # if(verbose) print( paste("Starting parameter sse_prior:",sse_prior))
+  #if(verbose) print( paste("Starting parameter ssb_prior:",ssb_prior))
   
   fit <- .Call("_qgg_mtsbayes",
                wy=split(wy, rep(1:ncol(wy), each = nrow(wy))),
                ww=split(ww, rep(1:ncol(ww), each = nrow(ww))),
                yy=yy,
-               b = split(b, rep(1:ncol(b), each = nrow(b))),
+               b = b,
                LDvalues=LDvalues, 
                LDindices=LDindices, 
                B = vb,
@@ -868,7 +874,7 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
                     vg=NULL, vb=NULL, ve=NULL, 
                     ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                     h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                    nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
+                    nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
   
   if(is.list(y)) nt <- length(y)
   if(!is.matrix(y)) stop("This is not a multiple trait analysis")
@@ -909,14 +915,22 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   
   vy <- diag(sapply(y,var))
   if(is.null(h2)) h2 <- 0.5
-  if(is.null(ve)) ve <- vy*(1-h2)
-  if(method<4 && is.null(vb)) vb <- (vy*h2)/m
-  if(method>=4 && is.null(vb)) vb <- (vy*h2)/(m*pi[length(models)]) 
-  if(is.null(vg)) vg <- vy*h2
-  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi[length(models)]))
-  if(is.null(sse_prior)) sse_prior <- nue*diag(diag(ve))
+  if(is.null(ve)) ve <- diag(diag(vy)*(1-h2))
+  if(method<4 && is.null(vb)) vb <- diag((diag(vy)*h2)/m)
+  if(method>=4 && is.null(vb)) vb <- diag((diag(vy)*h2)/(m*pi[length(models)])) 
+  if(is.null(vg)) vg <- diag(diag(vy)*h2)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/m))
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi[length(models)])))
+  if(is.null(sse_prior)) sse_prior <- diag(((nue-2.0)/nue)*diag(ve))
+
+  if(verbose) print( paste("Starting parameter ve:",ve))
+  if(verbose) print( paste("Starting parameter vg:",vg))
+  if(verbose) print( paste("Starting parameter vb:",vb))
+  if(verbose) print( paste("Starting parameter sse_prior:",sse_prior))
+  if(verbose) print( paste("Starting parameter ssg_prior:",sse_prior))
+  if(verbose) print( paste("Starting parameter ssb_prior:",sse_prior))
   
+    
   fit <- .Call("_qgg_mtbayes",
                y=y, 
                W=split(W, rep(1:ncol(W), each = nrow(W))), 
