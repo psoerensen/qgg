@@ -144,8 +144,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   
   // Prior variance and degrees of freedom
   // fix this dfe and n should be vectors of length nt
-  dfe = n;
-
+  // dfe = n;
+  
   // Mean adjust y and initialize e
   for ( int t = 0; t < nt; t++) {
     mu[t] = std::accumulate(y[t].begin(), y[t].end(), 0.0)/n;
@@ -163,10 +163,9 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       }
     }
   }
-  for (int i = 0; i < nmodels; i++) {
-    cmodel[i] = 1.0;
-    pis[i] = 0.0;
-  }
+  
+  std::fill(cmodel.begin(), cmodel.end(), 1.0);
+  std::fill(pis.begin(), pis.end(), 0.0);
   
   for ( int t = 0; t < nt; t++) {
     for ( int i = 0; i < m; i++) {
@@ -210,7 +209,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
       conv[t] = 0.0;
     }
     
-    // Compute/sample marker effects (BLUP/Mixed)
+    // Sample marker effects (BayesN)
     if (method<2) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
@@ -257,6 +256,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
+        
+        // Compute rhs
         for ( int t = 0; t < nt; t++) {
           rhs[t] = 0.0;
           for ( int j = 0; j < n; j++) {
@@ -264,6 +265,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           }
           rhs[t] = rhs[t] + Ei(t,t)*ww[t][i]*b[t][i];
         }
+        
+        // Sample variance class indicator
         for ( int k = 0; k < nmodels; k++) {
           arma::mat C = Bi;
           for ( int t1 = 0; t1 < nt; t1++) {
@@ -296,28 +299,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           pmodel[k] = 1.0/logliksum;
         }
         
-        // // Compute marker variance class cumulative probability   
-        // std::fill(pcum.begin(), pcum.end(), 0.0);
-        // for (int k = 0; k<nmodels ; k++) {
-        //   psum = 0.0;
-        //   for (int l = 0; l<k+1 ; l++) {
-        //     psum += pmodel[l];
-        //   }
-        //   pcum[k] = psum;
-        // }
-        // 
-        // // Sample marker variance class indicator d (note that lambda and d are 1-based)
-        // std::uniform_real_distribution<double> runif(0.0, 1.0);
-        // u = runif(gen);
-        // mselect = 0;
-        // for (int k = 0; k<nmodels ; k++) {
-        //   if (pcum[k]>u) {
-        //     mselect = k;
-        //     break;
-        //   }
-        // }
-
-        // sample variance class indicator
+        // Sample variance class indicator
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
         mselect=0;
@@ -329,13 +311,12 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
             break;
           }
         }
-      
         cmodel[mselect] = cmodel[mselect] + 1.0; 
-        
-        // Sample beta
         for ( int t = 0; t < nt; t++) { 
           d[t][i] = models[mselect][t];
         }
+        
+        // Sample marker effect conditional on variance class indicator
         arma::mat C = Bi;
         for ( int t = 0; t < nt; t++) {
           if(models[mselect][t]==1) {
@@ -355,6 +336,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
             }
           }
         } 
+        
+        // Adjust residuals based on sampled marker effects
         for ( int t = 0; t < nt; t++) {
           diff = mub(0,t)-b[t][i];
           for (int j = 0; j < n; j++) {
@@ -442,7 +425,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           }
         }
       }
-      int dfSe = dfe + nue;
+      int dfSe = n + nue;
       arma::mat E = riwishart(dfSe, Se);
       arma::mat Ei = arma::inv(E);
       for (int t = 0; t < nt; t++) {
@@ -585,7 +568,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   std::vector<double> mu(nt), rhs(nt), conv(nt);
   std::vector<double> pmodel(nmodels), pcum(nmodels), loglik(nmodels), cmodel(nmodels);
   std::vector<double> pis(nmodels);
-  std::vector<int> dfe(nt);
+  //std::vector<int> dfe(nt);
   
   std::vector<std::vector<double>> bm(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> dm(nt, std::vector<double>(m, 0.0));
@@ -601,10 +584,6 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   std::vector<int> order(m);
   
   
-  // Prior variance and degrees of freedom
-  for (int t = 0; t < nt; t++) {
-    dfe[t] = n[t] + nue;
-  }
   // Initialize variables
   for (int i = 0; i < m; i++) {
     for (int t = 0; t < nt; t++) {
@@ -625,10 +604,9 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     }
   }
   
-  for (int i = 0; i < nmodels; i++) {
-    cmodel[i] = 1.0;
-    pis[i] = 0.0;
-  }
+  std::fill(cmodel.begin(), cmodel.end(), 1.0);
+  std::fill(pis.begin(), pis.end(), 0.0);
+  
   for ( int i = 0; i < m; i++) {
     x2t[i] = 0.0;
     for ( int t = 0; t < nt; t++) { 
@@ -706,9 +684,12 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         
+        // compute rhs
         for ( int t = 0; t < nt; t++) {
           rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
         }
+        
+        // Compute 
         for ( int k = 0; k < nmodels; k++) {
           arma::mat C = Bi;
           for ( int t1 = 0; t1 < nt; t1++) {
@@ -741,7 +722,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           pmodel[k] = 1.0/logliksum;
         }
 
-        // sample variance class indicator
+        // Sample variance class indicator
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
         mselect=0;
@@ -757,6 +738,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         for ( int t = 0; t < nt; t++) { 
           d[t][i] = models[mselect][t];
         }
+        
+        // Sample marker effect conditional on variance class indicator
         arma::mat C = Bi;
         for ( int t1 = 0; t1 < nt; t1++) {
           if(models[mselect][t1]==1) {
@@ -774,6 +757,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           }
         } 
         
+        // Adjust residuals based on sample marker effects
         for ( int t = 0; t < nt; t++) {
           diff = (mub(0,t)-b[t][i])*ww[t][i];
           for (size_t j = 0; j < LDindices[i].size(); j++) {
@@ -844,7 +828,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       arma::mat Bi = arma::inv(B);
     }
     
-    // Sample residual variance
+    // Sample residual variance 
+    // (current version assume uncorrelated residuals among traits traits)
     if(updateE) {
       arma::mat Se(nt,nt, fill::zeros);
       for ( int t1 = 0; t1 < nt; t1++) {
@@ -855,7 +840,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         sse = yy[t1] - sse;
         Se(t1,t1) = sse + sse_prior[t1][t1];
       }
-      int dfSe = dfe[0] + nue;
+      int dfSe = n[0] + nue;
       arma::mat E = riwishart(dfSe, Se);
       arma::mat Ei = arma::inv(E);
       for (int t = 0; t < nt; t++) {
