@@ -835,6 +835,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           rhs1 = r[i] + ww[i]*b[i];
           lhs1 = ww[i] + vei[i]/vb;
           std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(vei[i]/lhs1));
+          //std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(1.0/lhs1));
           bn = rnorm(gen);
         } 
         diff = (bn-b[i])*ww[i];
@@ -845,6 +846,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         }
         b[i] = bn;
       }
+      
       // Sample pi for Bayes C
       if(updatePi) {
         double count = dfb + 1.0;
@@ -899,6 +901,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           vbc = vb * vbscale[d[i]];
           lhs =ww[i]+vei[i]/vbc;
           std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
+          //std::normal_distribution<double> rnorm(rhs/lhs, sqrt(1.0/lhs));
           bn = rnorm(gen);
         }
         diff = (bn-b[i])*ww[i];
