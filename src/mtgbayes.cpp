@@ -3,6 +3,7 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 #include <RcppDist.h>
+
 using namespace Rcpp;
 using namespace arma;
 
@@ -88,6 +89,28 @@ arma::mat riwishart(unsigned int df, const arma::mat& S){
   return rwishart(df,S.i()).i();
 }
 
+// // [[Rcpp::export]]
+// NumericVector rcat( NumericVector x,
+//                            int size,
+//                            bool replace,
+//                            NumericVector prob = NumericVector::create()
+// ) {
+//   NumericVector ret = RcppArmadillo::sample(x, size, replace, prob);
+//   return ret;
+// }
+
+// // // [[Rcpp::export]]
+// IntegerVector rcat(NumericVector x, IntegerVector choice_set) {
+//   int  mselect;
+//   IntegerVector result(1);
+//   Rcpp::NumericVector z(x);
+//   result[0] = RcppArmadillo::sample(choice_set, 1, false, z)[0];
+//   return result;
+// }
+//
+//int rcat(std::vector<int> cats , std::vector<int> probs){
+//  return R::sample.int(cats,1,false,probs);
+//}
 
 // [[Rcpp::export]]
 std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vector<double>> y,
@@ -581,7 +604,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   std::vector<double> x2t(m);
   std::vector<std::vector<double>> x2(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> r(nt, std::vector<double>(m, 0.0));
-  std::vector<int> order(m);
+  std::vector<int> order(m),cat(nmodels), morder(nmodels);
   
   
   // Initialize variables
@@ -591,7 +614,10 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       x2[t][i] = (wy[t][i]/ww[t][i])*(wy[t][i]/ww[t][i]);
     }
   }
-  
+
+  for (int k = 0; k<nmodels ; k++) {
+    cat[k] = k;
+  }  
   // Wy - W'Wb
   for ( int i = 0; i < m; i++) {
     for (int t = 0; t < nt; t++) {
@@ -727,13 +753,22 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         u = runif(gen);
         mselect=0;
         cumprobc = 0.0;
+        
+        std::iota(morder.begin(), morder.end(), 0);
+        std::sort(  std::begin(morder), 
+                    std::end(morder),
+                    [&](int i1, int i2) { return pmodel[i1] > pmodel[i2]; } );
+        
         for (int k = 0; k<nmodels ; k++) {
-          cumprobc += pmodel[k];
+          //cumprobc += pmodel[k];
+          cumprobc += pmodel[morder[k]];
           if(u < cumprobc){
-            mselect = k;
+            //mselect = k;
+            mselect = morder[k];
             break;
           }
         }
+        //mselect = rcat(cats, pmodels);
         cmodel[mselect] = cmodel[mselect] + 1.0; 
         for ( int t = 0; t < nt; t++) { 
           d[t][i] = models[mselect][t];
