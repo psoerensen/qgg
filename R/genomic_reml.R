@@ -159,6 +159,7 @@ remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
   np <- length(G) + 1
   if (is.null(theta)) theta <- rep(sd(y) / np**2, np)
   n <- length(y)
+  if(is.null(X)) X <- model.matrix(y~1)
   ai <- matrix(0, ncol = np, nrow = np)
   s <- matrix(0, ncol = 1, nrow = np)
   tol <- 0.00001
@@ -262,13 +263,23 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
                    makeplots = FALSE) {
   
   n <- length(y)
+  if(is.null(X)) X <- model.matrix(y~1)
   theta <- NULL
   #theta <- yobst <- yobsv <- ypredt <- ypredv <- NULL
   #yot <- ypt <- yft <- yat <- yrt <- yov <- ypv <- yfv <- yav <- yrv <- NULL
   res <- NULL
   
-  if (is.matrix(validate)) validate <- as.data.frame(validate)
+  if (is.matrix(validate)) {
+    cvnames <- colnames(validate)
+    validate <- as.data.frame(validate, stringsAsFactors=FALSE)
+    names(validate) <- cvnames
+  }
   nv <- length(validate)
+  cvnames <- names(validate)
+  if(is.null(cvnames)) {
+    cvnames <- paste0("CV",1:nv)
+    names(validate) <- cvnames
+  }
   
   typeoftrait <- "quantitative"
   
@@ -316,6 +327,12 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
       
       training[[i]]  <- cbind(yobst, ypredt, yft, yat, yrt, ghattrain)
       validation[[i]]  <- cbind(yobsv, ypredv, yfv, yav, yrv, ghatval)
+
+      tnames <- as.character(1:length(y))      
+      if(!is.null(names(y))) tnames <- names(y) 
+      rownames(training[[i]]) <- tnames[t]
+      rownames(validation[[i]]) <- tnames[v]
+
       colnames(training[[i]]) <- colnames(validation[[i]]) <- c("yobs", "ypred", "yfix", "yadj", "yres", names(G))
     }
     
@@ -334,10 +351,14 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
   # if(is.atomic(validate)) res <- matrix(qcpred(yobs=yo,ypred=yp,typeoftrait=typeoftrait),nrow=1)
   
   res <- as.data.frame(res)
-  names(res) <- c("Corr", "R2", "Nagel R2", "AUC", "intercept", "slope", "MSPE")
+  rownames(res) <- cvnames
+  names(training) <- names(validation) <- cvnames
+  
+  #names(res) <- c("Corr", "R2", "Nagel R2", "AUC", "intercept", "slope", "MSPE")
   if (is.null(names(G))) names(G) <- paste("G", 1:(np - 1), sep = "")
   colnames(theta) <- c(names(G), "E")
   theta <- as.data.frame(round(theta, 3))
+  rownames(theta) <- cvnames
   if (makeplots) {
     layout(matrix(1:4, ncol = 2))
     boxplot(res$Corr, main = "Predictive Ability", ylab = "Correlation")
