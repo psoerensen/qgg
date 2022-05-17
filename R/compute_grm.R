@@ -26,7 +26,8 @@
 #' @param overwrite logical if TRUE the binary file fnG will be overwritten
 #' @param returnGRM logical if TRUE function returns the GRM matrix to the R environment
 #' @param task either computation of GRM (task="grm"  which is default) or eigenvalue decomposition of GRM (task="eigen")
-#' @param miss the missing code (miss=0 is default) used for missing values in the genotype data
+#' @param miss the missing code (miss=NA is default) used for missing values in the genotype data
+#' @param impute if missing values in the genotype matrix W then mean impute
 #'
 #'
 #' @return Returns a genomic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
@@ -55,7 +56,7 @@
 
 # grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
 #                 W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL,
-#                 overwrite = FALSE, returnGRM = FALSE, miss = 0, task = "grm") {
+#                 overwrite = FALSE, returnGRM = FALSE, miss = NA, task = "grm") {
 #   if (task == "grm") {
 #     GRM <- computeGRM(
 #       Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
@@ -72,7 +73,7 @@
 
 grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL,
                 W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL,
-                overwrite = FALSE, returnGRM = FALSE, miss = 0, pedigree=NULL, task = "grm") {
+                overwrite = FALSE, returnGRM = FALSE, miss = NA, impute=TRUE, pedigree=NULL, task = "grm") {
   if(!is.null(pedigree)) {
     return(prm(pedigree=pedigree, task="additive"))
   } 
@@ -80,7 +81,7 @@ grm <- function(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL, rws = NU
     GRM <- computeGRM(
       Glist = Glist, ids = ids, rsids = rsids, rws = rws, cls = cls,
       W = W, method = method, scale = scale, msize = msize, ncores = ncores,
-      fnG = fnG, overwrite = overwrite, returnGRM = returnGRM, miss = miss
+      fnG = fnG, overwrite = overwrite, returnGRM = returnGRM, miss = miss, impute=impute
     )
     return(GRM)
   }
@@ -142,18 +143,25 @@ prm <- function(pedigree=NULL, task="additive") {
 
 
 
-computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE, returnGRM = FALSE, miss = 0) {
+computeGRM <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls = NULL, W = NULL, method = "add", scale = TRUE, msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE, returnGRM = FALSE, miss = NA, impute=TRUE) {
   if (method == "add") gmodel <- 1
   if (method == "dom") gmodel <- 2
   if (method == "epi-pairs") gmodel <- 3
   if (method == "epi-hadamard") gmodel <- 4
 
   if (!is.null(W)) {
-    SS <- tcrossprod(W) # compute crossproduct, all SNPs
-    N <- tcrossprod(!W == miss) # compute number of observations, all SNPs
-    G <- SS / N
+    #SS <- tcrossprod(W) # compute crossproduct, all SNPs
+    #N <- tcrossprod(!W == miss) # compute number of observations, all SNPs
+    #G <- SS / N
+    if(is.na(miss)) missing <- is.na(W)
+    if(is.numeric(miss)) missing <- W == miss
+    W <- scale(W, scale=FALSE)
+    if(any(missing)) W[missing] <- 0
+    N <- tcrossprod(!missing)
+    G <- tcrossprod(W)/N
     return(G)
   }
+  
   if (is.null(W)) {
     n <- Glist$n
     m <- Glist$m
