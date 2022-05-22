@@ -180,7 +180,6 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   }
   
   
-  
   # Single trait BLR using y and sparse LD provided Glist
   if( nt==1 && !is.null(y) && algorithm=="sparse") {
     
@@ -338,59 +337,62 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   }
   
   # Single trait BLR using summary statistics and sparse LD provided in Glist
-  #  if( nt==1 && is.null(y) && !is.null(stat) && !is.null(Glist)) {
   if(analysis=="st-blr-sumstat-sparse-ld") {
+    
     # single trait summary statistics
     if(is.data.frame(stat)) {
+      
       nt <- 1
       rsidsLD <- unlist(Glist$rsidsLD)
       b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
       rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
-      trait_names <- "badj"       
+      trait_names <- "badj"     
+      
       stat <- stat[rownames(stat)%in%rsidsLD,]
-      b2 <- stat$b^2
-      seb2 <- stat$seb^2
-      if(!is.null(stat$dfe)) n <- as.integer(mean(stat$dfe)+2)
       if(!is.null(stat$n)) n <- as.integer(mean(stat$n))
-
       if(!is.null(stat$ww)) ww[rownames(stat),1] <-  stat$ww
-      if(!is.null(stat$n)) ww[rownames(stat),1] <- stat$n
-      
-      #stat$ww <- stat$n
-      #stat$ww <- 1/(stat$seb^2 + (stat$b^2)/stat$n)
-      #ww[rownames(stat),1] <- 1/(stat$seb^2 + (stat$b^2)/stat$n)
-      #ww[rownames(stat),1] <-  stat$n
-      
-      yy <- (b2 + (n-2)*seb2)*stat$ww
-      yy <- mean(yy)
+      if(is.null(stat$ww)) ww[rownames(stat),1] <- stat$n
       if(!is.null(stat$wy)) wy[rownames(stat),1] <- stat$wy
-      #if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$ww
       if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$n
       if(any(is.na(wy))) stop("Missing values in wy")
+      if(any(is.na(ww))) stop("Missing values in ww")
+      
+      b2 <- stat$b^2
+      seb2 <- stat$seb^2
+      yy <- (b2 + (n-2)*seb2)*stat$ww
+      yy <- mean(yy)
     }
     
     # multiple trait summary statistics
     if( !is.data.frame(stat) && is.list(stat)) {
+      
       nt <- ncol(stat$b)
       trait_names <- colnames(stat$b)
       if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
       rsidsLD <- unlist(Glist$rsidsLD)
-      b <- wy <- matrix(0,nrow=length(rsidsLD),ncol=nt)
-      rownames(b) <- rownames(wy) <- rsidsLD
-      colnames(b) <- colnames(wy) <- trait_names
-      rws <- rownames(stat$b)%in%rsidsLD 
+      b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
+      rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
+      colnames(b) <- colnames(wy) <- colnames(ww) <- trait_names
+      
+      rws <- rownames(stat$b)%in%rsidsLD
+      #if(is.null(stat$ww)) stat$ww <- 1/(stat$seb^2 + (stat$b^2)/stat$n)
+      #if(is.null(stat$wy)) stat$wy <- stat$b*stat$n
+      if(!is.null(stat$n)) n <- as.integer(colMeans(stat$n[rws,]))
+      if(!is.null(stat$ww)) ww[rownames(stat$ww[rws,]),] <- stat$ww[rws,]
+      if(is.null(stat$ww)) ww[rownames(stat$n[rws,]),] <- stat$n[rws,]
+      if(!is.null(stat$wy)) wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
+      if(is.null(stat$wy)) wy[rownames(stat$b[rws,]),] <- stat$b[rws,]*stat$n[rws,]
+      if(any(is.na(wy))) stop("Missing values in wy")
+      if(any(is.na(ww))) stop("Missing values in ww")
+      
       b2 <- (stat$b[rws,])^2
       seb2 <- (stat$seb[rws,])^2
-      if(!is.null(stat$dfe)) n <- as.integer(colMeans(stat$dfe[rws,])+2)
-      if(!is.null(stat$n)) n <- as.integer(colMeans(stat$n[rws,]))
-      ww <- stat$ww[rws,]
       for (i in 1:nt) {
         seb2[,i] <- (n[i]-2)*seb2[,i]
       }
-      yy <- (b2 + seb2)*ww
+      yy <- (b2 + seb2)*stat$ww[rws,]
       yy <- colMeans(yy)
-      wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
-      if(any(is.na(wy))) stop("Missing values in wy")
+      
     }
 
     if(is.null(chr)) chromosomes <- 1:Glist$nchr
@@ -409,13 +411,12 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       bmchr <- NULL
       for (trait in 1:nt) {
         if(verbose) print( paste("Fit",methods[method+1], "on chromosome:",chr,"for trait",trait))
-        #LDvalues <- lapply(LD[[chr]]$values,function(x){x*n[trait]})
-        LDvalues <- LD[[chr]]$values
+        #LDvalues <- LD[[chr]]$values
         fit[[chr]] <- sbayes_sparse(yy=yy[trait], 
                                     wy=wy[rsidsLD,trait],
                                     ww=ww[rsidsLD,trait],
                                     b=b[rsidsLD,trait], 
-                                    LDvalues=LDvalues, 
+                                    LDvalues=LD[[chr]]$values, 
                                     LDindices=LD[[chr]]$indices, 
                                     method=method, 
                                     nit=nit, 
@@ -465,26 +466,26 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   if(analysis=="mt-blr-sumstat-sparse-ld") {
     
     # multiple trait summary statistics
+    
     nt <- ncol(stat$b)
     trait_names <- colnames(stat$b)
     if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
     rsidsLD <- unlist(Glist$rsidsLD)
-    if(is.null(stat$ww)) {
-      stat$ww <- 1/(stat$seb^2 + (stat$b^2)/stat$n)
-      rownames(stat$ww) <- rownames(stat$b)
-    }
-    if(is.null(stat$wy)) {
-      stat$wy <- stat$b*stat$n
-      rownames(stat$wy) <- rownames(stat$b)
-    }
     b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
     rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
     colnames(b) <- colnames(wy) <- colnames(ww) <- trait_names
     
     rws <- rownames(stat$b)%in%rsidsLD
-    if(!is.null(stat$dfe)) n <- as.integer(colMeans(stat$dfe[rws,])+2)
+    #if(is.null(stat$ww)) stat$ww <- 1/(stat$seb^2 + (stat$b^2)/stat$n)
+    #if(is.null(stat$wy)) stat$wy <- stat$b*stat$n
     if(!is.null(stat$n)) n <- as.integer(colMeans(stat$n[rws,]))
-
+    if(!is.null(stat$ww)) ww[rownames(stat$ww[rws,]),] <- stat$ww[rws,]
+    if(is.null(stat$ww)) ww[rownames(stat$n[rws,]),] <- stat$n[rws,]
+    if(!is.null(stat$wy)) wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
+    if(is.null(stat$wy)) wy[rownames(stat$b[rws,]),] <- stat$b[rws,]*stat$n[rws,]
+    if(any(is.na(wy))) stop("Missing values in wy")
+    if(any(is.na(ww))) stop("Missing values in ww")
+    
     b2 <- (stat$b[rws,])^2
     seb2 <- (stat$seb[rws,])^2
     for (i in 1:nt) {
@@ -492,12 +493,6 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     }
     yy <- (b2 + seb2)*stat$ww[rws,]
     yy <- colMeans(yy)
-    
-    wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
-    ww[rownames(stat$ww[rws,]),] <- stat$ww[rws,]
-    
-    if(any(is.na(wy))) stop("Missing values in wy")
-    if(any(is.na(ww))) stop("Missing values in ww")
     
     if(is.null(chr)) chromosomes <- 1:Glist$nchr
     if(!is.null(chr)) chromosomes <- chr
@@ -575,18 +570,27 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   if(!is.null(ids) & !is.null(rownames(W))) {
     if(any(is.na(match(ids,rownames(W))))) stop("Names/rownames for y does match rownames for W")
   }
+  vy <- var(y)
   if(is.null(pi)) pi <- 0.001
   if(is.null(h2)) h2 <- 0.5
-  e=y-mean(y)
-  if(is.null(ve)) ve <- var(e)
-  if(method<4 && is.null(vb)) vb <- (ve*h2)/m
-  if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+  if(is.null(ve)) ve <- vy*(1-h2)
+  if(is.null(vg)) vg <- vy*h2
+  if(method<4 && is.null(vb)) vb <- vg/m
+  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
   if(is.null(lambda)) lambda <- rep(ve/vb,m)
-  if(is.null(vg)) vg <- ve*h2
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
-  if(is.null(sse_prior)) sse_prior <- nue*ve
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
   if(is.null(b)) b <- rep(0,m)
+  
+  print(h2)
+  print(vy)
+  print(vb)
+  print(vg)
+  print(ve)
+  print(ssb_prior)
+  print(sse_prior)
+  print(pi)
   
   if(algorithm=="default") {
     fit <- .Call("_qgg_bayes",
@@ -609,9 +613,11 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
                  method=as.integer(method)) 
     ids <- rownames(W)
     names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[10]]) <- colnames(W)
-    fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
-    names(fit[[7]]) <- names(fit[[8]]) <- ids
-    names(fit) <- c("bm","dm","coef","vb","ve","pi","g","e","param","b")
+    #fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
+    #names(fit[[7]]) <- names(fit[[8]]) <- ids
+    names(fit[[8]]) <- ids
+    #names(fit) <- c("bm","dm","coef","vb","ve","pi","g","e","param","b")
+    names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pi","g","param","b")
   } 
   return(fit)
 }
@@ -650,7 +656,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   if(is.null(vg)) vg <- ve*h2
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
-  if(is.null(sse_prior)) sse_prior <- nue*ve
+  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
   if(is.null(b)) b <- rep(0,m)
   
   fit <- .Call("_qgg_sbayes",
@@ -676,7 +682,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
   names(fit[[1]]) <- rownames(LD)
   if(!is.null(W)) fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
   names(fit[[7]]) <- ids
-  names(fit) <- c("bm","dm","coef","vb","ve","pi","g","e","param","b")
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pi","r","param","b")
   
   return(fit)
   
@@ -690,6 +696,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                           nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
+
   m <- length(LDvalues)
   vy <- yy/(n-1)
   if(is.null(pi)) pi <- 0.001
@@ -700,17 +707,18 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
   if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
   if(is.null(lambda)) lambda <- rep(ve/vb,m)
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
-  if(is.null(sse_prior)) sse_prior <- nue*ve
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
   if(is.null(b)) b <- rep(0,m)
   
-  #if(verbose) {
-    message("Starting values")
-    message(paste("Ve:",ve))
-    message(paste("Vg:",vg))
-    message(paste("Vb:",vb))
-    message(paste("Pi:",pi))
-  #}
+  print(h2)
+  print(vy)
+  print(vb)
+  print(vg)
+  print(ve)
+  print(ssb_prior)
+  print(sse_prior)
+  print(pi)
   
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy, 
@@ -735,7 +743,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
                nit=nit,
                method=as.integer(method))
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","coef","vb","ve","pi","g","e","param","b")
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pi","r","param","b")
   return(fit)
 }
 
@@ -779,30 +787,14 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
   
   vy <- diag(yy/(n-1),nt)
   if(is.null(h2)) h2 <- 0.5
+  if(is.null(vg)) vg <- diag(diag(vy)*h2)
   if(is.null(ve)) ve <- diag(diag(vy)*(1-h2))
   if(method<4 && is.null(vb)) vb <- diag((diag(vy)*h2)/m)
   if(method>=4 && is.null(vb)) vb <- diag((diag(vy)*h2)/(m*pi[length(models)]))
-  if(is.null(vg)) vg <- diag(diag(vy)*h2)
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/m))
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi[length(models)])))
   if(is.null(sse_prior)) sse_prior <- diag(((nue-2.0)/nue)*diag(ve))
-  
 
-  # if(is.null(h2)) h2 <- 0.5
-  # if(is.null(ve)) ve <- vy*h2
-  # if(method<4 && is.null(vb)) vb <- diag(h2/m,nt)
-  # if(method>=4 && is.null(vb)) vb <- diag(h2/(m*pi[length(models)]),nt)
-  # if(is.null(vg)) vg <- diag(diag(ve))*h2
-  # if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  # if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*0.001)
-  # if(is.null(sse_prior)) sse_prior <- nue*diag(diag(ve))
-  # 
-  # if(verbose) print( paste("Starting parameter ve:",ve))
-  # if(verbose) print( paste("Starting parameter vg:",vg))
-  # if(verbose) print( paste("Starting parameter vb:",vb))
-  # if(verbose) print( paste("Starting parameter sse_prior:",sse_prior))
-  #if(verbose) print( paste("Starting parameter ssb_prior:",ssb_prior))
-  
   fit <- .Call("_qgg_mtsbayes",
                wy=split(wy, rep(1:ncol(wy), each = nrow(wy))),
                ww=split(ww, rep(1:ncol(ww), each = nrow(ww))),
@@ -923,14 +915,6 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi[length(models)])))
   if(is.null(sse_prior)) sse_prior <- diag(((nue-2.0)/nue)*diag(ve))
 
-  if(verbose) print( paste("Starting parameter ve:",ve))
-  if(verbose) print( paste("Starting parameter vg:",vg))
-  if(verbose) print( paste("Starting parameter vb:",vb))
-  if(verbose) print( paste("Starting parameter sse_prior:",sse_prior))
-  if(verbose) print( paste("Starting parameter ssg_prior:",sse_prior))
-  if(verbose) print( paste("Starting parameter ssb_prior:",sse_prior))
-  
-    
   fit <- .Call("_qgg_mtbayes",
                y=y, 
                W=split(W, rep(1:ncol(W), each = nrow(W))), 
@@ -980,6 +964,7 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
   }
   names(fit[[1]]) <- trait_names
   names(fit[[2]]) <- trait_names
+  names(fit[[3]]) <- trait_names
   names(fit[[4]]) <- trait_names
   names(fit[[5]]) <- trait_names
   names(fit[[8]]) <- trait_names
@@ -993,6 +978,13 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL
                   "gm","rb","re","covg","rg")
   fit$bm <- as.matrix(as.data.frame(fit$bm))
   fit$dm <- as.matrix(as.data.frame(fit$dm))
+  fit$mus <- as.data.frame(fit$mus)
+  fit$vbs <- as.data.frame(fit$vbs)
+  fit$ves <- as.data.frame(fit$ves)
+  fit$g <- as.data.frame(fit$g)
+  fit$e <- as.data.frame(fit$e)
+  fit$b <- as.data.frame(fit$b)
+  fit$gm <- as.data.frame(fit$gm)
   return(fit)
   
 }
