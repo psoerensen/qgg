@@ -70,8 +70,8 @@ gsim <- function(nt=1,W=NULL,n=1000,m=1000) {
   set0 <- sample(1:ncol(W),2)
   set1 <- b1 <- g1 <- vector(length=nt,mode="list")
   g <- NULL
+  b0 <- sample(c(0.25,-0.25,0.5,-0.5),2)
   for (i in 1:nt){
-    b0 <- sample(c(0.25,-0.25,0.5,-0.5),2)
     g0 <- W[,set0]%*%b0
     set1[[i]] <- sample(1:ncol(W),2)
     b1[[i]] <- sample(c(0.25,-0.25,0.5,-0.5),length(set1[[i]]))
