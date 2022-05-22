@@ -30,7 +30,6 @@ arma::mat mvrnorm(arma::mat sigma) {
 //   return mu + Y * arma::chol(sigma);
 // }
 
-
 // // [[Rcpp::export]]
 // arma::mat rinvwish(int v, arma::mat S){
 //   RNGScope scope;
@@ -112,6 +111,16 @@ arma::mat riwishart(unsigned int df, const arma::mat& S){
 //  return R::sample.int(cats,1,false,probs);
 //}
 
+// [[Rcpp::export]]
+int rcat(arma::rowvec probs) {
+  int k = probs.n_elem;
+  double probs_sum = accu(probs);
+  probs = probs/probs_sum;
+  Rcpp::IntegerVector ans(k);
+  rmultinom(1, probs.begin(), k, ans.begin());
+  int max = which_max(ans);
+  return(max);
+}
 // [[Rcpp::export]]
 std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vector<double>> y,
                                                           std::vector<std::vector<double>> W,
@@ -239,7 +248,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
         for ( int t = 0; t < nt; t++) {
           rhs[t] = 0.0;
           for ( int j = 0; j < n; j++) {
-            rhs[t] = rhs[t] + W[i][j]*e[t][j]; 
+            rhs[t] = rhs[t] + Ei(t,t)*W[i][j]*e[t][j]; 
           }
           rhs[t] = Ei(t,t)*rhs[t] + Ei(t,t)*ww[t][i]*b[t][i];
         }
@@ -306,6 +315,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
                 loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 if(t1!=t2) {
                   loglik[k] = loglik[k] + 0.5*rhs[t2]*rhs[t1]*Ci(t2,t1);
+                  loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 }
               }
             }
@@ -348,10 +358,9 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
         }
         arma::mat Ci = arma::inv(C);
         arma::mat mub = mvrnorm(Ci);
-        
         for ( int t1 = 0; t1 < nt; t1++) {
           if(models[mselect][t1]!=1) {
-            mub(0,t1) = 0.0;
+            mub(0,t1) = 0.0;  
           } 
           for ( int t2 = 0; t2 < nt; t2++) {
             if(models[mselect][t2]==1) {
@@ -406,7 +415,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
                 dfb = dfb + 1.0;
               }
             }
-            Sb(t1,t1) = ssb + ssb_prior[t1][t1];
+            Sb(t1,t1) = ssb + nub*ssb_prior[t1][t1];
           } 
           if (t1!=t2) {
             for (int i=0; i < m; i++) {
@@ -414,8 +423,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
                 ssb = ssb + b[t1][i]*b[t2][i];  
               }
             }
-            Sb(t1,t2) = ssb + ssb_prior[t1][t2];
-            Sb(t2,t1) = ssb + ssb_prior[t2][t1];
+            Sb(t1,t2) = ssb + nub*ssb_prior[t1][t2];
+            Sb(t2,t1) = ssb + nub*ssb_prior[t2][t1];
           } 
         }
       }
@@ -442,7 +451,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           for ( int j = 0; j < n; j++) {
             sse = sse + e[t1][j]*e[t2][j];
           }
-          Se(t1,t2) = sse + sse_prior[t1][t2];
+          Se(t1,t2) = sse + nue*sse_prior[t1][t2];
           if (t1!=t2) {
             Se(t1,t2) = Se(t2,t1);
           }
@@ -653,6 +662,9 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   arma::mat Bi = arma::inv(B);
   arma::mat Ei = arma::inv(E);
   
+  arma::rowvec probs(nmodels, fill::zeros);
+  
+  
   
   // Start Gibbs sampler
   std::random_device rd;
@@ -669,12 +681,13 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     if (method==1) {
       for ( int i = 0; i < m; i++) {
         for ( int t = 0; t < nt; t++) {
-          rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
+          //rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
+          rhs[t] = r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
         }
         for ( int t = 0; t < nt; t++) { 
           d[t][i] = 1;
         }
-        arma::mat C(nt,nt, fill::zeros);
+        arma::mat C = Bi;
         for ( int t1 = 0; t1 < nt; t1++) {
           for ( int t2 = t1; t2 < nt; t2++) {
             C(t1,t2) = Bi(t1,t2);
@@ -712,7 +725,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         
         // compute rhs
         for ( int t = 0; t < nt; t++) {
-          rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
+          //rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
+          rhs[t] = r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
         }
         
         // Compute 
@@ -732,6 +746,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
                 loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 if(t1!=t2) {
                   loglik[k] = loglik[k] + 0.5*rhs[t2]*rhs[t1]*Ci(t2,t1);
+                  loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 }
               }
             }
@@ -754,21 +769,24 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         mselect=0;
         cumprobc = 0.0;
         
-        std::iota(morder.begin(), morder.end(), 0);
-        std::sort(  std::begin(morder), 
-                    std::end(morder),
-                    [&](int i1, int i2) { return pmodel[i1] > pmodel[i2]; } );
+        //std::iota(morder.begin(), morder.end(), 0);
+        //std::sort(  std::begin(morder), 
+        //            std::end(morder),
+        //            [&](int i1, int i2) { return pmodel[i1] > pmodel[i2]; } );
         
         for (int k = 0; k<nmodels ; k++) {
-          //cumprobc += pmodel[k];
-          cumprobc += pmodel[morder[k]];
+          cumprobc += pmodel[k];
+          //cumprobc += pmodel[morder[k]];
           if(u < cumprobc){
-            //mselect = k;
-            mselect = morder[k];
+            mselect = k;
+            //mselect = morder[k];
             break;
           }
         }
-        //mselect = rcat(cats, pmodels);
+        //for (int k = 0; k<nmodels ; k++) {
+        //  probs(k) = pmodel[k];
+        //}  
+        //mselect = rcat(probs);
         cmodel[mselect] = cmodel[mselect] + 1.0; 
         for ( int t = 0; t < nt; t++) { 
           d[t][i] = models[mselect][t];
@@ -784,13 +802,17 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         arma::mat Ci = arma::inv(C);
         arma::mat mub = mvrnorm(Ci);
         for ( int t1 = 0; t1 < nt; t1++) {
-          mub(0,t1) = 0.0;
+          if(models[mselect][t1]!=1) {
+            mub(0,t1) = 0.0;
+          } 
           for ( int t2 = 0; t2 < nt; t2++) {
             if(models[mselect][t2]==1) {
               mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
+              //mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
             }
           }
         } 
+
         
         // Adjust residuals based on sample marker effects
         for ( int t = 0; t < nt; t++) {
@@ -823,6 +845,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       std::fill(cmodel.begin(), cmodel.end(), 1.0);
     }
     
+    
     // Sample marker variance
     if(updateB) {
       arma::mat Sb(nt,nt, fill::zeros);
@@ -837,7 +860,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
                 dfb = dfb + 1.0;
               }
             }
-            Sb(t1,t1) = ssb + ssb_prior[t1][t1];
+            Sb(t1,t1) = ssb + nub*ssb_prior[t1][t1];
           } 
           if (t1!=t2) {
             for (int i=0; i < m; i++) {
@@ -845,8 +868,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
                 ssb = ssb + b[t1][i]*b[t2][i];  
               }
             }
-            Sb(t1,t2) = ssb + ssb_prior[t1][t2];
-            Sb(t2,t1) = ssb + ssb_prior[t2][t1];
+            Sb(t1,t2) = ssb + nub*ssb_prior[t1][t2];
+            Sb(t2,t1) = ssb + nub*ssb_prior[t2][t1];
           } 
         }
       }
@@ -873,7 +896,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           sse = sse + b[t1][i] * (r[t1][i] + wy[t1][i]);
         }
         sse = yy[t1] - sse;
-        Se(t1,t1) = sse + sse_prior[t1][t1];
+        Se(t1,t1) = sse + nue*sse_prior[t1][t1];
       }
       int dfSe = n[0] + nue;
       arma::mat E = riwishart(dfSe, Se);
