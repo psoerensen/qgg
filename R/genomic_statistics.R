@@ -480,6 +480,7 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
 getStat <- function(stat=NULL, cls=NULL, rws=NULL) {
   if(is.null(rws)) rws <- 1:nrow(stat[[1]])
   for(i in 1:7) { stat[[i]] <- stat[[i]][rws,cls] }
+  if(length(cls)==1)  stat <- as.data.frame(stat[1:7], stringsAsFactors=FALSE)
   return(stat)
 }
 
