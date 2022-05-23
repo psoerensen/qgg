@@ -359,8 +359,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       
       b2 <- stat$b^2
       seb2 <- stat$seb^2
-      yy <- (b2 + (n-2)*seb2)*ww[rownames(stat),]
-      #yy <- (b2 + (n-2)*seb2)*stat$ww
+      #yy <- (b2 + (n-2)*seb2)*ww[rownames(stat),]
+      yy <- (b2 + (n-2)*seb2)*stat$ww
       yy <- mean(yy)
     }
     
@@ -391,8 +391,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       for (i in 1:nt) {
         seb2[,i] <- (n[i]-2)*seb2[,i]
       }
-      yy <- (b2 + (n-2)*seb2)*ww[rownames(stat),]
-      #yy <- (b2 + seb2)*stat$ww[rws,]
+      #yy <- (b2 + (n-2)*seb2)*ww[rownames(stat),]
+      yy <- (b2 + seb2)*stat$ww[rws,]
       yy <- colMeans(yy)
       
     }
