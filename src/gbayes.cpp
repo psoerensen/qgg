@@ -84,8 +84,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   std::fill(vgs.begin(), vgs.end(), 0.0);
   std::fill(ves.begin(), ves.end(), 0.0);
   std::fill(pis.begin(), pis.end(), 0.0);
-  std::fill(vbi.begin(), vbi.end(), 0.0);
-  
+
   
   // Initialize variables
   for (int i = 0; i < m; i++) {
@@ -95,7 +94,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     }
     x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
     mask[i]=1;
-    //vbi[i]=vb/(double)m;
+    vbi[i]=vb;
   }
   
   nug=nub;
@@ -790,24 +789,23 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   std::vector<double> x2(m),vadj(m),vbi(m);
   std::vector<int> order(m);
-
+  
+  
+  // Initialize variables
+  for ( int i = 0; i < m; i++) {
+    mask[i]=1;
+    vbi[i]=vb;
+    r[i] = wy[i];
+    x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
+    if(wy[i]==0.0) mask[i]=0;
+  }
+  
   std::fill(bm.begin(), bm.end(), 0.0);
   std::fill(dm.begin(), dm.end(), 0.0);
   std::fill(vbs.begin(), vbs.end(), 0.0);
   std::fill(vgs.begin(), vgs.end(), 0.0);
   std::fill(ves.begin(), ves.end(), 0.0);
   std::fill(pis.begin(), pis.end(), 0.0);
-  std::fill(vbi.begin(), vbi.end(), 0.0);
-  
-  
-  // Initialize variables
-  for ( int i = 0; i < m; i++) {
-    mask[i]=1;
-    r[i] = wy[i];
-    x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
-    if(wy[i]==0.0) mask[i]=0;
-  }
-  
 
   // adjust sparseld
   for ( int i = 0; i < m; i++) {
