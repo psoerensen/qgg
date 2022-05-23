@@ -84,6 +84,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   std::fill(vgs.begin(), vgs.end(), 0.0);
   std::fill(ves.begin(), ves.end(), 0.0);
   std::fill(pis.begin(), pis.end(), 0.0);
+  std::fill(vbi.begin(), vbi.end(), 0.0);
   
   
   // Initialize variables
@@ -94,7 +95,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     }
     x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
     mask[i]=1;
-    vbi[i]=vb/(double)m;
+    //vbi[i]=vb/(double)m;
   }
   
   nug=nub;
@@ -165,6 +166,10 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
+        ssb = b[i]*b[i];
+        std::chi_squared_distribution<double> rchisq(dfb);
+        chi2 = rchisq(gen);
+        vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
         rhs = 0.0;
         for ( int j = 0; j < n; j++) {
           rhs = rhs + W[i][j]*e[j];
@@ -178,10 +183,10 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
           e[j]=e[j] - W[i][j]*(diff);
         }
         b[i] = bn;
-        ssb = b[i]*b[i];
-        std::chi_squared_distribution<double> rchisq(dfb);
-        chi2 = rchisq(gen);
-        vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
+        // ssb = b[i]*b[i];
+        // std::chi_squared_distribution<double> rchisq(dfb);
+        // chi2 = rchisq(gen);
+        // vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
       }
     }
     
@@ -785,24 +790,25 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   std::vector<double> x2(m),vadj(m),vbi(m);
   std::vector<int> order(m);
-  
-  
-  // Initialize variables
-  for ( int i = 0; i < m; i++) {
-    mask[i]=1;
-    vbi[i]=vb/(double)m;
-    r[i] = wy[i];
-    x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
-    if(wy[i]==0.0) mask[i]=0;
-  }
-  
+
   std::fill(bm.begin(), bm.end(), 0.0);
   std::fill(dm.begin(), dm.end(), 0.0);
   std::fill(vbs.begin(), vbs.end(), 0.0);
   std::fill(vgs.begin(), vgs.end(), 0.0);
   std::fill(ves.begin(), ves.end(), 0.0);
   std::fill(pis.begin(), pis.end(), 0.0);
+  std::fill(vbi.begin(), vbi.end(), 0.0);
   
+  
+  // Initialize variables
+  for ( int i = 0; i < m; i++) {
+    mask[i]=1;
+    r[i] = wy[i];
+    x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
+    if(wy[i]==0.0) mask[i]=0;
+  }
+  
+
   // adjust sparseld
   for ( int i = 0; i < m; i++) {
     vadj[i] = ((double)m-(double)LDindices[i].size())/(double)m;
@@ -902,6 +908,10 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
+        ssb = b[i]*b[i];
+        std::chi_squared_distribution<double> rchisq(dfb);
+        chi2 = rchisq(gen);
+        vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
         lhs = ww[i] + vei[i]/vbi[i];
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
@@ -911,10 +921,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
         b[i] = bn;
-        ssb = b[i]*b[i];
-        std::chi_squared_distribution<double> rchisq(dfb);
-        chi2 = rchisq(gen);
-        vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
       }
     }
 
