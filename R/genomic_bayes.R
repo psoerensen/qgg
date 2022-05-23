@@ -527,6 +527,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                      updateB=updateB,
                                      updateE=updateE,
                                      updatePi=updatePi,
+                                     models=models,
                                      method=method,
                                      verbose=verbose)
       res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
