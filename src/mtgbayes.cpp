@@ -250,7 +250,8 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           for ( int j = 0; j < n; j++) {
             rhs[t] = rhs[t] + Ei(t,t)*W[i][j]*e[t][j]; 
           }
-          rhs[t] = Ei(t,t)*rhs[t] + Ei(t,t)*ww[t][i]*b[t][i];
+          //rhs[t] = Ei(t,t)*rhs[t] + Ei(t,t)*ww[t][i]*b[t][i];
+          rhs[t] = rhs[t] + Ei(t,t)*ww[t][i]*b[t][i];
         }
         
         for ( int t = 0; t < nt; t++) { 
@@ -315,7 +316,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
                 loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 if(t1!=t2) {
                   loglik[k] = loglik[k] + 0.5*rhs[t2]*rhs[t1]*Ci(t2,t1);
-                  loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
+                  //loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 }
               }
             }
@@ -681,8 +682,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     if (method==1) {
       for ( int i = 0; i < m; i++) {
         for ( int t = 0; t < nt; t++) {
-          //rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
-          rhs[t] = r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
+          rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
+          //rhs[t] = r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
         }
         for ( int t = 0; t < nt; t++) { 
           d[t][i] = 1;
@@ -725,8 +726,9 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         
         // compute rhs
         for ( int t = 0; t < nt; t++) {
-          //rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
-          rhs[t] = r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
+          //rhs[t] = r[t][i] + ww[t][i]*b[t][i];
+          rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
+          //rhs[t] = r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
         }
         
         // Compute 
@@ -746,7 +748,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
                 loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 if(t1!=t2) {
                   loglik[k] = loglik[k] + 0.5*rhs[t2]*rhs[t1]*Ci(t2,t1);
-                  loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
+                  //loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 }
               }
             }
@@ -769,24 +771,13 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         mselect=0;
         cumprobc = 0.0;
         
-        //std::iota(morder.begin(), morder.end(), 0);
-        //std::sort(  std::begin(morder), 
-        //            std::end(morder),
-        //            [&](int i1, int i2) { return pmodel[i1] > pmodel[i2]; } );
-        
         for (int k = 0; k<nmodels ; k++) {
           cumprobc += pmodel[k];
-          //cumprobc += pmodel[morder[k]];
           if(u < cumprobc){
             mselect = k;
-            //mselect = morder[k];
             break;
           }
         }
-        //for (int k = 0; k<nmodels ; k++) {
-        //  probs(k) = pmodel[k];
-        //}  
-        //mselect = rcat(probs);
         cmodel[mselect] = cmodel[mselect] + 1.0; 
         for ( int t = 0; t < nt; t++) { 
           d[t][i] = models[mselect][t];
@@ -808,7 +799,6 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           for ( int t2 = 0; t2 < nt; t2++) {
             if(models[mselect][t2]==1) {
               mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
-              //mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
             }
           }
         } 
