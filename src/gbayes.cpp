@@ -866,7 +866,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        vei[i] = vadj[i]*vg + ve;
+        //vei[i] = vadj[i]*vg + ve;
         lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         bn = rhs/lhs;
@@ -883,7 +883,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        vei[i] = vadj[i]*vg + ve;
+        //vei[i] = vadj[i]*vg + ve;
         lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
@@ -1167,7 +1167,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       ve = (sse + sse_prior*nue)/chi2 ;
       for ( int i = 0; i < m; i++) {
         vei[i] = vadj[i]*vg + ve;
-        //vei[i] = ve;
       }
       ves[it] = ve;
     }
@@ -1182,12 +1181,14 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     std::chi_squared_distribution<double> rchisq(dfg);
     chi2 = rchisq(gen);
     vg = (ssg + ssg_prior*nug)/chi2;
-    vg = ssg/(n-1.0);
+    dfg = (double)n - 1.0;
+    vg = ssg/dfg;
     vgs[it] = vg;
-    for ( int i = 0; i < m; i++) {
-       vei[i] = vadj[i]*vg + ve;
+    if(method>3) {
+      for ( int i = 0; i < m; i++) {
+        vei[i] = vadj[i]*vg + ve;
+      }
     }
-    
   }
   
   // Summarize results
