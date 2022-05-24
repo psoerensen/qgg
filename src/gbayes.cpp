@@ -1200,10 +1200,10 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     //std::chi_squared_distribution<double> rchisq(dfg);
     //chi2 = rchisq(gen);
     //vg = (ssg + ssg_prior*nug)/chi2;
+    dfg = (double)n - 1.0;
+    vgs[it] = ssg/dfg;
     if(updateG) {
-      dfg = (double)n - 1.0;
       vg = ssg/dfg;
-      vgs[it] = vg;
     }
     if(adjustE) {
       for ( int i = 0; i < m; i++) {
