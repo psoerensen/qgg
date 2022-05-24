@@ -878,9 +878,13 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         bn = rhs/lhs;
-        diff = (bn-b[i])*ww[i];
+        // diff = (bn-b[i])*ww[i];
+        // for (size_t j = 0; j < LDindices[i].size(); j++) {
+        //   r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+        // }
+        diff = (bn-b[i])*std::sqrt(ww[i]);
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
         }
         b[i] = bn;
       }
@@ -896,9 +900,13 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
-        diff = (bn-b[i])*ww[i];
+        // diff = (bn-b[i])*ww[i];
+        // for (size_t j = 0; j < LDindices[i].size(); j++) {
+        //   r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+        // }
+        diff = (bn-b[i])*std::sqrt(ww[i]);
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
         }
         b[i] = bn;
       }
@@ -918,9 +926,13 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
-        diff = (bn-b[i])*ww[i];
+        // diff = (bn-b[i])*ww[i];
+        // for (size_t j = 0; j < LDindices[i].size(); j++) {
+        //   r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+        // }
+        diff = (bn-b[i])*std::sqrt(ww[i]);
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
         }
         b[i] = bn;
       }
@@ -936,12 +948,15 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
-        diff = (bn-b[i])*ww[i];
+        // diff = (bn-b[i])*ww[i];
+        // for (size_t j = 0; j < LDindices[i].size(); j++) {
+        //   r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+        // }
+        diff = (bn-b[i])*std::sqrt(ww[i]);
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
         }
         b[i] = bn;
-        
         mu_tau=sqrt(vei[i])*lambda[i]/std::abs(b[i]);
         lambda_tau=lambda2;  
         std::normal_distribution<double> norm(0.0, 1.0);
@@ -1033,12 +1048,18 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           //std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(1.0/lhs1));
           bn = rnorm(gen);
         } 
-        diff = (bn-b[i])*ww[i];
+        diff = (bn-b[i])*std::sqrt(ww[i]);
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[LDindices[i][j]] = r[LDindices[i][j]] - LDvalues[i][j]*diff;
+            r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
           }
         }
+        // diff = (bn-b[i])*ww[i];
+        // if(diff!=0.0) {
+        //   for (size_t j = 0; j < LDindices[i].size(); j++) {
+        //     r[LDindices[i][j]] = r[LDindices[i][j]] - LDvalues[i][j]*diff;
+        //   }
+        // }
         b[i] = bn;
       }
       
@@ -1104,10 +1125,10 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           //std::normal_distribution<double> rnorm(rhs/lhs, sqrt(1.0/lhs));
           bn = rnorm(gen);
         }
-        diff = (bn-b[i])*ww[i];
+        diff = (bn-b[i])*std::sqrt(ww[i]);
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[LDindices[i][j]] += -LDvalues[i][j]*diff;
+            r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
           }
         }
         b[i] = bn;
