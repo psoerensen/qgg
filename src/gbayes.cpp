@@ -992,23 +992,35 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         // version 1
-        rhs0 = 0.0;
+        //rhs0 = 0.0;
         //rhs1 = r[i] + ww[i]*b[i];
-        rhs1 = r[i] + ww[i]*b[i];
-        lhs0 = 1.0/vb;
-        lhs1 = ww[i]/vei[i] + 1.0/vb;
-        like0 = std::log(1.0/std::sqrt(lhs0)) + 0.5*(rhs0*rhs0)/lhs0 + std::log(1.0-pi); 
-        like1 = std::log(1.0/std::sqrt(lhs1)) + 0.5*(rhs1*rhs1)/lhs1 + std::log(pi); 
-        p0 = 1.0/(std::exp(like1 - like0) + 1.0);
+        //lhs0 = 1.0/vb;
+        //lhs1 = ww[i]/vei[i] + 1.0/vb;
+        //like0 = std::log(1.0/std::sqrt(lhs0)) + 0.5*(rhs0*rhs0)/lhs0 + std::log(1.0-pi); 
+        //like1 = std::log(1.0/std::sqrt(lhs1)) + 0.5*(rhs1*rhs1)/lhs1 + std::log(pi); 
+        //p0 = 1.0/(std::exp(like1 - like0) + 1.0);
         // version 2
-        // ri =r[i] + ww[i]*b[i];
-        // v0 = ww[i]*vei[i];
-        // v1 = ww[i]*vei[i] + ww[i]*ww[i]*vb;
-        // like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
-        // like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
-        // like0 = like0*(1.0-pi); 
-        // like1 = like1*pi;
+        //ri =r[i] + ww[i]*b[i];
+        //v0 = ww[i]*vei[i];
+        //v1 = ww[i]*vei[i] + ww[i]*ww[i]*vb;
+        //like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
+        //like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
+        //like0 = like0*(1.0-pi); 
+        //like1 = like1*pi;
         //p0 = like0/(like0+like1); 
+        
+        rhs = r[i] + ww[i]*b[i];
+        v0 = ww[i]*vei[i];
+        v1 = ww[i]*vei[i] + ww[i]*ww[i]*vb;
+        like0 = -0.5*std::log(v0) -0.5*((rhs*rhs)/v0) + std::log(1-pi);
+        like1 = -0.5*std::log(v1) -0.5*((rhs*rhs)/v1) + std::log(pi);
+        p0 = 1.0/(std::exp(like1 - like0) + 1.0);
+        //ri =r[i] + ww[i]*b[i];
+        //v0 = ww[i]*vei[i];
+        //v1 = ww[i]*vei[i] + ww[i]*ww[i]*vb;
+        //like0 = std::log(1.0/std::sqrt(v0)) + 0.5*(rhs0*rhs0)/v0 + std::log(1.0-pi); 
+        //like1 = std::log(1.0/std::sqrt(v1)) + 0.5*(rhs1*rhs1)/v1 + std::log(pi); 
+        //p0 = 1.0/(std::exp(like1 - like0) + 1.0);
         d[i]=0;
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
