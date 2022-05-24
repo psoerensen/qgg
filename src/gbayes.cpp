@@ -760,6 +760,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
                                               bool updateB,
                                               bool updateE,
                                               bool updatePi,
+                                              bool updateG,
+                                              bool adjustE,
                                               int n, 
                                               int nit,
                                               int method) {
@@ -809,8 +811,10 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
   // adjust sparseld
   for ( int i = 0; i < m; i++) {
-    vadj[i] = ((double)m-(double)LDindices[i].size())/(double)m;
-    //vadj[i] = 0.0;
+    vadj[i] = 0.0;
+    if(adjustE) {
+      vadj[i] = ((double)m-(double)LDindices[i].size())/(double)m;
+    }  
     vei[i] = vadj[i]*vg + ve;
   }
   
@@ -1058,7 +1062,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           v1 = ww[i]*vei[i] + ww[i]*ww[i]*vbc;
           logLc[j] = -0.5*std::log(v1) -0.5*((rhs*rhs)/v1) + std::log(pic[j]); 
         }
-        
         // variance class probability 
         std::fill(probc.begin(), probc.end(), 0.0);
         for (int j = 0; j<nc ; j++) {
@@ -1181,14 +1184,16 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     for ( int i = 0; i < m; i++) {
       ssg = ssg + b[i] * (wy[i] -  r[i]);
     }
-    dfg = (double)n + nug;
-    std::chi_squared_distribution<double> rchisq(dfg);
-    chi2 = rchisq(gen);
-    vg = (ssg + ssg_prior*nug)/chi2;
-    dfg = (double)n - 1.0;
-    vg = ssg/dfg;
-    vgs[it] = vg;
-    if(method>3) {
+    //dfg = (double)n + nug;
+    //std::chi_squared_distribution<double> rchisq(dfg);
+    //chi2 = rchisq(gen);
+    //vg = (ssg + ssg_prior*nug)/chi2;
+    if(updateG) {
+      dfg = (double)n - 1.0;
+      vg = ssg/dfg;
+      vgs[it] = vg;
+    }
+    if(adjustE) {
       for ( int i = 0; i < m; i++) {
         vei[i] = vadj[i]*vg + ve;
       }
