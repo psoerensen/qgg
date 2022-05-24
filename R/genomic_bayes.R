@@ -73,7 +73,7 @@
 gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit=NULL, Glist=NULL, 
                    chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
                    vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
-                   h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, models=NULL,
+                   h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
                    nug=4, nub=4, nue=4, verbose=FALSE,msize=100,
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
@@ -349,11 +349,11 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       trait_names <- "badj"     
       
       stat <- stat[rownames(stat)%in%rsidsLD,]
-      if(!is.null(stat$n)) n <- as.integer(mean(stat$n))
-      if(!is.null(stat$ww)) ww[rownames(stat),1] <-  stat$ww
-      if(is.null(stat$ww)) ww[rownames(stat),1] <- stat$n
-      if(!is.null(stat$wy)) wy[rownames(stat),1] <- stat$wy
-      if(is.null(stat$wy)) wy[rownames(stat),1] <- stat$b*stat$n
+      if(is.null(stat$ww)) stat$ww <- 1/(stat$seb^2 + stat$b/stat$n)
+      if(is.null(stat$wy)) stat$wy <- stat$b*stat$ww
+      if(!is.null(stat$n)) n <- as.integer(median(stat$n))
+      ww[rownames(stat),1] <-  stat$ww
+      wy[rownames(stat),1] <- stat$wy
       if(any(is.na(wy))) stop("Missing values in wy")
       if(any(is.na(ww))) stop("Missing values in ww")
       
@@ -361,7 +361,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       seb2 <- stat$seb^2
       #yy <- (b2 + (n-2)*seb2)*ww[rownames(stat),]
       yy <- (b2 + (n-2)*seb2)*stat$ww
-      yy <- mean(yy)
+      yy <- median(yy)
     }
     
     # multiple trait summary statistics
@@ -376,13 +376,11 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       colnames(b) <- colnames(wy) <- colnames(ww) <- trait_names
       
       rws <- rownames(stat$b)%in%rsidsLD
-      #if(is.null(stat$ww)) stat$ww <- 1/(stat$seb^2 + (stat$b^2)/stat$n)
-      #if(is.null(stat$wy)) stat$wy <- stat$b*stat$n
-      if(!is.null(stat$n)) n <- as.integer(colMeans(stat$n[rws,]))
-      if(!is.null(stat$ww)) ww[rownames(stat$ww[rws,]),] <- stat$ww[rws,]
-      if(is.null(stat$ww)) ww[rownames(stat$n[rws,]),] <- stat$n[rws,]
-      if(!is.null(stat$wy)) wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
-      if(is.null(stat$wy)) wy[rownames(stat$b[rws,]),] <- stat$b[rws,]*stat$n[rws,]
+      if(is.null(stat$ww)) stat$ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
+      if(is.null(stat$wy)) stat$wy <- stat$b*stat$ww
+      if(!is.null(stat$n)) n <- as.integer(apply(stat$n[rws,],2,median))
+      ww[rownames(stat$ww[rws,]),] <- stat$ww[rws,]
+      wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
       if(any(is.na(wy))) stop("Missing values in wy")
       if(any(is.na(ww))) stop("Missing values in ww")
       
@@ -391,9 +389,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       for (i in 1:nt) {
         seb2[,i] <- (n[i]-2)*seb2[,i]
       }
-      #yy <- (b2 + (n-2)*seb2)*ww[rownames(stat),]
-      yy <- (b2 + seb2)*stat$ww[rws,]
-      yy <- colMeans(yy)
+      yy <- (b2 + (n-2)*seb2)*stat$ww[rws,]
+      yy <- apply(yy,2,median)
       
     }
 
@@ -432,7 +429,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     ve=ve, 
                                     updateB=updateB, 
                                     updateE=updateE, 
-                                    updatePi=updatePi)
+                                    updatePi=updatePi,
+                                    updateG=updateG,
+                                    adjustE=adjustE)
         bmchr <- cbind(bmchr, fit[[chr]]$bm)
       }
       colnames(bmchr) <- trait_names
@@ -697,7 +696,8 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
                           LDvalues=NULL,LDindices=NULL, n=NULL,
                           vg=NULL, vb=NULL, ve=NULL, 
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
-                          h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
+                          h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, 
+                          updateG=NULL, adjustE=NULL, models=NULL,
                           nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
 
   m <- length(LDvalues)
@@ -742,6 +742,8 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
                updateB = updateB,
                updateE = updateE,
                updatePi = updatePi,
+               updateG = updateG,
+               adjustE = adjustE,
                n=n,
                nit=nit,
                method=as.integer(method))
