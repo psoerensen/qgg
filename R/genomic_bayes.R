@@ -716,7 +716,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
   
   pi <- c(1-pi,pi)
   gamma <- c(0,1.0)
-  if(method==5) pi <- c(0.995,0.02,0.02,0.01)
+  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
   if(method==5) gamma <- c(0,0.01,0.1,1.0)
   
   print(h2)
