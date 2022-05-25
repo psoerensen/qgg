@@ -714,6 +714,11 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
   if(is.null(b)) b <- rep(0,m)
   
+  pi <- c(1-pi,pi)
+  gamma <- c(0,1.0)
+  if(method==5) pi <- c(0.995,0.02,0.02,0.01)
+  if(method==5) gamma <- c(0,0.01,0.1,1.0)
+  
   print(h2)
   print(vy)
   print(vb)
@@ -722,6 +727,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
   print(ssb_prior)
   print(sse_prior)
   print(pi)
+  print(gamma)
   
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy, 
@@ -732,6 +738,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
                lambda = lambda,
                yy = yy,
                pi = pi,
+               gamma = gamma,
                vg = vg,
                vb = vb,
                ve = ve,
@@ -748,7 +755,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
                nit=nit,
                method=as.integer(method))
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pi","r","param","b")
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pim","r","b","d","param")
   return(fit)
 }
 
