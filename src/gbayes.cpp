@@ -749,7 +749,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
                                               std::vector<double> b, 
                                               std::vector<double> lambda, 
                                               double yy, 
-                                              double pi, 
+                                              std::vector<double> pi, 
+                                              std::vector<double> gamma, 
                                               double vg, 
                                               double vb, 
                                               double ve,
@@ -768,7 +769,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   // Define local variables
   int m = b.size();
-  int nc=4;
+  int nc = pi.size();
   
   double rhs, lhs, bn, conv, diff;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1, v0, v1, ri, ldV, bhat;
@@ -777,7 +778,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin, vy;
   double shape, shape0, rate, rate0, lambda0, lambda2;
   
-  std::vector<double> vbscale(nc), pic(nc), probc(nc), logLc(nc);
+  std::vector<double> vbscale(nc), pic(nc), picm(nc), probc(nc), logLc(nc);
   double cumprobc, vbc, logLcAdj;
   
   
@@ -808,7 +809,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   std::fill(vgs.begin(), vgs.end(), 0.0);
   std::fill(ves.begin(), ves.end(), 0.0);
   std::fill(pis.begin(), pis.end(), 0.0);
-
+  std::fill(picm.begin(), picm.end(), 0.0);
+  
   // adjust sparseld
   for ( int i = 0; i < m; i++) {
     vadj[i] = 0.0;
@@ -832,32 +834,33 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       lambda[i] = sqrt(lambda2); 
     }
   }
-  vbscale[0]=0.0;
-  vbscale[1]=0.01;
-  vbscale[2]=0.1;
-  vbscale[3]=1.0;
-  pic[0]=0.995;
-  pic[1]=0.002;
-  pic[2]=0.002;
-  pic[3]=0.001;
+  for ( int i = 0; i < nc; i++) {
+    vbscale[i]=gamma[i];
+    pic[i]=pi[i];
+  }
 
-  Rcpp::Rcout << "Method: "<< method << std::endl;
-  
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
   std::sort(  std::begin(order), 
               std::end(order),
               [&](int i1, int i2) { return x2[i1] > x2[i2]; } );
-  
-  // Wy - W'Wb
+
+  // Adjust LD values
   for ( int i = 0; i < m; i++) {
-    if (b[i]!= 0.0) {
-      diff = b[i]*ww[i];
-      for (size_t j = 0; j < LDindices[i].size(); j++) {
-        r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
-      }
+    for (size_t j = 0; j < LDindices[i].size(); j++) {
+      LDvalues[i][j] = LDvalues[i][j]*std::sqrt(ww[i])*std::sqrt(ww[LDindices[i][j]]);
     }
   }
+  
+  // // Wy - W'Wb
+  // for ( int i = 0; i < m; i++) {
+  //   if (b[i]!= 0.0) {
+  //     diff = b[i]*ww[i];
+  //     for (size_t j = 0; j < LDindices[i].size(); j++) {
+  //       r[LDindices[i][j]]=r[LDindices[i][j]] - LDvalues[i][j]*diff;
+  //     }
+  //   }
+  // }
   
 
   // Start Gibbs sampler
@@ -874,17 +877,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        //vei[i] = vadj[i]*vg + ve;
         lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         bn = rhs/lhs;
-        // diff = (bn-b[i])*ww[i];
-        // for (size_t j = 0; j < LDindices[i].size(); j++) {
-        //   r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-        // }
-        diff = (bn-b[i])*std::sqrt(ww[i]);
+        diff = (bn-b[i]);
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
         b[i] = bn;
       }
@@ -895,18 +893,13 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        //vei[i] = vadj[i]*vg + ve;
         lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
-        // diff = (bn-b[i])*ww[i];
-        // for (size_t j = 0; j < LDindices[i].size(); j++) {
-        //   r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-        // }
-        diff = (bn-b[i])*std::sqrt(ww[i]);
+        diff = (bn-b[i]);
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
         b[i] = bn;
       }
@@ -926,13 +919,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
-        // diff = (bn-b[i])*ww[i];
-        // for (size_t j = 0; j < LDindices[i].size(); j++) {
-        //   r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-        // }
-        diff = (bn-b[i])*std::sqrt(ww[i]);
+        diff = (bn-b[i]);
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
         b[i] = bn;
       }
@@ -948,13 +937,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
-        // diff = (bn-b[i])*ww[i];
-        // for (size_t j = 0; j < LDindices[i].size(); j++) {
-        //   r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-        // }
-        diff = (bn-b[i])*std::sqrt(ww[i]);
+        diff = (bn-b[i]);
         for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
+          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
         b[i] = bn;
         mu_tau=sqrt(vei[i])*lambda[i]/std::abs(b[i]);
@@ -1015,27 +1000,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         //like1 = std::log(1.0/std::sqrt(lhs1)) + 0.5*(rhs1*rhs1)/lhs1 + std::log(pi); 
         //p0 = 1.0/(std::exp(like1 - like0) + 1.0);
         // version 2
-        //ri =r[i] + ww[i]*b[i];
-        //v0 = ww[i]*vei[i];
-        //v1 = ww[i]*vei[i] + ww[i]*ww[i]*vb;
-        //like0 = sqrt((1.0/v0))*std::exp(-0.5*((ri*ri)/v0));
-        //like1 = sqrt((1.0/v1))*std::exp(-0.5*((ri*ri)/v1));
-        //like0 = like0*(1.0-pi); 
-        //like1 = like1*pi;
-        //p0 = like0/(like0+like1); 
-        
         rhs = r[i] + ww[i]*b[i];
         v0 = ww[i]*vei[i];
         v1 = ww[i]*vei[i] + ww[i]*ww[i]*vb;
-        like0 = -0.5*std::log(v0) -0.5*((rhs*rhs)/v0) + std::log(1-pi);
-        like1 = -0.5*std::log(v1) -0.5*((rhs*rhs)/v1) + std::log(pi);
+        like0 = -0.5*std::log(v0) -0.5*((rhs*rhs)/v0) + std::log(pic[0]);
+        like1 = -0.5*std::log(v1) -0.5*((rhs*rhs)/v1) + std::log(pic[1]);
         p0 = 1.0/(std::exp(like1 - like0) + 1.0);
-        //ri =r[i] + ww[i]*b[i];
-        //v0 = ww[i]*vei[i];
-        //v1 = ww[i]*vei[i] + ww[i]*ww[i]*vb;
-        //like0 = std::log(1.0/std::sqrt(v0)) + 0.5*(rhs0*rhs0)/v0 + std::log(1.0-pi); 
-        //like1 = std::log(1.0/std::sqrt(v1)) + 0.5*(rhs1*rhs1)/v1 + std::log(pi); 
-        //p0 = 1.0/(std::exp(like1 - like0) + 1.0);
         d[i]=0;
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
@@ -1048,18 +1018,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           //std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(1.0/lhs1));
           bn = rnorm(gen);
         } 
-        diff = (bn-b[i])*std::sqrt(ww[i]);
+        diff = (bn-b[i]);
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
+            r[LDindices[i][j]] += -LDvalues[i][j]*diff;
           }
         }
-        // diff = (bn-b[i])*ww[i];
-        // if(diff!=0.0) {
-        //   for (size_t j = 0; j < LDindices[i].size(); j++) {
-        //     r[LDindices[i][j]] = r[LDindices[i][j]] - LDvalues[i][j]*diff;
-        //   }
-        // }
         b[i] = bn;
       }
       
@@ -1074,8 +1038,11 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         double count = dfb + 1.0;
         std::gamma_distribution<double> rgamma(count,1.0);
         double rg = rgamma(gen);
-        pi = rg/(double)m;
-        pis[it] = pi;
+        pic[1] = rg/(double)m;
+        pic[0] = 1.0 - pic[1];
+        pis[it] = pic[1];
+        picm[0] = picm[0] + pic[0];
+        picm[1] = picm[1] + pic[1];
       }
       
     }
@@ -1086,7 +1053,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
-        // variance class likelihood version 1 
+        // variance class likelihood 
         rhs = r[i] + ww[i]*b[i];
         v0 = ww[i]*vei[i];
         logLc[0] = -0.5*std::log(v0) -0.5*((rhs*rhs)/v0) + std::log(pic[0]);
@@ -1122,13 +1089,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           vbc = vb * vbscale[d[i]];
           lhs =ww[i]+vei[i]/vbc;
           std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
-          //std::normal_distribution<double> rnorm(rhs/lhs, sqrt(1.0/lhs));
           bn = rnorm(gen);
         }
-        diff = (bn-b[i])*std::sqrt(ww[i]);
+        diff = (bn-b[i]);
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[LDindices[i][j]] += -LDvalues[i][j]*diff*std::sqrt(ww[LDindices[i][j]]);
+            r[LDindices[i][j]] += -LDvalues[i][j]*diff;
           }
         }
         b[i] = bn;
@@ -1149,6 +1115,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         }
         for (int j = 0; j<nc ; j++) {
           pic[j] = pic[j]/pisum;
+          picm[j] = picm[j] + pic[j];
         }
       }
     }
@@ -1234,18 +1201,19 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   }
   
   // Summarize results
-  std::vector<std::vector<double>> result(10);
+  std::vector<std::vector<double>> result(11);
   result[0].resize(m);
   result[1].resize(m);
   result[2].resize(nit);
   result[3].resize(nit);
   result[4].resize(nit);
   result[5].resize(nit);
-  result[6].resize(nit);
+  result[6].resize(nc);
   result[7].resize(m);
-  result[8].resize(3);
+  result[8].resize(m);
   result[9].resize(m);
-  
+  result[10].resize(3);
+
   for (int i=0; i < m; i++) {
     result[0][i] = bm[i]/nit;
     result[1][i] = dm[i]/nit;
@@ -1256,18 +1224,20 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     result[3][i] = vbs[i];
     result[4][i] = vgs[i];
     result[5][i] = ves[i];
-    result[6][i] = pis[i];
   }
+  for (int j=0; j < nc; j++) {
+    result[6][j] = picm[j]/nit;
+  }  
+  
   for (int i=0; i < m; i++) {
     result[7][i] = r[i];
+    result[8][i] = b[i];
+    result[9][i] = d[i];
   }
-  result[8][0] = vb;
-  result[8][1] = ve;
-  result[8][2] = pi;
-  for (int i=0; i < m; i++) {
-    result[9][i] = b[i];
-  }
-  
+  result[10][0] = vb;
+  result[10][1] = ve;
+  result[10][2] = pic[0];
+
   
   return result;
 }
