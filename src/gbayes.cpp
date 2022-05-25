@@ -846,11 +846,11 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
               [&](int i1, int i2) { return x2[i1] > x2[i2]; } );
 
   // Adjust LD values
-  for ( int i = 0; i < m; i++) {
-    for (size_t j = 0; j < LDindices[i].size(); j++) {
-      LDvalues[i][j] = LDvalues[i][j]*std::sqrt(ww[i])*std::sqrt(ww[LDindices[i][j]]);
-    }
-  }
+  //for ( int i = 0; i < m; i++) {
+  //  for (size_t j = 0; j < LDindices[i].size(); j++) {
+  //    LDvalues[i][j] = LDvalues[i][j]*std::sqrt(ww[i])*std::sqrt(ww[LDindices[i][j]]);
+  //  }
+  //}
   
   // // Wy - W'Wb
   // for ( int i = 0; i < m; i++) {
@@ -880,7 +880,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         bn = rhs/lhs;
-        diff = (bn-b[i]);
+        diff = (bn-b[i])*ww[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
           r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
@@ -897,7 +897,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
-        diff = (bn-b[i]);
+        diff = (bn-b[i])*ww[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
           r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
@@ -919,7 +919,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
-        diff = (bn-b[i]);
+        diff = (bn-b[i])*ww[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
           r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
@@ -937,7 +937,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
         bn = rnorm(gen);
-        diff = (bn-b[i]);
+        diff = (bn-b[i])*ww[i];
         for (size_t j = 0; j < LDindices[i].size(); j++) {
           r[LDindices[i][j]] += -LDvalues[i][j]*diff;
         }
@@ -1018,7 +1018,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           //std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(1.0/lhs1));
           bn = rnorm(gen);
         } 
-        diff = (bn-b[i]);
+        diff = (bn-b[i])*ww[i];
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[LDindices[i][j]] += -LDvalues[i][j]*diff;
@@ -1091,7 +1091,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
           bn = rnorm(gen);
         }
-        diff = (bn-b[i]);
+        diff = (bn-b[i])*ww[i];
         if(diff!=0.0) {
           for (size_t j = 0; j < LDindices[i].size(); j++) {
             r[LDindices[i][j]] += -LDvalues[i][j]*diff;
