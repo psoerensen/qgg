@@ -688,6 +688,7 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
     ld[msize + 1,i] <- 1
   }
   close(bfLD)
+  if(!is.null(rsids)) ld <- ld[,colnames(ld)%in%rsids]
   return(ld)
 }
 
