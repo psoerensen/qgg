@@ -584,6 +584,11 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
   if(is.null(b)) b <- rep(0,m)
+
+  pi <- c(1-pi,pi)
+  gamma <- c(0,1.0)
+  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
+  if(method==5) gamma <- c(0,0.01,0.1,1.0)
   
   print(h2)
   print(vy)
@@ -601,6 +606,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
                  b=b,
                  lambda = lambda,
                  pi = pi,
+                 gamma = gamma,
                  vg = vg,
                  vb = vb,
                  ve = ve,
@@ -619,7 +625,9 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
     #names(fit[[7]]) <- names(fit[[8]]) <- ids
     names(fit[[8]]) <- ids
     #names(fit) <- c("bm","dm","coef","vb","ve","pi","g","e","param","b")
-    names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pi","g","param","b")
+    #names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pi","g","param","b")
+    names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pim","g","b","d","param")
+    
   } 
   return(fit)
 }
