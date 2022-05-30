@@ -78,8 +78,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // bayes
-std::vector<std::vector<double>> bayes(std::vector<double> y, std::vector<std::vector<double>> W, std::vector<double> b, std::vector<double> lambda, double pi, double vg, double vb, double ve, double ssb_prior, double sse_prior, double nub, double nue, bool updateB, bool updateE, bool updatePi, int nit, int method);
-RcppExport SEXP _qgg_bayes(SEXP ySEXP, SEXP WSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP piSEXP, SEXP vgSEXP, SEXP vbSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nitSEXP, SEXP methodSEXP) {
+std::vector<std::vector<double>> bayes(std::vector<double> y, std::vector<std::vector<double>> W, std::vector<double> b, std::vector<double> lambda, std::vector<double> pi, std::vector<double> gamma, double vg, double vb, double ve, double ssb_prior, double sse_prior, double nub, double nue, bool updateB, bool updateE, bool updatePi, int nit, int method);
+RcppExport SEXP _qgg_bayes(SEXP ySEXP, SEXP WSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP piSEXP, SEXP gammaSEXP, SEXP vgSEXP, SEXP vbSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nitSEXP, SEXP methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -87,7 +87,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type W(WSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type b(bSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< double >::type pi(piSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type pi(piSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< double >::type vg(vgSEXP);
     Rcpp::traits::input_parameter< double >::type vb(vbSEXP);
     Rcpp::traits::input_parameter< double >::type ve(veSEXP);
@@ -100,7 +101,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type updatePi(updatePiSEXP);
     Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
-    rcpp_result_gen = Rcpp::wrap(bayes(y, W, b, lambda, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, method));
+    rcpp_result_gen = Rcpp::wrap(bayes(y, W, b, lambda, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, method));
     return rcpp_result_gen;
 END_RCPP
 }
