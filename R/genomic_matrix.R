@@ -751,3 +751,15 @@ plotLD <- function(LD=null, cols=NULL) {
   axis(1, at = seq(0, 1, length = nrow(LD)), labels = rownames(LD), las=2, cex.axis=0.5)
   axis(2, at = seq(0, 1, length = ncol(LD)), labels = colnames(LD), las=2, cex.axis=0.5)
 }
+
+
+
+#' @export
+#'
+
+getMarkers <- function(Glist=null, chr=NULL, region=NULL) {
+  minpos <- min(region)
+  maxpos <- max(region)
+  select <-  Glist$position[[chr]] > minpos & Glist$position[[chr]] < maxpos
+  Glist$rsids[[chr]][select]
+}
