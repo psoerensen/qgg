@@ -344,6 +344,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       
       nt <- 1
       rsidsLD <- unlist(Glist$rsidsLD)
+      m <- length(rsidsLD)
       b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
       rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
       trait_names <- "badj"     
@@ -371,6 +372,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       trait_names <- colnames(stat$b)
       if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
       rsidsLD <- unlist(Glist$rsidsLD)
+      m <- length(rsidsLD)
       b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
       rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
       colnames(b) <- colnames(wy) <- colnames(ww) <- trait_names
@@ -419,7 +421,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     LDindices=LD[[chr]]$indices, 
                                     method=method, 
                                     nit=nit, 
-                                    n=n[trait], 
+                                    n=n[trait],
+                                    m=m,
                                     pi=pi,
                                     nue=nue, 
                                     nub=nub, 
@@ -703,14 +706,14 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
 
 # Single trait BLR using summary statistics and sparse LD provided in Glist 
 sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL, 
-                          LDvalues=NULL,LDindices=NULL, n=NULL,
+                          LDvalues=NULL,LDindices=NULL, n=NULL, m=NULL,
                           vg=NULL, vb=NULL, ve=NULL, 
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, 
                           updateG=NULL, adjustE=NULL, models=NULL,
                           nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
 
-  m <- length(LDvalues)
+  if(is.null(m)) m <- length(LDvalues)
   vy <- yy/(n-1)
   if(is.null(pi)) pi <- 0.001
   if(is.null(h2)) h2 <- 0.5
