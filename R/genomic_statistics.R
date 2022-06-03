@@ -647,5 +647,10 @@ adjLDStat <- function(stat=NULL, Glist = NULL, chr = NULL, region=NULL, msize=NU
     keep <- which.min(chrStat[remove_rsids,"p"])
     #remove_rsids <- remove_rsids[-keep] 
   }
-  return(chrStat)
+  rsidsStat <- rownames(stat)
+  rsidsChr <- rownames(stat[stat$chr==chr,])
+  remove_rsids <- rsidsChr[!rsidsChr%in%rownames(chrStat)]
+  rws <- match(remove_rsids,rsidsStat)
+  stat <- stat[-rws,]
+  return(stat)
 }
