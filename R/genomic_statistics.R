@@ -592,3 +592,60 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
   return(res)
 }
 
+
+
+#'
+#' @export
+#'
+
+adjLDStat <- function(stat=NULL, Glist = NULL, chr = NULL, region=NULL, msize=NULL, threshold=1e-5, overlap=NULL, niter=5) {
+  
+  if(is.null(stat)) stop("Please provide stat")
+  if(is.null(Glist)) stop("Please provide Glist")
+  if(is.null(chr)) stop("Please provide chr")
+  if(is.null(region)) stop("Please specify region, e.g. 1000000:1200000")
+  if(is.null(msize)) stop("Please specify window size: e.g. msize=200")
+  if(is.null(overlap)) stop("Please specify window size overlap: e.g. overlap=100")
+  
+  chrStat <- stat[stat$chr==chr,]
+  chrStat <- chrStat[chrStat$rsids%in%Glist$rsidsLD[[chr]],]
+  
+  region_rsids <- getMarkers(Glist=Glist, chr=chr, region=region)
+  region_rsids <- region_rsids[region_rsids%in%chrStat$rsids]
+  problem_rsids <- rep(FALSE,length(region_rsids))
+  names(problem_rsids) <- region_rsids
+  
+  zobs <- chrStat[chrStat$rsids,"b"]/chrStat[chrStat$rsids,"seb"]
+  names(zobs) <- chrStat$rsids
+  
+  sets <- splitWithOverlap(region_rsids,msize,overlap)
+  
+  for (iter in 1:niter) {
+    if(iter>1) {
+      if(length(remove_rsids)>0) chrStat <- chrStat[!chrStat$rsids%in%remove_rsids,]
+    }
+    region_rsids <- region_rsids[region_rsids%in%chrStat$rsids]
+    sets <- splitWithOverlap(region_rsids,msize,overlap)
+    
+    for( i in 1:length(sets) ) {
+      z <- vz <- rep(0,length(sets[[i]]))
+      W <- getG(Glist=Glist,chr=chr,rsids=sets[[i]], scale=TRUE)
+      WW <- cor(W)
+      zo <- zobs[sets[[i]]]
+      for (j in 1:length(sets[[i]])) {
+        z[j] <- sum(WW[j,-j]*solve(WW[-j,-j])%*%zo[-j])
+        vz[j] <- 1- t(WW[j,-j])%*%solve(WW[-j,-j])%*%WW[j,-j]
+      }
+      #plot(y=z,x=zo,ylab="Predicted", xlab="Observed",  frame.plot=FALSE)
+      #abline(0,1, lwd=2, col=2, lty=2)
+      tstat <- ((zo-z)**2)/vz
+      p <- 1-pchisq(tstat,1)
+      problem_rsids[sets[[i]][p<threshold]] <- TRUE 
+      print(c(i,sum(p<threshold)))
+    }
+    remove_rsids <- names(problem_rsids)[problem_rsids]
+    keep <- which.min(chrStat[remove_rsids,"p"])
+    #remove_rsids <- remove_rsids[-keep] 
+  }
+  return(chrStat)
+}
