@@ -366,3 +366,46 @@ rsq <- function(h2=NULL,meff=NULL,n=NULL) {
   rsq
 }
 
+
+#' @export
+#' 
+computeROC <- function(yobs=NULL, ypred=NULL){
+  if(!is.matrix(ypred)){
+    y <- data.frame(yobs=yobs==1, ypred=ypred)
+    y <- y[order(y[, 2], decreasing = TRUE), ]
+    roc.df <- cbind(TPR=cumsum(y[,1])/sum(y[,1]), FPR=cumsum(!y[,1])/sum(!y[,1]), yobs=as.numeric(y[,1]), ypred=y[,2])
+  }
+  
+  if(is.matrix(ypred)){
+    roc.df <- vector(ncol(ypred),mode="list")
+    names(roc.df) <- colnames(ypred)
+    for(i in 1:ncol(ypred)){
+      y <- data.frame(yobs=yobs==1, ypred=ypred[,i])
+      y <- y[order(y[, 2], decreasing = TRUE), ]
+      roc.df[[i]] <- cbind(TPR=cumsum(y[,1])/sum(y[,1]), FPR=cumsum(!y[,1])/sum(!y[,1]), yobs=as.numeric(y[,1]), ypred=y[,2])
+    }
+  }
+  return(roc.df)
+}
+
+#' @export
+#' 
+plotROC <- function(roc.data=NULL){
+  if(is.matrix(roc.data)){
+    plot(x=roc.data[,2], y=roc.data[,1], bty="n", type="l", las=1, cex.axis=.8,
+         xlab="FRP (1-Specificity)", ylab="TPR (Sensitivity)")
+    abline(a=0, b=1, lty=2)
+    text(x=.95, y=.8,label=paste("AUC = ", round(qgg:::auc(ypred=roc.data[,4], yobs=roc.data[,3]),3),sep=""),cex=.9)
+  }
+  if(is.list(roc.data)){
+    plot(x=0, y=0, bty="n", type="n", las=1, cex.axis=.8, xlab="FRP (1-Specificity)", ylab="TPR (Sensitivity)",
+         xlim=c(0,1), ylim=c(0,1))
+    abline(a=0, b=1, lty=2)
+    print.auc <- NULL
+    for(i in 1:length(roc.data)){
+      points(roc.data[[i]][,2], y=roc.data[[i]][,1], type="l",col=i)
+      print.auc <- c(print.auc, round(qgg:::auc(ypred=roc.data[[i]][,4], yobs=roc.data[[i]][,3]),3))
+    }
+    legend("bottomright", legend=paste(names(roc.data), " (AUC = ", print.auc, ")",sep=""), lty=1, col=1:length(roc.data), bty="n", cex=.8)
+  }
+}
