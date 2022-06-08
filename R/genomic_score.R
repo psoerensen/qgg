@@ -390,22 +390,24 @@ computeROC <- function(yobs=NULL, ypred=NULL){
 
 #' @export
 #' 
-plotROC <- function(roc.data=NULL){
-  if(is.matrix(roc.data)){
-    plot(x=roc.data[,2], y=roc.data[,1], bty="n", type="l", las=1, cex.axis=.8,
-         xlab="FRP (1-Specificity)", ylab="TPR (Sensitivity)")
-    abline(a=0, b=1, lty=2)
-    text(x=.95, y=.8,label=paste("AUC = ", round(qgg:::auc(ypred=roc.data[,4], yobs=roc.data[,3]),3),sep=""),cex=.9)
-  }
-  if(is.list(roc.data)){
-    plot(x=0, y=0, bty="n", type="n", las=1, cex.axis=.8, xlab="FRP (1-Specificity)", ylab="TPR (Sensitivity)",
-         xlim=c(0,1), ylim=c(0,1))
-    abline(a=0, b=1, lty=2)
-    print.auc <- NULL
-    for(i in 1:length(roc.data)){
-      points(roc.data[[i]][,2], y=roc.data[[i]][,1], type="l",col=i)
-      print.auc <- c(print.auc, round(qgg:::auc(ypred=roc.data[[i]][,4], yobs=roc.data[[i]][,3]),3))
+plotROC <- function(roc.data=NULL, cols = NULL){
+    if(is.matrix(roc.data)){
+       if(is.null(cols)){cols <- "black"}
+       plot(x=roc.data[,2], y=roc.data[,1], bty="n", type="l", las=1, cex.axis=.8,
+            xlab="FRP (1-Specificity)", ylab="TPR (Sensitivity)", col=cols)
+       abline(a=0, b=1, lty=2)
+       text(x=.95, y=.8,label=paste("AUC = ", round(qgg:::auc(ypred=roc.data[,4], yobs=roc.data[,3]),3),sep=""),cex=.9)
     }
-    legend("bottomright", legend=paste(names(roc.data), " (AUC = ", print.auc, ")",sep=""), lty=1, col=1:length(roc.data), bty="n", cex=.8)
-  }
+    if(is.list(roc.data)){
+        if(is.null(cols)){cols <- 1:length(roc.data)}
+        plot(x=0, y=0, bty="n", type="n", las=1, cex.axis=.8, xlab="FRP (1-Specificity)", ylab="TPR (Sensitivity)",
+             xlim=c(0,1), ylim=c(0,1))
+        abline(a=0, b=1, lty=2)
+        print.auc <- NULL
+        for(i in 1:length(roc.data)){
+            points(roc.data[[i]][,2], y=roc.data[[i]][,1], type="l",col=cols[i])
+            print.auc <- c(print.auc, round(qgg:::auc(ypred=roc.data[[i]][,4], yobs=roc.data[[i]][,3]),3))
+        }
+        legend("bottomright", legend=paste(names(roc.data), " (AUC = ", print.auc, ")",sep=""), lty=1, col=cols, bty="n", cex=.8)
+    }
 }
