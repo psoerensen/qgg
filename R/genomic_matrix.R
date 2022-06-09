@@ -466,7 +466,7 @@ if (!is.null(ids)) {
   rws <- match(ids,Glist$ids)
   if(any(is.na(rws))) stop("Some ids not found in Glist")
 }
-if(!is.null(rws)) W <- W[rws,]
+if(!is.null(rws)) W <- W[rws,, drop = FALSE]
 if(is.integer(impute)) W[W==impute] <- impute
 return(W)
 }
