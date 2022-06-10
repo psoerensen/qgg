@@ -238,7 +238,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     effect_allele_freq <- stat[,"af"]
     
     # aligned
-    stat[!aligned,effect_columns] <- -effect[!aligned]
+    stat[!aligned,effect_columns] <- -effect[!aligned,]
     stat[!aligned,"effect_allele"] <- non_effect_allele[!aligned]
     stat[!aligned,"non_effect_allele"] <- effect_allele[!aligned] 
     stat[!aligned,"af"] <- 1-effect_allele_freq[!aligned]
