@@ -243,11 +243,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     stat[!aligned,"non_effect_allele"] <- effect_allele[!aligned] 
     stat[!aligned,"af"] <- 1-effect_allele_freq[!aligned]
     
-    message(paste("Number of markers excluded by large difference between MAF difference:", sum(excludeMAFDIFF)))
-    message("")
-    
-    stat <- stat[!excludeMAFDIFF,]
-    marker <- marker[!excludeMAFDIFF,]
+
   }  
   
   if(format=="external") {
