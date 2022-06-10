@@ -232,7 +232,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     effect_columns <- !colnames(stat)%in%fm_fit
     
     #original
-    effect <- stat[,effect_columns]
+    effect <- stat[,effect_columns, drop = FALSE]
     effect_allele <- stat[,"a1"]
     non_effect_allele <- stat[,"a2"]
     effect_allele_freq <- stat[,"af"]
