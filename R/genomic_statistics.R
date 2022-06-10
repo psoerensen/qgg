@@ -142,7 +142,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   }
   
   if(format=="fit") {
-    stat <- stat[,fm_fit]
+    #stat <- stat[,fm_fit]
     cpra1 <- paste(stat[,"chr"],stat[,"pos"],stat[,"a1"],stat[,"a2"],sep="_")
     cpra2 <- paste(stat[,"chr"],stat[,"pos"],stat[,"a2"],stat[,"a1"],sep="_")
     
