@@ -72,8 +72,6 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   # data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
   # list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
   
-  fm_fit <- c("rsids","chr","pos","a1","a2","af")
-  
   fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb","p","n")
   
   fm_external1 <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
@@ -88,8 +86,6 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   
   format <- "unknown"
 
-  if(all(fm_fit%in%colnames(stat))) format <- "fit"
-  
   if(all(fm_internal%in%colnames(stat))) format <- "internal"
 
   if(all(fm_external1%in%colnames(stat))) {
@@ -141,33 +137,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
     
   }
   
-  if(format=="fit") {
-    #stat <- stat[,fm_fit]
-    cpra1 <- paste(stat[,"chr"],stat[,"pos"],stat[,"a1"],stat[,"a2"],sep="_")
-    cpra2 <- paste(stat[,"chr"],stat[,"pos"],stat[,"a2"],stat[,"a1"],sep="_")
-    
-    mapped <- cpra1%in%cpra | cpra2%in%cpra
-    message("Map markers based on cpra")
-    message(paste("Number of markers in stat mapped to marker ids in Glist:",sum(mapped)))
-    message(paste("Number of markers in stat not mapped to marker ids in Glist:",sum(!mapped)))
-    
-    stat <- stat[mapped,]
-    cpra1 <- cpra1[mapped]
-    cpra2 <- cpra2[mapped]
-    rws1 <- match(cpra1,cpra)
-    rws2 <- match(cpra2,cpra)
-    
-    stat$rsids[!is.na(rws1)] <- rsids[rws1[!is.na(rws1)]]
-    stat$rsids[!is.na(rws2)] <- rsids[rws2[!is.na(rws2)]]
-    
-    isdup <- duplicated(stat$rsids)
-    if(any(isdup)) message("Removing markers with duplicated ids")
-    if(any(isdup)) message(paste("Number of markers duplicated in stat:",sum(isdup)))
-    stat <- stat[!isdup,] 
-    rownames(stat) <- stat$rsids    
-    
-  }
-  
+
   # external summary statistic column format
   # optimal format:
   # marker, chromosome, position, effect_allele, non_effect_allele, 
@@ -227,25 +197,7 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
   message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
   message("")
 
-  if(format=="fit") {
-    
-    effect_columns <- !colnames(stat)%in%fm_fit
-    
-    #original
-    effect <- stat[,effect_columns, drop = FALSE]
-    effect_allele <- stat[,"a1"]
-    non_effect_allele <- stat[,"a2"]
-    effect_allele_freq <- stat[,"af"]
-    
-    # aligned
-    stat[!aligned,effect_columns] <- -effect[!aligned, ,drop = FALSE]
-    stat[!aligned,"effect_allele"] <- non_effect_allele[!aligned]
-    stat[!aligned,"non_effect_allele"] <- effect_allele[!aligned] 
-    stat[!aligned,"af"] <- 1-effect_allele_freq[!aligned]
-    
 
-  }  
-  
   if(format=="external") {
     
     #original
@@ -304,108 +256,104 @@ qcstat <- function(Glist=NULL, stat=NULL, filename=NULL,
 }
 
 
-#'
-#' @export
-#'
-
-checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
-                      excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE) {
-  # effect, effect_se, effect_allele, alternative_allele, effect_allele_freq, nobs
-  cpra <- paste(unlist(Glist$chr),unlist(Glist$position),unlist(Glist$a1),unlist(Glist$a2), sep="_")
-  df <- data.frame(rsids=unlist(Glist$rsids),cpra,
-                   chr=unlist(Glist$chr), position=unlist(Glist$position), 
-                   a1=unlist(Glist$a1), a2=unlist(Glist$a2),
-                   af=unlist(Glist$af))
-  rsidsDUPS <- df$rsids[duplicated(df$rsids)]
-  df <- df[!df$rsids%in%rsidsDUPS,]
-  rsidsLD <- unlist(Glist$rsidsLD)
-  df <- df[df$rsids%in%rsidsLD,]
-  rownames(df) <- df$rsids
-  
-  inGlist <- stat$rsids%in%df$rsids
-  message(paste("Number of markers in stat also found in bedfiles:", sum(inGlist)))
-  
-  stat <- stat[inGlist,]
-  df <- df[rownames(stat),]
-  
-  aligned <- stat$effect_allele==df$a1
-  message(paste("Number of effect alleles aligned with first allele in bimfiles:", sum(aligned)))
-  message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
-  
-  if(!is.null(filename)) png(file=filename)
-  
-  layout(matrix(1:6,ncol=2,byrow=TRUE))
-  
-  try(lm(stat$effect_allele_freq[aligned]~ df$af[aligned]))
-  plot(stat$effect_allele_freq[aligned],df$af[aligned], ylab="AF in Glist (allele matching)",xlab="AF in stat (allele matching)")
-  
-  try(lm(stat$effect_allele_freq[!aligned]~ df$af[!aligned]))
-  plot(stat$effect_allele_freq[!aligned],df$af[!aligned], ylab="AF in Glist (allele not matching)",xlab="AF in stat (allele not matching)")
-  
-  stat[!aligned,"effect_allele_freq"] <- 1 - stat[!aligned,"effect_allele_freq"]
-  effect <- stat[!aligned,"b"]
-  effect_allele <- stat[!aligned,"effect_allele"]
-  alternative_allele <- stat[!aligned,"alternative_allele"]
-  stat[!aligned,"effect_allele"] <- alternative_allele 
-  stat[!aligned,"alternative_allele"] <- effect_allele 
-  stat[!aligned,"b"] <- -effect 
-  
-  try(lm(stat$effect_allele_freq~ df$af))
-  plot(stat$effect_allele_freq,df$af, ylab="AF in Glist",xlab="AF in stat (after allele flipped)")
-  
-  isDUPS <- duplicated(stat$rsids)
-  a1 <- df$a1
-  a2 <- df$a2
-  isAT <- a1=="A" & a2=="T"
-  isTA <- a1=="T" & a2=="A"
-  isCG <- a1=="C" & a2=="G"
-  isGC <- a1=="G" & a2=="C"
-  isCGAT <- isAT | isTA | isCG | isGC
-  CGTA <- c("C","G","T","A")
-  isINDEL <- !((a1%in%CGTA) & (a2%in%CGTA))
-  
-  largeMAFDIFF <- abs(df$af-stat$effect_allele_freq) > excludeMAFDIFF
-  maf <- stat$effect_allele_freq
-  maf[maf>0.5] <- 1-maf[maf>0.5]
-  lowMAF <- maf < excludeMAF
-  
-  message(paste("Number of markers excluded by low MAF:", sum(lowMAF)))
-  message(paste("Number of markers excluded by large difference between MAF difference:", sum(largeMAFDIFF)))
-  
-  rsidsQC <- lowMAF | largeMAFDIFF
-  
-  if(!is.null(stat$info)) {
-    lowINFO <- stat$info < excludeINFO
-    rsidsQC <- rsidsQC | lowINFO
-    message(paste("Number of markers excluded by low INFO score:", sum(lowINFO)))
-  }
-  
-  if(excludeCGAT) {
-    rsidsQC <- rsidsQC | isCGAT
-    message(paste("Number of markers excluded by ambiguity (CG or AT):", sum(isCGAT)))
-  }
-  if(excludeDUPS) {
-    rsidsQC <- rsidsQC | isDUPS
-    message(paste("Number of markers excluded by duplicated rsids", sum(isDUPS)))
-  }
-  if(excludeINDEL) {
-    rsidsQC <- rsidsQC | isINDEL
-    message(paste("Number of markers excluded by being INDEL:", sum(isINDEL)))
-  }
-  
-  rsidsQC <- !rsidsQC
-  plot(stat$effect_allele_freq[rsidsQC],df$af[rsidsQC], ylab="AF in Glist",xlab="AF in stat (after qc check)")
-  stat <- stat[rsidsQC,]
-  maf <- stat$effect_allele_freq
-  maf[maf>0.5] <- 1-maf[maf>0.5]
-  seb <- stat$seb
-  plot(y=seb,x=maf, ylab="SEB",xlab="MAF")
-  if(!is.null(filename)) dev.off()
-  stat$af <- stat$effect_allele_freq  
-  stat$alleles <- stat$effect_allele  
-  if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)
-  return(stat)
-}
+# checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
+#                       excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE) {
+#   # effect, effect_se, effect_allele, alternative_allele, effect_allele_freq, nobs
+#   cpra <- paste(unlist(Glist$chr),unlist(Glist$position),unlist(Glist$a1),unlist(Glist$a2), sep="_")
+#   df <- data.frame(rsids=unlist(Glist$rsids),cpra,
+#                    chr=unlist(Glist$chr), position=unlist(Glist$position), 
+#                    a1=unlist(Glist$a1), a2=unlist(Glist$a2),
+#                    af=unlist(Glist$af))
+#   rsidsDUPS <- df$rsids[duplicated(df$rsids)]
+#   df <- df[!df$rsids%in%rsidsDUPS,]
+#   rsidsLD <- unlist(Glist$rsidsLD)
+#   df <- df[df$rsids%in%rsidsLD,]
+#   rownames(df) <- df$rsids
+#   
+#   inGlist <- stat$rsids%in%df$rsids
+#   message(paste("Number of markers in stat also found in bedfiles:", sum(inGlist)))
+#   
+#   stat <- stat[inGlist,]
+#   df <- df[rownames(stat),]
+#   
+#   aligned <- stat$effect_allele==df$a1
+#   message(paste("Number of effect alleles aligned with first allele in bimfiles:", sum(aligned)))
+#   message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
+#   
+#   if(!is.null(filename)) png(file=filename)
+#   
+#   layout(matrix(1:6,ncol=2,byrow=TRUE))
+#   
+#   try(lm(stat$effect_allele_freq[aligned]~ df$af[aligned]))
+#   plot(stat$effect_allele_freq[aligned],df$af[aligned], ylab="AF in Glist (allele matching)",xlab="AF in stat (allele matching)")
+#   
+#   try(lm(stat$effect_allele_freq[!aligned]~ df$af[!aligned]))
+#   plot(stat$effect_allele_freq[!aligned],df$af[!aligned], ylab="AF in Glist (allele not matching)",xlab="AF in stat (allele not matching)")
+#   
+#   stat[!aligned,"effect_allele_freq"] <- 1 - stat[!aligned,"effect_allele_freq"]
+#   effect <- stat[!aligned,"b"]
+#   effect_allele <- stat[!aligned,"effect_allele"]
+#   alternative_allele <- stat[!aligned,"alternative_allele"]
+#   stat[!aligned,"effect_allele"] <- alternative_allele 
+#   stat[!aligned,"alternative_allele"] <- effect_allele 
+#   stat[!aligned,"b"] <- -effect 
+#   
+#   try(lm(stat$effect_allele_freq~ df$af))
+#   plot(stat$effect_allele_freq,df$af, ylab="AF in Glist",xlab="AF in stat (after allele flipped)")
+#   
+#   isDUPS <- duplicated(stat$rsids)
+#   a1 <- df$a1
+#   a2 <- df$a2
+#   isAT <- a1=="A" & a2=="T"
+#   isTA <- a1=="T" & a2=="A"
+#   isCG <- a1=="C" & a2=="G"
+#   isGC <- a1=="G" & a2=="C"
+#   isCGAT <- isAT | isTA | isCG | isGC
+#   CGTA <- c("C","G","T","A")
+#   isINDEL <- !((a1%in%CGTA) & (a2%in%CGTA))
+#   
+#   largeMAFDIFF <- abs(df$af-stat$effect_allele_freq) > excludeMAFDIFF
+#   maf <- stat$effect_allele_freq
+#   maf[maf>0.5] <- 1-maf[maf>0.5]
+#   lowMAF <- maf < excludeMAF
+#   
+#   message(paste("Number of markers excluded by low MAF:", sum(lowMAF)))
+#   message(paste("Number of markers excluded by large difference between MAF difference:", sum(largeMAFDIFF)))
+#   
+#   rsidsQC <- lowMAF | largeMAFDIFF
+#   
+#   if(!is.null(stat$info)) {
+#     lowINFO <- stat$info < excludeINFO
+#     rsidsQC <- rsidsQC | lowINFO
+#     message(paste("Number of markers excluded by low INFO score:", sum(lowINFO)))
+#   }
+#   
+#   if(excludeCGAT) {
+#     rsidsQC <- rsidsQC | isCGAT
+#     message(paste("Number of markers excluded by ambiguity (CG or AT):", sum(isCGAT)))
+#   }
+#   if(excludeDUPS) {
+#     rsidsQC <- rsidsQC | isDUPS
+#     message(paste("Number of markers excluded by duplicated rsids", sum(isDUPS)))
+#   }
+#   if(excludeINDEL) {
+#     rsidsQC <- rsidsQC | isINDEL
+#     message(paste("Number of markers excluded by being INDEL:", sum(isINDEL)))
+#   }
+#   
+#   rsidsQC <- !rsidsQC
+#   plot(stat$effect_allele_freq[rsidsQC],df$af[rsidsQC], ylab="AF in Glist",xlab="AF in stat (after qc check)")
+#   stat <- stat[rsidsQC,]
+#   maf <- stat$effect_allele_freq
+#   maf[maf>0.5] <- 1-maf[maf>0.5]
+#   seb <- stat$seb
+#   plot(y=seb,x=maf, ylab="SEB",xlab="MAF")
+#   if(!is.null(filename)) dev.off()
+#   stat$af <- stat$effect_allele_freq  
+#   stat$alleles <- stat$effect_allele  
+#   if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)
+#   return(stat)
+# }
 
 
 
@@ -702,3 +650,152 @@ adjLDStat <- function(stat=NULL, Glist = NULL, chr = NULL, region=NULL, msize=NU
   stat <- stat[-rws,]
   return(stat)
 }
+
+# suggest to revise function
+# read files outside function
+# merge 2 or more data frames and create a list
+# mergeStat <- function(Glist=NULL, fnDir=NULL, tnames=NULL){
+#   # fnDir: path to summary stats from qcstat.function
+#   # tnames: vector of trait names
+#   nt <- length(fnDir)
+#   b <- seb <- p <- n <- vector(nt, mode="list")
+#   for(i in 1:nt){
+#     stat <- fread(fnDir[i],data.table=F, showProgress=F)
+#     rownames(stat) <- stat$rsids
+#     b[[i]] <- stat[,"b",drop=F]
+#     seb[[i]] <- stat[,"seb",drop=F]
+#     p[[i]] <- stat[,"p",drop=F]
+#     n[[i]] <- stat[,"n",drop=F]
+#     message("Read summary stat file no ", i, "...\n")
+#   }
+#   b <- do.call(cbind,b)
+#   seb <- do.call(cbind, seb)
+#   p <- do.call(cbind, p)
+#   n <- do.call(cbind, n)
+#   colnames(b) <- colnames(seb) <- colnames(p) <- colnames(n) <- tnames
+#   rsids <- rownames(b)
+#   marker <- data.frame(rsids = rsids, chr = unlist(Glist$chr)[rsids],
+#                        pos = unlist(Glist$pos)[rsids], a1 = unlist(Glist$a1)[rsids],
+#                        a2 = unlist(Glist$a2)[rsids], af = unlist(Glist$a2)[rsids],
+#                        stringsAsFactors=F)
+#   
+#   ma <- list(b = b, seb = seb, p = p, n = n, marker=marker)
+#   return(ma)
+# }
+
+#'
+#' @export
+#'
+
+mapStat <- function(Glist=NULL, stat=NULL) {
+  
+  # we use cpra to link sumstats and Glist
+  cpra <- unlist(Glist$cpra)
+  rsids <- unlist(Glist$rsids)
+  
+  # stat is a data.frame
+  if(!is.data.frame(stat)) stop("stat should be  a data frame")
+  if(!is.null(stat$rsids)) rownames(stat) <- stat$rsids
+  
+  
+  fm_map1 <- c("rsids","chr","pos","a1","a2")
+  
+  format <- "unknown"
+  
+  if(all(fm_map1%in%colnames(stat))) format <- "fm_map1"
+  
+  if(format=="unknown") {
+    message("Column headings for stat object not found")
+    message("Column headings for stat object should be:")
+    print(fm_map1)
+    stop("please revised your stat object according to these ")
+  }
+  
+  if(format=="fm_map1") {
+    
+    cpra1 <- paste(stat[,"chr"],stat[,"pos"],stat[,"a1"],stat[,"a2"],sep="_")
+    cpra2 <- paste(stat[,"chr"],stat[,"pos"],stat[,"a2"],stat[,"a1"],sep="_")
+    
+    mapped <- cpra1%in%cpra | cpra2%in%cpra
+    message("Map markers based on cpra")
+    message(paste("Number of markers in stat mapped to marker ids in Glist:",sum(mapped)))
+    message(paste("Number of markers in stat not mapped to marker ids in Glist:",sum(!mapped)))
+    
+    stat <- stat[mapped,]
+    cpra1 <- cpra1[mapped]
+    cpra2 <- cpra2[mapped]
+    rws1 <- match(cpra1,cpra)
+    rws2 <- match(cpra2,cpra)
+    
+    stat$rsids[!is.na(rws1)] <- rsids[rws1[!is.na(rws1)]]
+    stat$rsids[!is.na(rws2)] <- rsids[rws2[!is.na(rws2)]]
+    
+    isdup <- duplicated(stat$rsids)
+    if(any(isdup)) message("Removing markers with duplicated ids")
+    if(any(isdup)) message(paste("Number of markers duplicated in stat:",sum(isdup)))
+    stat <- stat[!isdup,] 
+    rownames(stat) <- stat$rsids    
+    
+  }
+  
+  marker <- data.frame(rsids=unlist(Glist$rsids),cpra=unlist(Glist$cpra),
+                       chr=unlist(Glist$chr), pos=unlist(Glist$position), 
+                       a1=unlist(Glist$a1), a2=unlist(Glist$a2),
+                       af=unlist(Glist$af),stringsAsFactors = FALSE)
+  
+  rownames(marker) <- marker$rsids
+  
+  message("Filtering markers based on information in Glist:")
+  message("")
+  
+  rsids <-  gfilter(Glist = Glist,
+                    excludeMAF=excludeMAF, 
+                    excludeMISS=excludeMISS, 
+                    excludeCGAT=excludeCGAT, 
+                    excludeINDEL=excludeINDEL, 
+                    excludeDUPS=excludeDUPS, 
+                    excludeHWE=excludeHWE, 
+                    excludeMHC=excludeMHC)
+  marker <- marker[marker$rsids%in%rsids,]
+  message("")
+  
+  message("Filtering markers based on information in stat:")
+  message("")
+  
+  if(!is.null(stat$rsids)) marker_in_stat <- marker$rsids%in%stat$rsids
+  if(!is.null(stat$marker)) marker_in_stat <- marker$rsids%in%stat$marker
+  message(paste("Number of markers in stat also found in bimfiles:", sum(marker_in_stat)))
+  message("")
+  if(sum(marker_in_stat)==0) stop("No marker ids found in bimfiles")
+  
+  # align marker and stat object
+  marker <- marker[marker_in_stat,]
+  stat <- stat[marker$rsids,]
+  
+  if(!is.null(stat$effect_allele)) aligned <- stat$effect_allele==marker$a1
+  if(!is.null(stat$a1)) aligned <- stat$a1==marker$a1
+  message(paste("Number of effect alleles aligned with first allele in bimfiles:", sum(aligned)))
+  message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
+  message("")
+  
+  if(format=="fm_map1") {
+    
+    effect_columns <- !colnames(stat)%in%fm_map1
+    
+    #original
+    effect <- stat[,effect_columns, drop = FALSE]
+    effect_allele <- stat[,"a1"]
+    non_effect_allele <- stat[,"a2"]
+    effect_allele_freq <- stat[,"af"]
+    
+    # aligned
+    stat[!aligned,effect_columns] <- -effect[!aligned, ,drop = FALSE]
+    stat[!aligned,"a1"] <- non_effect_allele[!aligned]
+    stat[!aligned,"a2"] <- effect_allele[!aligned] 
+    stat[!aligned,"af"] <- 1-effect_allele_freq[!aligned]
+    
+  }  
+  
+  return(stat)
+}
+
