@@ -180,3 +180,33 @@ predict_auc_mt_cc = function(h2x, Nx, Kx, Px, h2y, Ny, Ky, Py, rg, Me, M){
 }
 
 
+plotForest <- function(x=NULL,sd=NULL,cex=1, mar=NULL, mai=NULL, xlim=NULL, pos=NULL, reorder=TRUE, xaxis=TRUE, main=NULL, xlab="x") {
+  if(is.null(mar)) par(mar=c(5,12,3,1))
+  # mai <- c(0.5,5.2,0.3,0.1)
+  if(!is.null(mai)) par(mai=mai)
+  o <- 1:length(x)
+  if(reorder) o <- order(x,decreasing=TRUE)
+  x <- x[o]
+  if(is.null(sd)) sd <- rep(0,length(x)) 
+  sd <- sd[o]
+  #if(is.null(xlim)) xlim <- c(min(x)*0.9,min(max(x)*1.1,1)) 
+  lower <- x - sd*1.96
+  upper <- x + sd*1.96
+  labels <- names(x)
+  if(is.null(pos)) {
+    if(min(lower)<0) pos <- min(lower)*1.01
+    if(min(lower)>0) pos <- min(lower)*0.99
+  }
+  if(min(lower)<0) xlim_lower <- min(lower)*1.01
+  if(min(lower)>0) xlim_lower <- min(lower)*0.99
+  if(max(upper)<0) xlim_upper <- max(upper)*0.99
+  if(max(upper)>0) xlim_upper <- max(upper)*1.01
+  if(is.null(xlim)) xlim <- c(xlim_lower,xlim_upper)
+  plot(x=x, y=1:length(x), xlim=xlim, pch = 20, xlab=xlab, bty='n', ylab='', yaxt='n', xaxt='n', cex.lab = cex, main=main)
+  for(i in 1:length(x)){
+    lines(x=c(lower[i], upper[i]), y = rep(i, each=2), lwd=2)
+  }
+  axis(1, cex.axis=cex)
+  if(xaxis) axis(2, at=1:length(x), labels=labels, las=1, lwd=0, pos=pos, outer=TRUE, cex.axis=cex) # pos is x-axis location of labels
+  abline(v=pos, lty=2)
+}
