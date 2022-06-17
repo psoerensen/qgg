@@ -54,7 +54,7 @@
 #' @export
 #'
 
-qcstat <- function(Glist=NULL, stat=NULL, filename=NULL, 
+qcstat <- function(Glist=NULL, stat=NULL,  
                    excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
                    excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE,
                    excludeMISS=0.05, excludeHWE=1e-12) {
@@ -687,7 +687,10 @@ adjLDStat <- function(stat=NULL, Glist = NULL, chr = NULL, region=NULL, msize=NU
 #' @export
 #'
 
-mapStat <- function(Glist=NULL, stat=NULL) {
+mapStat <- function(Glist=NULL, stat=NULL, 
+                   excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
+                   excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE,
+                   excludeMISS=0.05, excludeHWE=1e-12) {
   
   # we use cpra to link sumstats and Glist
   cpra <- unlist(Glist$cpra)
