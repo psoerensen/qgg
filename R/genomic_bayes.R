@@ -1098,29 +1098,62 @@ computeGRS <- function(Glist = NULL, chr = NULL, cls = NULL, b=NULL, scale=TRUE)
 #' @export
 #'
 
-plotBayes <- function(fit=NULL, causal=NULL) {
-  if(!is.list(fit[[1]])) {
-    layout(matrix(1:6,nrow=3,ncol=2))
-    plot(fit[[1]],ylab="Posterior", xlab="Marker", main="Marker effect", frame.plot=FALSE)  
-    if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
-    #plot(fit[[2]],ylab="Posterior mean", xlab="Marker", pch="✈",,main="Marker indicator", frame.plot=FALSE)  
-    plot(fit[[2]],ylab="Posterior mean", xlab="Marker", main="Marker indicator", ylim=c(0,1), frame.plot=FALSE)  
-    if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
-    #if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch="✈", cex=2, lwd=3 )
-    hist(fit[[6]],xlab="Posterior", main="Pi")  
-    hist(fit[[4]],xlab="Posterior", main="Marker variance")  
-    hist(fit[[5]],xlab="Posterior", main="Residual variance")  
-    plot(fit[[6]],xlab="Sample", ylab="Pi", frame.plot=FALSE)  
-  } 
-  if(is.list(fit[[1]])) {
-    layout(matrix(1:4,2,2))
-    matplot(as.data.frame(fit[[1]]),ylab="Marker effect", frame.plot=FALSE)  
-    if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="green", pch=4, cex=2, lwd=3 )
-    matplot(as.data.frame(fit[[2]]),ylab="Marker indicator", frame.plot=FALSE)  
-    if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="green", pch=4, cex=2, lwd=3 )
-    matplot(as.data.frame(fit[[4]]),ylab="Marker variance", frame.plot=FALSE)  
-    matplot(as.data.frame(fit[[5]]),ylab="Residual variance", frame.plot=FALSE)  
-  } 
+plotBayes <- function(fit=NULL, causal=NULL, what="Beta", chr=1) {
+  # if(!is.list(fit[[1]])) {
+  #   layout(matrix(1:6,nrow=3,ncol=2))
+  #   plot(fit[[1]],ylab="Posterior", xlab="Marker", main="Marker effect", frame.plot=FALSE)  
+  #   if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
+  #   #plot(fit[[2]],ylab="Posterior mean", xlab="Marker", pch="✈",,main="Marker indicator", frame.plot=FALSE)  
+  #   plot(fit[[2]],ylab="Posterior mean", xlab="Marker", main="Marker indicator", ylim=c(0,1), frame.plot=FALSE)  
+  #   if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch=4, cex=2, lwd=3 )
+  #   #if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="red", pch="✈", cex=2, lwd=3 )
+  #   hist(fit[[6]],xlab="Posterior", main="Pi")  
+  #   hist(fit[[4]],xlab="Posterior", main="Marker variance")  
+  #   hist(fit[[5]],xlab="Posterior", main="Residual variance")  
+  #   plot(fit[[6]],xlab="Sample", ylab="Pi", frame.plot=FALSE)  
+  # } 
+  # if(is.list(fit[[1]])) {
+  #   layout(matrix(1:4,2,2))
+  #   matplot(as.data.frame(fit[[1]]),ylab="Marker effect", frame.plot=FALSE)  
+  #   if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="green", pch=4, cex=2, lwd=3 )
+  #   matplot(as.data.frame(fit[[2]]),ylab="Marker indicator", frame.plot=FALSE)  
+  #   if(!is.null(causal)) points(x=causal,y=rep(0,length(causal)),col="green", pch=4, cex=2, lwd=3 )
+  #   matplot(as.data.frame(fit[[4]]),ylab="Marker variance", frame.plot=FALSE)  
+  #   matplot(as.data.frame(fit[[5]]),ylab="Residual variance", frame.plot=FALSE)  
+  # } 
+  if(length(chr)==1) {
+    if(what=="Beta") plot(fit[[chr]]$bm,ylab="Beta", xlab="Marker", main="Adjusted Effect", frame.plot=FALSE)  
+    if(what=="PPI")plot(fit[[chr]]$dm,ylab="PPI", xlab="Marker", main="Probability of Inclusion", ylim=c(0,1), frame.plot=FALSE)  
+    if(what=="Ve") hist(fit[[chr]]$ves,xlab="Posterior", main="Residual Variance")
+    if(what=="Vb") hist(fit[[chr]]$vbs,xlab="Posterior", main="Marker Variance")
+    if(what=="Vg") hist(fit[[chr]]$vgs,xlab="Posterior", main="Genetic Variance")
+    fit[[chr]]$h2 <- fit[[chr]]$vgs/(fit[[chr]]$vgs+fit[[chr]]$ves)
+    if(what=="h2") hist(fit[[chr]]$h2,xlab="Posterior", main="Heritability")  
+  }
+  if(length(chr)>1) {
+    if(what=="Ve") {
+      x <- sapply(fit[chr], function(x) {mean(x$ves)})
+      sd <- sapply(fit[chr], function(x) {sd(x$ves)})
+      main <- "Residual Variance"
+    }
+    if(what=="Vg") {
+      x <- sapply(fit[chr], function(x) {mean(x$vgs)})
+      sd <- sapply(fit[chr], function(x) {sd(x$vgs)})
+      main <- "Genetic Variance"
+    }
+    if(what=="Vb") {
+      x <- sapply(fit[chr], function(x) {mean(x$vbs)})
+      sd <- sapply(fit[chr], function(x) {sd(x$vbs)})
+      main <- "Marker Variance"
+    }
+    if(what=="h2") {
+      x <- sapply(fit[chr], function(x) {mean(x$vgs/(x$vgs+x$ves))})
+      sd <- sapply(fit[chr], function(x) {sd(x$vgs/(x$vgs+x$ves))})
+      main <- "Heritability"
+    }
+    names(x) <- names(sd) <- paste("Chr",chr)
+    plotForest(x=x,sd=sd, reorder=FALSE, xlab=what, main=main) 
+  }
   
 }
 
