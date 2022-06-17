@@ -449,6 +449,7 @@ getG <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, fam
                  rws = NULL, cls = NULL, impute = TRUE, scale = FALSE) {
 
 if(!is.null(chr)) bedfiles <- Glist$bedfiles[chr]
+if(!file.exists(bedfiles)) stop("Glist$bedfiles[chr] does not exist")
 if(is.null(cls)) cls <-  1:Glist$mchr[chr]
 if (!is.null(rsids)) cls <- match(rsids, Glist$rsids[[chr]])
 if (any(is.na(cls))) {
