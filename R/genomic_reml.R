@@ -359,15 +359,15 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
   colnames(theta) <- c(names(G), "E")
   theta <- as.data.frame(round(theta, 3))
   rownames(theta) <- cvnames
-  if (makeplots) {
-    layout(matrix(1:4, ncol = 2))
-    boxplot(res$Corr, main = "Predictive Ability", ylab = "Correlation")
-    boxplot(res$MSPE, main = "Prediction Error", ylab = "MSPE")
-    boxplot(theta, main = "Estimates", ylab = "Variance")
-    plot(y = yo, x = yp, xlab = "Predicted", ylab = "Observed")
-    coef <- lm(yo ~ yp)$coef
-    abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
-  }
+  #if (makeplots) {
+  #  layout(matrix(1:4, ncol = 2))
+  #  boxplot(res$Corr, main = "Predictive Ability", ylab = "Correlation")
+  #  boxplot(res$MSPE, main = "Prediction Error", ylab = "MSPE")
+  #  boxplot(theta, main = "Estimates", ylab = "Variance")
+  #  plot(y = yo, x = yp, xlab = "Predicted", ylab = "Observed")
+  #  coef <- lm(yo ~ yp)$coef
+  #  abline(a = coef[1], b = coef[2], lwd = 2, col = 2, lty = 2)
+  #}
   
   # return(list(accuracy = res, theta = theta, yobst = yot, ypredt = ypt, yrest = yrest, ghatt=ghatt, yobsv = yov, ypredv = ypv, yresv = yresv, ghatv=ghatv))
   #return(list(accuracy = res, theta = theta, training = training, validation = validation, ghatt=ghatt, ghatv=ghatv))
