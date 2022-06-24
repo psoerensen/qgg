@@ -313,6 +313,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
 #' @param threshold p-value threshold used in clumping procedure (default is 1)
 #' @param method used in adjustment for linkage disequilibrium (default is "clumping")
 #' @param ldSets marker sets used for adjustment for linkage disequilibrium 
+#' @param header character vector with columns to be excluded in the LD adjustment 
 #' 
 #'
 #' @details
@@ -401,6 +402,7 @@ getStat <- function(stat=NULL, cls=NULL, rws=NULL) {
 #' Perform LD pruning of summary statistics before they are used in gene set enrichment analyses.
 #' @param stat vector or matrix of single marker statistics (e.g. coefficients, t-statistics, p-values)
 #' @param statistics is the type of statistics used in stat (e.g. statistics="p-value")
+#' @param chr chromosome(s) being processed
 #' @param ldSets list of marker sets - names corresponds to row names in stat
 #' @param r2 threshold for r2 used in LD pruning
 #' @param threshold p-value threshold used in LD pruning
