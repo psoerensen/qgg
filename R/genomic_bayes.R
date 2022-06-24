@@ -1089,6 +1089,9 @@ computeGRS <- function(Glist = NULL, chr = NULL, cls = NULL, b=NULL, scale=TRUE)
 #' Summary plots from gbayes fit
 
 #' @param fit object from gbayes
+#' @param causal indices for "causal" markers 
+#' @param chr chromosome to plot 
+#' @param what character fro what to plot (e.g. "trace", "Beta", "Ve", "Vg", "Vb") 
 
 #'
 #' @export
