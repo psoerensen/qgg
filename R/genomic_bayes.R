@@ -1162,10 +1162,6 @@ plotBayes <- function(fit=NULL, causal=NULL, what="Beta", chr=1) {
   
 }
 
-#'
-#' @export
-#'
-
 plotCvs <- function(fit=NULL, causal=NULL) {
   
   layout(matrix(1:length(fit$p),ncol=1))
