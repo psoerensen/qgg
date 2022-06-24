@@ -210,7 +210,6 @@ gsqr <- function(y = NULL, X = NULL, W = NULL, sets = NULL, msets = 100,
   return(fit)
 }
 
-#' @export
 mme = function(y=NULL, X=NULL, W=NULL, Z=NULL, GRM=NULL, Ve=NULL, Va=NULL) {
   
   #XX <- t(X) %*% RI %*% X
