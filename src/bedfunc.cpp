@@ -104,9 +104,9 @@ NumericMatrix readW( const char* file,
     long int offset = (cls[i]-1)*nbytes + 3;
     fseek( file_stream, offset, SEEK_SET );
     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
-    if (nbytes_read != nbytes) {
-      std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
-    }
+    //if (nbytes_read != nbytes) {
+    //  std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+    //}
     int j = 0; 
     map[0] = (2.0 - 2.0*af[i])/sqrt(2.0*af[i]*(1.0-af[i]));
     map[1] = 0.0;
