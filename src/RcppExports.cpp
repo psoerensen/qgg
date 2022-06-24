@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // readG
 IntegerMatrix readG(const char* file, int n, std::vector<int> cls);
 RcppExport SEXP _qgg_readG(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP) {
@@ -243,17 +248,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type df(dfSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type S(SSEXP);
     rcpp_result_gen = Rcpp::wrap(riwishart(df, S));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcat
-int rcat(arma::rowvec probs);
-RcppExport SEXP _qgg_rcat(SEXP probsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::rowvec >::type probs(probsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcat(probs));
     return rcpp_result_gen;
 END_RCPP
 }
