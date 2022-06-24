@@ -19,6 +19,9 @@
 #' @param impute logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)
 #' @param msize number of genotype markers used for batch processing
 #' @param ncores number of cores used in the analysis
+#' @param verbose is a logical; if TRUE it prints more details during optimization
+#' @param chr chromosome for which genomic scores is computed
+#' @param fit fit object output from gbayes
 
 #' @author Peter Soerensen
 
