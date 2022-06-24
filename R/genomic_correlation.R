@@ -27,40 +27,61 @@
 #'
 #' @examples
 #'
-#' #Simulate data
-#' W1 <- getG(Glist, chr=1, scale=TRUE)
-#' W2 <- getG(Glist, chr=2, scale=TRUE)
 #'
-#' W <- cbind(W1,W2)
-#' causal <- sample(1:ncol(W),5)
+#' # Plink bed/bim/fam files
+#'  #bedfiles <- system.file("extdata", paste0("sample_chr",1:2,".bed"), package = "qgg")
+#'  #bimfiles <- system.file("extdata", paste0("sample_chr",1:2,".bim"), package = "qgg")
+#'  #famfiles <- system.file("extdata", paste0("sample_chr",1:2,".fam"), package = "qgg")
+#'  #
+#'  ## Summarize bed/bim/fam files
+#'  #Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles)
 #'
-#' b1 <- rnorm(length(causal))
-#' b2 <- rnorm(length(causal))
-#' y1 <- W[, causal]%*%b1 + rnorm(nrow(W))
-#' y2 <- W[, causal]%*%b2 + rnorm(nrow(W))
+#'  #
+#'  ## Filter rsids based on MAF, missingness, HWE
+#'  #rsids <-  gfilter(Glist = Glist, excludeMAF=0.05, excludeMISS=0.05, excludeHWE=1e-12) 
+#'  #
+#'  ## Compute sparse LD (msize=size of LD window)
+#'  ##ldfiles <- system.file("extdata", paste0("sample_chr",1:2,".ld"), package = "qgg")
+#'  ##Glist <- gprep(Glist, task="sparseld", msize=200, rsids=rsids, ldfiles=ldfiles, overwrite=TRUE)
+#'  #
+#'  #
+#'  ##Simulate data
+#'  #W1 <- getG(Glist, chr=1, scale=TRUE)
+#'  #W2 <- getG(Glist, chr=2, scale=TRUE)
+#'
+#'  #W <- cbind(W1,W2)
+#'  #causal <- sample(1:ncol(W),5)
+#'
+#'  #b1 <- rnorm(length(causal))
+#'  #b2 <- rnorm(length(causal))
+#'  #y1 <- W[, causal]%*%b1 + rnorm(nrow(W))
+#'  #y2 <- W[, causal]%*%b2 + rnorm(nrow(W))
 #'
 # # Create model
-#' data1 <- data.frame(y = y1, mu = 1)
-#' data2 <- data.frame(y = y2, mu = 1)
-#' X1 <- model.matrix(y ~ 0 + mu, data = data1)
-#' X2 <- model.matrix(y ~ 0 + mu, data = data2)
+#'  #data1 <- data.frame(y = y1, mu = 1)
+#'  #data2 <- data.frame(y = y2, mu = 1)
+#'  #X1 <- model.matrix(y ~ 0 + mu, data = data1)
+#'  #X2 <- model.matrix(y ~ 0 + mu, data = data2)
 #'
-#' # Linear model analyses and single marker association test
-#' maLM1 <- lma(y=y1, X=X1,W = W)
-#' maLM2 <- lma(y=y2,X=X2,W = W)
-#' 
-#' # Compute heritability and genetic correlations for trait 1 and 2
-#' z1 <- maLM1[,"stat"]
-#' z2 <- maLM2[,"stat"]
+#'  ## Linear model analyses and single marker association test
+#'  #maLM1 <- lma(y=y1, X=X1,W = W)
+#'  #maLM2 <- lma(y=y2,X=X2,W = W)
+#'  #
+#'  ## Compute heritability and genetic correlations for trait 1 and 2
+#'  #z1 <- maLM1[,"stat"]
+#'  #z2 <- maLM2[,"stat"]
 #'
-#'z <- cbind(z1=z1,z2=z2)
+#'  #z <- cbind(z1=z1,z2=z2)
 #'
-#'h2 <- ldsc(Glist, z=z, n=c(500,500), what="h2")
-#'rg <- ldsc(Glist, z=z, n=c(500,500), what="rg")
+#'  #h2 <- ldsc(Glist, z=z, n=c(500,500), what="h2")
+#'  #rg <- ldsc(Glist, z=z, n=c(500,500), what="rg")
+#'
+#'
 #'
 #' @export 
 
-ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, stat=NULL, n=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
+ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, stat=NULL, 
+                 n=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
   if(!is.null(Glist) & is.null(ldscores) ) ldscores <- unlist(Glist$ldscores)
   ldscores <- unlist(ldscores)
   
@@ -84,6 +105,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, stat=NULL,
   if(is.null(n)) {
     n <- NULL
     if(is.null(seb)) stop("Please provide n or alternatively seb")
+    if(is.null(af)) stop("Please provide af")
     for ( t in 1:nt) {
       n <- c(n,neff(seb[,t],af[,t]))
     }
