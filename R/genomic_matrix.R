@@ -63,14 +63,8 @@
 #' bimfiles <- system.file("extdata", "sample_22.bim", package = "qgg")
 #' famfiles <- system.file("extdata", "sample_22.fam", package = "qgg")
 #' 
-#' if(!grepl("^darwin", R.version$os)) {
-#'   fnBED <- tempfile(fileext=".raw")
-#' 
-#'   Glist <- gprep(study="1000G", fnBED=fnBED, bedfiles=bedfiles, bimfiles=bimfiles,
-#'                famfiles=famfiles, overwrite=TRUE)
-#' 
-#'   file.remove(fnBED)
-#' }
+#' Glist <- gprep(study="1000G", bedfiles=bedfiles, bimfiles=bimfiles,
+#'              famfiles=famfiles)
 #' 
 
 
@@ -214,7 +208,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     for (chr in 1:Glist$nchr) {
       Glist$map[[chr]] <- rep(NA,Glist$mchr[chr])
       names(Glist$map[[chr]]) <- Glist$rsids[[chr]]
-      map <- fread(mapfiles[chr],data.table=F)
+      map <- data.table::fread(mapfiles[chr],data.table=F)
       dups <- map[duplicated(map[,2]),2]
       map <- map[!map[,2]%in%dups,]
       map <- map[map[,2]%in%Glist$rsids[[chr]],]
@@ -745,7 +739,7 @@ getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=N
 #' @export
 #'
 
-plotLD <- function(LD=null, cols=NULL) {
+plotLD <- function(LD=NULL, cols=NULL) {
   if(is.null(cols)) cols <- colorRampPalette(c('#f0f3ff','#0033BB'))(256)
   LD <- LD[,ncol(LD):1]
   image(LD, col=cols, axes = FALSE)
