@@ -28,6 +28,7 @@
 #' @param task either computation of GRM (task="grm"  which is default) or eigenvalue decomposition of GRM (task="eigen")
 #' @param miss the missing code (miss=NA is default) used for missing values in the genotype data
 #' @param impute if missing values in the genotype matrix W then mean impute
+#' @param pedigree is a dataframe with pedigree information
 #'
 #'
 #' @return Returns a genomic relationship matrix (GRM) if returnGRM=TRUE else a list structure (GRMlist) with information about the GRM  stored on disk
