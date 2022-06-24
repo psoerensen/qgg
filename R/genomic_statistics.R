@@ -1,63 +1,54 @@
 ####################################################################################################################
-#    Module 8: GSIM
+#    Module 8: Genomic statistics
 ####################################################################################################################
 #'
-#' Genomic simulation
-#' 
+#' Quality control of marker summary statistics
 #'
 #' @description
-#' The gsolve function is used for solving of linear mixed model equations. The algorithm used to solve the equation
-#' system is based on a Gauss-Seidel (GS) method (matrix-free with residual updates) that handles large data sets.
+#' Quality control is a critical step for working with summary statistics (in particular
+#'                                                                         for external). 
+#' Processing and quality control of GWAS summary statistics includes:                                                                      
 #'
-#' The linear mixed model fitted can account for multiple traits, multiple genetic factors (fixed or random genetic
-#' marker effects), adjust for complex family relationships or population stratification, and adjust for other
-#' non-genetic factors including lifestyle characteristics. Different genetic architectures (infinitesimal,
-#' few large and many small effects) is accounted for by modeling genetic markers in different sets as fixed or
-#' random effects and by specifying individual genetic marker weights.
-
+#' - map marker ids (rsids/cpra (chr, pos, ref, alt)) to LD reference panel data 
+#' - check effect allele (flip EA, EAF, Effect)
+#' - check effect allele frequency
+#' - thresholds for MAF and HWE
+#' - exclude INDELS, CG/AT and MHC region
+#' - remove duplicated marker ids
+#' - check which build version
+#' - check for concordance between marker effect and LD data
 #'
-#' @param y vector or matrix of phenotypes
-#' @param X design matrix of fixed effects
-#' @param W matrix of centered and scaled genotypes
+#' External summary statistics format:
+#'  marker, chr, pos, effect_allele, non_effect_allele, effect_allele_freq, effect, effect_se, stat, p, n    
+#' 
+#' Internal summary statistics format:
+#'  rsids, chr, pos, a1, a2, af, b, seb, stat, p, n
+#' 
+#'
 #' @param Glist list of information about genotype matrix stored on disk
+#' @param stat dataframe with marker summary statistics
+#' @param excludeMAF exclude marker if minor allele frequency (MAF) is below threshold (0.01 is default)
+#' @param excludeMAFDIFF exclude marker if minor allele frequency difference (MAFDIFF) between Glist$af and stat$af is above threshold (0.05 is default)
+#' @param excludeINFO exclude marker if info score (INFO) is below threshold (0.8 is default)
+#' @param excludeMISS exclude marker if missingness (MISS) is above threshold (0.05 is default)
+#' @param excludeHWE exclude marker if p-value for Hardy Weinberg Equilibrium test is below threshold (0.01 is default)
+#' @param excludeCGAT exclude marker if alleles are ambigous (CG or AT)
+#' @param excludeMHC exclude marker if located in MHC region 
+#' @param excludeINDEL exclude marker if it an insertion/deletion  
+#' @param excludeDUPS exclude marker id if duplicated
 
 
 #' @author Peter Soerensen
-
-#' @examples
-#'
-#' # Simulate data
-#' W <- matrix(rnorm(1000000), ncol = 1000)
-#' 	colnames(W) <- as.character(1:ncol(W))
-#' 	rownames(W) <- as.character(1:nrow(W))
-#' m <- ncol(W)
-#' causal <- sample(1:ncol(W),50)
-#' y <- rowSums(W[,causal]) + rnorm(nrow(W),sd=sqrt(50))
-#'
-#' X <- model.matrix(y~1)
-#'
-#' Sg <- 50
-#' Se <- 50
-#' h2 <- Sg/(Sg+Se)
-#' lambda <- Se/(Sg/m)
-#' lambda <- m*(1-h2)/h2
-#'
-#' # BLUP of single marker effects and total genomic effects based on Gauss-Seidel procedure
-#' fit <- gsolve( y=y, X=X, W=W, lambda=lambda)
-#'
-
-
-
 
 
 #'
 #' @export
 #'
 
-qcstat <- function(Glist=NULL, stat=NULL,  
-                   excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
-                   excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE,
-                   excludeMISS=0.05, excludeHWE=1e-12) {
+qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, 
+                   excludeINFO=0.8, excludeCGAT=TRUE, excludeINDEL=TRUE, 
+                   excludeDUPS=TRUE, excludeMHC=FALSE, excludeMISS=0.05, 
+                   excludeHWE=1e-12) {
   
   # we use cpra to link sumstats and Glist
   cpra <- unlist(Glist$cpra)
@@ -256,106 +247,6 @@ qcstat <- function(Glist=NULL, stat=NULL,
 }
 
 
-# checkStat <- function(Glist=NULL, stat=NULL, filename=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
-#                       excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE) {
-#   # effect, effect_se, effect_allele, alternative_allele, effect_allele_freq, nobs
-#   cpra <- paste(unlist(Glist$chr),unlist(Glist$position),unlist(Glist$a1),unlist(Glist$a2), sep="_")
-#   df <- data.frame(rsids=unlist(Glist$rsids),cpra,
-#                    chr=unlist(Glist$chr), position=unlist(Glist$position), 
-#                    a1=unlist(Glist$a1), a2=unlist(Glist$a2),
-#                    af=unlist(Glist$af))
-#   rsidsDUPS <- df$rsids[duplicated(df$rsids)]
-#   df <- df[!df$rsids%in%rsidsDUPS,]
-#   rsidsLD <- unlist(Glist$rsidsLD)
-#   df <- df[df$rsids%in%rsidsLD,]
-#   rownames(df) <- df$rsids
-#   
-#   inGlist <- stat$rsids%in%df$rsids
-#   message(paste("Number of markers in stat also found in bedfiles:", sum(inGlist)))
-#   
-#   stat <- stat[inGlist,]
-#   df <- df[rownames(stat),]
-#   
-#   aligned <- stat$effect_allele==df$a1
-#   message(paste("Number of effect alleles aligned with first allele in bimfiles:", sum(aligned)))
-#   message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
-#   
-#   if(!is.null(filename)) png(file=filename)
-#   
-#   layout(matrix(1:6,ncol=2,byrow=TRUE))
-#   
-#   try(lm(stat$effect_allele_freq[aligned]~ df$af[aligned]))
-#   plot(stat$effect_allele_freq[aligned],df$af[aligned], ylab="AF in Glist (allele matching)",xlab="AF in stat (allele matching)")
-#   
-#   try(lm(stat$effect_allele_freq[!aligned]~ df$af[!aligned]))
-#   plot(stat$effect_allele_freq[!aligned],df$af[!aligned], ylab="AF in Glist (allele not matching)",xlab="AF in stat (allele not matching)")
-#   
-#   stat[!aligned,"effect_allele_freq"] <- 1 - stat[!aligned,"effect_allele_freq"]
-#   effect <- stat[!aligned,"b"]
-#   effect_allele <- stat[!aligned,"effect_allele"]
-#   alternative_allele <- stat[!aligned,"alternative_allele"]
-#   stat[!aligned,"effect_allele"] <- alternative_allele 
-#   stat[!aligned,"alternative_allele"] <- effect_allele 
-#   stat[!aligned,"b"] <- -effect 
-#   
-#   try(lm(stat$effect_allele_freq~ df$af))
-#   plot(stat$effect_allele_freq,df$af, ylab="AF in Glist",xlab="AF in stat (after allele flipped)")
-#   
-#   isDUPS <- duplicated(stat$rsids)
-#   a1 <- df$a1
-#   a2 <- df$a2
-#   isAT <- a1=="A" & a2=="T"
-#   isTA <- a1=="T" & a2=="A"
-#   isCG <- a1=="C" & a2=="G"
-#   isGC <- a1=="G" & a2=="C"
-#   isCGAT <- isAT | isTA | isCG | isGC
-#   CGTA <- c("C","G","T","A")
-#   isINDEL <- !((a1%in%CGTA) & (a2%in%CGTA))
-#   
-#   largeMAFDIFF <- abs(df$af-stat$effect_allele_freq) > excludeMAFDIFF
-#   maf <- stat$effect_allele_freq
-#   maf[maf>0.5] <- 1-maf[maf>0.5]
-#   lowMAF <- maf < excludeMAF
-#   
-#   message(paste("Number of markers excluded by low MAF:", sum(lowMAF)))
-#   message(paste("Number of markers excluded by large difference between MAF difference:", sum(largeMAFDIFF)))
-#   
-#   rsidsQC <- lowMAF | largeMAFDIFF
-#   
-#   if(!is.null(stat$info)) {
-#     lowINFO <- stat$info < excludeINFO
-#     rsidsQC <- rsidsQC | lowINFO
-#     message(paste("Number of markers excluded by low INFO score:", sum(lowINFO)))
-#   }
-#   
-#   if(excludeCGAT) {
-#     rsidsQC <- rsidsQC | isCGAT
-#     message(paste("Number of markers excluded by ambiguity (CG or AT):", sum(isCGAT)))
-#   }
-#   if(excludeDUPS) {
-#     rsidsQC <- rsidsQC | isDUPS
-#     message(paste("Number of markers excluded by duplicated rsids", sum(isDUPS)))
-#   }
-#   if(excludeINDEL) {
-#     rsidsQC <- rsidsQC | isINDEL
-#     message(paste("Number of markers excluded by being INDEL:", sum(isINDEL)))
-#   }
-#   
-#   rsidsQC <- !rsidsQC
-#   plot(stat$effect_allele_freq[rsidsQC],df$af[rsidsQC], ylab="AF in Glist",xlab="AF in stat (after qc check)")
-#   stat <- stat[rsidsQC,]
-#   maf <- stat$effect_allele_freq
-#   maf[maf>0.5] <- 1-maf[maf>0.5]
-#   seb <- stat$seb
-#   plot(y=seb,x=maf, ylab="SEB",xlab="MAF")
-#   if(!is.null(filename)) dev.off()
-#   stat$af <- stat$effect_allele_freq  
-#   stat$alleles <- stat$effect_allele  
-#   if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)
-#   return(stat)
-# }
-
-
 
 # adjStat <- function(Glist=NULL,stat=NULL,filename=NULL, chr=NULL){
 #   chromosomes <- chr
@@ -405,6 +296,31 @@ qcstat <- function(Glist=NULL, stat=NULL,
 #   return(stat)
 # }
 
+
+#'
+#' LD adjustment of marker summary statistics
+#' 
+#' @description
+#'
+#' Adjust marker summary statistics based on linkage disequilibrium information from Glist
+#' 
+#'
+#' @param Glist list of information about genotype matrix stored on disk
+#' @param stat dataframe with marker summary statistics
+#' @param chr chromosome(s) being processed
+#' @param statistics what type of statistics ("b" or "z") is being processed (default is "b")
+#' @param r2 threshold used in clumping procedure (default is 0.9)
+#' @param threshold p-value threshold used in clumping procedure (default is 1)
+#' @param method used in adjustment for linkage disequilibrium (default is "clumping")
+#' @param ldSets marker sets used for adjustment for linkage disequilibrium 
+#' 
+#'
+#' @details
+#' # stat can be a data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
+#' # stat can be a list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
+
+
+#' @author Peter Soerensen
 
 #'
 #' @export
@@ -469,9 +385,6 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
   
 }
 
-#'
-#' @export
-#'
 
 getStat <- function(stat=NULL, cls=NULL, rws=NULL) {
   if(is.null(rws)) rws <- 1:nrow(stat[[1]])
@@ -581,7 +494,6 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
       res <- cbind(res,pstat)
     }
     
-    
   }
   #res <- res[!rowSums(res == 0) == ncol(res), ]
   if (length(chromosomes)==1) res <- res[rownames(res)%in%rsidsChr,]
@@ -683,14 +595,47 @@ adjLDStat <- function(stat=NULL, Glist = NULL, chr = NULL, region=NULL, msize=NU
 #   return(ma)
 # }
 
+
+#'
+#' Map marker summary statistics to Glist
+#'
+#' @description
+#' Quality control is a critical step for working with summary statistics (in particular
+#'                                                                         for external). 
+#' Processing and quality control of GWAS summary statistics includes:                                                                      
+#'
+#' - map marker ids (rsids/cpra (chr, pos, ref, alt)) to LD reference panel data 
+#' - check effect allele (flip EA, EAF, Effect)
+#' - check effect allele frequency
+#' - thresholds for MAF and HWE
+#' - exclude INDELS, CG/AT and MHC region
+#' - remove duplicated marker ids
+#' - check which build version
+#' - check for concordance between marker effect and LD data
+#'
+#' @param Glist list of information about genotype matrix stored on disk
+#' @param stat dataframe with marker summary statistics
+#' @param excludeMAF exclude marker if minor allele frequency (MAF) is below threshold (0.01 is default)
+#' @param excludeMAFDIFF exclude marker if minor allele frequency difference (MAFDIFF) between Glist$af and stat$af is above threshold (0.05 is default)
+#' @param excludeINFO exclude marker if info score (INFO) is below threshold (0.8 is default)
+#' @param excludeMISS exclude marker if missingness (MISS) is above threshold (0.05 is default)
+#' @param excludeHWE exclude marker if p-value for Hardy Weinberg Equilibrium test is below threshold (0.01 is default)
+#' @param excludeCGAT exclude marker if alleles are ambigous (CG or AT)
+#' @param excludeMHC exclude marker if located in MHC region 
+#' @param excludeINDEL exclude marker if it an insertion/deletion  
+#' @param excludeDUPS exclude marker id if duplicated
+
+
+#' @author Peter Soerensen
+
 #'
 #' @export
 #'
 
-mapStat <- function(Glist=NULL, stat=NULL, 
-                   excludeMAF=0.01, excludeMAFDIFF=0.05, excludeINFO=0.8, 
-                   excludeCGAT=TRUE, excludeINDEL=TRUE, excludeDUPS=TRUE, excludeMHC=FALSE,
-                   excludeMISS=0.05, excludeHWE=1e-12) {
+mapStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, 
+                    excludeINFO=0.8, excludeCGAT=TRUE, excludeINDEL=TRUE, 
+                    excludeDUPS=TRUE, excludeMHC=FALSE,excludeMISS=0.05, 
+                    excludeHWE=1e-12) {
   
   # we use cpra to link sumstats and Glist
   cpra <- unlist(Glist$cpra)
