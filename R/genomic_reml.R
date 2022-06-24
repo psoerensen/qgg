@@ -1,53 +1,53 @@
 ####################################################################################################################
-#    Module 4: GREML analysis
+#    Module 4: Genomic REML (GREML) analysis
 ####################################################################################################################
 #'
-#' Genomic REML analysis
+#' GREML analysis
 #'
 #' @description
-#' The greml function is used for estimation of genomic parameters (co-variance, heritability and correlation)
+#' [This sentence is unclear: The greml function is used for the estimation of genomic parameters (co-variance, heritability and correlation)
 #' for linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using
-#' best linear unbiased prediction (BLUP).
+#' best linear unbiased prediction (BLUP).]
 #'
 #' The linear mixed model can account for multiple genetic factors (fixed and random genetic marker effects),
-#' adjust for complex family relationships or population stratification, and adjust for other non-genetic factors
+#' adjust for complex family relationships or population stratification and adjust for other non-genetic factors
 #' including lifestyle characteristics. Different genetic architectures (infinitesimal, few large and many
 #' small effects) is accounted for by modeling genetic markers in different sets as fixed or random effects
 #' and by specifying individual genetic marker weights. Different genetic models (e.g. additive and non-additive)
 #' can be specified by providing additive and non-additive genomic relationship matrices (GRMs) (constructed using grm).
-#' The GRMs can be accessed from the R environment or from binary files stored on disk facilitating analyses of
+#' The GRMs can be accessed from the R environment or from binary files stored on disk facilitating the analyses of
 #' large-scale genetic data.
 #'
 #' The output contains estimates of variance components, fixed and random effects, first and second derivatives of
-#' log-likelihood, and the asymptotic standard deviation of parameter estimates.
+#' log-likelihood and the asymptotic standard deviation of parameter estimates.
 #'
 #' Assessment of predictive accuracy (including correlation and R2, and AUC for binary phenotypes) can be obtained
-#' by providing greml with a dataframe or list containing sample IDs used in the validation, see examples for details.
+#' by providing greml with a data frame, or a list that contains sample IDs used in the validation (see examples for details).
 #'
 #' Genomic parameters can also be estimated with DMU (http://www.dmu.agrsci.dk/DMU/) if interface =”DMU”.
 #' This option requires DMU to be installed locally, and the path to the DMU binary files has to be specified
 #' (see examples below for details).
 
-#' @param y vector or matrix of phenotypes
-#' @param X design matrix for factors modeled as fixed effects
-#' @param GRM list of one or more genomic relationship matrices
-#' @param GRMlist list providing information about GRM matrix stored in binary files on disk
-#' @param theta vector of initial values of co-variance for REML estimation
-#' @param ids vector of individuals used in the analysis
-#' @param validate dataframe or list of individuals used in cross-validation (one column/row for each validation set)
-#' @param maxit maximum number of iterations used in REML analysis
-#' @param tol tolerance, i.e. convergence criteria used in REML
-#' @param ncores number of cores used for the analysis
-#' @param fm formula with model statement for the linear mixed model
-#' @param data data frame containing the phenotypic observations and fixed factors specified in the model statements
-#' @param interface used for specifying whether to use R or Fortran implementations of REML
+#' @param y is a vector or matrix of phenotypes
+#' @param X is a design matrix for factors modeled as fixed effects
+#' @param GRM is a list of one or more genomic relationship matrices
+#' @param GRMlist is a list providing information about GRM matrix stored in binary files on disk
+#' @param theta is a vector of initial values of co-variance for REML estimation
+#' @param ids is a vector of individuals used in the analysis
+#' @param validate is a data frame or list of individuals used in cross-validation (one column/row for each validation set)
+#' @param maxit is the maximum number of iterations used in REML analysis
+#' @param tol is tolerance, i.e. convergence criteria used in REML
+#' @param ncores is the number of cores used for the analysis
+#' @param fm is a formula with model statement for the linear mixed model
+#' @param data is a data frame containing the phenotypic observations and fixed factors specified in the model statements
+#' @param interface is used for specifying whether to use R or Fortran implementations of REML
 #' @param wkdir is the working directory used for REML
-#' @param makeplots logical if TRUE makes some plots or parameter estimates and prediction accuracy during cross validation
-#' @param verbose logical if TRUE print more details during optimization
-#' @param bin directory for fortran binaries (e.g. DMU binaries dmu1 and dmuai)
+#' @param makeplots is a logical; if TRUE it makes some plots ["or" or "and"?: or] calculates parameter estimates and prediction accuracy during cross validation
+#' @param verbose is a logical; if TRUE it prints more details during optimization
+#' @param bin is the directory for fortran binaries (e.g. DMU binaries dmu1 and dmuai)
 
 #'
-#' @return Returns a list structure including
+#' @return returns a list structure including:
 #' \item{llik}{log-likelihood at convergence}
 #' \item{theta}{covariance estimates from REML}
 #' \item{asd}{asymptotic standard deviation}
@@ -55,13 +55,13 @@
 #' \item{varb}{vector of variances of fixed effect estimates}
 #' \item{g}{vector or matrix of random effect estimates}
 #' \item{e}{vector or matrix of residual effects}
-#' \item{accuracy}{matrix of prediction accuracies (only returned if validate is provided)}
+#' \item{accuracy}{matrix of prediction accuracies (only returned if [validate?] is provided)}
 
 
 #' @author Peter Soerensen
 
 
-#' @references Lee, S. H., & van Der Werf, J. H. (2006). An efficient variance component approach implementing an average information REML suitable for combined LD and linkage mapping with a general complex pedigree. Genetics Selection Evolution, 38(1), 25.
+#' @references Lee, S. H., & van der Werf, J. H. (2006). An efficient variance component approach implementing an average information REML suitable for combined LD and linkage mapping with a general complex pedigree. Genetics Selection Evolution, 38(1), 25.
 
 #' @examples
 #'
