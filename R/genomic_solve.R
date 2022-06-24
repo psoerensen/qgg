@@ -22,7 +22,7 @@
 #' @param Glist list of information about genotype matrix stored on disk
 #' @param GRM genetic relationship matrix
 #' @param ve residual variance
-#' @param vg genetic variance
+#' @param va genetic variance
 #' @param rsids vector of marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis
 #' @param lambda overall shrinkage factor
