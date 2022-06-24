@@ -1,9 +1,8 @@
 ####################################################################################################################
-#    Module 6: GSCORE
+#    Module 6: Genomic Scoring
 ####################################################################################################################
 #'
-#' Genomic prediction based on single marker summary statistics
-#'
+#' Genomic scoring based on single marker summary statistics
 #'
 #' @description
 #' The gscore function is used for genomic predictions based on single marker summary statistics
@@ -26,28 +25,24 @@
 #' @examples
 #'
 
-#' bedfiles <- system.file("extdata", "sample_22.bed", package = "qgg")
-#' bimfiles <- system.file("extdata", "sample_22.bim", package = "qgg")
-#' famfiles <- system.file("extdata", "sample_22.fam", package = "qgg")
-#' 
-#' Glist <- gprep(study="1000G", bedfiles=bedfiles, bimfiles=bimfiles,
-#'                famfiles=famfiles, overwrite=TRUE)
-#' 
-#' rsids <- Glist$rsids
-#' stat <- data.frame(rsids=Glist$rsids,alleles=Glist$a1, af=Glist$af, effect=rnorm(Glist$m))
-#' 
-#' W <- getW(Glist=Glist,rsids=Glist$rsids)
-#' pgs1 <- W%*%stat[,4]
-#' 
-#' pgs2 <- gscore(Glist = Glist, stat = stat) 
-#' 
-#' pgs3 <- gscore(bedfiles=bedfiles, stat = stat) 
-#' 
-#' pgs4 <- gscore(bedfiles=bedfiles,bimfiles=bimfiles,famfiles=famfiles, stat = stat) 
-#' 
-#' 
-#' cor(cbind(pgs1,pgs2,pgs3,pgs4))
-#'
+#'  ## Plink bed/bim/fam files
+#'  bedfiles <- system.file("extdata", paste0("sample_chr",1:2,".bed"), package = "qgg")
+#'  bimfiles <- system.file("extdata", paste0("sample_chr",1:2,".bim"), package = "qgg")
+#'  famfiles <- system.file("extdata", paste0("sample_chr",1:2,".fam"), package = "qgg")
+#'  
+#'  # Summarize bed/bim/fam files
+#'  Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles)
+#'  
+#'  # Simulate phenotype
+#'  chr <- 1
+#'  W <- getG(Glist=Glist, chr=chr)
+#'  sim <- gsim(W=W,nt=1)
+#'  
+#'  # Compute single marker summary statistics
+#'  stat <- glma(y=sim$y, Glist=Glist, scale=FALSE)
+#'  
+#'  # Compute genomic scores
+#'  gsc <- gscore(Glist = Glist, stat = stat)
 
 #' @export
 #'
@@ -249,55 +244,58 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 #' 
 #' @return Matrix of adjusted marker effects for each trait
 #' 
-#' @author Peter Soerensen
+#' @author Palle Duun Rohde and Peter Soerensen
 #' 
 #' @examples
-#' bedfiles <- system.file("extdata", "sample_22.bed", package = "qgg")
-#' bimfiles <- system.file("extdata", "sample_22.bim", package = "qgg")
-#' famfiles <- system.file("extdata", "sample_22.fam", package = "qgg")
-#' Glist <- gprep(study="1000G", bedfiles=bedfiles, bimfiles=bimfiles,famfiles=famfiles)
-#' Glist <- gprep(Glist, task="sparseld",  msize=200)
 #' 
-#' #Simulate data
-#' set.seed(23)
-#' 
-#' W <- getG(Glist, chr=1, scale=TRUE)
-#' causal <- sample(1:ncol(W),50)
-#' set1 <- c(causal, sample(c(1:ncol(W))[-causal],10))
-#' set2 <- c(causal, sample(c(1:ncol(W))[-set1],10))
-#' 
-#' b1 <- rnorm(length(set1))
-#' b2 <- rnorm(length(set2))
-#' y1 <- W[, set1]%*%b1 + rnorm(nrow(W))
-#' y2 <- W[, set2]%*%b2 + rnorm(nrow(W))
-#' 
-#' # Create model
-#' data1 <- data.frame(y = y1, mu = 1)
-#' data2 <- data.frame(y = y2, mu = 1)
-#' X1 <- model.matrix(y ~ 0 + mu, data = data1)
-#' X2 <- model.matrix(y ~ 0 + mu, data = data2)
-#' 
-#' # Linear model analyses and single marker association test
-#' maLM1 <- lma(y=y1, X=X1,W = W)
-#' maLM2 <- lma(y=y2,X=X2,W = W)
-#' 
-#' # Compute genetic parameters
-#' z1 <- maLM1[,"stat"]
-#' z2 <- maLM2[,"stat"]
-#' 
-#' z <- cbind(z1=z1,z2=z2)
-#' 
-#' h2 <- ldsc(Glist, z=z, n=c(500,500), what="h2")
-#' rg <- ldsc(Glist, z=z, n=c(500,500), what="rg")
-#' 
-#' # Adjust summary statistics using estimated genetic parameters
-#' b <- cbind(b1=maLM1[,"b"],b2=maLM2[,"b"])
-#' badj <- mtadj( h2=h2, rg=rg, b=b, n=c(500,500), method="ols")
-#' 
+#'  #bedfiles <- system.file("extdata", "sample_22.bed", package = "qgg")
+#'  #bimfiles <- system.file("extdata", "sample_22.bim", package = "qgg")
+#'  #famfiles <- system.file("extdata", "sample_22.fam", package = "qgg")
+#'  #Glist <- gprep(study="1000G", bedfiles=bedfiles, bimfiles=bimfiles,famfiles=famfiles)
+#'  #Glist <- gprep(Glist, task="sparseld",  msize=200)
+#'  #
+#'  ##Simulate data
+#'  #set.seed(23)
+#'  #
+#'  #W <- getG(Glist, chr=1, scale=TRUE)
+#'  #causal <- sample(1:ncol(W),50)
+#'  #set1 <- c(causal, sample(c(1:ncol(W))[-causal],10))
+#'  #set2 <- c(causal, sample(c(1:ncol(W))[-set1],10))
+#'  #
+#'  #b1 <- rnorm(length(set1))
+#'  #b2 <- rnorm(length(set2))
+#'  #y1 <- W[, set1]%*%b1 + rnorm(nrow(W))
+#'  #y2 <- W[, set2]%*%b2 + rnorm(nrow(W))
+#'  #
+#'  ## Create model
+#'  #data1 <- data.frame(y = y1, mu = 1)
+#'  #data2 <- data.frame(y = y2, mu = 1)
+#'  #X1 <- model.matrix(y ~ 0 + mu, data = data1)
+#'  #X2 <- model.matrix(y ~ 0 + mu, data = data2)
+#'  #
+#'  ## Linear model analyses and single marker association test
+#'  #maLM1 <- glma(y=y1, X=X1,W = W)
+#'  #maLM2 <- glma(y=y2,X=X2,W = W)
+#'  #
+#'  ## Compute genetic parameters
+#'  #z1 <- maLM1[,"stat"]
+#'  #z2 <- maLM2[,"stat"]
+#'  #
+#'  #z <- cbind(z1=z1,z2=z2)
+#'  #
+#'  #h2 <- ldsc(Glist, z=z, n=c(500,500), what="h2")
+#'  #rg <- ldsc(Glist, z=z, n=c(500,500), what="rg")
+#'  #
+#'  ## Adjust summary statistics using estimated genetic parameters
+#'  #b <- cbind(b1=maLM1[,"b"],b2=maLM2[,"b"])
+#'  #badj <- mtadj( h2=h2, rg=rg, b=b, n=c(500,500), method="ols")
+#'  
+#'  
 #' @export
 #' 
 
-mtadj <- function(h2=NULL, rg=null, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NULL, meff=60000, method="ols", statistics="z") {
+mtadj <- function(h2=NULL, rg=NULL, stat=NULL, b=NULL, z=NULL, n=NULL, mtotal=NULL, 
+                  meff=60000, method="ols", statistics="z") {
   
   if(!is.null(z)) b <- z
   if(!is.null(stat)) {
@@ -367,8 +365,20 @@ rsq <- function(h2=NULL,meff=NULL,n=NULL) {
 }
 
 
+#' Compute Receiver Operating Curve statistics
+#' 
+#' @description
+#' Compute ROC
+#'
+#' @author Palle Duun Rohde
+#' 
+#' @param yobs vector of observed phenotype
+#' @param ypred vector of predicted phenotype
+#' 
+#' 
 #' @export
 #' 
+
 computeROC <- function(yobs=NULL, ypred=NULL){
   if(!is.matrix(ypred)){
     y <- data.frame(yobs=yobs==1, ypred=ypred)
@@ -388,15 +398,26 @@ computeROC <- function(yobs=NULL, ypred=NULL){
   return(roc.df)
 }
 
+#' Plot Receiver Operating Curves
+#'
+#' @description
+#' Plot ROC
+#'
+#' @param roc.data data frame with ROC information (from computeROC)
+#' @param cols which columns should be used in the ROC plot
+#' 
+#' @author Palle Duun Rohde
+#' 
 #' @export
 #' 
+
 plotROC <- function(roc.data=NULL, cols = NULL){
     if(is.matrix(roc.data)){
        if(is.null(cols)){cols <- "black"}
        plot(x=roc.data[,2], y=roc.data[,1], bty="n", type="l", las=1, cex.axis=.8,
             xlab="FRP (1-Specificity)", ylab="TPR (Sensitivity)", col=cols)
        abline(a=0, b=1, lty=2)
-       text(x=.95, y=.8,label=paste("AUC = ", round(qgg:::auc(ypred=roc.data[,4], yobs=roc.data[,3]),3),sep=""),cex=.9)
+       text(x=.95, y=.8,label=paste("AUC = ", round(auc(ypred=roc.data[,4], yobs=roc.data[,3]),3),sep=""),cex=.9)
     }
     if(is.list(roc.data)){
         if(is.null(cols)){cols <- 1:length(roc.data)}
@@ -406,7 +427,7 @@ plotROC <- function(roc.data=NULL, cols = NULL){
         print.auc <- NULL
         for(i in 1:length(roc.data)){
             points(roc.data[[i]][,2], y=roc.data[[i]][,1], type="l",col=cols[i])
-            print.auc <- c(print.auc, round(qgg:::auc(ypred=roc.data[[i]][,4], yobs=roc.data[[i]][,3]),3))
+            print.auc <- c(print.auc, round(auc(ypred=roc.data[[i]][,4], yobs=roc.data[[i]][,3]),3))
         }
         legend("bottomright", legend=paste(names(roc.data), " (AUC = ", print.auc, ")",sep=""), lty=1, col=cols, bty="n", cex=.8)
     }
