@@ -70,18 +70,22 @@
 #'  X <- model.matrix(fm, data = data)
 #'
 #'  # Single marker association analyses
-#'  ma <- glma(y=y,X=X,W=W)
+#'  stat <- glma(y=y,X=X,W=W)
 #'
 #'  # Create marker sets
 #'  f <- factor(rep(1:100,each=10), levels=1:100)
 #'  sets <- split(as.character(1:1000),f=f)
 #'
 #'  # Set test based on sums
-#'  mma <- gsea(stat = ma[,"stat"]**2, sets = sets, method = "sum", nperm = 10000)
+#'  b2 <- stat[,"stat"]**2
+#'  names(b2) <- rownames(stat)
+#'  mma <- gsea(stat = b2, sets = sets, method = "sum", nperm = 100)
 #'  head(mma)
 #'
 #'  # Set test based on hyperG
-#'  mma <- gsea(stat = ma[,"p"], sets = sets, method = "hyperg", threshold = 0.05)
+#'  p <- stat[,"p"]
+#'  names(p) <- rownames(stat)
+#'  mma <- gsea(stat = p, sets = sets, method = "hyperg", threshold = 0.05)
 #'  head(mma)
 #'
 #' \donttest{
