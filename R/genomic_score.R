@@ -242,8 +242,12 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 #' @param rg n-by-n matrix of genetic correlations
 #' @param n vector of sample size used to estimate marker effects for each trait
 #' @param b matrix of marker effects
-#' @param me effective number of uncorrelated genomic segments (default=60,000)
+#' @param z matrix of z-scores
+#' @param meff effective number of uncorrelated genomic segments (default=60,000)
+#' @param mtotal total number of markers 
+#' @param statistics which kind of statistics ("b" or "z") used in the analysis
 #' @param method method used to estimate marker effects; OLS: ordinary least square (default), or BLUP: best linear unbiased prediction
+#' @param stat dataframe with marker summary statistics
 #' 
 #' @return Matrix of adjusted marker effects for each trait
 #' 
