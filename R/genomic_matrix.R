@@ -687,9 +687,6 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
   return(ld)
 }
 
-#' @export
-#'
-
 getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=NULL, format="sparse") {
   msize <- Glist$msize
   rsidsChr <- Glist$rsidsLD[[chr]]
@@ -752,7 +749,7 @@ plotLD <- function(LD=NULL, cols=NULL) {
 #' @export
 #'
 
-getMarkers <- function(Glist=null, chr=NULL, region=NULL) {
+getMarkers <- function(Glist=NULL, chr=NULL, region=NULL) {
   minpos <- min(region)
   maxpos <- max(region)
   select <-  Glist$position[[chr]] > minpos & Glist$position[[chr]] < maxpos
