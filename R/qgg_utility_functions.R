@@ -1,3 +1,9 @@
+#' Compute AUC
+#' @description
+#' Compute Area Under the Curve (AUC)
+#' @keywords internal
+#' @param yobs is a vector of observed phenotypes
+#' @param ypred is a vector of predicted phenotypes
 auc <- function(yobs = NULL, ypred = NULL) {
   n0 <- length(yobs[yobs == 0])
   n1 <- length(yobs[yobs == 1])
@@ -9,6 +15,12 @@ auc <- function(yobs = NULL, ypred = NULL) {
   auc
 }
 
+#' Compute Nagelkerske R2
+#' @description
+#' ompute Nagelkerske R2
+#' @keywords internal
+#' @param yobs is a vector of observed phenotypes
+#' @param ypred is a vector of predicted phenotypes
 rnag <- function(yobs = NULL, ypred = NULL) {
   fit0 <- glm(yobs ~ 1, family = binomial(link = "logit"))
   fit1 <- glm(yobs ~ 1 + ypred, family = binomial(link = "logit"))
@@ -19,6 +31,13 @@ rnag <- function(yobs = NULL, ypred = NULL) {
   return(r2nag)
 }
 
+#' Compute prediction accuracy for a quantitative or binary trait
+#' @description
+#' Compute prediction accuracy for a quantitative or binary trait
+#' @param yobs is a vector of observed phenotypes
+#' @param ypred is a vector of predicted phenotypes
+#' @param typeoftrait is a character with possible values "binary" or "quantitative" (default)
+#' @export
 acc <- function(yobs = NULL, ypred = NULL, typeoftrait = "quantitative") {
   if (any(is.na(yobs))) stop(paste("NAs found in yobs"))
   if (any(is.na(ypred))) stop(paste("NAs found in ypred"))
@@ -48,43 +67,48 @@ acc <- function(yobs = NULL, ypred = NULL, typeoftrait = "quantitative") {
   return(result)
 }
 
-fastlm <- function(y = NULL, X = NULL, sets = NULL) {
-  XX <- crossprod(X)
-  XXi <- chol2inv(chol(XX))
-  Xy <- crossprod(X, y)
-  coef <- crossprod(XXi, Xy)
-  rownames(coef) <- colnames(X)
-  yhat <- crossprod(t(X), coef)
+# fastlm <- function(y = NULL, X = NULL, sets = NULL) {
+#   XX <- crossprod(X)
+#   XXi <- chol2inv(chol(XX))
+#   Xy <- crossprod(X, y)
+#   coef <- crossprod(XXi, Xy)
+#   rownames(coef) <- colnames(X)
+#   yhat <- crossprod(t(X), coef)
+# 
+#   sse <- sum((y - yhat)**2)
+#   dfe <- length(y) - ncol(X)
+# 
+#   se <- sqrt(sse / dfe) * sqrt(diag(XXi))
+#   stat <- coef / se
+#   p <- 2 * pt(-abs(stat), df = dfe)
+#   names(se) <- colnames(X)
+# 
+#   sigma_e <- sse / dfe
+#   ftest <- NULL
+#   if (!is.null(sets)) {
+#     nsets <- length(sets)
+#     for (i in 1:nsets) {
+#       rws <- sets[[i]]
+#       dfq <- length(rws)
+#       q <- crossprod(coef[rws, ], crossprod(solve(XXi[rws, rws] * sigma_e), coef[rws, ]))
+#       pq <- pchisq(q, df = dfq, lower.tail = FALSE)
+#       pfstat <- pf(q / dfq, dfq, dfe, lower.tail = FALSE)
+#       ftest <- rbind(ftest, c(q / dfq, dfq, dfe, pfstat))
+#     }
+#     colnames(ftest) <- c("F-stat", "dfq", "dfe", "p")
+#     rownames(ftest) <- names(sets)
+#   }
+# 
+#   fit <- list(coef = coef, se = se, stat = stat, p = p, ftest = ftest, yhat = yhat)
+# 
+#   return(fit)
+# }
 
-  sse <- sum((y - yhat)**2)
-  dfe <- length(y) - ncol(X)
-
-  se <- sqrt(sse / dfe) * sqrt(diag(XXi))
-  stat <- coef / se
-  p <- 2 * pt(-abs(stat), df = dfe)
-  names(se) <- colnames(X)
-
-  sigma_e <- sse / dfe
-  ftest <- NULL
-  if (!is.null(sets)) {
-    nsets <- length(sets)
-    for (i in 1:nsets) {
-      rws <- sets[[i]]
-      dfq <- length(rws)
-      q <- crossprod(coef[rws, ], crossprod(solve(XXi[rws, rws] * sigma_e), coef[rws, ]))
-      pq <- pchisq(q, df = dfq, lower.tail = FALSE)
-      pfstat <- pf(q / dfq, dfq, dfe, lower.tail = FALSE)
-      ftest <- rbind(ftest, c(q / dfq, dfq, dfe, pfstat))
-    }
-    colnames(ftest) <- c("F-stat", "dfq", "dfe", "p")
-    rownames(ftest) <- names(sets)
-  }
-
-  fit <- list(coef = coef, se = se, stat = stat, p = p, ftest = ftest, yhat = yhat)
-
-  return(fit)
-}
-
+#' Perform Hardy Weinberg Equilibrium Test
+#' @description
+#' Perform Hardy Weinberg Equilibrium Test
+#' @keywords internal
+#' @param Glist list structure with information about genotypes stored on disk
 hwe <- function(Glist=NULL){
   HWE <- vector(length(Glist$n0),mode="list")
   for(CHR in 1:length(Glist$n0)){
@@ -104,25 +128,31 @@ hwe <- function(Glist=NULL){
 # Define global parameters
 ###########################################################################################
 
-# h2x is heritability of target trait
-# h2y is heritability of correlated trait
-# Nx number of samples for target trait
-# Ny number of samples for correlated trait
-# rg genetic correlation between target and correlated trait
-# Kx is prevalence of target trait
-# Ky is prevalence of correlated trait
-# Px is case-control proportion of target trait
-# Py is case-control proportion of correlated trait
-
-
-# Single trait prediction of R2 for continous trait:
+#' Expected R2 for single trait prediction of continous trait
+#' @description
+#' Expected R2 for single trait prediction of continous trait
+#' @keywords internal
+#' @param h2x is heritability of target trait
+#' @param Nx number of samples for target trait
+#' @param M is number of markers
+#' @param Me is number of independent chromosome segments
 predict_r2_st = function(h2x, Nx, Me, M){
   b = M / (M + Me)
   r_uu = sqrt(h2x)*sqrt((b * h2x ) / (b * h2x  +  Me / (Nx)))
   return(r_uu**2)
 }
 
-# Multi-trait (2-traits) prediction of R2 for continous trait
+#' Expected R2 for multiple trait prediction of continous traits
+#' @description
+#' Expected R2 for multiple trait prediction of continous traits
+#' @keywords internal
+#' @param h2x is heritability of target trait
+#' @param h2y is heritability of correlated trait
+#' @param Nx number of samples for target trait
+#' @param Ny number of samples for correlated trait
+#' @param rg genetic correlation between target and correlated trait
+#' @param M is number of markers
+#' @param Me is number of independent chromosome segments
 predict_r2_mt = function(h2x, Nx, h2y, Ny, rg, Me, M){
   b = M / (M + Me)
   r2_uu1 = h2x * (b * h2x ) / (b * h2x  +  Me / ( Nx))
@@ -134,8 +164,21 @@ predict_r2_mt = function(h2x, Nx, h2y, Ny, rg, Me, M){
   return(r_uu[1,1]**2)
 }
 
-
-# Multi-trait (2-traits) prediction of AUC for binary trait using information on correlated continous trait:
+#' Expected AUC for prediction of a binary trait using information on correlated continous trait
+#' @description
+#' Expected AUC for prediction of a binary trait using information on correlated continous trait
+#' @keywords internal
+#' @param h2x is heritability of target trait
+#' @param h2y is heritability of correlated trait
+#' @param Nx number of samples for target trait
+#' @param Ny number of samples for correlated trait
+#' @param rg genetic correlation between target and correlated trait
+#' @param Kx is prevalence of target trait
+#' @param Ky is prevalence of correlated trait
+#' @param Px is case-control proportion of target trait
+#' @param Py is case-control proportion of correlated trait
+#' @param M is number of markers
+#' @param Me is number of independent chromosome segments
 predict_auc_mt_continous = function(h2x, Nx, Kx, Px, h2y, Ny, rg, Me, M){
   b = M / (M + Me)
   zx = dnorm(-qnorm(Kx))
@@ -151,7 +194,16 @@ predict_auc_mt_continous = function(h2x, Nx, Kx, Px, h2y, Ny, rg, Me, M){
   return(auc[1,1])
 }
 
-# Single trait prediction of AUC for binary trait:
+
+#' Expected AUC for prediction of a binary trait
+#' @description
+#' Expected AUC for prediction of a binary trait
+#' @keywords internal
+#' @param h2x is heritability of target trait
+#' @param Nx number of samples for target trait
+#' @param Kx is prevalence of target trait
+#' @param M is number of markers
+#' @param Me is number of independent chromosome segments
 predict_auc_st = function(h2x, Nx, Kx, Px, Me, M){
   b = M / (M + Me)
   zx = dnorm(-qnorm(Kx))
@@ -162,7 +214,21 @@ predict_auc_st = function(h2x, Nx, Kx, Px, Me, M){
   return(auc)
 }
 
-# Multi-trait (2-traits) prediction of AUC for binary trait
+#' Expected AUC for prediction of a binary trait using information on correlated binary trait
+#' @description
+#' Expected AUC for prediction of a binary trait using information on correlated binary trait
+#' @keywords internal
+#' @param h2x is heritability of target trait
+#' @param h2y is heritability of correlated trait
+#' @param Nx number of samples for target trait
+#' @param Ny number of samples for correlated trait
+#' @param rg genetic correlation between target and correlated trait
+#' @param Kx is prevalence of target trait
+#' @param Ky is prevalence of correlated trait
+#' @param Px is case-control proportion of target trait
+#' @param Py is case-control proportion of correlated trait
+#' @param M is number of markers
+#' @param Me is number of independent chromosome segments
 predict_auc_mt_cc = function(h2x, Nx, Kx, Px, h2y, Ny, Ky, Py, rg, Me, M){
   b = M / (M + Me)
   zx = dnorm(-qnorm(Kx))
@@ -180,6 +246,12 @@ predict_auc_mt_cc = function(h2x, Nx, Kx, Px, h2y, Ny, Ky, Py, rg, Me, M){
 }
 
 
+#' Forest plot
+#' @description
+#' Forest plot
+#' @keywords internal
+#' @param x is a vector of values
+#' @param sd is a vector of sd values
 plotForest <- function(x=NULL,sd=NULL,cex=1, mar=NULL, mai=NULL, xlim=NULL, pos=NULL, reorder=TRUE, xaxis=TRUE, main=NULL, xlab="x") {
   if(is.null(mar)) par(mar=c(5,12,3,1))
   # mai <- c(0.5,5.2,0.3,0.1)
