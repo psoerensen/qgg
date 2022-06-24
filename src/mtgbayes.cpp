@@ -111,16 +111,16 @@ arma::mat riwishart(unsigned int df, const arma::mat& S){
 //  return R::sample.int(cats,1,false,probs);
 //}
 
-// [[Rcpp::export]]
-int rcat(arma::rowvec probs) {
-  int k = probs.n_elem;
-  double probs_sum = accu(probs);
-  probs = probs/probs_sum;
-  Rcpp::IntegerVector ans(k);
-  rmultinom(1, probs.begin(), k, ans.begin());
-  int max = which_max(ans);
-  return(max);
-}
+// // [[Rcpp::export]]
+// int rcat(arma::rowvec probs) {
+//   int k = probs.n_elem;
+//   double probs_sum = accu(probs);
+//   probs = probs/probs_sum;
+//   Rcpp::IntegerVector ans(k);
+//   rmultinom(1, probs.begin(), k, ans.begin());
+//   int max = which_max(ans);
+//   return(max);
+// }
 // [[Rcpp::export]]
 std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vector<double>> y,
                                                           std::vector<std::vector<double>> W,
@@ -147,7 +147,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
   int m = W.size();
   int nmodels = models.size();
   
-  double ssb, sse, dfb, dfe, u, logliksum, psum, detC, diff, cumprobc;
+  double ssb, sse, dfb, u, logliksum, detC, diff, cumprobc;
   int mselect;
   
   std::vector<std::vector<double>> e(nt, std::vector<double>(n, 0.0));
@@ -593,7 +593,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   int m = wy[0].size();
   int nmodels = models.size();
   
-  double ssb, sse, dfb, u, logliksum, psum, detC, bxn, diff, cumprobc;
+  double ssb, sse, dfb, u, logliksum, detC, diff, cumprobc;
   int mselect;
   
   std::vector<std::vector<int>> d(nt, std::vector<int>(m, 0));
