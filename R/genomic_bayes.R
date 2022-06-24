@@ -60,10 +60,6 @@
 #' fitL <- gbayes(y=y, W=W, method="bayesL")
 #' fitC <- gbayes(y=y, W=W, method="bayesC")
 #'
-#' fitM <- gbayes(y=y, W=W, method="bayesN", algorithm="fastbayes")
-#' fitA <- gbayes(y=y, W=W, method="bayesA", algorithm="fastbayes")
-#' fitL <- gbayes(y=y, W=W, method="bayesL", algorithm="fastbayes")
-#' fitC <- gbayes(y=y, W=W, method="bayesC", algorithm="fastbayes")
 
 
 #'
@@ -572,8 +568,8 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   n <- nrow(W)
   m <- ncol(W)
   
-  if(is.null(ids)) warning("No names/rownames provided for y")
-  if(is.null(rownames(W))) warning("No names/rownames provided for W")
+  #if(is.null(ids)) warning("No names/rownames provided for y")
+  #if(is.null(rownames(W))) warning("No names/rownames provided for W")
   if(!is.null(ids) & !is.null(rownames(W))) {
     if(any(is.na(match(ids,rownames(W))))) stop("Names/rownames for y does match rownames for W")
   }
@@ -595,14 +591,14 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
   if(method==5) pi <- c(0.95,0.02,0.02,0.01)
   if(method==5) gamma <- c(0,0.01,0.1,1.0)
   
-  print(h2)
-  print(vy)
-  print(vb)
-  print(vg)
-  print(ve)
-  print(ssb_prior)
-  print(sse_prior)
-  print(pi)
+  #print(h2)
+  #print(vy)
+  #print(vb)
+  #print(vg)
+  #print(ve)
+  #print(ssb_prior)
+  #print(sse_prior)
+  #print(pi)
   
   if(algorithm=="default") {
     fit <- .Call("_qgg_bayes",
@@ -732,15 +728,15 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL
   if(method==5) pi <- c(0.95,0.02,0.02,0.01)
   if(method==5) gamma <- c(0,0.01,0.1,1.0)
   
-  print(h2)
-  print(vy)
-  print(vb)
-  print(vg)
-  print(ve)
-  print(ssb_prior)
-  print(sse_prior)
-  print(pi)
-  print(gamma)
+  #print(h2)
+  #print(vy)
+  #print(vb)
+  #print(vg)
+  #print(ve)
+  #print(ssb_prior)
+  #print(sse_prior)
+  #print(pi)
+  #print(gamma)
   
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy, 
@@ -1130,6 +1126,15 @@ plotBayes <- function(fit=NULL, causal=NULL, what="Beta", chr=1) {
     fit[[chr]]$h2 <- fit[[chr]]$vgs/(fit[[chr]]$vgs+fit[[chr]]$ves)
     if(what=="h2") hist(fit[[chr]]$h2,xlab="Posterior", main="Heritability")  
   }
+  if(length(chr)==1 & what=="trace") {
+    layout(matrix(1:4,ncol=2))
+    plot(fit[[chr]]$ves, ylab="Ve", xlab="Iteration", main="Residual Variance")
+    plot(fit[[chr]]$vbs, ylab="Vb", xlab="Iteration", main="Marker Variance")
+    plot(fit[[chr]]$vgs, ylab="Vg", xlab="Iteration", main="Genetic Variance")
+    fit[[chr]]$h2 <- fit[[chr]]$vgs/(fit[[chr]]$vgs+fit[[chr]]$ves)
+    plot(fit[[chr]]$h2, ylab="h2", xlab="Iteration", main="Heritability")  
+  }
+  
   if(length(chr)>1) {
     if(what=="Ve") {
       x <- sapply(fit[chr], function(x) {mean(x$ves)})
