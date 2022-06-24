@@ -57,10 +57,6 @@ riwishart <- function(df, S) {
     .Call(`_qgg_riwishart`, df, S)
 }
 
-rcat <- function(probs) {
-    .Call(`_qgg_rcat`, probs)
-}
-
 mtbayes <- function(y, W, b, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, nit, method) {
     .Call(`_qgg_mtbayes`, y, W, b, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, nit, method)
 }
