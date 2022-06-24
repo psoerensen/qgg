@@ -1235,13 +1235,6 @@ sortedSets <- function(o = NULL, msize = 500) {
 # S = prior scale parameter 
 ################################################################################
 
-#'
-#' @export
-#'
-#'
-#'
-
-
 bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
                 vg=NULL, ve=NULL, nug=NULL, nue=NULL,
                 vg_prior=NULL, ve_prior=NULL,
