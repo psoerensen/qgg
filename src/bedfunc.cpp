@@ -44,9 +44,9 @@ IntegerMatrix   readG( const char* file,
     long int offset = (cls[i]-1)*nbytes + 3;
     fseek( file_stream, offset, SEEK_SET );
     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
-    if (nbytes_read != nbytes) {
-      std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
-    }
+    //if (nbytes_read != nbytes) {
+    //  std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+    //}
     int j = 0; 
     for ( size_t k = 0; k < nbytes; k++) {
       buf_k = buffer[k];
@@ -156,18 +156,18 @@ std::vector<std::vector<double>> getWlist( const char* file,
   //  2  NA  1  0         number of copies of first allele in bim file
   ////////////////////////////////////////////////////////////////////////
   
-  std::cout << "  " << "\n";
-  std::cout << "Reading genotypes" << "\n";
-  std::cout << "  " << "\n";
+  //std::cout << "  " << "\n";
+  //std::cout << "Reading genotypes" << "\n";
+  //std::cout << "  " << "\n";
   
   for (int i = 0; i < m; i++) {
     // cls[i] is 1-based
     long int offset = (cls[i]-1)*nbytes + 3;
     fseek( file_stream, offset, SEEK_SET );
     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
-    if (nbytes_read != nbytes) {
-      std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
-    }
+    //if (nbytes_read != nbytes) {
+    //  std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+    //}
     int j = 0; 
     map[0] = 2.0 - 2.0*af[i];
     map[1] = 0.0;
@@ -225,9 +225,9 @@ IntegerMatrix freqbed( const char* file,
     long int offset = (cls[i]-1)*nbytes + 3;
     fseek( file_stream, offset, SEEK_SET );
     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
-    if (nbytes_read != nbytes) {
-      std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
-    }
+    //if (nbytes_read != nbytes) {
+    //  std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+    //}
     int j = 0;
     for (size_t k = 0; k < nbytes; k++) {
       buf_k = buffer[k];
@@ -284,9 +284,9 @@ std::vector<std::vector<std::vector<double>>> summarybed( const char* file,
     long int offset = (cls[i]-1)*nbytes + 3;
     fseek( file_stream, offset, SEEK_SET );
     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
-    if (nbytes_read != nbytes) {
-      std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
-    }
+    //if (nbytes_read != nbytes) {
+    //  std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+    //}
     int j = 0; 
     //map[0] = 2.0 - 2.0*af[i];
     //map[1] = 0.0;
