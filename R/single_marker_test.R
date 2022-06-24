@@ -37,6 +37,8 @@
 #' @param statistic single marker test statistic used (currently based on the "mastor" statistics).
 #' @param msize number of genotype markers used for batch processing
 #' @param scale logical if TRUE the genotypes have been scaled to mean zero and variance one
+#' @param verbose is a logical; if TRUE it prints more details during optimization
+#' @param chr chromosome for which summary statistics are computed
 #'
 #' @return Returns a dataframe (if number of traits = 1) else a list including
 #' \item{coef}{single marker coefficients}
