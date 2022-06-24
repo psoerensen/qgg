@@ -779,12 +779,11 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   int m = b.size();
   int nc = pi.size();
   
-  double rhs, lhs, bn, conv, diff;
-  double rhs0, rhs1, lhs0, lhs1, like0, like1, p0, p1, v0, v1, ri, ldV, bhat;
+  double rhs, lhs, bn, diff;
+  double rhs1, lhs1, like0, like1, p0, v0, v1;
   double ssb, sse, ssg, dfb, dfe, dfg, chi2;
-  double ssg_prior, nug;
-  double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin, vy;
-  double shape, shape0, rate, rate0, lambda0, lambda2;
+  double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
+  double shape, shape0, rate, rate0, lambda2;
   
   std::vector<double> vbscale(nc), pic(nc), pim(nc), probc(nc), logLc(nc);
   double cumprobc, vbc, logLcAdj;
@@ -830,11 +829,11 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   }
   
   // should be added as argument to function
-  vy=yy/(n-1);
-  nug=nub;
-  ssg_prior=((nug-2.0)/nug)*vg;
+  //vy=yy/(n-1);
+  //nug=nub;
+  //ssg_prior=((nug-2.0)/nug)*vg;
   // initialize BayesL parameters
-  if (method==0) {
+  //if (method==3) {
     dfb = (nub - 2.0)/nub;
     lambda2 = 2.0*(1.0 - dfb)/(dfb)*n;
     shape0 = 1.1;
@@ -842,7 +841,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     for ( int i = 0; i < m; i++) {
       lambda[i] = sqrt(lambda2); 
     }
-  }
+  //}
   for ( int i = 0; i < nc; i++) {
     vbscale[i]=gamma[i];
     pic[i]=pi[i];
@@ -879,7 +878,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   std::mt19937 gen(local_seed);
   
   for ( int it = 0; it < nit; it++) {
-    conv = 0.0;
     
     // Compute marker effects (BLUP)
     if (method==0) {
