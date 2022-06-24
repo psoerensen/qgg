@@ -44,12 +44,17 @@
 #' @param bedfiles vector of names for the PLINK bed-files
 #' @param famfiles vector of names for the PLINK fam-files
 #' @param bimfiles vector of names for the PLINK bim-files
+#' @param mapfiles vector of names for the mapfiles
 #' @param ids vector of individuals used in the study
 #' @param rsids vector of marker rsids used in the study
 #' @param ldfiles path and filename of the binary files .ld for storing sparse ld matrix on the disk
 #' @param msize number of markers used in compuation of sparseld
 #' @param overwrite logical if TRUE overwite binary genotype file
 #' @param ncores number of cores used to process the genotypes
+#' @param assembly character name of assembly
+#' @param r2 threshold
+#' @param kb size of genomic region in kb
+#' @param cm size of genomic region in cm
 #'
 #' @return Returns a list structure (Glist) with information about genotypes
 #'
@@ -429,7 +434,10 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
 
 #' @param Glist list structure with information about genotypes stored on disk
 #' @param bedfiles vector of name for the PLINK bed-file
+#' @param bimfiles vector of name for the PLINK bim-file
+#' @param famfiles vector of name for the PLINK fam-file
 #' @param ids vector of ids in W to be extracted
+#' @param chr chromosome for which W is to be extracted
 #' @param rsids vector of rsids in W to be extracted
 #' @param rws vector of rows in W to be extracted
 #' @param cls vector of columns in W to be extracted
@@ -467,20 +475,6 @@ return(W)
 }
 
 
-#' Extract elements from genotype matrix (W) stored on disk
-#'
-#' @description
-#' Extract elements from genotype matrix W (whole or subset) stored on disk.
-
-#' @param Glist list structure with information about genotypes stored on disk
-#' @param bedfiles vector of name for the PLINK bed-file
-#' @param ids vector of ids in W to be extracted
-#' @param rsids vector of rsids in W to be extracted
-#' @param rws vector of rows in W to be extracted
-#' @param cls vector of columns in W to be extracted
-#' @param scale logical if TRUE the genotype markers have been scale to mean zero and variance one
-#' @param impute logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)
-#' @param allele vector of alleles to be extracted
 
 getW <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
                      rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
