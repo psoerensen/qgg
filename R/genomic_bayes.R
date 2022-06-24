@@ -11,18 +11,54 @@
 #' Markov chain Monte Carlo. These functions are currently under development and future release will be able to handle large data sets.
 #'
 #'
-#' @param y is a matrix of phenotypes
+#' @param y is a vector or matrix of phenotypes
+#' @param X is a matrix of covariates
 #' @param W is a matrix of centered and scaled genotypes
-#' @param nsamp is the number of samples after burnin
-#' @param sets is a list of markers defining a group
-#' @param nsets is a list of number of marker groups
-#' @param phi is the proportion of markers in each marker variance class (phi=c(0.999,0.001),used if method="ssvs")
+#' @param nburn is the number of burnin iterations
+#' @param nit is the number of iterations
+#' @param nit_global is the number of global iterations
+#' @param nit_local is the number of local iterations
+#' @param pi is the proportion of markers in each marker variance class (e.g. pi=c(0.999,0.001),used if method="ssvs")
 #' @param h2 is the trait heritability
-#' @param method specifies the methods used (method="mixed","bayesC",blasso","blr")
-#' @param nburn is the number of burnin samples
-#' @param nsave is the number of samples to save
-#' @param tol is the tolerance
-#'
+#' @param method specifies the methods used (method="bayesN","bayesA","bayesL","bayesC","bayesR")
+#' @param algorithm specifies the algorithm
+#' @param tol is tolerance, i.e. convergence criteria used in gbayes
+#' @param Glist list of information about genotype matrix stored on disk
+#' @param stat dataframe with marker summary statistics
+#' @param covs is a list of summary statistics (output from internal cvs function)
+#' @param fit is a list of results from gbayes
+#' @param trait is an integer used for selection traits in covs object
+#' @param chr is the chromosome for which to fit BLR models
+#' @param rsids is a character vector of rsids
+#' @param b is a vector or matrix of marginal marker effects 
+#' @param seb is a vector or matrix of standard error of marginal effects
+#' @param badj is a vector or matrix of adjusted marker effects for the BLR model
+#' @param LD is a list with sparse LD matrices
+#' @param n is a scalar or vector of number of observations for each trait
+#' @param vb is a scalar or matrix of marker (co)variances
+#' @param vg is a scalar or matrix of genetic (co)variances
+#' @param ve is a scalar or matrix of residual (co)variances
+#' @param ssb_prior is a scalar or matrix of prior marker (co)variances
+#' @param ssg_prior is a scalar or matrix of prior genetic (co)variances
+#' @param sse_prior is a scalar or matrix of prior residual (co)variances
+#' @param vg_prior is a scalar or matrix of prior genetic (co)variances
+#' @param ve_prior is a scalar or matrix of prior residual (co)variances
+#' @param nub is a scalar or vector of prior degrees of freedom for marker (co)variances
+#' @param nug is a scalar or vector of prior degrees of freedom for prior genetic (co)variances
+#' @param nue is a scalar or vector of prior degrees of freedom for prior residual (co)variances
+#' @param updateB is a logical for updating marker (co)variances
+#' @param updateG is a logical for updating genetic (co)variances
+#' @param updateE is a logical for updating residual (co)variances
+#' @param updatePi is a logical for updating pi
+#' @param adjustE is a logical for adjusting residual variance
+#' @param models is a list structure with models evaluated in bayesC
+#' @param verbose is a logical; if TRUE it prints more details during iteration
+#' @param scaleY is a logical; if TRUE y is centered and scaled 
+#' @param msize number of markers used in compuation of sparseld
+#' @param lambda is a vector or matrix of lambda values 
+#' @param GRMlist is a list providing information about GRM matrix stored in binary files on disk
+
+
 #' @return Returns a list structure including
 #' \item{b}{vector or matrix (mxt) of posterior means for marker effects}
 #' \item{d}{vector or matrix (mxt) of posterior means for marker inclusion probabilities}
