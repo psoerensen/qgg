@@ -482,9 +482,6 @@ return(W)
 #' @param impute logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)
 #' @param allele vector of alleles to be extracted
 
-#' @export
-#'
-
 getW <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
                      rws = NULL, cls = NULL, impute = TRUE, scale = FALSE,
                      allele = NULL) {
@@ -639,6 +636,15 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
   return(Glist)
 }
 
+#' Get marker LD sets
+#' @description
+#' Get marker LD sets based on sparse LD matrix in Glist
+#' @keywords internal
+#' @param Glist list structure with information about genotypes stored on disk
+#' @param chr chromosome from which LD sets are extracted
+#' @param r2 threshold used for extracting LD sets
+#' @export
+
 getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   if(!is.null(chr)) {
     msize <- Glist$msize
@@ -664,8 +670,14 @@ getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   
 }
 
+#' Get sparse LD matrix
+#' @description
+#' Get sparse LD matrix in Glist
+#' @keywords internal
+#' @param Glist list structure with information about genotypes stored on disk
+#' @param chr chromosome from which LD sets are extracted
+#' @param rsids included in the sparse LD matrix extracted
 #' @export
-#'
 
 getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
   msize <- Glist$msize
@@ -686,9 +698,6 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
   if(!is.null(rsids)) ld <- ld[,colnames(ld)%in%rsids]
   return(ld)
 }
-
-#' @export
-#'
 
 getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=NULL, format="sparse") {
   msize <- Glist$msize
@@ -736,8 +745,6 @@ getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=N
   }
 }
 
-#' @export
-#'
 
 plotLD <- function(LD=NULL, cols=NULL) {
   if(is.null(cols)) cols <- colorRampPalette(c('#f0f3ff','#0033BB'))(256)
@@ -749,10 +756,16 @@ plotLD <- function(LD=NULL, cols=NULL) {
 
 
 
+#' Get marker rsids in a genome region
+#' @description
+#' Get marker rsids in a specific genome region based on marker in Glist
+#' @keywords internal
+#' @param Glist list structure with information about genotypes stored on disk
+#' @param chr chromosome from which markers are extracted
+#' @param region genome region (in base pairs) from which markers are extracted
 #' @export
-#'
 
-getMarkers <- function(Glist=null, chr=NULL, region=NULL) {
+getMarkers <- function(Glist=NULL, chr=NULL, region=NULL) {
   minpos <- min(region)
   maxpos <- max(region)
   select <-  Glist$position[[chr]] > minpos & Glist$position[[chr]] < maxpos

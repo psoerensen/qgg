@@ -502,9 +502,18 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
 
 
 
-#'
+#' Check concordance between marker summary statistics and sparse LD matrix
+#' @description
+#' Check concordance between marker summary statistics and sparse LD matrix in Glist
+#' @keywords internal
+#' @param stat dataframe with marker summary statistics
+#' @param Glist list structure with information about genotypes stored on disk
+#' @param chr chromosome for which summary statistics is checked for concordance
+#' @param region genome region (in base pairs) for which summary statistics is checked
+#' @param threshold p-value threshold used in detecting z-score outliers
+#' @param overlap is the number of markers overlapping between adjacent genome region
+#' @param niter is the number of iteration used for detecting outlier
 #' @export
-#'
 
 adjLDStat <- function(stat=NULL, Glist = NULL, chr = NULL, region=NULL, msize=NULL, threshold=1e-5, overlap=NULL, niter=5) {
   

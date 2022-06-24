@@ -1162,10 +1162,6 @@ plotBayes <- function(fit=NULL, causal=NULL, what="Beta", chr=1) {
   
 }
 
-#'
-#' @export
-#'
-
 plotCvs <- function(fit=NULL, causal=NULL) {
   
   layout(matrix(1:length(fit$p),ncol=1))
@@ -1234,13 +1230,6 @@ sortedSets <- function(o = NULL, msize = 500) {
 # df = prior degrees of freedom
 # S = prior scale parameter 
 ################################################################################
-
-#'
-#' @export
-#'
-#'
-#'
-
 
 bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
                 vg=NULL, ve=NULL, nug=NULL, nue=NULL,

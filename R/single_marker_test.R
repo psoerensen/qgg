@@ -304,9 +304,6 @@ smlm <- function(y = NULL, X = NULL, W = NULL) {
 }
 
 
-#' @export
-#'
-
 cvs <- function(y=NULL, Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
                 rws = NULL, cls = NULL, impute = TRUE, scale = TRUE) {
   
