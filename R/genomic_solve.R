@@ -20,6 +20,9 @@
 #' @param X design matrix of fixed effects
 #' @param W matrix of centered and scaled genotypes
 #' @param Glist list of information about genotype matrix stored on disk
+#' @param GRM genetic relationship matrix
+#' @param ve residual variance
+#' @param vg genetic variance
 #' @param rsids vector of marker rsids used in the analysis
 #' @param ids vector of individuals used in the analysis
 #' @param lambda overall shrinkage factor
@@ -61,8 +64,8 @@
 #' @export
 
 
-gsolve <- function(y = NULL, X = NULL, GRM=NULL, Va=NULL, Ve=NULL, Glist = NULL, W = NULL, ids = NULL, rsids = NULL,
-                   sets = NULL, validate = NULL, scale = TRUE, lambda = NULL, weights = FALSE,
+gsolve <- function(y = NULL, X = NULL, GRM=NULL, va=NULL, ve=NULL, Glist = NULL, W = NULL, ids = NULL, rsids = NULL,
+                   sets = NULL, scale = TRUE, lambda = NULL, weights = FALSE,
                    maxit = 500, tol = 0.00001, method = "gsru", ncores = 1) {
   if (!is.null(W)) {
     if (method == "gsru") {
@@ -84,13 +87,13 @@ gsolve <- function(y = NULL, X = NULL, GRM=NULL, Va=NULL, Ve=NULL, Glist = NULL,
     rownames(Z) <- colnames(Z) <- rownames(GRM[[1]])
     norecords <- !rownames(GRM[[1]])%in%rownames(X) 
     diag(Z)[norecords] <- 0
-    h2 <- Va/(Va+Ve)
+    h2 <- va/(va+ve)
     lambda <- (1-h2)/h2
     C <- crossprod(Z,Z) + solve(GRM[[1]])*lambda
     C <- solve(C)
     aii <- diag(GRM[[1]])
     cii <- diag(C)
-    pev <- cii*Ve
+    pev <- cii*ve
     sep <- sqrt(pev)
     rel <- 1-cii*lambda
     fit <- data.frame(rel=rel,pev=pev,sep=sep)
@@ -210,7 +213,7 @@ gsqr <- function(y = NULL, X = NULL, W = NULL, sets = NULL, msets = 100,
   return(fit)
 }
 
-mme = function(y=NULL, X=NULL, W=NULL, Z=NULL, GRM=NULL, Ve=NULL, Va=NULL) {
+mme = function(y=NULL, X=NULL, W=NULL, Z=NULL, GRM=NULL, ve=NULL, va=NULL) {
   
   #XX <- t(X) %*% RI %*% X
   #XZ <- t(X) %*% RI %*% Z
@@ -218,11 +221,11 @@ mme = function(y=NULL, X=NULL, W=NULL, Z=NULL, GRM=NULL, Ve=NULL, Va=NULL) {
   #Xy <- t(X) %*% RI %*% y
   #Zy <- t(Z) %*% RI %*% y
   if(is.null(Z)) Z <- diag(1,nrow=length(y))
-  Cxx <- crossprod(X,X)/Ve
-  Cxz <- crossprod(X,Z)/Ve
-  Czz <- crossprod(Z,Z)/Ve + solve(GRM*Va)
-  Xy <- crossprod(X,y)/Ve
-  Zy <- crossprod(Z,y)/Ve
+  Cxx <- crossprod(X,X)/ve
+  Cxz <- crossprod(X,Z)/ve
+  Czz <- crossprod(Z,Z)/ve + solve(GRM*va)
+  Xy <- crossprod(X,y)/ve
+  Zy <- crossprod(Z,y)/ve
   
   lhs <- rbind(cbind(Cxx,Cxz),cbind(t(Cxz),Czz))
   rhs <- rbind(Xy,Zy)
@@ -233,9 +236,9 @@ mme = function(y=NULL, X=NULL, W=NULL, Z=NULL, GRM=NULL, Ve=NULL, Va=NULL) {
   fixed <- c(rep(TRUE,ncol(Cxx)),rep(FALSE,ncol(Czz)))
   random <- !fixed
   a <- sol[random] 
-  pev <- cii[random]*Ve
+  pev <- cii[random]*ve
   sep <- sqrt(pev)
-  rel <- (aii-cii[random]*Ve/Va)*aii
+  rel <- (aii-cii[random]*ve/va)*aii
   b <- sol[fixed]
   seb <- cii[fixed]
   return(list(b=b,seb=seb,a=a,pev=pev,sep=sep,rel=rel))
