@@ -15,9 +15,9 @@ auc <- function(yobs = NULL, ypred = NULL) {
   auc
 }
 
-#' Compute Nagelkerske R2
+#' Compute Nagelkerke R2
 #' @description
-#' ompute Nagelkerske R2
+#' Compute Nagelkerke R2 ££ perhaps add: r2nag?
 #' @keywords internal
 #' @param yobs is a vector of observed phenotypes
 #' @param ypred is a vector of predicted phenotypes
@@ -106,9 +106,9 @@ acc <- function(yobs = NULL, ypred = NULL, typeoftrait = "quantitative") {
 
 #' Perform Hardy Weinberg Equilibrium Test
 #' @description
-#' Perform Hardy Weinberg Equilibrium Test
+#' Perform Hardy Weinberg Equilibrium Test ££(HWE)
 #' @keywords internal
-#' @param Glist list structure with information about genotypes stored on disk
+#' @param Glist is a list structure with information about genotypes stored on disk
 hwe <- function(Glist=NULL){
   HWE <- vector(length(Glist$n0),mode="list")
   for(CHR in 1:length(Glist$n0)){
@@ -128,31 +128,31 @@ hwe <- function(Glist=NULL){
 # Define global parameters
 ###########################################################################################
 
-#' Expected R2 for single trait prediction of continous trait
+#' Expected R2 for single trait prediction of a continuous trait
 #' @description
-#' Expected R2 for single trait prediction of continous trait
+#' Expected R2 for single trait prediction of a continuous trait ££ continuous spelled wrong in code (line 182)
 #' @keywords internal
-#' @param h2x is heritability of target trait
-#' @param Nx number of samples for target trait
-#' @param M is number of markers
-#' @param Me is number of independent chromosome segments
+#' @param h2x is the heritability of the target trait
+#' @param Nx is the number of samples for the target trait
+#' @param M is the number of markers
+#' @param Me is the number of independent chromosome segments
 predict_r2_st = function(h2x, Nx, Me, M){
   b = M / (M + Me)
   r_uu = sqrt(h2x)*sqrt((b * h2x ) / (b * h2x  +  Me / (Nx)))
   return(r_uu**2)
 }
 
-#' Expected R2 for multiple trait prediction of continous traits
+#' Expected R2 for multiple trait prediction of continuous traits
 #' @description
-#' Expected R2 for multiple trait prediction of continous traits
+#' Expected R2 for multiple trait prediction of continuous traits
 #' @keywords internal
-#' @param h2x is heritability of target trait
-#' @param h2y is heritability of correlated trait
-#' @param Nx number of samples for target trait
-#' @param Ny number of samples for correlated trait
-#' @param rg genetic correlation between target and correlated trait
-#' @param M is number of markers
-#' @param Me is number of independent chromosome segments
+#' @param h2x is the heritability of the target trait
+#' @param h2y is the heritability of the correlated trait
+#' @param Nx is the number of samples for the target trait
+#' @param Ny is the number of samples for the correlated trait
+#' @param rg is the genetic correlation between the target and correlated trait
+#' @param M is the number of markers
+#' @param Me is the number of independent chromosome segments
 predict_r2_mt = function(h2x, Nx, h2y, Ny, rg, Me, M){
   b = M / (M + Me)
   r2_uu1 = h2x * (b * h2x ) / (b * h2x  +  Me / ( Nx))
@@ -164,21 +164,21 @@ predict_r2_mt = function(h2x, Nx, h2y, Ny, rg, Me, M){
   return(r_uu[1,1]**2)
 }
 
-#' Expected AUC for prediction of a binary trait using information on correlated continous trait
+#' Expected AUC for prediction of a binary trait using information on a correlated continuous trait
 #' @description
-#' Expected AUC for prediction of a binary trait using information on correlated continous trait
+#' Expected AUC for prediction of a binary trait using information on a correlated continuous trait
 #' @keywords internal
-#' @param h2x is heritability of target trait
-#' @param h2y is heritability of correlated trait
-#' @param Nx number of samples for target trait
-#' @param Ny number of samples for correlated trait
-#' @param rg genetic correlation between target and correlated trait
-#' @param Kx is prevalence of target trait
-#' @param Ky is prevalence of correlated trait
-#' @param Px is case-control proportion of target trait
-#' @param Py is case-control proportion of correlated trait
-#' @param M is number of markers
-#' @param Me is number of independent chromosome segments
+#' @param h2x is the heritability of the target trait
+#' @param h2y is the heritability of the correlated trait
+#' @param Nx is the number of samples for the target trait
+#' @param Ny is the number of samples for the correlated trait
+#' @param rg is the genetic correlation between the target and correlated trait
+#' @param Kx is the prevalence of the target trait
+#' @param Ky is the prevalence of the correlated trait
+#' @param Px is the case-control proportion of the target trait
+#' @param Py is the case-control proportion of the correlated trait
+#' @param M is the number of markers
+#' @param Me is the number of independent chromosome segments
 predict_auc_mt_continous = function(h2x, Nx, Kx, Px, h2y, Ny, rg, Me, M){
   b = M / (M + Me)
   zx = dnorm(-qnorm(Kx))
@@ -199,11 +199,11 @@ predict_auc_mt_continous = function(h2x, Nx, Kx, Px, h2y, Ny, rg, Me, M){
 #' @description
 #' Expected AUC for prediction of a binary trait
 #' @keywords internal
-#' @param h2x is heritability of target trait
-#' @param Nx number of samples for target trait
-#' @param Kx is prevalence of target trait
-#' @param M is number of markers
-#' @param Me is number of independent chromosome segments
+#' @param h2x is the heritability of the target trait
+#' @param Nx is the number of samples for the target trait
+#' @param Kx is the prevalence of the target trait
+#' @param M is the number of markers
+#' @param Me is the number of independent chromosome segments
 predict_auc_st = function(h2x, Nx, Kx, Px, Me, M){
   b = M / (M + Me)
   zx = dnorm(-qnorm(Kx))
@@ -218,17 +218,17 @@ predict_auc_st = function(h2x, Nx, Kx, Px, Me, M){
 #' @description
 #' Expected AUC for prediction of a binary trait using information on correlated binary trait
 #' @keywords internal
-#' @param h2x is heritability of target trait
-#' @param h2y is heritability of correlated trait
-#' @param Nx number of samples for target trait
-#' @param Ny number of samples for correlated trait
-#' @param rg genetic correlation between target and correlated trait
-#' @param Kx is prevalence of target trait
-#' @param Ky is prevalence of correlated trait
-#' @param Px is case-control proportion of target trait
-#' @param Py is case-control proportion of correlated trait
-#' @param M is number of markers
-#' @param Me is number of independent chromosome segments
+#' @param h2x is the heritability of the target trait
+#' @param h2y is the heritability of the correlated trait
+#' @param Nx is the number of samples for the target trait
+#' @param Ny is the number of samples for the correlated trait
+#' @param rg is the genetic correlation between the target and the correlated trait
+#' @param Kx is the prevalence of the target trait
+#' @param Ky is the prevalence of the correlated trait
+#' @param Px is the case-control proportion of the target trait
+#' @param Py is the case-control proportion of the correlated trait
+#' @param M is the number of markers
+#' @param Me is the number of independent chromosome segments
 predict_auc_mt_cc = function(h2x, Nx, Kx, Px, h2y, Ny, Ky, Py, rg, Me, M){
   b = M / (M + Me)
   zx = dnorm(-qnorm(Kx))
