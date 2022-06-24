@@ -7,16 +7,20 @@
 #' The ldsc function is used for LDSC analysis
 #'
 #' @param Glist list of information about genotype matrix stored on disk
+#' @param stat dataframe with marker summary statistics
 #' @param ldscores vector of LD scores (optional as LD scores are stored within Glist)
 #' @param z matrix of z statistics for n traits
 #' @param b matrix of marker effects for n traits if z matrix not is given
 #' @param seb matrix of standard errors of marker effects for n traits if z matrix not is given
+#' @param af vector of allele frequencies 
 #' @param n vector of sample sizes for the traits (element i corresponds to column vector i in z matrix)
-#' @param interept logical if TRUE the LD score regression includes intercept
+#' @param intercept logical if TRUE the LD score regression includes intercept
 #' @param what either computation of heritability (what="h2") or genetic correlation between traits (what="rg")
 #' @param SE.h2 logical if TRUE standard errors and significance for the heritability estimates are computed using a block jackknife approach
 #' @param SE.rg logical if TRUE standard errors and significance for the genetic correlations are computed using a block jackknife approach
 #' @param blk numeric size of the blocks used in the jackknife estimation of standard error (default = 200)
+
+
 #'
 #' @return Returns a matrix of heritability estimates when what="h2", and if SE.h2=TRUE standard errors (SE) and significance levels (P) are returned. 
 #'         If what="rg" an n-by-n matrix of correlations is returned where the diagonal elements being h2 estimates. 
