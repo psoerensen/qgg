@@ -16,10 +16,10 @@
 #' random effects and by specifying individual genetic marker weights.
 
 #'
-#' @param y vector or matrix of phenotypes
-#' @param X design matrix of fixed effects
 #' @param W matrix of centered and scaled genotypes
-#' @param Glist list of information about genotype matrix stored on disk
+#' @param nt number of traits 
+#' @param n number of individuals
+#' @param m number of markers 
 
 
 #' @author Peter Soerensen
