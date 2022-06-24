@@ -37,18 +37,18 @@ std::vector<std::vector<double>> solvebed( const char* file,
   //  2  NA  1  0         number of copies of first allele in bim file
   ////////////////////////////////////////////////////////////////////////
   
-  std::cout << "  " << "\n";
-  std::cout << "Reading genotypes" << "\n";
-  std::cout << "  " << "\n";
+  //std::cout << "  " << "\n";
+  //std::cout << "Reading genotypes" << "\n";
+  //std::cout << "  " << "\n";
   
   for (int i = 0; i < m; i++) {
     // cls[i] is 1-based
     long int offset = (cls[i]-1)*nbytes + 3;
     fseek( file_stream, offset, SEEK_SET );
     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
-    if (nbytes_read != nbytes) {
-      std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
-    }
+    //if (nbytes_read != nbytes) {
+    //  std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+    //}
     int j = 0; 
     map[0] = 2.0 - 2.0*af[i];
     map[1] = 0.0;
@@ -69,9 +69,9 @@ std::vector<std::vector<double>> solvebed( const char* file,
   fclose( file_stream );
   
   
-  std::cout << "  " << "\n";
-  std::cout << "Starting solver" << "\n";
-  std::cout << "  " << "\n";
+  //std::cout << "  " << "\n";
+  //std::cout << "Starting solver" << "\n";
+  //std::cout << "  " << "\n";
   
   std::vector<double> e(n);
   for ( int i = 0; i < n; i++) {
@@ -97,8 +97,8 @@ std::vector<std::vector<double>> solvebed( const char* file,
       conv = conv + diff*diff;
       b[i] = bnew;
     }
-    std::cout << "Finished iteration: " << it + 1 << "\n";
-    std::cout << "Convergence: " << conv << "\n";
+    //std::cout << "Finished iteration: " << it + 1 << "\n";
+    //std::cout << "Convergence: " << conv << "\n";
     
   }
   
@@ -154,18 +154,18 @@ std::vector<std::vector<std::vector<double>>> mtsolvebed( const char* file,
   //  2  NA  1  0         number of copies of first allele in bim file
   ////////////////////////////////////////////////////////////////////////
   
-  std::cout << "  " << "\n";
-  std::cout << "Reading genotypes" << "\n";
-  std::cout << "  " << "\n";
+  //std::cout << "  " << "\n";
+  //std::cout << "Reading genotypes" << "\n";
+  //std::cout << "  " << "\n";
   
   for (int i = 0; i < m; i++) {
     // cls[i] is 1-based
     long int offset = (cls[i]-1)*nbytes + 3;
     fseek( file_stream, offset, SEEK_SET );
     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
-    if (nbytes_read != nbytes) {
-      std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
-    }
+    //if (nbytes_read != nbytes) {
+    //  std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
+    //}
     int j = 0; 
     map[0] = 2.0 - 2.0*af[i];
     map[1] = 0.0;
@@ -186,9 +186,9 @@ std::vector<std::vector<std::vector<double>>> mtsolvebed( const char* file,
   fclose( file_stream );
   
   
-  std::cout << "  " << "\n";
-  std::cout << "Starting solver" << "\n";
-  std::cout << "  " << "\n";
+  //std::cout << "  " << "\n";
+  //std::cout << "Starting solver" << "\n";
+  //std::cout << "  " << "\n";
   
   int nt = y.size();
   std::vector<std::vector<double>> e(nt, std::vector<double>(n, 0.0));
@@ -222,10 +222,10 @@ std::vector<std::vector<std::vector<double>>> mtsolvebed( const char* file,
         b[t][i] = bnew[t];
       }
     }
-    std::cout << "Finished iteration: " << it + 1 << "\n";
-    for ( int t = 0; t < nt; t++) {
-      std::cout << "Convergence: " << conv[t] << "\n";
-    }
+    //std::cout << "Finished iteration: " << it + 1 << "\n";
+    //for ( int t = 0; t < nt; t++) {
+    //  std::cout << "Convergence: " << conv[t] << "\n";
+    //}
   }
   
   // Summarize results
