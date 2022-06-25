@@ -295,6 +295,52 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
   return(Glist)
 }
 
+#'
+#' Quality control of marker summary statistics
+#'
+#' @description
+#' Quality control is a critical step for working with summary statistics (in particular
+#'                                                                         for external). 
+#' Processing and quality control of GWAS summary statistics includes:                                                                      
+#'
+#' - map marker ids (rsids/cpra (chr, pos, ref, alt)) to LD reference panel data 
+#' - check effect allele (flip EA, EAF, Effect)
+#' - check effect allele frequency
+#' - thresholds for MAF and HWE
+#' - exclude INDELS, CG/AT and MHC region
+#' - remove duplicated marker ids
+#' - check which build version
+#' - check for concordance between marker effect and LD data
+#'
+#' External summary statistics format:
+#'  marker, chr, pos, effect_allele, non_effect_allele, effect_allele_freq, effect, effect_se, stat, p, n    
+#' 
+#' Internal summary statistics format:
+#'  rsids, chr, pos, a1, a2, af, b, seb, stat, p, n
+#' 
+#'
+#' @param Glist list of information about genotype matrix stored on disk
+#' @param stat dataframe with marker summary statistics
+#' @param excludeMAF exclude marker if minor allele frequency (MAF) is below threshold (0.01 is default)
+#' @param excludeMAFDIFF exclude marker if minor allele frequency difference (MAFDIFF) between Glist$af and stat$af is above threshold (0.05 is default)
+#' @param excludeINFO exclude marker if info score (INFO) is below threshold (0.8 is default)
+#' @param excludeMISS exclude marker if missingness (MISS) is above threshold (0.05 is default)
+#' @param excludeHWE exclude marker if p-value for Hardy Weinberg Equilibrium test is below threshold (0.01 is default)
+#' @param excludeCGAT exclude marker if alleles are ambigous (CG or AT)
+#' @param excludeMHC exclude marker if located in MHC region 
+#' @param excludeINDEL exclude marker if it an insertion/deletion  
+#' @param excludeDUPS exclude marker id if duplicated
+
+
+#' @author Peter Soerensen
+
+
+#'
+#' @export
+#'
+
+
+
 gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO=NULL,excludeCGAT=TRUE,
                     excludeINDEL=TRUE, excludeDUPS=TRUE, excludeHWE=1e-12, excludeMHC=FALSE, assembly="GRCh37") {
 # excludeINFO is a numeric value of the info score used for filtering
