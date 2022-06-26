@@ -509,7 +509,9 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
 #' Check concordance between marker effect and sparse LD matrix.
 #' @description
 #' Check concordance between predicted and observed marker effect. Marker effect is predicted based on sparse LD matrix in Glist.
+#' 
 #' @keywords internal
+#' 
 #' @param Glist list of information about genotype matrix stored on disk
 #' @param stat data frame with marker summary statistics (see required format above)
 #' @param chr chromosome for which marker effect is checked
@@ -620,12 +622,19 @@ adjLDStat <- function(stat=NULL, Glist = NULL, chr = NULL, region=NULL, msize=NU
 #' Processing and quality control of GWAS summary statistics includes:                                                                      
 #'
 #' - map marker ids (rsids/cpra (chr, pos, ref, alt)) to LD reference panel data 
+#' 
 #' - check effect allele (flip EA, EAF, Effect)
+#' 
 #' - check effect allele frequency
+#' 
 #' - thresholds for MAF and HWE
+#' 
 #' - exclude INDELS, CG/AT and MHC region
+#' 
 #' - remove duplicated marker ids
+#' 
 #' - check which build version
+#' 
 #' - check for concordance between marker effect and LD data
 #'
 #' @param Glist list of information about genotype matrix stored on disk
