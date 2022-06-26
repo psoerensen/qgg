@@ -7,15 +7,19 @@
 #' @description
 #' 
 #' Bayesian linear regression (BLR) models:
+#' 
 #'   - unified mapping of genetic variants, estimation of genetic parameters 
 #' (e.g. heritability) and prediction of disease risk) 
+#' 
 #' - handles different genetic architectures (few large, many small effects)
+#' 
 #' - scale to large data (e.g. sparse LD)
 #' 
 #' 
 #' In the Bayesian multiple regression model the posterior density of the 
 #' model parameters depend on the likelihood of the data given 
-#' the parameters and a prior probability for the model parameters:
+#' the parameters and a prior probability for the model parameters
+#' 
 #' The prior density of marker effects defines whether the model will 
 #' induce variable selection and shrinkage or shrinkage only. 
 #' Also, the choice of prior will define the extent and type of shrinkage induced.
@@ -27,22 +31,20 @@
 #' 
 #' Bayes N: Assigning a Gaussian prior to marker effects implies that the posterior means are the 
 #' BLUP estimates (same as Ridge Regression).
+#' 
 #' Bayes L: Assigning a double-exponential or Laplace prior is the density used in 
 #' the Bayesian LASSO
+#' 
 #' Bayes A: similar to ridge regression but t-distribution prior (rather than Gaussian) 
-#' for the marker effects ; variance comes from an inverse-chisquare distribution instead of being fixed. Estimation 
+#' for the marker effects ; variance comes from an inverse-chi-square distribution instead of being fixed. Estimation 
 #' via Gibbs sampling. 
+#' 
 #' Bayes C: uses a “rounded spike” (low-variance Gaussian) at origin many small 
 #' effects can contribute to polygenic component, reduces the dimensionality of 
 #' the model (makes Gibbs sampling feasible). 
+#' 
 #' Bayes R: Hierarchical Bayesian mixture model with 4 Gaussian components, with 
 #' variances scaled by 0, 0.0001 , 0.001 , and 0.01 . 
-
-#' The models are implemented using empirical Bayesian methods. 
-#' The hyperparameters of the dispersion parameters of the Bayesian model can
-#' be obtained from prior information or estimated by maximum likelihood, 
-#' and conditional on these, the model is fitted using
-#' Markov chain Monte Carlo. 
 #'
 #'
 #' @param y is a vector or matrix of phenotypes
