@@ -37,7 +37,7 @@
 #'
 
 #'
-#' @param Glist only provided if task="summary" or task="sparseld"
+#' @param Glist list of information about genotype matrix stored on disk - only provided if task="summary" or task="sparseld"
 #' @param task character specifying which task to perform ("prepare" is default, "summary", or "sparseld")
 #' @param study name of the study
 #' @param fnBED path and filename of the binary file .bed used for storing genotypes on the disk
@@ -49,7 +49,7 @@
 #' @param rsids vector of marker rsids used in the study
 #' @param ldfiles path and filename of the binary files .ld for storing sparse ld matrix on the disk
 #' @param msize number of markers used in compuation of sparseld
-#' @param overwrite logical if TRUE overwite binary genotype file
+#' @param overwrite logical if TRUE overwite binary genotype/ld file
 #' @param ncores number of cores used to process the genotypes
 #' @param assembly character name of assembly
 #' @param r2 threshold
@@ -320,9 +320,7 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 #' 
 #'
 #' @param Glist list of information about genotype matrix stored on disk
-#' @param stat dataframe with marker summary statistics
 #' @param excludeMAF exclude marker if minor allele frequency (MAF) is below threshold (0.01 is default)
-#' @param excludeMAFDIFF exclude marker if minor allele frequency difference (MAFDIFF) between Glist$af and stat$af is above threshold (0.05 is default)
 #' @param excludeINFO exclude marker if info score (INFO) is below threshold (0.8 is default)
 #' @param excludeMISS exclude marker if missingness (MISS) is above threshold (0.05 is default)
 #' @param excludeHWE exclude marker if p-value for Hardy Weinberg Equilibrium test is below threshold (0.01 is default)
@@ -330,6 +328,7 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 #' @param excludeMHC exclude marker if located in MHC region 
 #' @param excludeINDEL exclude marker if it an insertion/deletion  
 #' @param excludeDUPS exclude marker id if duplicated
+#' @param assembly character name of assembly
 
 
 #' @author Peter Soerensen
@@ -473,10 +472,10 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
 # }
 
 
-#' Extract elements from genotype matrix (W) stored on disk
+#' Extract elements from genotype matrix stored on disk
 #'
 #' @description
-#' Extract elements from genotype matrix W (whole or subset) stored on disk.
+#' Extract elements from genotype matrix (whole or subset) stored on disk.
 
 #' @param Glist list structure with information about genotypes stored on disk
 #' @param bedfiles vector of name for the PLINK bed-file
@@ -681,7 +680,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
 #' Get marker LD sets based on sparse LD matrix in Glist
 #' @keywords internal
 #' @param Glist list structure with information about genotypes stored on disk
-#' @param chr chromosome from which LD sets are extracted
+#' @param chr chromosome for which LD sets are extracted
 #' @param r2 threshold used for extracting LD sets
 #' @export
 
