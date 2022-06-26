@@ -523,6 +523,7 @@ remlf <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
 #' @param ids vector of ids for which BLUP values is computed
 #' @param idsRWS vector of row ids in GRM for which BLUP values is computed
 #' @param idsCLS vector of column ids in GRM for which BLUP values is computed
+#' @keywords internal
 
 #' @export
 #'
