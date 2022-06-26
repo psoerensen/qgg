@@ -8,14 +8,21 @@
 #' Quality control is a critical step for working with GWAS summary statistics. 
 #' Processing and quality control of summary statistics includes:                                                                      
 #'
-#' * map marker ids (rsids/cpra (chr, pos, ref, alt)) to LD reference panel data 
-#' * check effect allele (flip EA, EAF, Effect)
-#' * check effect allele frequency
-#' * thresholds for MAF and HWE
-#' * exclude INDELS, CG/AT and MHC region
-#' * remove duplicated marker ids
-#' * check which build version
-#' * check for concordance between marker effect and LD data
+#' - map marker ids (rsids/cpra (chr, pos, ref, alt)) to LD reference panel data 
+#' 
+#' - check effect allele (flip EA, EAF, Effect)
+#' 
+#' - check effect allele frequency
+#' 
+#' - thresholds for MAF and HWE
+#' 
+#' - exclude INDELS, CG/AT and MHC region
+#' 
+#' - remove duplicated marker ids
+#' 
+#' - check which build version
+#' 
+#' - check for concordance between marker effect and LD data
 #'
 #' Required headers for external summary statistics:
 #'  marker, chr, pos, effect_allele, non_effect_allele, effect_allele_freq, effect, effect_se, stat, p, n    
