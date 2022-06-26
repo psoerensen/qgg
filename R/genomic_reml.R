@@ -5,9 +5,9 @@
 #' GREML analysis
 #'
 #' @description
-#' [This sentence is unclear: The greml function is used for the estimation of genomic parameters (co-variance, heritability and correlation)
+#' The greml function is used for the estimation of genomic parameters (co-variance, heritability and correlation)
 #' for linear mixed models using restricted maximum likelihood estimation (REML) and genomic prediction using
-#' best linear unbiased prediction (BLUP).]
+#' best linear unbiased prediction (BLUP).
 #'
 #' The linear mixed model can account for multiple genetic factors (fixed and random genetic marker effects),
 #' adjust for complex family relationships or population stratification and adjust for other non-genetic factors
@@ -42,7 +42,6 @@
 #' @param data is a data frame containing the phenotypic observations and fixed factors specified in the model statements
 #' @param interface is used for specifying whether to use R or Fortran implementations of REML
 #' @param wkdir is the working directory used for REML
-#' @param makeplots is a logical; if TRUE it makes some plots ["or" or "and"?: or] calculates parameter estimates and prediction accuracy during cross validation
 #' @param verbose is a logical; if TRUE it prints more details during optimization
 #' @param bin is the directory for fortran binaries (e.g. DMU binaries dmu1 and dmuai)
 
@@ -117,7 +116,7 @@
 
 greml <- function(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL,
                   ids = NULL, validate = NULL, maxit = 100, tol = 0.00001, bin = NULL,
-                  ncores = 1, wkdir = getwd(), verbose = FALSE, makeplots = FALSE,
+                  ncores = 1, wkdir = getwd(), verbose = FALSE, 
                   interface = "R", fm = NULL, data = NULL) {
   if (!is.null(GRM)) {
     if (is.null(validate)) {
@@ -131,8 +130,7 @@ greml <- function(y = NULL, X = NULL, GRMlist = NULL, GRM = NULL, theta = NULL,
       fit <- cvreml(
         y = y, X = X, GRMlist = GRMlist, G = GRM, theta = theta, ids = ids,
         validate = validate, maxit = maxit, tol = tol, bin = bin,
-        ncores = ncores, verbose = verbose, wkdir = wkdir,
-        makeplots = makeplots
+        ncores = ncores, verbose = verbose, wkdir = wkdir
       )
     }
   }
@@ -259,8 +257,8 @@ remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
 }
 
 cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, validate = NULL,
-                   maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE,
-                   makeplots = FALSE) {
+                   maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE) 
+  {
   
   n <- length(y)
   if(is.null(X)) X <- model.matrix(y~1)
@@ -372,7 +370,6 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
   # return(list(accuracy = res, theta = theta, yobst = yot, ypredt = ypt, yrest = yrest, ghatt=ghatt, yobsv = yov, ypredv = ypv, yresv = yresv, ghatv=ghatv))
   #return(list(accuracy = res, theta = theta, training = training, validation = validation, ghatt=ghatt, ghatv=ghatv))
   return(list(accuracy = res, theta = theta, training = training, validation = validation))
-  
 }  
 
 # cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, validate = NULL,
