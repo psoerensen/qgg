@@ -5,34 +5,33 @@
 #' Quality control of marker summary statistics
 #'
 #' @description
-#' Quality control is a critical step for working with summary statistics (in particular
-#'                                                                         for external). 
-#' Processing and quality control of GWAS summary statistics includes:                                                                      
+#' Quality control is a critical step for working with GWAS summary statistics. 
+#' Processing and quality control of summary statistics includes:                                                                      
 #'
-#' - map marker ids (rsids/cpra (chr, pos, ref, alt)) to LD reference panel data 
-#' - check effect allele (flip EA, EAF, Effect)
-#' - check effect allele frequency
-#' - thresholds for MAF and HWE
-#' - exclude INDELS, CG/AT and MHC region
-#' - remove duplicated marker ids
-#' - check which build version
-#' - check for concordance between marker effect and LD data
+#' * map marker ids (rsids/cpra (chr, pos, ref, alt)) to LD reference panel data 
+#' * check effect allele (flip EA, EAF, Effect)
+#' * check effect allele frequency
+#' * thresholds for MAF and HWE
+#' * exclude INDELS, CG/AT and MHC region
+#' * remove duplicated marker ids
+#' * check which build version
+#' * check for concordance between marker effect and LD data
 #'
-#' External summary statistics format:
+#' Required headers for external summary statistics:
 #'  marker, chr, pos, effect_allele, non_effect_allele, effect_allele_freq, effect, effect_se, stat, p, n    
 #' 
-#' Internal summary statistics format:
+#' Required headers for internal summary statistics:
 #'  rsids, chr, pos, a1, a2, af, b, seb, stat, p, n
 #' 
 #'
 #' @param Glist list of information about genotype matrix stored on disk
-#' @param stat dataframe with marker summary statistics
+#' @param stat data frame with marker summary statistics (see required format above)
 #' @param excludeMAF exclude marker if minor allele frequency (MAF) is below threshold (0.01 is default)
 #' @param excludeMAFDIFF exclude marker if minor allele frequency difference (MAFDIFF) between Glist$af and stat$af is above threshold (0.05 is default)
 #' @param excludeINFO exclude marker if info score (INFO) is below threshold (0.8 is default)
-#' @param excludeMISS exclude marker if missingness (MISS) is above threshold (0.05 is default)
+#' @param excludeMISS exclude marker if sample missingness (MISS) is above threshold (0.05 is default)
 #' @param excludeHWE exclude marker if p-value for Hardy Weinberg Equilibrium test is below threshold (0.01 is default)
-#' @param excludeCGAT exclude marker if alleles are ambigous (CG or AT)
+#' @param excludeCGAT exclude marker if alleles are ambiguous (CG or AT)
 #' @param excludeMHC exclude marker if located in MHC region 
 #' @param excludeINDEL exclude marker if it an insertion/deletion  
 #' @param excludeDUPS exclude marker id if duplicated
@@ -302,20 +301,22 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
 #' 
 #' @description
 #'
-#' Adjust marker summary statistics based on linkage disequilibrium information from Glist
+#' Adjust marker summary statistics using linkage disequilibrium information from Glist
 #' 
-#'
+#' Required header for summary statistics:
+#'  rsids, chr, pos, a1, a2, af, b, seb, stat, p, n
+#'  
 #' @param Glist list of information about genotype matrix stored on disk
-#' @param stat dataframe with marker summary statistics
+#' @param stat a data frame with marker summary statistics (see required format above)
 #' @param chr chromosome(s) being processed
-#' @param statistics what type of statistics ("b" or "z") is being processed (default is "b")
-#' @param r2 threshold used in clumping procedure (default is 0.9)
+#' @param statistics specificy what type of statistics ("b" or "z") is being processed (default is "b")
+#' @param r2 threshold used in clumping/pruning procedure (default is 0.9)
 #' @param threshold p-value threshold used in clumping procedure (default is 1)
-#' @param method used in adjustment for linkage disequilibrium (default is "clumping")
-#' @param ldSets marker sets used for adjustment for linkage disequilibrium 
-#' @param header character vector with columns to be excluded in the LD adjustment 
-#' 
-#'
+#' @param method method used in adjustment for linkage disequilibrium (default is "clumping")
+#' @param ldSets list of marker sets - names corresponds to row names in stat
+#' @param header character vector with column names to be excluded in the LD adjustment 
+
+
 #' @details
 #' # stat can be a data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
 #' # stat can be a list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
@@ -400,15 +401,15 @@ getStat <- function(stat=NULL, cls=NULL, rws=NULL) {
 #'
 #' @description
 #' Perform LD pruning of summary statistics before they are used in gene set enrichment analyses.
-#' @param stat vector or matrix of single marker statistics (e.g. coefficients, t-statistics, p-values)
-#' @param statistics is the type of statistics used in stat (e.g. statistics="p-value")
+#' 
+#' @param Glist list of information about genotype matrix stored on disk
+#' @param stat a data frame with marker summary statistics (see required format above)
+#' @param statistics specificy what type of statistics ("b" or "z") is being processed (default is "b")
 #' @param chr chromosome(s) being processed
 #' @param ldSets list of marker sets - names corresponds to row names in stat
-#' @param r2 threshold for r2 used in LD pruning
+#' @param r2 threshold used in clumping/pruning procedure (default is 0.9)
 #' @param threshold p-value threshold used in LD pruning
-#' @param Glist list providing information about genotypes stored on disk
-#' @param method used including method="pruning" which is default or "clumping"
-
+#' @param method method used in adjustment for linkage disequilibrium (default is "clumping")
 
 #' @export
 
@@ -504,18 +505,20 @@ adjLD <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "p-value", r
 
 
 
-#' Check concordance between marker summary statistics and sparse LD matrix
+#' Check concordance between marker effect and sparse LD matrix.
 #' @description
-#' Check concordance between marker summary statistics and sparse LD matrix in Glist
+#' Check concordance between predicted and observed marker effect. Marker effect is predicted based on sparse LD matrix in Glist.
 #' @keywords internal
-#' @param stat dataframe with marker summary statistics
-#' @param Glist list structure with information about genotypes stored on disk
-#' @param chr chromosome for which summary statistics is checked for concordance
-#' @param region genome region (in base pairs) for which summary statistics is checked
-#' @param threshold p-value threshold used in detecting z-score outliers
+#' @param Glist list of information about genotype matrix stored on disk
+#' @param stat data frame with marker summary statistics (see required format above)
+#' @param chr chromosome for which marker effect is checked
+#' @param region genome region (in base pairs) for which marker effect is checked
+#' @param threshold p-value threshold used for chisquare test for difference between observed and predicted marker effects
+#' @param msize is the number of markers used in the prediction
 #' @param overlap is the number of markers overlapping between adjacent genome region
-#' @param niter is the number of iteration used for detecting outlier
+#' @param niter is the number of iteration used for detecting outliers
 #' @export
+
 
 adjLDStat <- function(stat=NULL, Glist = NULL, chr = NULL, region=NULL, msize=NULL, threshold=1e-5, overlap=NULL, niter=5) {
   
