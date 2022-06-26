@@ -382,6 +382,7 @@ rsq <- function(h2=NULL,meff=NULL,n=NULL) {
 #' @param yobs vector of observed phenotype
 #' @param ypred vector of predicted phenotype
 #' 
+#' @keywords internal
 #' 
 #' @export
 #' 
@@ -413,6 +414,8 @@ computeROC <- function(yobs=NULL, ypred=NULL){
 #' @param roc.data data frame with ROC information (from computeROC)
 #' @param cols which columns should be used in the ROC plot
 #' 
+#' @keywords internal
+
 #' @author Palle Duun Rohde
 #' 
 #' @export
