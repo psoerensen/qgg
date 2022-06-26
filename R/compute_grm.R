@@ -264,6 +264,7 @@ writeGRM <- function(GRM = NULL) {
 #' @param idsCLS vector of column ids in GRM to be extracted
 #' @param rws vector of rows in GRM to be extracted
 #' @param cls vector of columns in GRM to be extracted
+#' @keywords internal
 
 
 #' @export
@@ -317,6 +318,7 @@ getGRM <- function(GRMlist = NULL, ids = NULL, idsCLS = NULL, idsRWS = NULL, cls
 #' genomic rfelationship matrix stored on disk
 
 #' @param GRMlist list providing information about GRM matrix stored in binary files on disk
+#' @keywords internal
 
 #' @export
 #'
