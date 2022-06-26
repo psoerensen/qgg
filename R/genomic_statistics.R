@@ -410,6 +410,7 @@ getStat <- function(stat=NULL, cls=NULL, rws=NULL) {
 #' @param r2 threshold used in clumping/pruning procedure (default is 0.9)
 #' @param threshold p-value threshold used in LD pruning
 #' @param method method used in adjustment for linkage disequilibrium (default is "clumping")
+#' @keywords internal
 
 #' @export
 
@@ -638,6 +639,7 @@ adjLDStat <- function(stat=NULL, Glist = NULL, chr = NULL, region=NULL, msize=NU
 #' @param excludeMHC exclude marker if located in MHC region 
 #' @param excludeINDEL exclude marker if it an insertion/deletion  
 #' @param excludeDUPS exclude marker id if duplicated
+#' @keywords internal
 
 
 #' @author Peter Soerensen
