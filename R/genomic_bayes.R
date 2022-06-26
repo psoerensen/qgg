@@ -2,13 +2,47 @@
 #    Module 6: Bayesian models
 ####################################################################################################################
 #'
-#' Genomic prediction models implemented using Bayesian Methods (small data)
+#' Bayesian linear regression models
 #'
 #' @description
-#' Genomic prediction models implemented using Bayesian Methods (small data).
-#' The models are implemented using empirical Bayesian methods. The hyperparameters of the dispersion parameters of the Bayesian model can
-#' be obtained from prior information or estimated by maximum likelihood, and conditional on these, the model is fitted using
-#' Markov chain Monte Carlo. These functions are currently under development and future release will be able to handle large data sets.
+#' 
+#' Bayesian linear regression (BLR) models:
+#'   - unified mapping of genetic variants, estimation of genetic parameters 
+#' (e.g. heritability) and prediction of disease risk) 
+#' - handles different genetic architectures (few large, many small effects)
+#' - scale to large data (e.g. sparse LD)
+#' 
+#' 
+#' In the Bayesian multiple regression model the posterior density of the 
+#' model parameters depend on the likelihood of the data given 
+#' the parameters and a prior probability for the model parameters:
+#' The prior density of marker effects defines whether the model will 
+#' induce variable selection and shrinkage or shrinkage only. 
+#' Also, the choice of prior will define the extent and type of shrinkage induced.
+#' Ideally the choice of prior for the marker effect should reflect the genetic 
+#' architecture of the trait, and will vary (perhaps a lot) across traits.
+#' 
+#' 
+#' The following prior distributions are provided:
+#' 
+#' Bayes N: Assigning a Gaussian prior to marker effects implies that the posterior means are the 
+#' BLUP estimates (same as Ridge Regression).
+#' Bayes L: Assigning a double-exponential or Laplace prior is the density used in 
+#' the Bayesian LASSO
+#' Bayes A: similar to ridge regression but t-distribution prior (rather than Gaussian) 
+#' for the marker effects ; variance comes from an inverse-chisquare distribution instead of being fixed. Estimation 
+#' via Gibbs sampling. 
+#' Bayes C: uses a “rounded spike” (low-variance Gaussian) at origin many small 
+#' effects can contribute to polygenic component, reduces the dimensionality of 
+#' the model (makes Gibbs sampling feasible). 
+#' Bayes R: Hierarchical Bayesian mixture model with 4 Gaussian components, with 
+#' variances scaled by 0, 0.0001 , 0.001 , and 0.01 . 
+
+#' The models are implemented using empirical Bayesian methods. 
+#' The hyperparameters of the dispersion parameters of the Bayesian model can
+#' be obtained from prior information or estimated by maximum likelihood, 
+#' and conditional on these, the model is fitted using
+#' Markov chain Monte Carlo. 
 #'
 #'
 #' @param y is a vector or matrix of phenotypes
@@ -57,6 +91,8 @@
 #' @param msize number of markers used in compuation of sparseld
 #' @param lambda is a vector or matrix of lambda values 
 #' @param GRMlist is a list providing information about GRM matrix stored in binary files on disk
+
+
 
 
 #' @return Returns a list structure including
@@ -1128,6 +1164,7 @@ computeGRS <- function(Glist = NULL, chr = NULL, cls = NULL, b=NULL, scale=TRUE)
 #' @param causal indices for "causal" markers 
 #' @param chr chromosome to plot 
 #' @param what character fro what to plot (e.g. "trace", "Beta", "Ve", "Vg", "Vb") 
+#' @keywords internal
 
 #'
 #' @export
