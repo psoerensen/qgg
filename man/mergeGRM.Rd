@@ -13,3 +13,4 @@ mergeGRM(GRMlist = NULL)
 Merge multiple GRMlist objects each with information about a 
 genomic rfelationship matrix stored on disk
 }
+\keyword{internal}

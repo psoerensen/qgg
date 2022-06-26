@@ -4,8 +4,14 @@
 \alias{getGRM}
 \title{Extract elements from genomic relationship matrix (GRM) stored on disk}
 \usage{
-getGRM(GRMlist = NULL, ids = NULL, idsCLS = NULL, idsRWS = NULL,
-  cls = NULL, rws = NULL)
+getGRM(
+  GRMlist = NULL,
+  ids = NULL,
+  idsCLS = NULL,
+  idsRWS = NULL,
+  cls = NULL,
+  rws = NULL
+)
 }
 \arguments{
 \item{GRMlist}{list providing information about GRM matrix stored in binary files on disk}
@@ -23,3 +29,4 @@ getGRM(GRMlist = NULL, ids = NULL, idsCLS = NULL, idsRWS = NULL,
 \description{
 Extract elements from genomic relationship matrix (GRM) (whole or subset) stored on disk.
 }
+\keyword{internal}

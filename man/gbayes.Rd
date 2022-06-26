@@ -2,47 +2,212 @@
 % Please edit documentation in R/genomic_bayes.R
 \name{gbayes}
 \alias{gbayes}
-\title{Genomic prediction models implemented using Bayesian Methods (small data)}
+\title{Bayesian linear regression models}
 \usage{
-gbayes(y = NULL, W = NULL, sets = NULL, h2 = NULL, nsets = NULL,
-  nsamp = 50, nburn = 10, nsave = 10000, tol = 0.001,
-  method = "blasso", phi = c(0.999, 0.001))
+gbayes(
+  y = NULL,
+  X = NULL,
+  W = NULL,
+  stat = NULL,
+  covs = NULL,
+  trait = NULL,
+  fit = NULL,
+  Glist = NULL,
+  chr = NULL,
+  rsids = NULL,
+  b = NULL,
+  badj = NULL,
+  seb = NULL,
+  LD = NULL,
+  n = NULL,
+  vg = NULL,
+  vb = NULL,
+  ve = NULL,
+  ssg_prior = NULL,
+  ssb_prior = NULL,
+  sse_prior = NULL,
+  lambda = NULL,
+  scaleY = TRUE,
+  h2 = NULL,
+  pi = 0.001,
+  updateB = TRUE,
+  updateG = TRUE,
+  updateE = TRUE,
+  updatePi = TRUE,
+  adjustE = TRUE,
+  models = NULL,
+  nug = 4,
+  nub = 4,
+  nue = 4,
+  verbose = FALSE,
+  msize = 100,
+  GRMlist = NULL,
+  ve_prior = NULL,
+  vg_prior = NULL,
+  tol = 0.001,
+  nit = 100,
+  nburn = 0,
+  nit_local = NULL,
+  nit_global = NULL,
+  method = "mixed",
+  algorithm = "default"
+)
 }
 \arguments{
-\item{y}{is a matrix of phenotypes}
+\item{y}{is a vector or matrix of phenotypes}
+
+\item{X}{is a matrix of covariates}
 
 \item{W}{is a matrix of centered and scaled genotypes}
 
-\item{sets}{is a list of markers defining a group}
+\item{stat}{dataframe with marker summary statistics}
+
+\item{covs}{is a list of summary statistics (output from internal cvs function)}
+
+\item{trait}{is an integer used for selection traits in covs object}
+
+\item{fit}{is a list of results from gbayes}
+
+\item{Glist}{list of information about genotype matrix stored on disk}
+
+\item{chr}{is the chromosome for which to fit BLR models}
+
+\item{rsids}{is a character vector of rsids}
+
+\item{b}{is a vector or matrix of marginal marker effects}
+
+\item{badj}{is a vector or matrix of adjusted marker effects for the BLR model}
+
+\item{seb}{is a vector or matrix of standard error of marginal effects}
+
+\item{LD}{is a list with sparse LD matrices}
+
+\item{n}{is a scalar or vector of number of observations for each trait}
+
+\item{vg}{is a scalar or matrix of genetic (co)variances}
+
+\item{vb}{is a scalar or matrix of marker (co)variances}
+
+\item{ve}{is a scalar or matrix of residual (co)variances}
+
+\item{ssg_prior}{is a scalar or matrix of prior genetic (co)variances}
+
+\item{ssb_prior}{is a scalar or matrix of prior marker (co)variances}
+
+\item{sse_prior}{is a scalar or matrix of prior residual (co)variances}
+
+\item{lambda}{is a vector or matrix of lambda values}
+
+\item{scaleY}{is a logical; if TRUE y is centered and scaled}
 
 \item{h2}{is the trait heritability}
 
-\item{nsets}{is a list of number of marker groups}
+\item{pi}{is the proportion of markers in each marker variance class (e.g. pi=c(0.999,0.001),used if method="ssvs")}
 
-\item{nsamp}{is the number of samples after burnin}
+\item{updateB}{is a logical for updating marker (co)variances}
 
-\item{nburn}{is the number of burnin samples}
+\item{updateG}{is a logical for updating genetic (co)variances}
 
-\item{nsave}{is the number of samples to save}
+\item{updateE}{is a logical for updating residual (co)variances}
 
-\item{tol}{is the tolerance}
+\item{updatePi}{is a logical for updating pi}
 
-\item{method}{specifies the methods used (method="ssvs","blasso","blr")}
+\item{adjustE}{is a logical for adjusting residual variance}
 
-\item{phi}{is the proportion of markers in each marker variance class (phi=c(0.999,0.001),used if method="ssvs")}
+\item{models}{is a list structure with models evaluated in bayesC}
+
+\item{nug}{is a scalar or vector of prior degrees of freedom for prior genetic (co)variances}
+
+\item{nub}{is a scalar or vector of prior degrees of freedom for marker (co)variances}
+
+\item{nue}{is a scalar or vector of prior degrees of freedom for prior residual (co)variances}
+
+\item{verbose}{is a logical; if TRUE it prints more details during iteration}
+
+\item{msize}{number of markers used in compuation of sparseld}
+
+\item{GRMlist}{is a list providing information about GRM matrix stored in binary files on disk}
+
+\item{ve_prior}{is a scalar or matrix of prior residual (co)variances}
+
+\item{vg_prior}{is a scalar or matrix of prior genetic (co)variances}
+
+\item{tol}{is tolerance, i.e. convergence criteria used in gbayes}
+
+\item{nit}{is the number of iterations}
+
+\item{nburn}{is the number of burnin iterations}
+
+\item{nit_local}{is the number of local iterations}
+
+\item{nit_global}{is the number of global iterations}
+
+\item{method}{specifies the methods used (method="bayesN","bayesA","bayesL","bayesC","bayesR")}
+
+\item{algorithm}{specifies the algorithm}
+}
+\value{
+Returns a list structure including
+\item{b}{vector or matrix (mxt) of posterior means for marker effects}
+\item{d}{vector or matrix (mxt) of posterior means for marker inclusion probabilities}
+\item{vb}{scalar or vector (t) of posterior means for marker variances}
+\item{vg}{scalar or vector (t) of posterior means for genomic variances}
+\item{ve}{scalar or vector (t) of posterior means for residual variances}
+\item{rb}{matrix (txt) of posterior means for marker correlations}
+\item{rg}{matrix (txt) of posterior means for genomic correlations}
+\item{re}{matrix (txt) of posterior means for residual correlations}
+\item{pi}{vector (1xnmodels) of posterior probabilities for models}
+\item{h2}{vector (1xt) of posterior means for model probability}
+\item{param}{ a list current parameters (same information as item listed above) used for restart of the analysis}
+\item{stat}{matrix (mxt) of marker information and effects used for genomic risk scoring}
 }
 \description{
-Genomic prediction models implemented using Bayesian Methods (small data).
-The models are implemented using empirical Bayesian methods. The hyperparameters of the dispersion parameters of the Bayesian model can
-be obtained from prior information or estimated by maximum likelihood, and conditional on these, the model is fitted using
-Markov chain Monte Carlo. These functions are currently under development and tuture release will be able to handle large data sets.
+Bayesian linear regression (BLR) models:
+
+  - unified mapping of genetic variants, estimation of genetic parameters 
+(e.g. heritability) and prediction of disease risk) 
+
+- handles different genetic architectures (few large, many small effects)
+
+- scale to large data (e.g. sparse LD)
+
+
+In the Bayesian multiple regression model the posterior density of the 
+model parameters depend on the likelihood of the data given 
+the parameters and a prior probability for the model parameters
+
+The prior density of marker effects defines whether the model will 
+induce variable selection and shrinkage or shrinkage only. 
+Also, the choice of prior will define the extent and type of shrinkage induced.
+Ideally the choice of prior for the marker effect should reflect the genetic 
+architecture of the trait, and will vary (perhaps a lot) across traits.
+
+
+The following prior distributions are provided:
+
+Bayes N: Assigning a Gaussian prior to marker effects implies that the posterior means are the 
+BLUP estimates (same as Ridge Regression).
+
+Bayes L: Assigning a double-exponential or Laplace prior is the density used in 
+the Bayesian LASSO
+
+Bayes A: similar to ridge regression but t-distribution prior (rather than Gaussian) 
+for the marker effects ; variance comes from an inverse-chi-square distribution instead of being fixed. Estimation 
+via Gibbs sampling. 
+
+Bayes C: uses a “rounded spike” (low-variance Gaussian) at origin many small 
+effects can contribute to polygenic component, reduces the dimensionality of 
+the model (makes Gibbs sampling feasible). 
+
+Bayes R: Hierarchical Bayesian mixture model with 4 Gaussian components, with 
+variances scaled by 0, 0.0001 , 0.001 , and 0.01 .
 }
 \examples{
 
 
 # Simulate data and test functions
 
-W <- matrix(rnorm(10000000),nrow=1000)
+W <- matrix(rnorm(100000),nrow=1000)
 set1 <- sample(1:ncol(W),5)
 set2 <- sample(1:ncol(W),5)
 sets <- list(set1,set2)
@@ -50,13 +215,12 @@ g <- rowSums(W[,c(set1,set2)])
 e <- rnorm(nrow(W),mean=0,sd=1)
 y <- g + e
 
-\dontrun{
-gbayes(y=y, W=W, method="blasso", nsamp=100)
-gbayes(y=y, W=W, method="ssvs", nsamp=100)
-gbayes(y=y, W=W, method="blr", nsets=7, nsamp=100)
-gbayes(y=y, W=W, method="ssvs", sets=sets, nsamp=100)
-gbayes(y=y, W=W, method="blasso", sets=sets, nsamp=100)
-}
+
+fitM <- gbayes(y=y, W=W, method="bayesN")
+fitA <- gbayes(y=y, W=W, method="bayesA")
+fitL <- gbayes(y=y, W=W, method="bayesL")
+fitC <- gbayes(y=y, W=W, method="bayesC")
+
 
 }
 \author{

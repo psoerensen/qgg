@@ -4,10 +4,26 @@
 \alias{grm}
 \title{Computing the genomic relationship matrix (GRM)}
 \usage{
-grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
-  rws = NULL, cls = NULL, W = NULL, method = "add", scale = TRUE,
-  msize = 100, ncores = 1, fnG = NULL, overwrite = FALSE,
-  returnGRM = FALSE, miss = 0, task = "grm")
+grm(
+  Glist = NULL,
+  GRMlist = NULL,
+  ids = NULL,
+  rsids = NULL,
+  rws = NULL,
+  cls = NULL,
+  W = NULL,
+  method = "add",
+  scale = TRUE,
+  msize = 100,
+  ncores = 1,
+  fnG = NULL,
+  overwrite = FALSE,
+  returnGRM = FALSE,
+  miss = NA,
+  impute = TRUE,
+  pedigree = NULL,
+  task = "grm"
+)
 }
 \arguments{
 \item{Glist}{list providing information about genotypes stored on disk}
@@ -38,7 +54,11 @@ grm(Glist = NULL, GRMlist = NULL, ids = NULL, rsids = NULL,
 
 \item{returnGRM}{logical if TRUE function returns the GRM matrix to the R environment}
 
-\item{miss}{the missing code (miss=0 is default) used for missing values in the genotype data}
+\item{miss}{the missing code (miss=NA is default) used for missing values in the genotype data}
+
+\item{impute}{if missing values in the genotype matrix W then mean impute}
+
+\item{pedigree}{is a dataframe with pedigree information}
 
 \item{task}{either computation of GRM (task="grm"  which is default) or eigenvalue decomposition of GRM (task="eigen")}
 }
@@ -54,20 +74,20 @@ contains information about the GRM stored in a binary file on the disk.
 }
 \examples{
 
-\dontrun{
 # Simulate data
-W <- matrix(rnorm(20000000), ncol = 10000)
+W <- matrix(rnorm(1000000), ncol = 1000)
 	colnames(W) <- as.character(1:ncol(W))
 	rownames(W) <- as.character(1:nrow(W))
 
 # Compute GRM
 GRM <- grm(W = W)
 
+\donttest{
+
 # Eigen value decompostion GRM
 eig <- grm(GRM=GRM, task="eigen")
 
 }
-
 }
 \author{
 Peter Soerensen
