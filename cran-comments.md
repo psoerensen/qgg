@@ -1,8 +1,10 @@
-## Submission
-This is a new submission where:
+## Resubmission
+This is a new version of the package where:
 
 * Added Bayesian linear regression models fitted using individual level data 
-* Added Bayesian linear regression models fitted using sparse LD data 
+* Added Bayesian linear regression models fitted using marker summary statistics and sparse LD data 
+* Added LDSC regression for estimation heritabily and correlation 
+* Added functions for processing and quality control of marker summary statistics 
 
 Results for check_for_cran():
 
