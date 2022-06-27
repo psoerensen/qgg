@@ -37,16 +37,14 @@
 #'  Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles)
 #'  
 #'  # Simulate phenotype
-#'  chr <- 1
-#'  W <- getG(Glist=Glist, chr=chr)
-#'  sim <- gsim(W=W,nt=1)
+#'  sim <- gsim(Glist=Glist, chr=1, nt=1)
 #'  
 #'  # Compute single marker summary statistics
 #'  stat <- glma(y=sim$y, Glist=Glist, scale=FALSE)
 #'  
 #'  # Compute genomic scores
 #'  gsc <- gscore(Glist = Glist, stat = stat)
-
+#'  
 #' @export
 #'
 
