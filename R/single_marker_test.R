@@ -71,9 +71,9 @@
 #' X <- model.matrix(fm, data = data)
 #' 
 #' # Linear model analyses and single marker association test
-#' maLM <- glma(y=y,X=X,W = W)
+#' stat <- glma(y=y,X=X,W = W)
 #'
-#' head(maLM)
+#' head(stat)
 #'
 #' \donttest{
 #' # Compute GRM
@@ -83,9 +83,9 @@
 #' fit <- greml(y = y, X = X, GRM = list(GRM), verbose = TRUE)
 #'
 #' # Single marker association test
-#' maMLM <- glma(fit = fit, W = W)
+#' stat <- glma(fit = fit, W = W)
 #'
-#' head(maMLM)
+#' head(stat)
 #'
 #' }
 #' 
