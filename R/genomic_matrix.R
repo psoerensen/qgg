@@ -64,11 +64,11 @@
 
 #' @examples
 #'
-#' bedfiles <- system.file("extdata", "sample_22.bed", package = "qgg")
-#' bimfiles <- system.file("extdata", "sample_22.bim", package = "qgg")
-#' famfiles <- system.file("extdata", "sample_22.fam", package = "qgg")
+#' bedfiles <- system.file("extdata", "sample_chr1.bed", package = "qgg")
+#' bimfiles <- system.file("extdata", "sample_chr1.bim", package = "qgg")
+#' famfiles <- system.file("extdata", "sample_chr1.fam", package = "qgg")
 #' 
-#' Glist <- gprep(study="1000G", bedfiles=bedfiles, bimfiles=bimfiles,
+#' Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles,
 #'              famfiles=famfiles)
 #' 
 
@@ -475,7 +475,7 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
 #' Extract elements from genotype matrix stored on disk
 #'
 #' @description
-#' Extract elements from genotype matrix (whole or subset) stored on disk.
+#' Extract elements from genotype matrix (rows/columns, ids/rsids) stored on disk.
 
 #' @param Glist list structure with information about genotypes stored on disk
 #' @param bedfiles vector of name for the PLINK bed-file
