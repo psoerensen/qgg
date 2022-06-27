@@ -294,8 +294,8 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
       x[t, t]
     }), verbose = verbose))
 
-    
-    if(!class(fit)=="try-error") {
+    if(!inherits(fit, "try-error")) {
+    #if(!class(fit)=="try-error") {
       theta <- rbind(theta, as.vector(fit$theta))
       np <- length(fit$theta)
       ypredt <- X[t, ] %*% fit$b # fixed for training
