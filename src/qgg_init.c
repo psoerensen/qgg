@@ -25,10 +25,6 @@ extern SEXP _qgg_mvrnorm(SEXP);
 extern SEXP _qgg_pruneld(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_pruneldmat(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_psets(SEXP, SEXP, SEXP, SEXP);
-extern SEXP _qgg_rcpparma_bothproducts(SEXP);
-extern SEXP _qgg_rcpparma_hello_world();
-extern SEXP _qgg_rcpparma_innerproduct(SEXP);
-extern SEXP _qgg_rcpparma_outerproduct(SEXP);
 extern SEXP _qgg_readG(SEXP, SEXP, SEXP);
 extern SEXP _qgg_riwishart(SEXP, SEXP);
 extern SEXP _qgg_rwishart(SEXP, SEXP);
@@ -54,10 +50,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_qgg_pruneld",               (DL_FUNC) &_qgg_pruneld,                6},
     {"_qgg_pruneldmat",            (DL_FUNC) &_qgg_pruneldmat,             5},
     {"_qgg_psets",                 (DL_FUNC) &_qgg_psets,                  4},
-    {"_qgg_rcpparma_bothproducts", (DL_FUNC) &_qgg_rcpparma_bothproducts,  1},
-    {"_qgg_rcpparma_hello_world",  (DL_FUNC) &_qgg_rcpparma_hello_world,   0},
-    {"_qgg_rcpparma_innerproduct", (DL_FUNC) &_qgg_rcpparma_innerproduct,  1},
-    {"_qgg_rcpparma_outerproduct", (DL_FUNC) &_qgg_rcpparma_outerproduct,  1},
     {"_qgg_readG",               (DL_FUNC) &_qgg_readG,                3},
     {"_qgg_riwishart",             (DL_FUNC) &_qgg_riwishart,              2},
     {"_qgg_rwishart",              (DL_FUNC) &_qgg_rwishart,               2},
