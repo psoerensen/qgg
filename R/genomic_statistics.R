@@ -310,8 +310,11 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
 #'
 #' Adjust marker summary statistics using linkage disequilibrium information from Glist
 #' 
-#' Required header for summary statistics:
-#'  rsids, chr, pos, a1, a2, af, b, seb, stat, p, n
+#' Required input format for summary statistics:
+#' 
+#' stat can be a data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
+#' 
+#' stat can be a list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
 #'  
 #' @param Glist list of information about genotype matrix stored on disk
 #' @param stat a data frame with marker summary statistics (see required format above)
@@ -325,8 +328,9 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
 
 
 #' @details
-#' # stat can be a data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
-#' # stat can be a list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
+#' stat can be a data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
+#' 
+#' stat can be a list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
 
 
 #' @author Peter Soerensen
