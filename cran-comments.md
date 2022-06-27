@@ -1,6 +1,14 @@
 ## Submission
 This is a new submission where:
 
+* Added Bayesian linear regression models fitted using individual level data 
+* Added Bayesian linear regression models fitted using sparse LD data 
+
+Results for check_for_cran():
+
+## Submission
+This is a new submission where:
+
 * Fixed issue with module name multiple defined detected on solaris 
 * Check for CRAN was OK except for the window build related to data.table not available but assume this is a temporary error.
 * Check on solaris was OK.
