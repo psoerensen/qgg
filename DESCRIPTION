@@ -15,15 +15,13 @@ Description: Provides an infrastructure for efficient processing of large-scale 
 License: GPL-3
 Encoding: UTF-8
 Imports: Rcpp, 
-    RcppArmadillo,
-    RcppDist,
     data.table,
     parallel,
     statmod,
     stats,
     MCMCpack,
     MASS
-LinkingTo: Rcpp
+LinkingTo: Rcpp, RcppArmadillo, RcppDist
 RoxygenNote: 7.2.0
 URL: https://github.com/psoerensen/qgg
 BugReports: https://github.com/psoerensen/qgg/issues
