@@ -1,12 +1,23 @@
 ## Resubmission
-This is a new version of the package where:
+This is a new version of the package where we have:
 
-* Added Bayesian linear regression models fitted using individual level data 
-* Added Bayesian linear regression models fitted using marker summary statistics and sparse LD data 
-* Added LDSC regression for estimation heritabily and correlation 
-* Added functions for processing and quality control of marker summary statistics 
+* added Bayesian linear regression models fitted using individual level data 
+* added Bayesian linear regression models fitted using marker summary statistics and sparse LD data 
+* added LDSC regression for estimation heritabily and correlation 
+* added functions for processing and quality control of marker summary statistics 
 
+* Check for CRAN was OK except for two Notes
+Note 1: "Found the following files/directories: lastMiKTeXException" 
+Comment on Note 1: I believe Note 1 is a temporary error.
+Note 2: "checking installed package size ... NOTE. Installed size is 5.8Mb". 
+Comment on Note 2: Our package contain c++ code and depends on the Rcpp package. 
+According to the maintainer of Rcpp package this is a common Note among packages that depends on c++.
+   
 Results for check_for_cran():
+ https://builder.r-hub.io/status/qgg_1.1.0.tar.gz-ab24a1a0ba5741968f2753ee6148d97a
+   https://builder.r-hub.io/status/qgg_1.1.0.tar.gz-2f695732d2004a3db81d1db54ea7ad95
+   https://builder.r-hub.io/status/qgg_1.1.0.tar.gz-065d908365274c2899cd39b618bae20b
+   https://builder.r-hub.io/status/qgg_1.1.0.tar.gz-7094b2e6c8824b34b258f2b7633f7c39
 
 ## Submission
 This is a new submission where:
