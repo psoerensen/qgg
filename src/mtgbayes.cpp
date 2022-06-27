@@ -2,7 +2,6 @@
 
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
-#include <RcppDist.h>
 
 using namespace Rcpp;
 using namespace arma;
@@ -23,34 +22,6 @@ arma::mat mvrnorm(arma::mat sigma) {
   arma::mat Y = arma::randn(1, ncols);
   return (Y * arma::chol(sigma));
 }
-
-// arma::mat mvrnormArma(arma::vec mu, arma::mat sigma) {
-//   int ncols = sigma.n_cols;
-//   arma::mat Y = arma::randn(1, ncols);
-//   return mu + Y * arma::chol(sigma);
-// }
-
-// // [[Rcpp::export]]
-// arma::mat rinvwish(int v, arma::mat S){
-//   RNGScope scope;
-//   int p = S.n_rows;
-//   arma::mat L = arma::chol(arma::inv_sympd(S), "lower");
-//   arma::mat W(p, p,fill::zeros);
-//   arma::mat A(p,p, fill::zeros);
-//   for(int i = 0; i < p; i++){
-//     int df = v - (i + 1) + 1; 
-//     A(i,i) = std::sqrt(R::rchisq(df)); 
-//   }
-//   for(int row = 1; row < p; row++){
-//     for(int col = 0; col < row; col++){
-//       A(row, col) = R::rnorm(0,1);
-//     }
-//   }
-//   //arma::mat LA_inv = arma::pinv(arma::trimatl(arma::trimatl(L) * arma::trimatl(A)), 0.001);
-//   arma::mat LA_inv = arma::inv(arma::trimatl(arma::trimatl(L) * arma::trimatl(A)));
-//   W = LA_inv.t() * LA_inv;
-//   return(W);
-// }
 
 
 // [[Rcpp::export]]
@@ -88,39 +59,6 @@ arma::mat riwishart(unsigned int df, const arma::mat& S){
   return rwishart(df,S.i()).i();
 }
 
-// // [[Rcpp::export]]
-// NumericVector rcat( NumericVector x,
-//                            int size,
-//                            bool replace,
-//                            NumericVector prob = NumericVector::create()
-// ) {
-//   NumericVector ret = RcppArmadillo::sample(x, size, replace, prob);
-//   return ret;
-// }
-
-// // // [[Rcpp::export]]
-// IntegerVector rcat(NumericVector x, IntegerVector choice_set) {
-//   int  mselect;
-//   IntegerVector result(1);
-//   Rcpp::NumericVector z(x);
-//   result[0] = RcppArmadillo::sample(choice_set, 1, false, z)[0];
-//   return result;
-// }
-//
-//int rcat(std::vector<int> cats , std::vector<int> probs){
-//  return R::sample.int(cats,1,false,probs);
-//}
-
-// // [[Rcpp::export]]
-// int rcat(arma::rowvec probs) {
-//   int k = probs.n_elem;
-//   double probs_sum = accu(probs);
-//   probs = probs/probs_sum;
-//   Rcpp::IntegerVector ans(k);
-//   rmultinom(1, probs.begin(), k, ans.begin());
-//   int max = which_max(ans);
-//   return(max);
-// }
 // [[Rcpp::export]]
 std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vector<double>> y,
                                                           std::vector<std::vector<double>> W,
