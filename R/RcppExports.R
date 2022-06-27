@@ -81,22 +81,6 @@ pruneldmat <- function(file, ldsize, p, threshold, r2) {
     .Call(`_qgg_pruneldmat`, file, ldsize, p, threshold, r2)
 }
 
-rcpparma_hello_world <- function() {
-    .Call(`_qgg_rcpparma_hello_world`)
-}
-
-rcpparma_outerproduct <- function(x) {
-    .Call(`_qgg_rcpparma_outerproduct`, x)
-}
-
-rcpparma_innerproduct <- function(x) {
-    .Call(`_qgg_rcpparma_innerproduct`, x)
-}
-
-rcpparma_bothproducts <- function(x) {
-    .Call(`_qgg_rcpparma_bothproducts`, x)
-}
-
 cp <- function(W) {
     .Call(`_qgg_cp`, W)
 }
