@@ -2,7 +2,7 @@
 % Please edit documentation in R/genomic_solve.R
 \name{gsolve}
 \alias{gsolve}
-\title{Genomic prediction based on a linear mixed model}
+\title{Solve linear mixed model equations}
 \usage{
 gsolve(
   y = NULL,

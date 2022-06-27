@@ -38,12 +38,16 @@ adjStat(
 \description{
 Adjust marker summary statistics using linkage disequilibrium information from Glist
 
-Required header for summary statistics:
- rsids, chr, pos, a1, a2, af, b, seb, stat, p, n
+Required input format for summary statistics:
+
+stat can be a data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
+
+stat can be a list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
 }
 \details{
-# stat can be a data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
-# stat can be a list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
+stat can be a data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
+
+stat can be a list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
 }
 \author{
 Peter Soerensen

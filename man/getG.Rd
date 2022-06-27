@@ -42,5 +42,5 @@ getG(
 \item{scale}{logical if TRUE the genotype markers have been scale to mean zero and variance one}
 }
 \description{
-Extract elements from genotype matrix (whole or subset) stored on disk.
+Extract elements from genotype matrix (rows/columns, ids/rsids) stored on disk.
 }

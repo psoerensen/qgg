@@ -98,11 +98,11 @@ and phenotypes (gsolve) or genotypes and summary statistics (gscore).
 }
 \examples{
 
-bedfiles <- system.file("extdata", "sample_22.bed", package = "qgg")
-bimfiles <- system.file("extdata", "sample_22.bim", package = "qgg")
-famfiles <- system.file("extdata", "sample_22.fam", package = "qgg")
+bedfiles <- system.file("extdata", "sample_chr1.bed", package = "qgg")
+bimfiles <- system.file("extdata", "sample_chr1.bim", package = "qgg")
+famfiles <- system.file("extdata", "sample_chr1.fam", package = "qgg")
 
-Glist <- gprep(study="1000G", bedfiles=bedfiles, bimfiles=bimfiles,
+Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles,
              famfiles=famfiles)
 
 }

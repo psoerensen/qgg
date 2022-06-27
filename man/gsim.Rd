@@ -4,9 +4,13 @@
 \alias{gsim}
 \title{Genomic simulation}
 \usage{
-gsim(nt = 1, W = NULL, n = 1000, m = 1000)
+gsim(Glist = NULL, chr = 1, nt = 1, W = NULL, n = 1000, m = 1000)
 }
 \arguments{
+\item{Glist}{list of information about genotype matrix}
+
+\item{chr}{is the chromosome(s) being used in the simulation}
+
 \item{nt}{number of traits}
 
 \item{W}{matrix of centered and scaled genotypes}
@@ -16,36 +20,25 @@ gsim(nt = 1, W = NULL, n = 1000, m = 1000)
 \item{m}{number of markers}
 }
 \description{
-The gsolve function is used for solving of linear mixed model equations. The algorithm used to solve the equation
-system is based on a Gauss-Seidel (GS) method (matrix-free with residual updates) that handles large data sets.
-
-The linear mixed model fitted can account for multiple traits, multiple genetic factors (fixed or random genetic
-marker effects), adjust for complex family relationships or population stratification, and adjust for other
-non-genetic factors including lifestyle characteristics. Different genetic architectures (infinitesimal,
-few large and many small effects) is accounted for by modeling genetic markers in different sets as fixed or
-random effects and by specifying individual genetic marker weights.
+The gsim function is used for simulating genotype and phenotype data based Glist.
+It is currently under active development.
 }
 \examples{
 
-# Simulate data
-W <- matrix(rnorm(1000000), ncol = 1000)
-	colnames(W) <- as.character(1:ncol(W))
-	rownames(W) <- as.character(1:nrow(W))
-m <- ncol(W)
-causal <- sample(1:ncol(W),50)
-y <- rowSums(W[,causal]) + rnorm(nrow(W),sd=sqrt(50))
-
-X <- model.matrix(y~1)
-
-Sg <- 50
-Se <- 50
-h2 <- Sg/(Sg+Se)
-lambda <- Se/(Sg/m)
-lambda <- m*(1-h2)/h2
-
-# BLUP of single marker effects and total genomic effects based on Gauss-Seidel procedure
-fit <- gsolve( y=y, X=X, W=W, lambda=lambda)
-
+ ## Plink bed/bim/fam files
+ bedfiles <- system.file("extdata", paste0("sample_chr",1:2,".bed"), package = "qgg")
+ bimfiles <- system.file("extdata", paste0("sample_chr",1:2,".bim"), package = "qgg")
+ famfiles <- system.file("extdata", paste0("sample_chr",1:2,".fam"), package = "qgg")
+ 
+ # Summarize bed/bim/fam files
+ Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles)
+ 
+ # Simulate phenotype
+ sim <- gsim(Glist=Glist, chr=1, nt=1)
+ head(sim$y)
+ head(sim$e)
+ head(sim$causal)
+ 
 
 }
 \author{
