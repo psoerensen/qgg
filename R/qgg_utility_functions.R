@@ -67,43 +67,6 @@ acc <- function(yobs = NULL, ypred = NULL, typeoftrait = "quantitative") {
   return(result)
 }
 
-# fastlm <- function(y = NULL, X = NULL, sets = NULL) {
-#   XX <- crossprod(X)
-#   XXi <- chol2inv(chol(XX))
-#   Xy <- crossprod(X, y)
-#   coef <- crossprod(XXi, Xy)
-#   rownames(coef) <- colnames(X)
-#   yhat <- crossprod(t(X), coef)
-# 
-#   sse <- sum((y - yhat)**2)
-#   dfe <- length(y) - ncol(X)
-# 
-#   se <- sqrt(sse / dfe) * sqrt(diag(XXi))
-#   stat <- coef / se
-#   p <- 2 * pt(-abs(stat), df = dfe)
-#   names(se) <- colnames(X)
-# 
-#   sigma_e <- sse / dfe
-#   ftest <- NULL
-#   if (!is.null(sets)) {
-#     nsets <- length(sets)
-#     for (i in 1:nsets) {
-#       rws <- sets[[i]]
-#       dfq <- length(rws)
-#       q <- crossprod(coef[rws, ], crossprod(solve(XXi[rws, rws] * sigma_e), coef[rws, ]))
-#       pq <- pchisq(q, df = dfq, lower.tail = FALSE)
-#       pfstat <- pf(q / dfq, dfq, dfe, lower.tail = FALSE)
-#       ftest <- rbind(ftest, c(q / dfq, dfq, dfe, pfstat))
-#     }
-#     colnames(ftest) <- c("F-stat", "dfq", "dfe", "p")
-#     rownames(ftest) <- names(sets)
-#   }
-# 
-#   fit <- list(coef = coef, se = se, stat = stat, p = p, ftest = ftest, yhat = yhat)
-# 
-#   return(fit)
-# }
-
 #' Perform Hardy Weinberg Equilibrium Test
 #' @description
 #' Perform Hardy Weinberg Equilibrium Test ££(HWE)
