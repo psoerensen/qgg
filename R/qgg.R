@@ -14,8 +14,6 @@
 }
 
 #' @import Rcpp
-#' @import RcppArmadillo
-#' @import RcppDist
 #' @importFrom grDevices dev.off gray tiff
 #' @importFrom graphics abline barplot boxplot layout par plot points text
 #' @importFrom stats anova as.dist binomial cor cor.test glm hclust lm logLik pchisq pf phyper
