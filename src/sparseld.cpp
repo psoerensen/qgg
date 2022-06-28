@@ -34,9 +34,9 @@ std::vector<int> pruneld( const char* file,
       long int offset = i0*nbytes*4;
       fseek( file_stream, offset, SEEK_SET );
       nbytes_read = fread( buffer, sizeof(float), nbytes, file_stream );
-      //if (nbytes_read != nbytes) {
-      //  std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
-      //}
+      if (nbytes_read != nbytes) {
+        Rcerr << "Error reading data: nbytes_read != nbytes" << "\n";
+      }
       int k0=0;
       for ( size_t j = 0; j < nbytes; j++) {
         int k1 = i0 - ldsize + k0;
@@ -83,9 +83,9 @@ std::vector<std::vector<std::vector<int>>> pruneldmat( const char* file,
   float *buffer = (float *) malloc( nbytes*4 );
   for ( int i = 0; i < m; i++) {
     nbytes_read = fread( buffer, sizeof(float), nbytes, file_stream );
-    //if (nbytes_read != nbytes) {
-    //  std::cout << "Error reading data: nbytes_read != nbytes" << "\n";
-    //}
+    if (nbytes_read != nbytes) {
+      Rcerr << "Error reading data: nbytes_read != nbytes" << "\n";
+    }
     for ( size_t j = 0; j < nbytes; j++) {
       ld[i][j] = buffer[j];
     }
