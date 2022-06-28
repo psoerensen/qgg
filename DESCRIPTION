@@ -1,7 +1,7 @@
 Package: qgg
 Type: Package
 Title: Statistical Tools for Quantitative Genetic Analyses
-Version: 1.1.0
+Version: 1.1.1
 Date: 2022-06-27
 Authors@R: c(person("Peter", "Soerensen", email = "peter.sorensen@r-qgg.org",
                   role = c("aut", "cre")),
@@ -15,7 +15,7 @@ Description: Provides an infrastructure for efficient processing of large-scale 
 License: GPL-3
 Encoding: UTF-8
 Depends: R (>= 3.3.0)
-Imports: Rcpp (>= 1.0.7), data.table, parallel, statmod, stats, MCMCpack, MASS
+Imports: Rcpp (>= 1.0.5), data.table, parallel, statmod, stats, MCMCpack, MASS
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.2.0
 URL: https://github.com/psoerensen/qgg
