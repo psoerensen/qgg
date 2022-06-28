@@ -1,4 +1,4 @@
-# qgg 1.0.5
+# qgg 1.1.1
 
 Fully functional qgg ready for CRAN release.
 
