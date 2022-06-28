@@ -167,7 +167,7 @@
     integer(c_int) :: ng
     integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
     integer(c_int):: cfres, nbytes
-
+    integer(c_size_t):: cfres_rw
     
     end module global
 
@@ -244,7 +244,7 @@
     i14=row
     pos14 = (i14-1)*nbytes14 
     cfres=cseek(fp,pos14,0)            
-    cfres=fread(c_loc(grw),8,ng,fp)
+    cfres_rw=fread(c_loc(grw),8,ng,fp)
     do i=1,size(V,1)
       gr(i) = grw(indxg(i))
     enddo
@@ -542,6 +542,7 @@
 
   integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
   integer(c_int):: cfres
+  integer(c_size_t):: cfres_rw
   type(c_ptr):: fp
 
   offset=0
@@ -564,7 +565,7 @@
     pos14 = offset14 + (i14-1)*nbytes14 
     cfres=cseek(fp,pos14,0)            
     !cfres=fread(raw(1:nbytes,i),1,nbytes,fp)
-    cfres=fread(c_loc(raw(1:nbytes,i)),1,nbytes,fp)
+    cfres_rw=fread(c_loc(raw(1:nbytes,i)),1,nbytes,fp)
   enddo
   cfres=fclose(fp)
   
@@ -625,6 +626,7 @@
   character(len=20, kind=c_char) :: mode
   type(c_ptr):: fp
   integer(c_int) :: cfres 
+  integer(c_size_t) :: cfres_rw 
 
   !call omp_set_num_threads(ncores)
   if (ncores>1) ncores=1
@@ -696,7 +698,7 @@
   do j=1,size(G,1)
     if (gmodel<4) w = G(1:size(G,1),j)
     if (gmodel==4) w = G(1:size(G,1),j)**2
-    cfres=fwrite(c_loc(w),8,nr,fp)
+    cfres_rw=fwrite(c_loc(w),8,nr,fp)
   enddo
   cfres=fclose(fp)
 
