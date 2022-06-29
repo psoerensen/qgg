@@ -68,7 +68,7 @@
 #' @param rsids is a character vector of rsids
 #' @param b is a vector or matrix of marginal marker effects 
 #' @param seb is a vector or matrix of standard error of marginal effects
-#' @param badj is a vector or matrix of adjusted marker effects for the BLR model
+#' @param bm is a vector or matrix of adjusted marker effects for the BLR model
 #' @param LD is a list with sparse LD matrices
 #' @param n is a scalar or vector of number of observations for each trait
 #' @param vb is a scalar or matrix of marker (co)variances
@@ -141,7 +141,7 @@
 #'
 
 gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit=NULL, Glist=NULL, 
-                   chr=NULL, rsids=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
+                   chr=NULL, rsids=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
                    vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
                    nug=4, nub=4, nue=4, verbose=FALSE,msize=100,
@@ -222,7 +222,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") {
     
     fit <- bayes(y=y, X=X, W=W, b=b, 
-                 badj=badj, seb=seb, LD=LD, n=n,
+                 bm=bm, seb=seb, LD=LD, n=n,
                  vg=vg, vb=vb, ve=ve, 
                  ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                  h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
@@ -233,7 +233,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   # Single trait BLR using y and W and sbayes method 
   if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") {
     
-    fit <- sbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
+    fit <- sbayes(y=y, X=X, W=W, b=b, bm=bm, seb=seb, LD=LD, n=n,
                   vg=vg, vb=vb, ve=ve, 
                   ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                   h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
@@ -242,7 +242,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   
   # Multiple trait BLR using y and W
   if(nt>1 && !is.null(y) && !is.null(W)) {
-    fit <- mtbayes(y=y, X=X, W=W, b=b, badj=badj, seb=seb, LD=LD, n=n,
+    fit <- mtbayes(y=y, X=X, W=W, b=b, bm=bm, seb=seb, LD=LD, n=n,
                    vg=vg, vb=vb, ve=ve, 
                    ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                    h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
@@ -417,7 +417,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       m <- length(rsidsLD)
       b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
       rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
-      trait_names <- "badj"     
+      trait_names <- "bm"     
       
       stat <- stat[rownames(stat)%in%rsidsLD,]
       if(is.null(stat$ww)) stat$ww <- 1/(stat$seb^2 + stat$b/stat$n)
@@ -630,7 +630,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
 
 
 # Single trait BLR based on individual level data 
-bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
+bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
                   vg=NULL, vb=NULL, ve=NULL, 
                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                   h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
@@ -708,7 +708,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, 
 }
 
 # Single trait BLR based on individual level data based on fast algorithm  
-sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
+sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
                    vg=NULL, vb=NULL, ve=NULL, 
                    ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                    h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
@@ -775,7 +775,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL,
 
 
 # Single trait BLR using summary statistics and sparse LD provided in Glist 
-sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, badj=NULL, seb=NULL, 
+sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL, 
                           LDvalues=NULL,LDindices=NULL, n=NULL, m=NULL,
                           vg=NULL, vb=NULL, ve=NULL, 
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
@@ -957,7 +957,7 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
 
 
 # Multiple trait BLR based on individual level data based on fast algorithm  
-mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, badj=NULL, seb=NULL, LD=NULL, n=NULL,
+mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
                     vg=NULL, vb=NULL, ve=NULL, 
                     ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                     h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
@@ -1165,14 +1165,14 @@ computeGRS <- function(Glist = NULL, chr = NULL, cls = NULL, b=NULL, scale=TRUE)
 #' @param fit object from gbayes
 #' @param causal indices for "causal" markers 
 #' @param chr chromosome to plot 
-#' @param what character fro what to plot (e.g. "trace", "Beta", "Ve", "Vg", "Vb") 
+#' @param what character fro what to plot (e.g. "trace", "bpm", "ve", "vg", "vb") 
 #' @keywords internal
 
 #'
 #' @export
 #'
 
-plotBayes <- function(fit=NULL, causal=NULL, what="Beta", chr=1) {
+plotBayes <- function(fit=NULL, causal=NULL, what="bm", chr=1) {
   # if(!is.list(fit[[1]])) {
   #   layout(matrix(1:6,nrow=3,ncol=2))
   #   plot(fit[[1]],ylab="Posterior", xlab="Marker", main="Marker effect", frame.plot=FALSE)  
@@ -1196,11 +1196,26 @@ plotBayes <- function(fit=NULL, causal=NULL, what="Beta", chr=1) {
   #   matplot(as.data.frame(fit[[5]]),ylab="Residual variance", frame.plot=FALSE)  
   # } 
   if(length(chr)==1) {
-    if(what=="Beta") plot(fit[[chr]]$bm,ylab="Beta", xlab="Marker", main="Adjusted Effect", frame.plot=FALSE)  
-    if(what=="PPI")plot(fit[[chr]]$dm,ylab="PPI", xlab="Marker", main="Probability of Inclusion", ylim=c(0,1), frame.plot=FALSE)  
-    if(what=="Ve") hist(fit[[chr]]$ves,xlab="Posterior", main="Residual Variance")
-    if(what=="Vb") hist(fit[[chr]]$vbs,xlab="Posterior", main="Marker Variance")
-    if(what=="Vg") hist(fit[[chr]]$vgs,xlab="Posterior", main="Genetic Variance")
+    if(what=="bm") plot(fit[[chr]]$bm,ylab="Posterior Mean Effect", xlab="Marker", main="Adjusted Marker Effect", frame.plot=FALSE)  
+    
+    if(what=="dm") {
+      if(fit$method=="bayesC") {
+        plot(fit[[chr]]$dm, ylab="PIP", xlab="Marker", main="Posterior Inclusion Probability", ylim=c(0,1), frame.plot=FALSE)
+      }
+      if(fit$method=="bayesR") {
+        plot(fit[[chr]]$dm, 
+             xlab="Marker", 
+             ylab="Marker Class",
+             frame.plot=FALSE, ylim=c(0,3), main="Posterior Mean Marker Class")
+        abline(h=1, lty=2, col=2, lwd=2)
+        abline(h=2, lty=2, col=2, lwd=2)
+        abline(h=3, lty=2, col=2, lwd=2)
+      } 
+
+    }
+    if(what=="ve") hist(fit[[chr]]$ves,xlab="Posterior", main="Residual Variance")
+    if(what=="vb") hist(fit[[chr]]$vbs,xlab="Posterior", main="Marker Variance")
+    if(what=="vg") hist(fit[[chr]]$vgs,xlab="Posterior", main="Genetic Variance")
     fit[[chr]]$h2 <- fit[[chr]]$vgs/(fit[[chr]]$vgs+fit[[chr]]$ves)
     if(what=="h2") hist(fit[[chr]]$h2,xlab="Posterior", main="Heritability")  
   }
