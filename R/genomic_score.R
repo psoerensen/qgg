@@ -293,7 +293,7 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 #'  #
 #'  ## Adjust summary statistics using estimated genetic parameters
 #'  #b <- cbind(b1=maLM1[,"b"],b2=maLM2[,"b"])
-#'  #badj <- mtadj( h2=h2, rg=rg, b=b, n=c(500,500), method="ols")
+#'  #bm <- mtadj( h2=h2, rg=rg, b=b, n=c(500,500), method="ols")
 #'  
 #'  
 #' @export
