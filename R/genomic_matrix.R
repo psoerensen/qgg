@@ -10,7 +10,7 @@
 #' matrix (GRM or GRMlist) and genetic marker sets (sets).
 #'
 #' The genotypes are stored in a matrix (n x m (individuals x markers)) in memory (G) or in a
-#' binary file on disk (Glist).h
+#' binary file on disk (Glist).
 #'
 #' It is only for small data sets that the genotype matrix (G) can stored in memory. For large data
 #' sets the genotype matrix has to stored in a binary file on disk (Glist). Glist is as a list
@@ -31,7 +31,7 @@
 #'
 #' The Glist structure is used as input parameter for a number of qgg core functions including:
 #' 1) construction of genomic relationship matrices (grm), 2) construction of sparse ld matrices,
-#' 3) estimating genomic parameters (greml), 4) single marker association analyses (lma or mlma),
+#' 3) estimating genomic parameters (greml), 4) single marker association analyses (glma),
 #' 5) gene set enrichment analyses (gsea), and 6) genomic prediction from genotypes
 #' and phenotypes (gsolve) or genotypes and summary statistics (gscore).
 #'
@@ -494,29 +494,30 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
 
 getG <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
                  rws = NULL, cls = NULL, impute = TRUE, scale = FALSE) {
-
-if(!is.null(chr)) bedfiles <- Glist$bedfiles[chr]
-if(!file.exists(bedfiles)) stop("Glist$bedfiles[chr] does not exist")
-if(is.null(cls)) cls <-  1:Glist$mchr[chr]
-if (!is.null(rsids)) cls <- match(rsids, Glist$rsids[[chr]])
-if (any(is.na(cls))) {
-  warning(paste("some rsids not found in Glist"))
-  message(rsids[is.na(cls)])
-}
-cls <- cls[!is.na(cls)]
-
-af <- Glist$af[[chr]][cls]
-if(scale) W <- .Call("_qgg_readW", bedfiles, Glist$n,cls,af)
-if(!scale) W <- .Call("_qgg_readG", bedfiles, Glist$n,cls)
-colnames(W) <- Glist$rsids[[chr]][cls]
-rownames(W) <- Glist$ids
-if (!is.null(ids)) {
-  rws <- match(ids,Glist$ids)
-  if(any(is.na(rws))) stop("Some ids not found in Glist")
-}
-if(!is.null(rws)) W <- W[rws,, drop = FALSE]
-if(is.integer(impute)) W[W==impute] <- impute
-return(W)
+  
+  if(is.null(chr)) stop("Please provide chr argument e.g. chr=1")
+  if(!is.null(chr)) bedfiles <- Glist$bedfiles[chr]
+  if(!file.exists(bedfiles)) stop("Glist$bedfiles[chr] does not exist")
+  if(is.null(cls)) cls <-  1:Glist$mchr[chr]
+  if (!is.null(rsids)) cls <- match(rsids, Glist$rsids[[chr]])
+  if (any(is.na(cls))) {
+    warning(paste("some rsids not found in Glist"))
+    message(rsids[is.na(cls)])
+  }
+  cls <- cls[!is.na(cls)]
+  
+  af <- Glist$af[[chr]][cls]
+  if(scale) W <- .Call("_qgg_readW", bedfiles, Glist$n,cls,af)
+  if(!scale) W <- .Call("_qgg_readG", bedfiles, Glist$n,cls)
+  colnames(W) <- Glist$rsids[[chr]][cls]
+  rownames(W) <- Glist$ids
+  if (!is.null(ids)) {
+    rws <- match(ids,Glist$ids)
+    if(any(is.na(rws))) stop("Some ids not found in Glist")
+  }
+  if(!is.null(rws)) W <- W[rws,, drop = FALSE]
+  if(is.integer(impute)) W[W==impute] <- impute
+  return(W)
 }
 
 
