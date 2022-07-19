@@ -2,10 +2,14 @@ R_ARCH :=		--arch $(shell echo 'cat(.Platform$$r_arch)' | R --vanilla --slave)
 
 CXX_STD = CXX11
 
-PKG_FFLAGS = $(SHLIB_OPENMP_FFLAGS)
+PKG_FFLAGS = $(SHLIB_OPENMP_FFLAGS) -g -O2 -mtune=native -Wall -pedantic -flto
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) 
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
+AR=gcc-ar
+RANLIB=gcc-ranlib
+LTO=-flto=10
+LTO_OPT=-flto
 
 all: $(SHLIB) 
 
