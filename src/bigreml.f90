@@ -48,7 +48,7 @@
        ! fp: the stream to read 
        import
        implicit none
-       integer(c_int) fread
+       integer(c_size_t) fread
        integer(kind=c_int), value :: size
        integer(kind=c_int), value :: nbytes
        type(c_ptr), value :: buffer 
@@ -74,7 +74,7 @@
        ! fp: the stream to write 
        import
        implicit none
-       integer(c_int) fwrite
+       integer(c_size_t) fwrite
        integer(kind=c_int), value :: size
        integer(kind=c_int), value :: nbytes
        type(c_ptr), value :: buffer 
