@@ -1,7 +1,7 @@
 
 CXX_STD = CXX11
 
-PKG_FFLAGS = -g -O2 -mtune=native -Wall -pedantic
+PKG_FFLAGS = -g -O2 -mtune=native -Wall -pedantic .flto
 PKG_CFLAGS = -g -O2 -Wall -pedantic -mtune=native
 PKG_CXXFLAGS = -g -O2 -Wall -pedantic -mtune=native -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-parentheses 
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
