@@ -1,4 +1,20 @@
 ## Resubmission
+This is a revised version of the package where we have:
+
+* fixed lto issue (fread/fwrite return value type mismatch, was: c_int now: c_size_t in bigreml.f90) detected on fedora-clang-devel
+* the fix was check locally using: gfortran -g -c -O2 -mtune=native -Wall -pedantic bigreml.f90 -flto -o bigreml.o and no mismatch was detected
+* used R version 4.2.1 (2022-06-23 ucrt) and Rtools 4.2 
+
+
+## Resubmission
+This is a revised version of the package where we have:
+
+* fixed lto issue (fread/fwrite return value type mismatch, was: c_int now: c_size_t) found on fedora-clang-devel
+* fixed c++ warnings with "variable nbytes_read set but not used"
+
+
+
+## Resubmission
 This is a new version of the package where we have:
 
 * added Bayesian linear regression models fitted using individual level data 
