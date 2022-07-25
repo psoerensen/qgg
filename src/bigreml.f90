@@ -2,23 +2,13 @@
 ! module global
 !==============================================================================================================
 
-    module kinds
-
-    implicit none
-    
-    integer, parameter :: real64 = selected_real_kind(15, 307)
-    integer, parameter :: int32 = selected_int_kind(9)
-
-    end module kinds
-
-
   module f2cio
   
   use iso_c_binding
 
   implicit none
   private
-  public :: fopen, fclose, fread, fwrite, cseek 
+  public :: fopen, fclose, fread, fwrite, ffseek 
 
      
   interface
@@ -28,9 +18,9 @@
        !mode: null-terminated character string determining file access mode 
        import
        implicit none
-       type(c_ptr) fopen
        character(kind=c_char), intent(in) :: filename(*)
        character(kind=c_char), intent(in) :: mode(*)
+       type(c_ptr) fopen
      end function fopen
 
      function fclose(fp) bind(C,name='fclose')
@@ -41,42 +31,42 @@
        type(c_ptr), value :: fp
      end function fclose
      
-     function fread(buffer,size,nbytes,fp) bind(C,name='fread')
+     function fread(buffer,size,nelem,fp) bind(C,name='fread')
        ! buffer: pointer to the array where the read objects are stored 
        ! size: size of each object in bytes 
        ! count: the number of the objects to be read 
        ! fp: the stream to read 
        import
        implicit none
-       integer(c_size_t) fread
-       integer(kind=c_int), value :: size
-       integer(kind=c_int), value :: nbytes
+       integer(kind=c_size_t) fread
+       integer(kind=c_size_t), value :: size
+       integer(kind=c_size_t), value :: nelem
        type(c_ptr), value :: buffer 
        type(c_ptr), value :: fp
      end function fread
      
-     function cseek(fp,offset,origin) bind(C,name='fseek')
+     function ffseek(fp,offset,origin) bind(C,name='fseek')
        !fp: file stream to modify 
        !offset: number of characters to shift the position relative to origin 
        !origin: position to which offset is added (SEEK_SET, SEEK_CUR, SEEK_END) 
        import
        implicit none
-       integer(c_int) cseek
-       type(c_ptr), value :: fp
-       integer(kind=c_int64_t), value :: offset
+       integer(kind=c_int) ffseek
+       integer(kind=c_long), value :: offset
        integer(kind=c_int), value :: origin
-     end function cseek
+       type(c_ptr), value :: fp
+     end function ffseek
      
-     function fwrite(buffer,size,nbytes,fp) bind(C,name='fwrite')
+     function fwrite(buffer,size,nelem,fp) bind(C,name='fwrite')
        ! buffer: pointer to the array where the write objects are stored 
        ! size: size of each object in bytes 
        ! count: the number of the objects to be written 
        ! fp: the stream to write 
        import
        implicit none
-       integer(c_size_t) fwrite
-       integer(kind=c_int), value :: size
-       integer(kind=c_int), value :: nbytes
+       integer(kind=c_size_t) fwrite
+       integer(kind=c_size_t), value :: size
+       integer(kind=c_size_t), value :: nelem
        type(c_ptr), value :: buffer 
        type(c_ptr), value :: fp
      end function fwrite
@@ -89,7 +79,6 @@
   module bedfuncs
 
   use iso_c_binding
-  use kinds 
 
   implicit none
     
@@ -156,7 +145,6 @@
 
     module global
 
-    use kinds
     use iso_c_binding
     use f2cio
 
@@ -164,8 +152,8 @@
     public
     real(c_double), allocatable :: V(:,:),P(:,:),G(:,:)
     integer(c_int), allocatable :: indxg(:)
-    integer(c_int) :: ng
-    integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
+    integer(c_size_t) :: ng
+    integer(kind=c_long) :: pos14, nbytes14, offset14, i14
     integer(c_int):: cfres, nbytes
     integer(c_size_t):: cfres_rw
     
@@ -178,7 +166,6 @@
 
     module bigfuncs
 
-    use kinds
     use global
     use iso_c_binding
     use f2cio
@@ -239,12 +226,14 @@
     type(c_ptr), value :: fp
     integer(c_int), intent(in) :: row
     integer(c_int) :: i
+    integer(c_size_t) :: nsize
     real(c_double) :: gr(size(V,1))
     real(c_double), target :: grw(ng)
     i14=row
-    pos14 = (i14-1)*nbytes14 
-    cfres=cseek(fp,pos14,0)            
-    cfres_rw=fread(c_loc(grw),8,ng,fp)
+    pos14 = (i14-1)*nbytes14
+    nsize=8 
+    cfres=ffseek(fp,pos14,0)            
+    cfres_rw=fread(c_loc(grw),nsize,ng,fp)
     do i=1,size(V,1)
       gr(i) = grw(indxg(i))
     enddo
@@ -261,7 +250,6 @@
     
     module bigsubs
 
-    use kinds
     use global
     use bigfuncs
     use iso_c_binding
@@ -385,7 +373,7 @@
     indxg=indx   
     ng=ngr
 
-    nbytes14 = int(8.0d0*dble(ng),kind=c_int64_t) 
+    nbytes14 = int(8.0d0*dble(ng),kind=c_long) 
 
     do i=1,nr-1
       nchar = ncharsg(i)
@@ -524,7 +512,6 @@
   subroutine readbed(n,nr,rws,nc,cls,impute,scale,direction,W,nbytes,fnRAW,nchars)
 !==============================================================================================================
 
-  use kinds 
   use bedfuncs 
   use iso_c_binding
   use f2cio
@@ -532,6 +519,7 @@
   implicit none
   
   integer(c_int) :: n,nr,nc,rws(nr),cls(nc),nbytes,impute,scale,direction(nc),nchars 
+  integer(c_size_t) :: nelem 
   real(c_double) :: W(nr,nc),gsc(nr),gr(n),n0,n1,n2,nmiss,af,ntotal
 
   character(len=nchars, kind=c_char) :: fnRAW
@@ -540,9 +528,9 @@
   integer(kind=c_int8_t), target :: raw(nbytes,nc)
   integer(c_int) :: i,nchar,offset
 
-  integer(kind=c_int64_t) :: pos14, nbytes14, offset14, i14
+  integer(kind=c_long) :: pos14, nbytes14, offset14, i14
   integer(c_int):: cfres
-  integer(c_size_t):: cfres_rw
+  integer(c_size_t):: cfres_rw, nsize
   type(c_ptr):: fp
 
   offset=0
@@ -560,12 +548,15 @@
   !if (c_double /= kind(1.0d0))  &
   !  error stop 'Default REAL isn''t interoperable with FLOAT!!'
 
+
+  nsize=1
+  nelem=nbytes
   do i=1,nc
     i14=cls(i)
     pos14 = offset14 + (i14-1)*nbytes14 
-    cfres=cseek(fp,pos14,0)            
-    !cfres=fread(raw(1:nbytes,i),1,nbytes,fp)
-    cfres_rw=fread(c_loc(raw(1:nbytes,i)),1,nbytes,fp)
+    cfres=ffseek(fp,pos14,0)            
+    !cfres=fread(raw(1:nbytes,i),1,nelem,fp)
+    cfres_rw=fread(c_loc(raw(1:nbytes,i)),nsize,nelem,fp)
   enddo
   cfres=fclose(fp)
   
@@ -609,7 +600,6 @@
   subroutine grmbed(n,nr,rws,nc,cls1,cls2,scale,nbytes,fnRAWCHAR,nchars,msize,ncores,fnGCHAR,ncharsg,gmodel)
 !==============================================================================================================
 
-  use kinds 
   use bedfuncs 
   use iso_c_binding
   use f2cio
@@ -626,7 +616,7 @@
   character(len=20, kind=c_char) :: mode
   type(c_ptr):: fp
   integer(c_int) :: cfres 
-  integer(c_size_t) :: cfres_rw 
+  integer(c_size_t) :: cfres_rw, nsize, nelem 
 
   !call omp_set_num_threads(ncores)
   if (ncores>1) ncores=1
@@ -695,10 +685,12 @@
   mode =  'wb' // C_NULL_CHAR
   filename = fnG(1:(nchar+3)) // C_NULL_CHAR
   fp = fopen(filename, mode)
+  nsize=8
+  nelem=nr
   do j=1,size(G,1)
     if (gmodel<4) w = G(1:size(G,1),j)
     if (gmodel==4) w = G(1:size(G,1),j)**2
-    cfres_rw=fwrite(c_loc(w),8,nr,fp)
+    cfres_rw=fwrite(c_loc(w),nsize,nelem,fp)
   enddo
   cfres=fclose(fp)
 
@@ -715,7 +707,7 @@
 !  output: G(n,n) = orthonormal eigenvectors of G           
 !        eig(n) = eigenvalues of G in ascending order     
 !==============================================================================================================
-  use kinds 
+
   use iso_c_binding
 
   implicit none
