@@ -2,7 +2,7 @@
 This is a revised version of the package where we have:
 
 * fixed a potential lto issue (fread/fwrite argument value type mismatch, was: c_int now: c_size_t in bigreml.f90) spotted by a CRAN member
-* the fix was check locally using: gfortran -g -c -O2  -flto -Wall -pedantic bigreml.f90 and no mismatch was detected
+* the fix was checked locally on linux/window machines) using: gfortran -g -c -O2  -flto -Wall -pedantic bigreml.f90 and no mismatch was detected
 * used R version 4.2.1 (2022-06-23 ucrt), Rtools 4.2, GNU Fortran (GCC) 10.3.0
 
 
