@@ -111,7 +111,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     Glist$mchr <- vector( length = nfiles)
     Glist$a1 <- vector(mode = "list", length = nfiles)
     Glist$a2 <- vector(mode = "list", length = nfiles)
-    Glist$position <- vector(mode = "list", length = nfiles)
+    Glist$pos <- vector(mode = "list", length = nfiles)
     Glist$chr <- vector(mode = "list", length = nfiles)
     Glist$cpra <- vector(mode = "list", length = nfiles)
     Glist$map <- vector(mode = "list", length = nfiles)
@@ -136,7 +136,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
       message(paste("Finished processing fam file", famfiles[chr]))
       Glist$a1[[chr]] <- as.character(bim[, 5])
       Glist$a2[[chr]] <- as.character(bim[, 6])
-      Glist$position[[chr]] <- as.numeric(bim[, 4])
+      Glist$pos[[chr]] <- as.numeric(bim[, 4])
       Glist$map[[chr]] <- as.numeric(bim[, 3])
       Glist$rsids[[chr]] <- as.character(bim[, 2])
       Glist$mchr[chr] <- length(Glist$rsids[[chr]]) 
@@ -146,23 +146,26 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
       #if (is.null(Glist$fnBED)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$ids, ncores = ncores)
       if (is.null(Glist$fnBED)) Glist <- summaryBED(Glist=Glist, chr=chr, ids = Glist$study_ids, ncores = ncores)
       message(paste("Finished processing bed file", bedfiles[chr]))
-      names(Glist$nmiss[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$af[[chr]]) <- Glist$rsids[[chr]]
+      #names(Glist$nmiss[[chr]]) <- Glist$rsids[[chr]]
+      cnames <- Glist$rsids[[chr]]
       Glist$af1[[chr]] <- Glist$af[[chr]]
       Glist$af2[[chr]] <- 1-Glist$af[[chr]]
-      names(Glist$maf[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$a1[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$a2[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$position[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$map[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$het[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$hom[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$n0[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$n1[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$n2[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$cpra[[chr]]) <- Glist$rsids[[chr]]
-      names(Glist$rsids[[chr]]) <- Glist$cpra[[chr]]
-      names(Glist$chr[[chr]]) <- Glist$rsids[[chr]]
+      #names(Glist$af[[chr]]) <- cnames
+      #names(Glist$af1[[chr]]) <- NULL
+      #names(Glist$af2[[chr]]) <- NULL
+      #names(Glist$maf[[chr]]) <- Glist$rsids[[chr]]
+      #names(Glist$a1[[chr]]) <- cnames
+      #names(Glist$a2[[chr]]) <- cnames
+      #names(Glist$pos[[chr]]) <- cnames
+      #names(Glist$map[[chr]]) <- Glist$rsids[[chr]]
+      #names(Glist$het[[chr]]) <- Glist$rsids[[chr]]
+      #names(Glist$hom[[chr]]) <- Glist$rsids[[chr]]
+      #names(Glist$n0[[chr]]) <- Glist$rsids[[chr]]
+      #names(Glist$n1[[chr]]) <- Glist$rsids[[chr]]
+      #names(Glist$n2[[chr]]) <- Glist$rsids[[chr]]
+      #names(Glist$cpra[[chr]]) <- cnames
+      #names(Glist$rsids[[chr]]) <- Glist$cpra[[chr]]
+      #names(Glist$chr[[chr]]) <- cnames
     }
 
     Glist$nchr <- length(Glist$bedfiles)
@@ -353,11 +356,11 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
   isHWE[is.na(isHWE)] <- TRUE
   if(excludeMHC) {
     if(assembly=="GRCh37"){
-        isMHC <-  Glist$position[[6]] > 28477797 & Glist$position[[6]] < 33448354
+        isMHC <-  Glist$pos[[6]] > 28477797 & Glist$pos[[6]] < 33448354
         rsidsMHC <- names(isMHC)[isMHC]
     }
     if(assembly=="GRCh38"){
-        isMHC <-  Glist$position[[6]] > 28510120 & Glist$position[[6]] < 33480577
+        isMHC <-  Glist$pos[[6]] > 28510120 & Glist$pos[[6]] < 33480577
         rsidsMHC <- names(isMHC)[isMHC]
     }
   }
@@ -608,7 +611,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
      bim <- data.table::fread(input = bimfiles, header = FALSE, data.table = FALSE, colClasses = "character")
      Glist$a1 <- as.character(bim[, 5])
      Glist$a2 <- as.character(bim[, 6])
-     Glist$position <- as.numeric(bim[, 4])
+     Glist$pos <- as.numeric(bim[, 4])
      Glist$rsids <- as.character(bim[, 2])
      Glist$chr <- as.character(bim[, 1])
 
@@ -808,6 +811,6 @@ plotLD <- function(LD=NULL, cols=NULL) {
 getMarkers <- function(Glist=NULL, chr=NULL, region=NULL) {
   minpos <- min(region)
   maxpos <- max(region)
-  select <-  Glist$position[[chr]] > minpos & Glist$position[[chr]] < maxpos
+  select <-  Glist$pos[[chr]] > minpos & Glist$pos[[chr]] < maxpos
   Glist$rsids[[chr]][select]
 }
