@@ -40,10 +40,13 @@
 #' @export
 #'
 
-gsim <- function(Glist=NULL, chr=1, nt=1,W=NULL, n=1000, m=1000) {
+gsim <- function(Glist=NULL, chr=1, nt=1,W=NULL, n=1000, m=1000, rsids=NULL) {
   
-  if(!is.null(Glist)) W <- getG(Glist=Glist, chr=chr)
   
+  if(!is.null(Glist)) {
+    if(is.null(rsids)) rsids <- Glist$rsidsLD[[chr]]
+    W <- getG(Glist=Glist, chr=chr, rsids=rsids)
+  }
   if(is.null(W)) {
     W <- matrix(runif(n),ncol=1)
     for (i in 2:m) {
