@@ -86,14 +86,25 @@
 
 ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, stat=NULL, 
                  n=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
+  
   if(!is.null(Glist) & is.null(ldscores) ) ldscores <- unlist(Glist$ldscores)
   ldscores <- unlist(ldscores)
   
   if(any(is.na(ldscores))) stop("Missing values in ldscores")
   if(is.null(names(ldscores))) stop("Missing names in ldscores")
   
-  if(!is.null(stat)) z <- stat$b/stat$seb
-  if(!is.null(stat)) n <- colMeans(stat$n)
+  if(!is.null(stat)) {
+    if(is.data.frame(stat)) {
+      z <- as.matrix(stat$b/stat$seb)
+      rownames(z) <- stat$rsids
+      if(is.null(n)) {
+        if("n"%in%colnames(stat)) n <- mean(stat$n)
+        if(!"n"%in%colnames(stat)) n <- neff(seb=stat$seb, af=stat$eaf)
+      }
+      nt <- 1
+    }  
+  }
+  
   if(!is.null(z)) nt <- ncol(z)
   
   if(!is.null(b)) {
