@@ -317,8 +317,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     updateE=updateE, 
                                     updatePi=updatePi)
         stat[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
-                                  pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
-                                  a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm,stringsAsFactors = FALSE)
+                                  pos=Glist$pos[[chr]][clsLD], ea=Glist$a1[[chr]][clsLD],
+                                  nea=Glist$a2[[chr]][clsLD], eaf=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm,stringsAsFactors = FALSE)
         rownames(stat[[chr]]) <- rsidsLD
       }
     }
@@ -395,12 +395,13 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     bm <- unlist(bm)
     dm <- unlist(dm)
     names(bm) <- names(dm) <- unlist(Glist$rsids)
+    rsids2rws <- match(rsids,unlist(Glist$rsids))
     stat <- data.frame(rsids=rsids,
-                       chr=unlist(Glist$chr)[rsids],
-                       pos=unlist(Glist$pos)[rsids], 
-                       a1=unlist(Glist$a1)[rsids],
-                       a2=unlist(Glist$a2)[rsids], 
-                       af=unlist(Glist$af)[rsids],
+                       chr=unlist(Glist$chr)[rsids2rws],
+                       pos=unlist(Glist$pos)[rsids2rws], 
+                       ea=unlist(Glist$a1)[rsids2rws],
+                       nea=unlist(Glist$a2)[rsids2rws], 
+                       eaf=unlist(Glist$af)[rsids2rws],
                        bm=bm[rsids], stringsAsFactors = FALSE)
     fit$stat <- stat
     
@@ -479,7 +480,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       } 
       rsidsLD <- names(LD[[chr]]$values)
       clsLD <- match(rsidsLD,Glist$rsids[[chr]])
-      bmchr <- NULL
+      bmchr <- dmchr <- NULL
       for (trait in 1:nt) {
         if(verbose) print( paste("Fit",methods[method+1], "on chromosome:",chr,"for trait",trait))
         #LDvalues <- LD[[chr]]$values
@@ -508,11 +509,13 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     updateG=updateG,
                                     adjustE=adjustE)
         bmchr <- cbind(bmchr, fit[[chr]]$bm)
+        dmchr <- cbind(dmchr, fit[[chr]]$dm)
       }
       colnames(bmchr) <- trait_names
       res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
-                               pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
-                               a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],b=bmchr, stringsAsFactors = FALSE)
+                               pos=Glist$pos[[chr]][clsLD], ea=Glist$a1[[chr]][clsLD],
+                               nea=Glist$a2[[chr]][clsLD], eaf=Glist$af[[chr]][clsLD],
+                               bm=bmchr, pm=dmchr, stringsAsFactors = FALSE)
       rownames(res[[chr]]) <- rsidsLD
       LD[[chr]]$values <- NULL
       LD[[chr]]$indices <- NULL
@@ -520,6 +523,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     res <- do.call(rbind, res)
     rownames(res) <- res$rsids
     fit$stat <- res
+    fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
     fit$method <- methods[method+1]
   }
   
@@ -607,8 +611,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                      method=method,
                                      verbose=verbose)
       res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
-                               pos=Glist$pos[[chr]][clsLD], a1=Glist$a1[[chr]][clsLD],
-                               a2=Glist$a2[[chr]][clsLD], af=Glist$af[[chr]][clsLD],
+                               pos=Glist$pos[[chr]][clsLD], ea=Glist$a1[[chr]][clsLD],
+                               nea=Glist$a2[[chr]][clsLD], eaf=Glist$af[[chr]][clsLD],
                                bm=fit[[chr]]$bm, stringsAsFactors = FALSE)
       rownames(res[[chr]]) <- rsidsLD
       LD[[chr]]$values <- NULL
