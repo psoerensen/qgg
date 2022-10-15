@@ -69,7 +69,8 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   # data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
   # list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
   
-  fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb","p","n")
+  #fm_internal <- c("rsids","chr","pos","a1","a2","af","b","seb","p","n")
+  fm_internal <- c("rsids","chr","pos","ea","nea","eaf","b","seb","p","n")
   
   fm_external1 <- c("marker","chromosome", "position", "effect_allele", "non_effect_allele", 
                    "effect_allele_freq","effect", "effect_se", "effect_p", "effect_n")
@@ -135,7 +136,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   }
   
 
-  # external summary statistic column format
+  # external -summary statistic column format
   # optimal format:
   # marker, chromosome, position, effect_allele, non_effect_allele, 
   # effect_allele_freq, effect, effect_se, statistic, p, n
@@ -148,7 +149,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   # marker, effect_allele, sign, p, n             (limited quality control)
   
   marker <- data.frame(rsids=unlist(Glist$rsids),cpra=unlist(Glist$cpra),
-                       chr=unlist(Glist$chr), pos=unlist(Glist$position), 
+                       chr=unlist(Glist$chr), pos=unlist(Glist$pos), 
                        a1=unlist(Glist$a1), a2=unlist(Glist$a2),
                        af=unlist(Glist$af),stringsAsFactors = FALSE)
   
@@ -350,7 +351,7 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
   if(!is.null(ldSets)) {p <- adjLD(Glist=Glist, stat=p, r2=r2, threshold=threshold, ldSets=ldSets)}
   
   p[p>0] <- 1
-  if(is.null(header)) header <- c("rsids","chr","pos","allele","a1","a2","af")
+  if(is.null(header)) header <- c("rsids","chr","pos","ea","nea","eaf")
   
   
   if(is.data.frame(stat)) {
@@ -723,7 +724,7 @@ mapStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   }
   
   marker <- data.frame(rsids=unlist(Glist$rsids),cpra=unlist(Glist$cpra),
-                       chr=unlist(Glist$chr), pos=unlist(Glist$position), 
+                       chr=unlist(Glist$chr), pos=unlist(Glist$pos), 
                        a1=unlist(Glist$a1), a2=unlist(Glist$a2),
                        af=unlist(Glist$af),stringsAsFactors = FALSE)
   
