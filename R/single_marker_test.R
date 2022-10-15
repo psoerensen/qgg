@@ -247,11 +247,15 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
       if(!is.null(Glist)) {
         rsids <- rownames(ma)
         ma$rsids <- rsids
-        ma$chr <- unlist(Glist$chr)[rsids]
-        ma$pos <- unlist(Glist$pos)[rsids]
-        ma$a1 <- unlist(Glist$a1)[rsids]
-        ma$a2 <- unlist(Glist$a2)[rsids]
-        ma$af <- unlist(Glist$af)[rsids]
+        rsids2rws <- match(rsids,unlist(Glist$rsids))
+        ma$chr <- unlist(Glist$chr)[rsids2rws]
+        ma$pos <- unlist(Glist$pos)[rsids2rws]
+        #ma$a1 <- unlist(Glist$a1)[rsids2rws]
+        #ma$a2 <- unlist(Glist$a2)[rsids2rws]
+        #ma$af <- unlist(Glist$af)[rsids2rws]
+        ma$ea <- unlist(Glist$a1)[rsids2rws]
+        ma$nea <- unlist(Glist$a2)[rsids2rws]
+        ma$eaf <- unlist(Glist$af)[rsids2rws]
         ma <- ma[,c(8:13,1:7)]
         ma <- na.omit(ma)
       }
@@ -268,12 +272,16 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
                  n = n, ww = ww, wy = wy)
       if(!is.null(Glist)) {
         rsids <- rownames(ma$b)
+        rsids2rws <- match(rsids,unlist(Glist$rsids))
         ma$marker <- data.frame( rsids=rsids, 
-                                 chr=unlist(Glist$chr)[rsids],
-                                 pos=unlist(Glist$pos)[rsids],
-                                 a1=unlist(Glist$a1)[rsids],
-                                 a2=unlist(Glist$a2)[rsids],
-                                 af=unlist(Glist$a2)[rsids])
+                                 chr=unlist(Glist$chr)[rsids2rws],
+                                 pos=unlist(Glist$pos)[rsids2rws],
+                                 #a1=unlist(Glist$a1)[rsids2rws],
+                                 #a2=unlist(Glist$a2)[rsids2rws],
+                                 #af=unlist(Glist$af)[rsids2rws])
+                                 ea=unlist(Glist$a1)[rsids2rws],
+                                 nea=unlist(Glist$a2)[rsids2rws],
+                                 eaf=unlist(Glist$af)[rsids2rws])
       }
       
     }
