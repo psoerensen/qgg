@@ -52,17 +52,12 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
      
      if ( !is.null(Glist))  {
           prs <- NULL
-          # if(is.null(stat) & !is.null(fit)) {
-          #   rsids <- unlist(Glist$rsids)
-          #   af <- unlist(Glist$af)
-          #   alleles <- unlist(Glist$a1)
-          #   cls <- match(names(fit$bm),rsids)
-          #   if(any(is.na(cls))) stop("Missing rsids")
-          #   stat <- data.frame(rsids=names(fit$bm), alleles=alleles[cls], af=af[cls], effect=fit$b)
-          #   rownames(stat) <- names(fit$bm)
-          # }
           if (!is.null(chr)) chromosomes <- chr
           if (is.null(chr)) chromosomes <- 1:length(Glist$bedfiles)
+          if(sum(colnames(stat)%in%c("rsids","chr","pos", "ea","nea", "eaf","bm","pm")) == 8) {
+            # Outout from gbayes detected
+            stat <- stat[,1:7]
+          }
           for (chr in chromosomes) {
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                  prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
@@ -84,8 +79,12 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
 
 run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = NULL, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
      
-     if(sum(is.na(stat))>0) stop("stat object contains NAs") 
-     if(is.null(Glist) & is.null(bedfiles)) stop("Please provide Glist or bedfile")
+     #if(sum(is.na(stat))>0) stop("stat object contains NAs")
+     if(sum(is.na(stat))>0) {
+       warning("stat object contains NAs")
+       stat <- na.omit(stat)
+     }
+     #if(is.null(Glist) & is.null(bedfiles)) stop("Please provide Glist or bedfile")
      
      if (!is.null(bedfiles)) {
           if(!file.exists(bedfiles)) stop(paste("bedfiles does not exists:"),bedfiles) 
@@ -110,7 +109,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
           Glist$rsids <- list(as.character(bim[, 2]))
           Glist$a1 <- list(as.character(bim[, 5]))
           Glist$a2 <- list(as.character(bim[, 6]))
-          Glist$position <- list(as.numeric(bim[, 4]))
+          Glist$pos <- list(as.numeric(bim[, 4]))
           Glist$chr <- as.character(bim[, 1])
           message(paste("Finished processing bim file", bimfiles[1]))
           
@@ -121,18 +120,15 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      
      
      # Prepase summary stat
-     if (!sum(colnames(stat)[1:6] == c("rsids","chr","pos", "a1","a2", "af")) == 6) {
-          stop("First three columns in data frame stat should be: chr, rsids, alleles, af ")
+     if (!sum(colnames(stat)[1:6] == c("rsids","chr","pos", "ea","nea", "eaf")) == 6) {
+       stop("First six columns in data frame stat should be: rsids, chr, pos, ea, nea, eaf")
      }
+       
      rsidsOK <- stat$rsids %in% Glist$rsids[[chr]]
      
      if (any(!rsidsOK)) {
-       #warning("Some variants not found in genotype files")
        message(paste("Number of variants used:", sum(rsidsOK)))
-       #message(paste("Number of variants missing:", sum(!rsidsOK)))
        stat <- stat[rsidsOK, ]
-       #stat$rsids <- as.character(stat$rsids)
-       #stat$a1 <- as.character(stat$a1)
      }
      S <- stat[, -c(1:6),drop=FALSE]
      if (is.vector(S)) S <- as.matrix(S)
@@ -140,15 +136,15 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      colnames(S) <- colnames(stat)[-c(1:6)]
      rownames(S) <- rownames(stat)
      rsids <- as.character(stat$rsids)
-     af <- stat$af
+     af <- stat$eaf
      
      # Prepare input data for mpgrs
      rws <- 1:Glist$n
      if (!is.null(ids)) rws <- match(ids, Glist$ids)
      cls <- match(rsids, Glist$rsids[[chr]])
-     if(any( !stat$a1 == Glist$a1[[chr]][cls] )) {
+     if(any( !stat$ea == Glist$a1[[chr]][cls] )) {
        warning("Some variants appear to be flipped => changing sign of variant effect for those variants ")
-       flipped <- !stat$a1 == Glist$a1[[chr]][cls]
+       flipped <- !stat$ea == Glist$a1[[chr]][cls]
        S[flipped,] <- -S[flipped,]  
      }
      if(!file.exists(Glist$bedfiles[chr])) stop(paste("bed file does not exists:"),Glist$bedfiles[chr]) 
@@ -183,7 +179,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
                Slist[[j]] <- S[,j]
           }
           cls <- match(stat$rsids, Glist$rsids[[chr]])
-          af <- stat$af
+          af <- stat$eaf
           if(scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], Glist$n, cls, af, scale, Slist)
           if(!scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=FALSE, Slist)
           grs <- do.call(cbind, grs)
