@@ -196,14 +196,14 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   stat[!aligned,"eaf"] <- 1-effect_allele_freq[!aligned]
 
   # exclude based on maf  
-  excludeMAFDIFF <- abs(marker$af-stat$effect_allele_freq) > excludeMAFDIFF
+  excludeMAFDIFF <- abs(marker$eaf-stat$eaf) > excludeMAFDIFF
   message(paste("Number of markers excluded by large difference between MAF difference:", sum(excludeMAFDIFF)))
   message("")
   stat <- stat[!excludeMAFDIFF,]
   marker <- marker[!excludeMAFDIFF,]
   
   #colnames(stat) <- fm_internal
-  if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)
+  if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$eaf)
 
   if(!is.null(stat$info)) {
     lowINFO <- stat$info < excludeINFO
