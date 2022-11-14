@@ -175,7 +175,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
   message("")
   
-  if(is.null(eaf)) {
+  if(is.null(stat$eaf)) {
     message("No effect allele frequency (eaf) provided - using eaf in Glist")
     stat$eaf <- marker$eaf
   }
