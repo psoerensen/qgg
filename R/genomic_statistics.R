@@ -205,7 +205,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   #colnames(stat) <- fm_internal
   if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$af)
 
-  if(-!is.null(stat$info)) {
+  if(!is.null(stat$info)) {
     lowINFO <- stat$info < excludeINFO
     message(paste("Number of markers excluded by low INFO score:", sum(lowINFO)))
     message("")
