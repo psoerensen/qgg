@@ -175,11 +175,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
   message("")
   
-  if(is.null(stat$eaf)) {
-    message("No effect allele frequency (eaf) provided - using eaf in Glist")
-    stat$eaf <- marker$eaf
-  }
-  
+
   # align stat if format external
   #if(format=="external") {
   
@@ -187,14 +183,19 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   effect <- stat[,"b"]
   effect_allele <- stat[,"ea"]
   non_effect_allele <- stat[,"nea"]
-  effect_allele_freq <- stat[,"eaf"]
+  if(!is.null(stat$eaf)) effect_allele_freq <- stat[,"eaf"]
   
   # aligned
   stat[!aligned,"b"] <- -effect[!aligned]
   stat[!aligned,"ea"] <- non_effect_allele[!aligned]
   stat[!aligned,"nea"] <- effect_allele[!aligned] 
-  stat[!aligned,"eaf"] <- 1-effect_allele_freq[!aligned]
+  if(!is.null(stat$eaf)) stat[!aligned,"eaf"] <- 1-effect_allele_freq[!aligned]
 
+  if(is.null(stat$eaf)) {
+    message("No effect allele frequency (eaf) provided - using eaf in Glist")
+    stat$eaf <- marker$eaf
+  }
+  
   # exclude based on maf  
   excludeMAFDIFF <- abs(marker$eaf-stat$eaf) > excludeMAFDIFF
   message(paste("Number of markers excluded by large difference between MAF difference:", sum(excludeMAFDIFF)))
