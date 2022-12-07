@@ -673,7 +673,8 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
         writeBin(ld, bfLD, size = 4, endian = "little")
       }
     }
-    message(paste("Finished block", j, "chromosome", chr))
+    if(nsets>1) message(paste("Finished segment", j,"out of", nsets,"segments on plink file", Glist$bedfiles[chr]))
+    if(nsets==1) message(paste("Finished plink file", Glist$bedfiles[chr]))
   }
   close(bfLD)
   return(Glist)
@@ -797,6 +798,63 @@ plotLD <- function(LD=NULL, cols=NULL) {
   axis(2, at = seq(0, 1, length = ncol(LD)), labels = colnames(LD), las=2, cex.axis=0.5)
 }
 
+regionLD <- function(sparseLD = NULL, onebased=TRUE, rsids=NULL, format="matrix") {
+  rsidsChr <- names(sparseLD$values)
+  if(sum(!rsids%in%rsidsChr)) {
+    warning("Some rsids not in sparseLD")
+    rsids <- rsids[rsids%in%rsidsChr]
+  }
+  msize <- (max(sapply(sparseLD$values,length))-1)/2
+  if(length(rsids)>msize) warning("region requested larger than region in SparseLD matrix")
+  mchr <- length(rsidsChr)
+  rsidsLD <- c(rep("start", msize), rsidsChr, rep("end", msize))
+  if(onebased) rsids_indices <- c(rep(0, msize), 1:mchr, rep(0, msize))
+  if(!onebased) rsids_indices <- c(rep(0, msize), 0:(mchr-1), rep(0, msize))
+  ld_indices <- vector(length = mchr, mode = "list")
+  ld_values <- vector(length = mchr, mode = "list")
+  names(ld_indices) <- names(ld_values) <- rsidsChr
+  
+  ld <- matrix(0,nrow=length(rsids),ncol=length(rsids),
+               dimnames=list(rsids,rsids) )
+  for(i in 1:length(rsids)) {
+    ldrsids <- rsidsChr[sparseLD$indices[[rsids[i]]]]
+    ldvals <- sparseLD$values[[rsids[i]]]
+    inlist <- ldrsids%in%rsids
+    ld[rsids[i],ldrsids[inlist]] <- ldvals[inlist]
+  }
+  if(format=="dense") return(ld)
+  if(format=="sparse") {
+    LD <- NULL
+    LD$values <- split(ld, rep(1:ncol(ld), each = nrow(ld)))
+    if(onebased) LD$indices <- lapply(1:ncol(ld),function(x) {1:ncol(ld)} )
+    if(!onebased) LD$indices <- lapply(1:ncol(ld),function(x) { (1:ncol(ld))-1 } )
+    LD$rsids <- rsids
+    return(LD)
+  }
+}
+
+
+
+adjustB <- function(b=NULL, LD = NULL, msize=NULL, overlap=NULL, shrink=0.001, threshold=1e-8) {
+  m <- length(b)
+  badj <- rep(0,m)
+  sets <- qgg:::splitWithOverlap(1:m,msize,overlap)
+  for( i in 1:length(sets) ) {
+    rws <- sets[[i]]
+    mset <- length(rws)
+    bset <- b[rws]
+    B <- LD[rws,rws]
+    for (j in 1:mset) {
+      #Bi <- solve( B[-j,-j]+diag(shrink,mset-1) )
+      Bi <- chol2inv(chol(B[-j,-j]+diag(shrink,mset-1)))
+      badj[rws[j]] <- sum(B[j,-j]*Bi%*%bset[-j])
+    }
+    plot(y=badj[rws],x=b[rws],ylab="Predicted", xlab="Observed",  frame.plot=FALSE)
+    abline(0,1, lwd=2, col=2, lty=2)
+  }
+  return(b=badj)
+}
+
 
 
 #' Get marker rsids in a genome region
@@ -814,3 +872,19 @@ getMarkers <- function(Glist=NULL, chr=NULL, region=NULL) {
   select <-  Glist$pos[[chr]] > minpos & Glist$pos[[chr]] < maxpos
   Glist$rsids[[chr]][select]
 }
+
+#' @export
+getMap <- function(Glist = NULL, chr=NULL, rsids=NULL) {
+  rws <- match(rsids,Glist$rsids[[chr]])
+  map <- Glist$map[[chr]][rws]
+  return(map)
+}
+
+#' @export
+getPos <- function(Glist = NULL, chr=NULL, rsids=NULL) {
+  rws <- match(rsids,Glist$rsids[[chr]])
+  pos <- Glist$pos[[chr]][rws]
+  return(pos)
+}
+
+
