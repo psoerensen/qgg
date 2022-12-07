@@ -33,6 +33,10 @@ sbayes_spa <- function(wy, ww, LDvalues, LDindices, b, lambda, yy, pi, gamma, vg
     .Call(`_qgg_sbayes_spa`, wy, ww, LDvalues, LDindices, b, lambda, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, method)
 }
 
+sbayes_reg <- function(wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, method) {
+    .Call(`_qgg_sbayes_reg`, wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, method)
+}
+
 grsbed <- function(file, n, cls, af, b) {
     .Call(`_qgg_grsbed`, file, n, cls, af, b)
 }
