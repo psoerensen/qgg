@@ -846,6 +846,347 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
   return(fit)
 }
 
+################################################################################
+# Single trait fine-mapping BLR using summary statistics and sparse LD provided in Glist 
+# gmap full version
+
+#'
+#' @export
+#'
+gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
+                 chr=NULL, rsids=NULL, ids=NULL, b=NULL, bm=NULL, seb=NULL, mask=NULL, LD=NULL, n=NULL,
+                 vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL,
+                 lambda=NULL, scaleY=TRUE, shrinkLD=TRUE, formatLD="dense",
+                 h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
+                 adjustE=TRUE, models=NULL,
+                 nug=4, nub=4, nue=4, verbose=FALSE,msize=100,
+                 GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
+                 nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
+                 method="bayesC", algorithm="default") {
+  
+  # check these parameters again
+  if(is.data.frame(stat)) {
+    nt <- 1
+    rsids <- stat$rsids
+    m <- sum(rsids%in%unlist(Glist$rsidsLD))
+  }
+  if(!is.data.frame(stat) && is.list(stat)) {
+    nt <- ncol(stat$b)
+    rsids <- rownames(stat$b)
+    m <- sum(rsids%in%unlist(Glist$rsidsLD))
+  }
+  
+  # Check methods
+  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+  method <- match(method, methods) - 1
+  if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid")
+  
+  
+  # Prepare summary statistics
+  if(is.null(stat[["ww"]])) stat$ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
+  if(is.null(stat[["wy"]])) stat$wy <- stat$b*stat$ww
+  if(nt==1) {
+    yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww)
+    n <- median(stat$n)
+  }
+  if(nt>1) {
+    yy <- (stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww
+    yy <- apply(yy,2,median)
+    n <- apply(stat$n,2,median)
+  }
+
+  # Prepare input
+  b <- matrix(0, nrow=length(rsids), ncol=nt)
+  mask <- matrix(TRUE, nrow=length(rsids), ncol=nt)
+  rownames(b) <- rownames(mask) <- rsids
+
+  if(is.null(trait)) trait <- 1
+  message(paste("Processing trait:",trait))
+  
+  
+  if(!is.null(sets))  { 
+    # Prepare output
+    bm <- dm <- vector(mode="list",length=length(sets))
+    ves <- vgs <- vbs <- vector(mode="list",length=length(sets))
+    pim <- vector(mode="list",length=length(sets))
+    
+    chr <- unlist(Glist$chr)
+    chrSets <- qgg:::mapSets(sets=sets, Glist=Glist)
+    chrSets <- sapply(chrSets,function(x){as.numeric(unique(chr[x]))})
+    chromosomes <- unique(chrSets)
+    
+    if(is.null(ids)) ids <- Glist$idsLD
+    if(is.null(ids)) ids <- Glist$ids
+    
+    for (chr in chromosomes) {
+      
+      message(paste("Processing chromosome:",chr))
+      if(formatLD=="sparse") {
+        sparseLD <- qgg:::getSparseLD(Glist=Glist,chr=chr)
+      }
+      # BLR model for each set
+      for (i in 1:length(sets)) {
+        
+        if(chrSets[i]==chr) {
+          message(paste("Processing region:",i))
+          rsids <- sets[[i]]
+          map <- qgg:::getMap(Glist=Glist, chr=chr, rsids=rsids)
+          pos <- qgg:::getPos(Glist=Glist, chr=chr, rsids=rsids)
+          
+          if(formatLD=="dense") {
+            W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids)
+            B <- crossprod(scale(W))/(Glist$n-1)
+            if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+            LD <- NULL
+            LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+            LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
+            rsids <- colnames(W)
+            msize <- length(rsids)
+          }
+          
+          if(formatLD=="sparse") {
+            B <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
+            if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+            LD <- NULL
+            LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+            LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
+            rsids <- colnames(B)
+            msize <- length(rsids)
+            #LD <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
+            #rsids <- LD$rsids
+            #msize <- length(rsids)
+          }
+          
+          message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
+          message(paste("Region size in cM:",round(max(map)-min(map),2)))
+          
+          #   for (trait in 1:nt) {
+          fit <- qgg:::sbayes_region(yy=yy[trait],
+                                     wy=stat$wy[rsids,trait],
+                                     ww=stat$ww[rsids,trait],
+                                     b=b[rsids,trait],
+                                     mask=mask[rsids,trait],
+                                     LDvalues=LD$values,
+                                     LDindices=LD$indices,
+                                     method=method,
+                                     nit=nit,
+                                     n=n[trait],
+                                     m=msize,
+                                     pi=pi,
+                                     nue=nue,
+                                     nub=nub,
+                                     updateB=updateB,
+                                     updateE=updateE,
+                                     updatePi=updatePi,
+                                     updateG=updateG,
+                                     adjustE=adjustE)
+          #   }
+          
+          # Make plots to monitor convergence
+          layout(matrix(1:4,ncol=2))
+          pipsets <- qgg:::splitWithOverlap(1:length(rsids),100,99)
+          #pip <- sapply(pipsets,function(x){sum(fit$dm[x])})
+          pip <- fit$dm
+          plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
+          plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
+          hist(fit$ves, main="Ve")
+          plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
+          abline(h=0,v=0, lwd=2, col=2, lty=2)
+          
+          # Save results
+          bm[[i]] <- fit$bm
+          dm[[i]] <- fit$dm
+          pim[[i]] <- fit$pim
+          ves[[i]] <- fit$ves
+          vbs[[i]] <- fit$vbs
+          vgs[[i]] <- fit$vgs
+          names(bm[[i]]) <- names(dm[[i]]) <- rsids
+        }
+      }
+    }
+    fit <- NULL
+    fit$bm <- bm
+    fit$dm <- dm
+    fit$pim <- pim
+    fit$ves <- ves
+    fit$vbs <- vbs
+    fit$vgs <- vgs
+    
+  }  
+  
+  if(is.null(sets))  { 
+    # Prepare output
+    bm <- dm <- vector(mode="list",length=22)
+    ves <- vgs <- vbs <- vector(mode="list",length=22)
+    pim <- vector(mode="list",length=22)
+    
+    chromosomes <- 1:22
+    if(!is.null(chr)) chromosomes <- chr 
+
+    if(is.null(ids)) ids <- Glist$idsLD
+    if(is.null(ids)) ids <- Glist$ids
+    
+    for (chr in chromosomes) {
+      
+      message(paste("Processing chromosome:",chr))
+      rsidsLD <- Glist$rsidsLD[[chr]]
+      rsidsLD <- rsidsLD[rsidsLD%in%rownames(b)]
+      sets <- split(rsidsLD, ceiling(seq_along(rsidsLD) / msize))
+      
+      if(formatLD=="sparse") {
+        sparseLD <- qgg:::getSparseLD(Glist=Glist,chr=chr)
+      }
+      
+      # BLR model for each set
+      for (i in 1:length(sets)) {
+        
+        message(paste("Processing region:",i))
+        rsids <- sets[[i]]
+        map <- qgg:::getMap(Glist=Glist, chr=chr, rsids=rsids)
+        pos <- qgg:::getPos(Glist=Glist, chr=chr, rsids=rsids)
+        
+        if(formatLD=="dense") {
+          W <- getG(Glist=Glist, chr=chr, rsids=rsids)
+          B <- crossprod(scale(W))/(Glist$n-1)
+          if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+          LD <- NULL
+          LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+          LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
+          rsids <- colnames(B)
+          msize <- length(rsids)
+        }
+        
+        if(formatLD=="sparse") {
+          B <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
+          if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+          LD <- NULL
+          LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+          LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
+          rsids <- colnames(W)
+          msize <- length(rsids)
+          #LD <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
+          #rsids <- LD$rsids
+          #msize <- length(rsids)
+        }
+        
+        message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
+        message(paste("Region size in cM:",round(max(map)-min(map),2)))
+        
+        #   for (trait in 1:nt) {
+        fit <- qgg:::sbayes_region(yy=yy[trait],
+                                   wy=stat$wy[rsids,trait],
+                                   ww=stat$ww[rsids,trait],
+                                   b=b[rsids,trait],
+                                   mask=mask[rsids,trait],
+                                   LDvalues=LD$values,
+                                   LDindices=LD$indices,
+                                   method=method,
+                                   nit=nit,
+                                   n=n[trait],
+                                   m=msize,
+                                   pi=pi,
+                                   nue=nue,
+                                   nub=nub,
+                                   updateB=updateB,
+                                   updateE=updateE,
+                                   updatePi=updatePi,
+                                   updateG=updateG,
+                                   adjustE=adjustE)
+        #   }
+        
+        # Make plots to monitor convergence
+        layout(matrix(1:4,ncol=2))
+        pipsets <- qgg:::splitWithOverlap(1:length(rsids),100,99)
+        #pip <- sapply(pipsets,function(x){sum(fit$dm[x])})
+        pip <- fit$dm
+        plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
+        plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
+        hist(fit$ves, main="Ve")
+        plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
+        abline(h=0,v=0, lwd=2, col=2, lty=2)
+        
+        # Save results
+        bm[[chr]][[i]] <- fit$bm
+        dm[[chr]][[i]] <- fit$dm
+        pim[[chr]][[i]] <- fit$pim
+        ves[[chr]][[i]] <- fit$ves
+        vbs[[chr]][[i]] <- fit$vbs
+        vgs[[chr]][[i]] <- fit$vgs
+        names(bm[[chr]][[i]]) <- names(dm[[chr]][[i]]) <- rsids
+      }
+    }
+    
+    fit <- NULL
+    fit$bm <- unlist(bm, recursive=FALSE)
+    fit$dm <- unlist(dm, recursive=FALSE)
+    fit$pim <- unlist(pim, recursive=FALSE)
+    fit$ves <- unlist(ves, recursive=FALSE)
+    fit$vbs <- unlist(vbs, recursive=FALSE)
+    fit$vgs <- unlist(vgs, recursive=FALSE)
+  }
+  
+  return(fit)
+}
+
+# Single trait fine-mapping BLR using summary statistics and sparse LD provided in Glist 
+sbayes_region <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, mask=NULL, seb=NULL, 
+                          LDvalues=NULL,LDindices=NULL, n=NULL, m=NULL,
+                          vg=NULL, vb=NULL, ve=NULL, 
+                          ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
+                          h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, 
+                          updateG=NULL, adjustE=NULL, models=NULL,
+                          nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
+  
+  if(is.null(m)) m <- length(LDvalues)
+  vy <- yy/(n-1)
+  if(is.null(pi)) pi <- 0.001
+  if(is.null(h2)) h2 <- 0.5
+  if(is.null(ve)) ve <- vy*(1-h2)
+  if(is.null(vg)) vg <- vy*h2
+  if(method<4 && is.null(vb)) vb <- vg/m
+  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,m)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+  if(is.null(b)) b <- rep(0,m)
+  
+  pi <- c(1-pi,pi)
+  gamma <- c(0,1.0)
+  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
+  if(method==5) gamma <- c(0,0.01,0.1,1.0)
+  
+  fit <- .Call("_qgg_sbayes_reg",
+               wy=wy, 
+               ww=ww, 
+               LDvalues=LDvalues, 
+               LDindices=LDindices, 
+               b = b,
+               lambda = lambda,
+               mask = mask,
+               yy = yy,
+               pi = pi,
+               gamma = gamma,
+               vg = vg,
+               vb = vb,
+               ve = ve,
+               ssb_prior=ssb_prior,
+               sse_prior=sse_prior,
+               nub=nub,
+               nue=nue,
+               updateB = updateB,
+               updateE = updateE,
+               updatePi = updatePi,
+               updateG = updateG,
+               adjustE = adjustE,
+               n=n,
+               nit=nit,
+               method=as.integer(method))
+  names(fit[[1]]) <- names(LDvalues)
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pim","r","b","d","param")
+  return(fit)
+}
+
 
 # Multiple trait BLR using summary statistics and sparse LD provided in Glist 
 mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL, 
@@ -1277,6 +1618,16 @@ splitWithOverlap <- function(vec, seg.length, overlap) {
   lapply(1:length(starts), function(i) vec[starts[i]:ends[i]])
 }
 
+adjustMapLD <- function(LD = NULL, map=NULL, neff=11600, nmap=186, threshold=0.001) {
+  # neff: effective population size
+  # nmap: sample size used for map contruction
+  # threshold: used for setting LD to zero
+  rho <- sapply(map,function(x){map-x})
+  rho <- 4*neff*abs(rho)
+  shrink <- exp(-rho/(2*nmap))
+  return(LD*shrink)
+}
+
 neff <- function(seb=NULL,af=NULL,Vy=1) {
   seb2 <- seb**2
   vaf <- 2*af*(1-af)
@@ -1529,4 +1880,5 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   fit$mu <- colMeans(mus) 
   return(fit) # return posterior samples of sigma 
 }
+
 
