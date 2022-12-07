@@ -869,6 +869,21 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     nt <- 1
     rsids <- stat$rsids
     m <- sum(rsids%in%unlist(Glist$rsidsLD))
+    stat$b <- as.matrix(stat$b)
+    stat$seb <- as.matrix(stat$seb)
+    stat$n <- as.matrix(stat$n)
+    stat$p <- as.matrix(stat$p)
+    rownames(stat$b) <- rownames(stat$seb) <- rsids
+    rownames(stat$n) <- rownames(stat$p) <- rsids
+    if(!is.null(stat[["ww"]])) {
+      stat$ww <- as.matrix(stat$ww)
+      rownames(stat$ww) <- rsids
+    }
+    if(!is.null(stat[["wy"]])) {
+      stat$wy <- as.matrix(stat$wy)
+      rownames(stat$wy) <- rsids
+    }
+    
   }
   if(!is.data.frame(stat) && is.list(stat)) {
     nt <- ncol(stat$b)
