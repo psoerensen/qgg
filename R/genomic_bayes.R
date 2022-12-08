@@ -1094,7 +1094,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           LD <- NULL
           LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
           LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
-          rsids <- colnames(W)
+          rsids <- colnames(B)
           names(LD$values) <- rsids
           names(LD$indices) <- rsids
           msize_set <- length(rsids)
