@@ -864,7 +864,18 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                  nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
                  method="bayesC", algorithm="default") {
   
-  # check these parameters again
+  # Check methods and parameter settings
+  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+  method <- match(method, methods) - 1
+  if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid")
+  if(shrinkLD) {
+    if(is.null(Glist$map)) {
+      warning("No map information in Glist - LD matrix shrinkage truned off")
+      shrinkLD <- FALSE
+    }
+  } 
+  
+  # check this again
   if(is.data.frame(stat)) {
     nt <- 1
     rsids <- stat$rsids
@@ -891,12 +902,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     m <- sum(rsids%in%unlist(Glist$rsidsLD))
   }
   
-  # Check methods
-  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
-  method <- match(method, methods) - 1
-  if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid")
-  
-  
+
   # Prepare summary statistics
   if(is.null(stat[["ww"]])) stat$ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
   if(is.null(stat[["wy"]])) stat$wy <- stat$b*stat$ww
