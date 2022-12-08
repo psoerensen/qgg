@@ -1103,9 +1103,6 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           #msize <- length(rsids)
         }
         
-        message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
-        message(paste("Region size in cM:",round(max(map)-min(map),2)))
-        
         #   for (trait in 1:nt) {
         fit <- qgg:::sbayes_region(yy=yy[trait],
                                    wy=stat$wy[rsids,trait],
