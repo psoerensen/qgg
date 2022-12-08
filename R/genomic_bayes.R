@@ -958,8 +958,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
           
           if(formatLD=="dense") {
-            W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids)
-            B <- crossprod(scale(W))/(Glist$n-1)
+            W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
+            B <- crossprod(scale(W))/(length(ids)-1)
             if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
             LD <- NULL
             LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
@@ -1070,12 +1070,14 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         
         message(paste("Processing region:",i))
         rsids <- sets[[i]]
-        map <- qgg:::getMap(Glist=Glist, chr=chr, rsids=rsids)
         pos <- qgg:::getPos(Glist=Glist, chr=chr, rsids=rsids)
+        message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
+        if(!is.null(Glist$map)) map <- qgg:::getMap(Glist=Glist, chr=chr, rsids=rsids)
+        if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
         
         if(formatLD=="dense") {
-          W <- getG(Glist=Glist, chr=chr, rsids=rsids)
-          B <- crossprod(scale(W))/(Glist$n-1)
+          W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
+          B <- crossprod(scale(W))/(length(ids)-1)
           if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
           LD <- NULL
           LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
