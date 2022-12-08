@@ -967,7 +967,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             rsids <- colnames(W)
             names(LD$values) <- rsids
             names(LD$indices) <- rsids
-            msize <- length(rsids)
+            msize_set <- length(rsids)
           }
           
           if(formatLD=="sparse") {
@@ -979,7 +979,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             rsids <- colnames(B)
             names(LD$values) <- rsids
             names(LD$indices) <- rsids
-            msize <- length(rsids)
+            msize_set <- length(rsids)
             #LD <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
             #rsids <- LD$rsids
             #msize <- length(rsids)
@@ -997,7 +997,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                      method=method,
                                      nit=nit,
                                      n=n[trait],
-                                     m=msize,
+                                     m=msize_set,
                                      pi=pi,
                                      nue=nue,
                                      nub=nub,
@@ -1085,7 +1085,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           rsids <- colnames(B)
           names(LD$values) <- rsids
           names(LD$indices) <- rsids
-          msize <- length(rsids)
+          msize_set <- length(rsids)
         }
         
         if(formatLD=="sparse") {
@@ -1097,7 +1097,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           rsids <- colnames(W)
           names(LD$values) <- rsids
           names(LD$indices) <- rsids
-          msize <- length(rsids)
+          msize_set <- length(rsids)
           #LD <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
           #rsids <- LD$rsids
           #msize <- length(rsids)
@@ -1114,7 +1114,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                    method=method,
                                    nit=nit,
                                    n=n[trait],
-                                   m=msize,
+                                   m=msize_set,
                                    pi=pi,
                                    nue=nue,
                                    nub=nub,
