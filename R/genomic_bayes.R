@@ -945,8 +945,11 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         if(chrSets[i]==chr) {
           message(paste("Processing region:",i))
           rsids <- sets[[i]]
-          map <- qgg:::getMap(Glist=Glist, chr=chr, rsids=rsids)
+          
           pos <- qgg:::getPos(Glist=Glist, chr=chr, rsids=rsids)
+          message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
+          if(!is.null(Glist$map)) map <- qgg:::getMap(Glist=Glist, chr=chr, rsids=rsids)
+          if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
           
           if(formatLD=="dense") {
             W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids)
@@ -956,6 +959,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
             LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
             rsids <- colnames(W)
+            names(LD$values) <- rsids
+            names(LD$indices) <- rsids
             msize <- length(rsids)
           }
           
@@ -966,15 +971,15 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
             LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
             rsids <- colnames(B)
+            names(LD$values) <- rsids
+            names(LD$indices) <- rsids
             msize <- length(rsids)
             #LD <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
             #rsids <- LD$rsids
             #msize <- length(rsids)
           }
           
-          message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
-          message(paste("Region size in cM:",round(max(map)-min(map),2)))
-          
+
           #   for (trait in 1:nt) {
           fit <- qgg:::sbayes_region(yy=yy[trait],
                                      wy=stat$wy[rsids,trait],
@@ -1068,6 +1073,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
           LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
           rsids <- colnames(B)
+          names(LD$values) <- rsids
+          names(LD$indices) <- rsids
           msize <- length(rsids)
         }
         
@@ -1078,6 +1085,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
           LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
           rsids <- colnames(W)
+          names(LD$values) <- rsids
+          names(LD$indices) <- rsids
           msize <- length(rsids)
           #LD <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
           #rsids <- LD$rsids
