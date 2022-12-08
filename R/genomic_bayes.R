@@ -1003,16 +1003,18 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           #   }
           
           # Make plots to monitor convergence
-          layout(matrix(1:4,ncol=2))
-          pipsets <- qgg:::splitWithOverlap(1:length(rsids),100,99)
-          #pip <- sapply(pipsets,function(x){sum(fit$dm[x])})
-          pip <- fit$dm
-          plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
-          plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
-          hist(fit$ves, main="Ve")
-          plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
-          abline(h=0,v=0, lwd=2, col=2, lty=2)
-          
+          if(verbose) {
+            layout(matrix(1:4,ncol=2))
+            pipsets <- qgg:::splitWithOverlap(1:length(rsids),100,99)
+            #pip <- sapply(pipsets,function(x){sum(fit$dm[x])})
+            pip <- fit$dm
+            plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
+            plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
+            hist(fit$ves, main="Ve")
+            plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
+            abline(h=0,v=0, lwd=2, col=2, lty=2)
+          }
+
           # Save results
           bm[[i]] <- fit$bm
           dm[[i]] <- fit$dm
@@ -1119,16 +1121,18 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         #   }
         
         # Make plots to monitor convergence
-        layout(matrix(1:4,ncol=2))
-        pipsets <- qgg:::splitWithOverlap(1:length(rsids),100,99)
-        #pip <- sapply(pipsets,function(x){sum(fit$dm[x])})
-        pip <- fit$dm
-        plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
-        plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
-        hist(fit$ves, main="Ve")
-        plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
-        abline(h=0,v=0, lwd=2, col=2, lty=2)
-        
+        if(verbose) {
+          layout(matrix(1:4,ncol=2))
+          pipsets <- qgg:::splitWithOverlap(1:length(rsids),100,99)
+          #pip <- sapply(pipsets,function(x){sum(fit$dm[x])})
+          pip <- fit$dm
+          plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
+          plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
+          hist(fit$ves, main="Ve")
+          plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
+          abline(h=0,v=0, lwd=2, col=2, lty=2)
+        }
+
         # Save results
         bm[[chr]][[i]] <- fit$bm
         dm[[chr]][[i]] <- fit$dm
