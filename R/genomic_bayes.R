@@ -856,18 +856,21 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
 gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
                  chr=NULL, rsids=NULL, ids=NULL, b=NULL, bm=NULL, seb=NULL, mask=NULL, LD=NULL, n=NULL,
                  vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL,
-                 lambda=NULL, scaleY=TRUE, shrinkLD=TRUE, formatLD="dense",
+                 lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, formatLD="dense",
                  h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  adjustE=TRUE, models=NULL,
-                 nug=4, nub=4, nue=4, verbose=FALSE,msize=100,
+                 nug=4, nub=4, nue=4, verbose=FALSE,msize=100,threshold=NULL,
                  GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                  nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
-                 method="bayesC", algorithm="default") {
+                 method="bayesC", algorithm="mcmc") {
   
   # Check methods and parameter settings
   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
   method <- match(method, methods) - 1
-  if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid")
+  if( !sum(method%in%c(0:5))== 1 ) stop("method argument specified not valid")
+  algorithms <- c("mcmc","em-mcmc")
+  algorithm <- match(algorithm, algorithms)
+  if(is.na(algorithm)) stop("algorithm argument specified not valid")
   if(shrinkLD) {
     if(is.null(Glist$map)) {
       warning("No map information in Glist - LD matrix shrinkage truned off")
@@ -918,7 +921,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
 
   # Prepare input
   b <- matrix(0, nrow=length(rsids), ncol=nt)
-  mask <- matrix(TRUE, nrow=length(rsids), ncol=nt)
+  if(is.null(mask)) mask <- matrix(TRUE, nrow=length(rsids), ncol=nt)
   rownames(b) <- rownames(mask) <- rsids
 
   if(is.null(trait)) trait <- 1
@@ -928,7 +931,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   if(!is.null(sets))  { 
     # Prepare output
     bm <- dm <- vector(mode="list",length=length(sets))
-    ves <- vgs <- vbs <- vector(mode="list",length=length(sets))
+    ves <- vgs <- vbs <- bs <- ds <- vector(mode="list",length=length(sets))
     pim <- vector(mode="list",length=length(sets))
     
     chr <- unlist(Glist$chr)
@@ -964,7 +967,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             LD <- NULL
             LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
             LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
-            rsids <- colnames(W)
+            rsids <- colnames(B)
             names(LD$values) <- rsids
             names(LD$indices) <- rsids
             msize_set <- length(rsids)
@@ -995,6 +998,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                      LDvalues=LD$values,
                                      LDindices=LD$indices,
                                      method=method,
+                                     algorithm=algorithm,
                                      nit=nit,
                                      n=n[trait],
                                      m=msize_set,
@@ -1016,7 +1020,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             pip <- fit$dm
             plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
             plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
-            hist(fit$ves, main="Ve")
+            hist(fit$ves, main="Ve", xlab="")
             plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
             abline(h=0,v=0, lwd=2, col=2, lty=2)
           }
@@ -1028,7 +1032,18 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           ves[[i]] <- fit$ves
           vbs[[i]] <- fit$vbs
           vgs[[i]] <- fit$vgs
+          selected <- NULL
+          if(!is.null(threshold)) selected <- fit$dm>=threshold
+          if(any(selected)) {
+            bs[[i]] <- matrix(fit$bs,nrow=length(rsids))
+            ds[[i]] <- matrix(fit$ds,nrow=length(rsids))
+            rownames(bs[[i]]) <- rownames(ds[[i]]) <- rsids
+            colnames(bs[[i]]) <- colnames(ds[[i]]) <- 1:nit
+            bs[[i]] <- bs[[i]][selected,]
+            ds[[i]] <- ds[[i]][selected,]
+          }
           names(bm[[i]]) <- names(dm[[i]]) <- rsids
+
         }
       }
     }
@@ -1039,13 +1054,17 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     fit$ves <- ves
     fit$vbs <- vbs
     fit$vgs <- vgs
+    if(!is.null(threshold)) fit$bs <- bs
+    if(!is.null(threshold)) fit$ds <- ds
     
   }  
   
   if(is.null(sets))  { 
+    
+    
     # Prepare output
     bm <- dm <- vector(mode="list",length=22)
-    ves <- vgs <- vbs <- vector(mode="list",length=22)
+    ves <- vgs <- vbs <- bs <- ds <- vector(mode="list",length=22)
     pim <- vector(mode="list",length=22)
     
     chromosomes <- 1:22
@@ -1088,6 +1107,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           msize_set <- length(rsids)
         }
         
+        
+        
         if(formatLD=="sparse") {
           B <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
           if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
@@ -1112,6 +1133,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                    LDvalues=LD$values,
                                    LDindices=LD$indices,
                                    method=method,
+                                   algorithm=algorithm,
                                    nit=nit,
                                    n=n[trait],
                                    m=msize_set,
@@ -1124,7 +1146,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                    updateG=updateG,
                                    adjustE=adjustE)
         #   }
-        
+
         # Make plots to monitor convergence
         if(verbose) {
           layout(matrix(1:4,ncol=2))
@@ -1133,7 +1155,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           pip <- fit$dm
           plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
           plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
-          hist(fit$ves, main="Ve")
+          hist(fit$ves, main="Ve", xlab="")
           plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
           abline(h=0,v=0, lwd=2, col=2, lty=2)
         }
@@ -1145,6 +1167,20 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         ves[[chr]][[i]] <- fit$ves
         vbs[[chr]][[i]] <- fit$vbs
         vgs[[chr]][[i]] <- fit$vgs
+        #bs[[chr]][[i]] <- matrix(fit$bs,nrow=length(rsids))
+        #ds[[chr]][[i]] <- matrix(fit$ds,nrow=length(rsids))
+        #rownames(bs[[chr]][[i]]) <- rownames(ds[[chr]][[i]]) <- rsids
+        #colnames(bs[[chr]][[i]]) <- colnames(ds[[chr]][[i]]) <- 1:nit
+        selected <- NULL
+        if(!is.null(threshold)) selected <- fit$dm>=threshold
+        if(any(selected)) {
+          bs[[chr]][[i]] <- matrix(fit$bs,nrow=length(rsids))
+          ds[[chr]][[i]] <- matrix(fit$ds,nrow=length(rsids))
+          rownames(bs[[chr]][[i]]) <- rownames(ds[[chr]][[i]]) <- rsids
+          colnames(bs[[chr]][[i]]) <- colnames(ds[[chr]][[i]]) <- 1:nit
+          bs[[chr]][[i]] <- bs[[chr]][[i]][selected,]
+          ds[[chr]][[i]] <- ds[[chr]][[i]][selected,]
+        }
         names(bm[[chr]][[i]]) <- names(dm[[chr]][[i]]) <- rsids
       }
     }
@@ -1156,6 +1192,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     fit$ves <- unlist(ves, recursive=FALSE)
     fit$vbs <- unlist(vbs, recursive=FALSE)
     fit$vgs <- unlist(vgs, recursive=FALSE)
+    if(!is.null(threshold)) fit$bs <- unlist(bs, recursive=FALSE)
+    if(!is.null(threshold)) fit$ds <- unlist(ds, recursive=FALSE)
   }
   
   return(fit)
@@ -1188,6 +1226,7 @@ sbayes_region <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, mask=NULL,
   gamma <- c(0,1.0)
   if(method==5) pi <- c(0.95,0.02,0.02,0.01)
   if(method==5) gamma <- c(0,0.01,0.1,1.0)
+  if(is.null(algorithm)) algorithm <- 0
   
   fit <- .Call("_qgg_sbayes_reg",
                wy=wy, 
@@ -1214,9 +1253,10 @@ sbayes_region <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, mask=NULL,
                adjustE = adjustE,
                n=n,
                nit=nit,
-               method=as.integer(method))
+               method=as.integer(method),
+               algo=as.integer(algorithm))
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pim","r","b","d","param")
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pim","r","b","d","param","bs","ds")
   return(fit)
 }
 
