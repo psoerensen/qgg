@@ -1274,7 +1274,8 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
                                               bool adjustE,
                                               int n, 
                                               int nit,
-                                              int method) {
+                                              int method,
+                                              int algo) {
   
   // Define local variables
   int m = b.size();
@@ -1300,6 +1301,9 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   
   std::vector<double> x2(m),vadj(m),vbi(m);
   std::vector<int> order(m);
+
+  std::vector<std::vector<double>> bs(nit, std::vector<double>(m, 0.0));  
+  std::vector<std::vector<int>> ds(nit, std::vector<int>(m, 0));  
   
   // Initialize variables
   for ( int i = 0; i < m; i++) {
@@ -1464,15 +1468,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        // version 1
-        //rhs0 = 0.0;
-        //rhs1 = r[i] + ww[i]*b[i];
-        //lhs0 = 1.0/vb;
-        //lhs1 = ww[i]/vei[i] + 1.0/vb;
-        //like0 = std::log(1.0/std::sqrt(lhs0)) + 0.5*(rhs0*rhs0)/lhs0 + std::log(1.0-pi); 
-        //like1 = std::log(1.0/std::sqrt(lhs1)) + 0.5*(rhs1*rhs1)/lhs1 + std::log(pi); 
-        //p0 = 1.0/(std::exp(like1 - like0) + 1.0);
-        // version 2
+        if(!mask[i])   continue;
         rhs = r[i] + ww[i]*b[i];
         v0 = ww[i]*vei[i];
         v1 = ww[i]*vei[i] + ww[i]*ww[i]*vb;
@@ -1489,6 +1485,9 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
           lhs1 = ww[i] + vei[i]/vb;
           std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(vei[i]/lhs1));
           bn = rnorm(gen);
+          if(algo==2) {
+            bn = (1.0-p0)*(rhs1/lhs1);
+          }
         } 
         diff = (bn-b[i]);
         if(diff!=0.0) {
@@ -1561,6 +1560,14 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
           lhs =ww[i]+vei[i]/vbc;
           std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
           bn = rnorm(gen);
+          if(algo==2) {
+            bn=0.0;
+            for (size_t j = 1; j < gamma.size(); j++) {
+              vbc = vb * gamma[j];
+              lhs =ww[i]+vei[i]/vbc;
+              bn += probc[j]*(rhs/lhs);
+            }
+          }
         }
         diff = (bn-b[i]);
         if(diff!=0.0) {
@@ -1671,10 +1678,16 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
         vei[i] = vadj[i]*vg + ve;
       }
     }
+    
+    for ( int i = 0; i < m; i++) {
+      bs[it][i] = b[i];
+      ds[it][i] = d[i];
+    }
   }
   
   // Summarize results
-  std::vector<std::vector<double>> result(11);
+  std::vector<std::vector<double>> result(13);
+  
   result[0].resize(m);
   result[1].resize(m);
   result[2].resize(nit);
@@ -1686,7 +1699,8 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   result[8].resize(m);
   result[9].resize(m);
   result[10].resize(3);
-  
+  result[11].resize(nit*m);
+  result[12].resize(nit*m);
   for (int i=0; i < m; i++) {
     result[0][i] = bm[i]/nit;
     result[1][i] = dm[i]/nit;
@@ -1710,8 +1724,13 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   result[10][0] = vb;
   result[10][1] = ve;
   result[10][2] = pi[0];
-  
-  
+
+  for ( int it = 0; it < nit; it++) {
+    for ( int i = 0; i < m; i++) {
+      result[11][it*m + i] = bs[it][i];
+      result[12][it*m + i] = (double)ds[it][i];
+    }
+  }
   return result;
 }
 
