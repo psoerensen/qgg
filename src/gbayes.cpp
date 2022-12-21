@@ -1024,7 +1024,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(vei[i]/lhs1));
           bn = rnorm(gen);
           //if(algo==2) {
-            bn = (1.0-p0)*bn;
+          //bn = (1.0-p0)*bn;
             //bn = (1.0-p0)*(rhs1/lhs1);
           //}
         } 
@@ -1101,15 +1101,15 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
           bn = rnorm(gen);
           //if(algo==2) {
-            bn=0.0;
-            for (size_t j = 1; j < gamma.size(); j++) {
-              vbc = vb * gamma[j];
-              lhs =ww[i]+vei[i]/vbc;
-              std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
-              bj = rnorm(gen);
-              bn += probc[j]*bj;
+          //bn=0.0;
+          //for (size_t j = 1; j < gamma.size(); j++) {
+          //  vbc = vb * gamma[j];
+          //  lhs =ww[i]+vei[i]/vbc;
+          //  std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
+          //  bj = rnorm(gen);
+          //  bn += probc[j]*bj;
               //bn += probc[j]*(rhs/lhs);
-            }
+          //}
           //}
         }
         diff = (bn-b[i]);
