@@ -1281,7 +1281,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   int m = b.size();
   int nc = pi.size();
   
-  double rhs, lhs, bn, diff;
+  double rhs, lhs, bn, bj, diff;
   double rhs1, lhs1, like0, like1, p0, v0, v1;
   double ssb, sse, ssg, dfb, dfe, dfg, chi2;
   double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
@@ -1486,7 +1486,8 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
           std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(vei[i]/lhs1));
           bn = rnorm(gen);
           if(algo==2) {
-            bn = (1.0-p0)*(rhs1/lhs1);
+            bn = (1.0-p0)*bn;
+            //bn = (1.0-p0)*(rhs1/lhs1);
           }
         } 
         diff = (bn-b[i]);
@@ -1565,7 +1566,10 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
             for (size_t j = 1; j < gamma.size(); j++) {
               vbc = vb * gamma[j];
               lhs =ww[i]+vei[i]/vbc;
-              bn += probc[j]*(rhs/lhs);
+              std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
+              bj = rnorm(gen);
+              bn += probc[j]*bj;
+              //bn += probc[j]*(rhs/lhs);
             }
           }
         }
