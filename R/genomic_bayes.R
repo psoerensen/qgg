@@ -1196,6 +1196,18 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     if(!is.null(threshold)) fit$ds <- unlist(ds, recursive=FALSE)
   }
   
+  bm <- unlist(fit$bm)
+  dm <- unlist(fit$dm)
+  selected <- dm>0
+  bm <- bm[selected]
+  dm <- dm[selected]
+  marker <- data.frame(rsids=unlist(Glist$rsids),
+                       chr=unlist(Glist$chr), pos=unlist(Glist$pos), 
+                       ea=unlist(Glist$a1), nea=unlist(Glist$a2),
+                       eaf=unlist(Glist$af),stringsAsFactors = FALSE)
+  marker <- marker[marker$rsids%in%names(bm),]
+  fit$stat <- data.frame(marker,bm=bm[marker$rsids],stringsAsFactors = FALSE)
+  
   return(fit)
 }
 
