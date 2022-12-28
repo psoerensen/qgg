@@ -29,7 +29,7 @@ extern SEXP _qgg_readG(SEXP, SEXP, SEXP);
 extern SEXP _qgg_riwishart(SEXP, SEXP);
 extern SEXP _qgg_rwishart(SEXP, SEXP);
 extern SEXP _qgg_sbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _qgg_sbayes_spa(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _qgg_sbayes_spa(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_sbayes_reg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_solvebed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_summarybed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -55,7 +55,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_qgg_riwishart",             (DL_FUNC) &_qgg_riwishart,              2},
     {"_qgg_rwishart",              (DL_FUNC) &_qgg_rwishart,               2},
     {"_qgg_sbayes",                (DL_FUNC) &_qgg_sbayes,                19},
-    {"_qgg_sbayes_spa",                (DL_FUNC) &_qgg_sbayes_spa,                24},
+    {"_qgg_sbayes_spa",                (DL_FUNC) &_qgg_sbayes_spa,                25},
     {"_qgg_sbayes_reg",                (DL_FUNC) &_qgg_sbayes_reg,                26},
     {"_qgg_solvebed",              (DL_FUNC) &_qgg_solvebed,               8},
     {"_qgg_summarybed",            (DL_FUNC) &_qgg_summarybed,             6},
