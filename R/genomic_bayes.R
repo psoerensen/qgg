@@ -331,7 +331,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     ve=ve, 
                                     updateB=updateB, 
                                     updateE=updateE, 
-                                    updatePi=updatePi)
+                                    updatePi=updatePi,
+                                    algorithm=algorithm)
         stat[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
                                   pos=Glist$pos[[chr]][clsLD], ea=Glist$a1[[chr]][clsLD],
                                   nea=Glist$a2[[chr]][clsLD], eaf=Glist$af[[chr]][clsLD],
@@ -530,7 +531,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     updateE=updateE, 
                                     updatePi=updatePi,
                                     updateG=updateG,
-                                    adjustE=adjustE)
+                                    adjustE=adjustE,
+                                    algorithm=algorithm)
         bmchr <- cbind(bmchr, fit[[chr]]$bm)
         dmchr <- cbind(dmchr, fit[[chr]]$dm)
       }
