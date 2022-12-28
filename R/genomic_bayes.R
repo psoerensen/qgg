@@ -141,19 +141,23 @@
 #'
 
 gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit=NULL, Glist=NULL, 
-                   chr=NULL, rsids=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
+                   chr=NULL, rsids=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,formatLD="dense",
                    vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
                    nug=4, nub=4, nue=4, verbose=FALSE,msize=100,
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
-                   method="mixed", algorithm="default") {
+                   method="mixed", algorithm="mcmc") {
   
   # Check methods
   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
   method <- match(method, methods) - 1
   if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid") 
 
+  algorithms <- c("mcmc","em-mcmc")
+  algorithm <- match(algorithm, algorithms)
+  if(is.na(algorithm)) stop("algorithm argument specified not valid")
+  
   if(method==0) {
     # BLUP and we do not estimate parameters
     updateB=FALSE;
@@ -174,32 +178,41 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   # Define type of analysis
   if(!is.null(GRMlist)) analysis <- "mtmc-mixed"
   
-  if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") 
+  #if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") 
+  if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="dense") 
     analysis <- "st-blr-individual-level-default"
   
-  if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") 
+  #if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") 
+  if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="sparse") 
     analysis <- "st-blr-individual-level-sbayes"
   
-  if(nt==1 && !is.null(y) && algorithm=="sparse") 
+  #if(nt==1 && !is.null(y) && algorithm=="sparse")
+  if(nt==1 && !is.null(y) && formatLD=="sparse") 
     analysis <- "st-blr-individual-level-sparse-ld"
   
-  if( nt==1 && !is.null(y) &&  algorithm=="dense") 
+  #if( nt==1 && !is.null(y) &&  algorithm=="dense") 
+  if( nt==1 && !is.null(y) &&  formatLD=="dense") 
     analysis <- "st-blr-individual-level-dense-ld"
   
   if( nt==1 && is.null(y) && !is.null(stat) && !is.null(Glist)) 
     analysis <- "st-blr-sumstat-sparse-ld"
   
   if(nt>1 && !is.null(y) && !is.null(W))
-    analysis <- "mt-blr-individual-level"
+    analysis <- "mt-blr-individual-level-dense-ld"
 
-  if(nt>1 && !is.null(y) && algorithm=="sparse") 
+  #if(nt>1 && !is.null(y) && algorithm=="sparse") 
+  if(nt>1 && !is.null(y) && formatLD=="sparse") 
     analysis <- "mt-blr-individual-level-sparse-ld"
   
-  if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="default") 
+  #if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="default") 
+  #if( nt>1 && !is.null(stat) && !is.null(Glist) && formatLD=="sparse") 
+  if( nt>1 && !is.null(stat) && !is.null(Glist)) 
     analysis <- "mt-blr-sumstat-sparse-ld"
   
-  if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="serial") 
-    analysis <- "st-blr-sumstat-sparse-ld"
+  # fix this  
+  #if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="serial") 
+  #  analysis <- "st-blr-sumstat-sparse-ld"
+  # end fix this
   
   message(paste("Type of analysis performed:",analysis))  
   
@@ -219,25 +232,27 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   
   
   # Single trait BLR using y and W   
-  if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") {
+  #if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") {
+  if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="dense") {
     
     fit <- bayes(y=y, X=X, W=W, b=b, 
                  bm=bm, seb=seb, LD=LD, n=n,
                  vg=vg, vb=vb, ve=ve, 
                  ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                  h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                 nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
+                 nub=nub, nue=nue, nit=nit, method=method, formatLD=formatLD, algorithm=algorithm)  
   }
   
   
   # Single trait BLR using y and W and sbayes method 
-  if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") {
+  #if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") {
+  if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="sparse") {
     
     fit <- sbayes(y=y, X=X, W=W, b=b, bm=bm, seb=seb, LD=LD, n=n,
                   vg=vg, vb=vb, ve=ve, 
                   ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                   h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                  nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm)  
+                  nub=nub, nue=nue, nit=nit, method=method, formatLD=formatLD, algorithm=algorithm)  
   }
   
   # Multiple trait BLR using y and W
@@ -246,12 +261,13 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    vg=vg, vb=vb, ve=ve, 
                    ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                    h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                   nub=nub, nue=nue, nit=nit, method=method, algorithm=algorithm, verbose=verbose) 
+                   nub=nub, nue=nue, nit=nit, method=method, formatLD=formatLD, algorithm=algorithm, verbose=verbose) 
   }
   
   
   # Single trait BLR using y and sparse LD provided Glist
-  if( nt==1 && !is.null(y) && algorithm=="sparse") {
+  #if( nt==1 && !is.null(y) && algorithm=="sparse") {
+  if( nt==1 && !is.null(y) && formatLD=="sparse") {
     
     if(is.null(Glist)) stop("Please provide Glist")
     fit <- NULL
@@ -318,19 +334,23 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     updatePi=updatePi)
         stat[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
                                   pos=Glist$pos[[chr]][clsLD], ea=Glist$a1[[chr]][clsLD],
-                                  nea=Glist$a2[[chr]][clsLD], eaf=Glist$af[[chr]][clsLD],bm=fit[[chr]]$bm,stringsAsFactors = FALSE)
+                                  nea=Glist$a2[[chr]][clsLD], eaf=Glist$af[[chr]][clsLD],
+                                  bm=fit[[chr]]$bm,dm=fit[[chr]]$dm,stringsAsFactors = FALSE)
         rownames(stat[[chr]]) <- rsidsLD
       }
     }
     stat <- do.call(rbind, stat)
     rownames(stat) <- stat$rsids
     fit$stat <- stat
+    fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
+    fit$method <- methods[method+1]
     fit$covs <- covs
   }
   
   
   # Single trait BLR using y and dense LD
-  if( nt==1 && !is.null(y) &&  algorithm=="dense") {
+  #if( nt==1 && !is.null(y) &&  algorithm=="dense") {
+  if( nt==1 && !is.null(y) &&  formatLD=="dense") {
     
     overlap <- 0
     
@@ -402,8 +422,11 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                        ea=unlist(Glist$a1)[rsids2rws],
                        nea=unlist(Glist$a2)[rsids2rws], 
                        eaf=unlist(Glist$af)[rsids2rws],
-                       bm=bm[rsids], stringsAsFactors = FALSE)
+                       bm=bm[rsids],
+                       dm=dm[rsids], stringsAsFactors = FALSE)
     fit$stat <- stat
+    fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
+    fit$method <- methods[method+1]
     
   }
   
@@ -515,7 +538,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
                                pos=Glist$pos[[chr]][clsLD], ea=Glist$a1[[chr]][clsLD],
                                nea=Glist$a2[[chr]][clsLD], eaf=Glist$af[[chr]][clsLD],
-                               bm=bmchr, pm=dmchr, stringsAsFactors = FALSE)
+                               bm=bmchr, dm=dmchr, stringsAsFactors = FALSE)
       rownames(res[[chr]]) <- rsidsLD
       LD[[chr]]$values <- NULL
       LD[[chr]]$indices <- NULL
@@ -613,7 +636,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       res[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
                                pos=Glist$pos[[chr]][clsLD], ea=Glist$a1[[chr]][clsLD],
                                nea=Glist$a2[[chr]][clsLD], eaf=Glist$af[[chr]][clsLD],
-                               bm=fit[[chr]]$bm, stringsAsFactors = FALSE)
+                               bm=fit[[chr]]$bm, dm=fit[[chr]]$dm,  stringsAsFactors = FALSE)
       rownames(res[[chr]]) <- rsidsLD
       LD[[chr]]$values <- NULL
       LD[[chr]]$indices <- NULL
@@ -622,6 +645,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     rownames(res) <- res$rsids
     fit$stat <- res
     fit$method <- methods[method+1]
+    fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
     
   }
   return(fit)
@@ -638,7 +662,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=
                   vg=NULL, vb=NULL, ve=NULL, 
                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                   h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                  nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
+                  nub=NULL, nue=NULL, nit=NULL, method=NULL, formatLD=NULL, algorithm=NULL) {
   ids <- NULL
   if(is.matrix(y)) ids <- rownames(y)
   if(is.vector(y)) ids <- names(y)
@@ -678,7 +702,8 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=
   #print(sse_prior)
   #print(pi)
   
-  if(algorithm=="default") {
+  #if(algorithm=="default") {
+  if(formatLD=="dense") {
     fit <- .Call("_qgg_bayes",
                  y=y, 
                  W=split(W, rep(1:ncol(W), each = nrow(W))), 
@@ -716,7 +741,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n
                    vg=NULL, vb=NULL, ve=NULL, 
                    ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                    h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                   nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL) {
+                   nub=NULL, nue=NULL, nit=NULL, method=NULL, formatLD=NULL, algorithm=NULL) {
   
   ids <- NULL
   if(is.matrix(y)) ids <- rownames(y)
@@ -840,7 +865,8 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
                adjustE = adjustE,
                n=n,
                nit=nit,
-               method=as.integer(method))
+               method=as.integer(method),
+               algo=as.integer(algorithm))
   names(fit[[1]]) <- names(LDvalues)
   names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pim","r","b","d","param")
   return(fit)
@@ -1198,15 +1224,18 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   
   bm <- unlist(fit$bm)
   dm <- unlist(fit$dm)
-  selected <- dm>0
-  bm <- bm[selected]
-  dm <- dm[selected]
+  #selected <- dm>0
+  #bm <- bm[selected]
+  #dm <- dm[selected]
   marker <- data.frame(rsids=unlist(Glist$rsids),
                        chr=unlist(Glist$chr), pos=unlist(Glist$pos), 
                        ea=unlist(Glist$a1), nea=unlist(Glist$a2),
                        eaf=unlist(Glist$af),stringsAsFactors = FALSE)
   marker <- marker[marker$rsids%in%names(bm),]
-  fit$stat <- data.frame(marker,bm=bm[marker$rsids],stringsAsFactors = FALSE)
+  fit$stat <- data.frame(marker,bm=bm[marker$rsids],
+                         dm=dm[marker$rsids], stringsAsFactors = FALSE)
+  fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
+  fit$method <- methods[method+1]
   
   return(fit)
 }
