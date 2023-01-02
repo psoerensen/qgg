@@ -887,7 +887,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     if (method==0) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(mask[i]==false)   continue;
+        if(mask[i])   continue;
         lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         bn = rhs/lhs;
@@ -903,7 +903,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     if (method==1) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(mask[i]==false)   continue;
+        if(mask[i])   continue;
         lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
@@ -921,7 +921,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       dfb = 1.0 + nub;
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(mask[i]==false)   continue;
+        if(mask[i])   continue;
         ssb = b[i]*b[i];
         std::chi_squared_distribution<double> rchisq(dfb);
         chi2 = rchisq(gen);
@@ -943,7 +943,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       dfb = 1.0 + nub;
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(mask[i]==false)   continue;
+        if(mask[i])   continue;
         lhs = ww[i] + vei[i]/vbi[i];
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
@@ -1002,7 +1002,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(mask[i]==false)   continue;
+        if(mask[i])   continue;
         // version 1
         //rhs0 = 0.0;
         //rhs1 = r[i] + ww[i]*b[i];
@@ -1067,7 +1067,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
       
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(mask[i]==false)   continue;
+        if(mask[i])   continue;
         // variance class likelihood 
         rhs = r[i] + ww[i]*b[i];
         v0 = ww[i]*vei[i];
@@ -1191,7 +1191,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     if(updateE) {
       sse = 0.0;
       for ( int i = 0; i < m; i++) {
-        if(mask[i]==false)   continue;
+        if(mask[i])   continue;
         sse = sse + b[i] * (r[i] + wy[i]);
       }
       dfe = (double)n + nue;
@@ -1209,7 +1209,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     // Sample genetic variance
     ssg = 0.0;
     for ( int i = 0; i < m; i++) {
-      if(mask[i]==false)   continue;
+      if(mask[i])   continue;
       ssg = ssg + b[i] * (wy[i] -  r[i]);
     }
     //dfg = (double)n + nug;
