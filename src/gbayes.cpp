@@ -1190,6 +1190,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     if(updateE) {
       sse = 0.0;
       for ( int i = 0; i < m; i++) {
+        if(mask[i]==false)   continue;
         sse = sse + b[i] * (r[i] + wy[i]);
       }
       dfe = (double)n + nue;
@@ -1207,6 +1208,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     // Sample genetic variance
     ssg = 0.0;
     for ( int i = 0; i < m; i++) {
+      if(mask[i]==false)   continue;
       ssg = ssg + b[i] * (wy[i] -  r[i]);
     }
     //dfg = (double)n + nug;
