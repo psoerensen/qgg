@@ -755,7 +755,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
                                               std::vector<std::vector<double>> LDvalues, 
                                               std::vector<std::vector<int>> LDindices, 
                                               std::vector<double> b, 
-                                              std::vector<double> lambda, 
+                                              std::vector<double> lambda,
+                                              std::vector<bool> mask, 
                                               double yy, 
                                               std::vector<double> pi, 
                                               std::vector<double> gamma, 
@@ -796,7 +797,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
   std::vector<double> r(m),vei(m);
   
-  std::vector<bool> mask(m);
+  //std::vector<bool> mask(m);
   std::vector<double> dm(m),bm(m);
   std::vector<double> ves(nit),vbs(nit),vgs(nit),pis(nit);
   
@@ -806,12 +807,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   // Initialize variables
   for ( int i = 0; i < m; i++) {
-    mask[i]=false;
+    //mask[i]=false;
     //if(wy[i]==0) mask[i]=0;
     vbi[i]=vb;
     r[i] = wy[i];
     x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
-    if(wy[i]==0.0) mask[i]=true;
+    //if(wy[i]==0.0) mask[i]=true;
   }
   
   std::fill(bm.begin(), bm.end(), 0.0);
