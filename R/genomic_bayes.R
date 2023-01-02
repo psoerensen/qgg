@@ -312,7 +312,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
           if(updateE) ve <- fit[[chr]]$param[2]
           if(updatePi) pi <- fit[[chr]]$param[3]
         }
-        stop("Need to add ww to sbayes_sparse - use cvs function to get it")
+        stop("Need to add ww and mask to sbayes_sparse - use cvs function to get it")
         if(verbose) print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
         fit[[chr]] <- sbayes_sparse(yy=yy, 
                                     wy=wy,
@@ -441,7 +441,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       rsidsLD <- unlist(Glist$rsidsLD)
       m <- length(rsidsLD)
       b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
-      rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
+      mask <- matrix(TRUE,nrow=length(rsidsLD),ncol=nt)
+      rownames(b) <- rownames(wy) <- rownames(ww) <- rownames(mask) <- rsidsLD
       trait_names <- "bm"     
       
       stat <- stat[rownames(stat)%in%rsidsLD,]
@@ -450,6 +451,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       if(!is.null(stat$n)) n <- as.integer(median(stat$n))
       ww[rownames(stat),1] <-  stat$ww
       wy[rownames(stat),1] <- stat$wy
+      mask[rownames(stat),1] <- FALSE
       if(any(is.na(wy))) stop("Missing values in wy")
       if(any(is.na(ww))) stop("Missing values in ww")
       
@@ -469,8 +471,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       rsidsLD <- unlist(Glist$rsidsLD)
       m <- length(rsidsLD)
       b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
-      rownames(b) <- rownames(wy) <- rownames(ww) <- rsidsLD
-      colnames(b) <- colnames(wy) <- colnames(ww) <- trait_names
+      mask <- matrix(TRUE,nrow=length(rsidsLD),ncol=nt)
+      rownames(b) <- rownames(wy) <- rownames(ww) <- rownames(mask) <- rsidsLD
+      colnames(b) <- colnames(wy) <- colnames(ww) <- colnames(mask) <- trait_names
       
       rws <- rownames(stat$b)%in%rsidsLD
       if(is.null(stat$ww)) stat$ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
@@ -478,6 +481,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       if(!is.null(stat$n)) n <- as.integer(apply(stat$n[rws,],2,median))
       ww[rownames(stat$ww[rws,]),] <- stat$ww[rws,]
       wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
+      mask[rownames(stat$wy[rws,]),] <- FALSE
       if(any(is.na(wy))) stop("Missing values in wy")
       if(any(is.na(ww))) stop("Missing values in ww")
       
@@ -513,7 +517,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     ww=ww[rsidsLD,trait],
                                     b=b[rsidsLD,trait], 
                                     LDvalues=LD[[chr]]$values, 
-                                    LDindices=LD[[chr]]$indices, 
+                                    LDindices=LD[[chr]]$indices,
+                                    mask=mask[rsidsLD,trait],
                                     method=method, 
                                     nit=nit, 
                                     n=n[trait],
@@ -807,7 +812,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n
 
 # Single trait BLR using summary statistics and sparse LD provided in Glist 
 sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL, 
-                          LDvalues=NULL,LDindices=NULL, n=NULL, m=NULL,
+                          LDvalues=NULL,LDindices=NULL, n=NULL, m=NULL, mask=NULL,
                           vg=NULL, vb=NULL, ve=NULL, 
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, 
@@ -850,6 +855,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
                LDindices=LDindices, 
                b = b,
                lambda = lambda,
+               mask=mask,
                yy = yy,
                pi = pi,
                gamma = gamma,
