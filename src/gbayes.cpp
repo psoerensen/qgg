@@ -807,7 +807,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   // Initialize variables
   for ( int i = 0; i < m; i++) {
     mask[i]=1;
-    if(wy[i]==0) mask[i]=0;
+    //if(wy[i]==0) mask[i]=0;
     vbi[i]=vb;
     r[i] = wy[i];
     x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
