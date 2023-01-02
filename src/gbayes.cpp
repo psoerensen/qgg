@@ -806,12 +806,12 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   // Initialize variables
   for ( int i = 0; i < m; i++) {
-    mask[i]=false;
+    mask[i]=true;
     //if(wy[i]==0) mask[i]=0;
     vbi[i]=vb;
     r[i] = wy[i];
     x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
-    if(wy[i]==0.0) mask[i]=true;
+    if(wy[i]==0.0) mask[i]=false;
   }
   
   std::fill(bm.begin(), bm.end(), 0.0);
