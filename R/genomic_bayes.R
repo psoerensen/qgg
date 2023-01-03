@@ -955,7 +955,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
 
   # Prepare input
   b <- matrix(0, nrow=length(rsids), ncol=nt)
-  if(is.null(mask)) mask <- matrix(TRUE, nrow=length(rsids), ncol=nt)
+  if(is.null(mask)) mask <- matrix(FALSE, nrow=length(rsids), ncol=nt)
   rownames(b) <- rownames(mask) <- rsids
 
   if(is.null(trait)) trait <- 1
