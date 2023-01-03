@@ -180,7 +180,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
           }
           cls <- match(stat$rsids, Glist$rsids[[chr]])
           #af <- stat$eaf
-          af <- Glist$a1[[chr]][cls]
+          af <- Glist$af[[chr]][cls]
           if(scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], Glist$n, cls, af, scale, Slist)
           if(!scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=FALSE, Slist)
           grs <- do.call(cbind, grs)
