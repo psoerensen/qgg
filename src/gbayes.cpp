@@ -1390,7 +1390,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
     if (method==0) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(!mask[i])   continue;
+        if(mask[i])   continue;
         lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         bn = rhs/lhs;
@@ -1406,7 +1406,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
     if (method==1) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(!mask[i])   continue;
+        if(mask[i])   continue;
         lhs = ww[i] + vei[i]/vb;
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
@@ -1424,7 +1424,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
       dfb = 1.0 + nub;
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(!mask[i])   continue;
+        if(mask[i])   continue;
         ssb = b[i]*b[i];
         std::chi_squared_distribution<double> rchisq(dfb);
         chi2 = rchisq(gen);
@@ -1446,7 +1446,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
       dfb = 1.0 + nub;
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(!mask[i])   continue;
+        if(mask[i])   continue;
         lhs = ww[i] + vei[i]/vbi[i];
         rhs = r[i] + ww[i]*b[i];
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
@@ -1490,7 +1490,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(!mask[i])   continue;
+        if(mask[i])   continue;
         rhs = r[i] + ww[i]*b[i];
         v0 = ww[i]*vei[i];
         v1 = ww[i]*vei[i] + ww[i]*ww[i]*vb;
@@ -1545,7 +1545,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
     if (method==5) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        if(!mask[i])   continue;
+        if(mask[i])   continue;
         // variance class likelihood 
         rhs = r[i] + ww[i]*b[i];
         v0 = ww[i]*vei[i];
