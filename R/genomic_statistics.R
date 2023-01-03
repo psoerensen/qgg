@@ -522,8 +522,8 @@ adjStat <- function(stat = NULL, Glist = NULL, chr=NULL, statistics = "b",
   if(is.null(stat$p)) p <- pnorm(abs(stat$b/stat$seb),lower.tail=FALSE)
   if(is.data.frame(stat)) names(p) <- rownames(stat)
   
-  if(is.null(ldSets)) {p <- adjLD(Glist=Glist, stat=p, r2=r2, threshold=threshold)}
-  if(!is.null(ldSets)) {p <- adjLD(Glist=Glist, stat=p, r2=r2, threshold=threshold, ldSets=ldSets)}
+  if(is.null(ldSets)) {p <- adjLD(Glist=Glist, stat=p, r2=r2, chr=chr, threshold=threshold)}
+  if(!is.null(ldSets)) {p <- adjLD(Glist=Glist, stat=p, r2=r2, chr=chr, threshold=threshold, ldSets=ldSets)}
   
   p[p>0] <- 1
   if(is.null(header)) header <- c("rsids","chr","pos","ea","nea","eaf")
