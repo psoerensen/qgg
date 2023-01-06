@@ -144,7 +144,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    chr=NULL, rsids=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,formatLD="dense",
                    vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
-                   nug=4, nub=4, nue=4, verbose=FALSE,msize=100,
+                   nug=4, nub=4, nue=4, verbose=FALSE,msize=100, mask.rsids=NULL,
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="mcmc") {
@@ -452,6 +452,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       ww[rownames(stat),1] <-  stat$ww
       wy[rownames(stat),1] <- stat$wy
       mask[rownames(stat),1] <- FALSE
+      mask[rownames(mask)%in%mask.rsids,1] <- TRUE
       if(any(is.na(wy))) stop("Missing values in wy")
       if(any(is.na(ww))) stop("Missing values in ww")
       
@@ -482,6 +483,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       ww[rownames(stat$ww[rws,]),] <- stat$ww[rws,]
       wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
       mask[rownames(stat$wy[rws,]),] <- FALSE
+      mask[rownames(mask)%in%mask.rsids,] <- TRUE
+      
       if(any(is.na(wy))) stop("Missing values in wy")
       if(any(is.na(ww))) stop("Missing values in ww")
       
