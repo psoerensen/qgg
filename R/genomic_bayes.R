@@ -1046,6 +1046,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                          pi=pi,
                                          nue=nue,
                                          nub=nub,
+                                         ssb_prior=ssb_prior,
                                          updateB=updateB,
                                          updateE=updateE,
                                          updatePi=updatePi,
@@ -1146,7 +1147,16 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       rsidsLD <- Glist$rsidsLD[[chr]]
       rsidsLD <- rsidsLD[rsidsLD%in%rownames(b)]
       sets <- split(rsidsLD, ceiling(seq_along(rsidsLD) / msize))
-      
+      if(is.null(ssb_prior)) {
+        if(is.null(h2)) h2 <- 0.5
+        if(is.null(pi)) pi <- 0.001
+        if(is.null(vy)) vy <- 1
+        if(is.null(vg)) vg <- h2*vy
+        if(is.null(nub)) nub <- 4
+        ww <- 1/(stat$seb^2 + stat$b/stat$n)
+        mx <- sum(ww/mean(stat$n))
+        ssb_prior <- vy*h2*(nub+2)/mx/pi
+      }
       if(formatLD=="sparse") {
         sparseLD <- qgg:::getSparseLD(Glist=Glist,chr=chr)
       }
@@ -1214,6 +1224,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                        pi=pi,
                                        nue=nue,
                                        nub=nub,
+                                       ssb_prior=ssb_prior,
                                        updateB=updateB,
                                        updateE=updateE,
                                        updatePi=updatePi,
@@ -1310,7 +1321,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                          dm=dm[marker$rsids], stringsAsFactors = FALSE)
   fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
   fit$method <- methods[method+1]
-  
+  fit$mask <- mask
   return(fit)
 }
 
