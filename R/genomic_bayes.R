@@ -1147,16 +1147,16 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       rsidsLD <- Glist$rsidsLD[[chr]]
       rsidsLD <- rsidsLD[rsidsLD%in%rownames(b)]
       sets <- split(rsidsLD, ceiling(seq_along(rsidsLD) / msize))
-      if(is.null(ssb_prior)) {
-        h2 <- 0.5
-        pi <- 0.001
-        vy <- 1
-        vg <- h2*vy
-        nub <- 4
-        ww <- 1/(stat$seb^2 + stat$b/stat$n)
-        mx <- sum(ww/mean(stat$n))
-        ssb_prior <- vy*h2*(nub+2)/mx/pi
-      }
+      #if(is.null(ssb_prior)) {
+      #  h2 <- 0.5
+      #  pi <- 0.001
+      #  vy <- 1
+      #  vg <- h2*vy
+      #  nub <- 4
+      #  ww <- 1/(stat$seb^2 + stat$b/stat$n)
+      #  mx <- sum(ww/mean(stat$n))
+      #  ssb_prior <- vy*h2*(nub+2)/mx/pi
+      #}
       if(formatLD=="sparse") {
         sparseLD <- qgg:::getSparseLD(Glist=Glist,chr=chr)
       }
