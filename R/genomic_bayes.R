@@ -900,7 +900,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                  lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, formatLD="dense",
                  h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  adjustE=TRUE, models=NULL,
-                 checkConvergence=TRUE, maxZve=2, maxPi=0.01,
+                 checkConvergence=TRUE, convStatVe=2, convStatPi=0.01,
                  nug=4, nub=4, nue=4, verbose=FALSE,msize=100,threshold=NULL,
                  GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                  nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
@@ -1062,8 +1062,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
               
               # Check convergence            
               zve <- geweke.diag(fit$ves)$z
-              critve <- abs(zve)<maxZve
-              critpi <- (1-fit$pim[1])<maxPi
+              critve <- abs(zve)<convStatVe
+              critpi <- (1-fit$pim[1])<convStatPi
               converged <- critve & critpi
               
               if (!converged) {
@@ -1241,8 +1241,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             
             # Check convergence            
             zve <- geweke.diag(fit$ves)$z
-            critve <- abs(zve)<maxZve
-            critpi <- (1-fit$pim[1])<maxPi
+            critve <- abs(zve)<convStatVe
+            critpi <- (1-fit$pim[1])<convStatPi
             converged <- critve & critpi
             
             if (!converged) {
