@@ -144,10 +144,14 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    chr=NULL, rsids=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,formatLD="dense",
                    vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
-                   nug=4, nub=4, nue=4, verbose=FALSE,msize=100, mask.rsids=NULL,
+                   nug=4, nub=4, nue=4, verbose=FALSE,msize=100, mask=NULL,
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="mcmc") {
+  
+  # mask
+  mask.rsids <- unique(as.vector(apply(mask,2,function(x){as.vector(rownames(mask)[x])})))
+
   
   # Check methods
   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
