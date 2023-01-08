@@ -325,6 +325,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     LDindices=LD$indices, 
                                     method=method, 
                                     nit=nit_local, 
+                                    nburn=nburn, 
                                     n=n, 
                                     pi=pi,
                                     nue=nue, 
@@ -528,6 +529,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     mask=mask[rsidsLD,trait],
                                     method=method, 
                                     nit=nit, 
+                                    nburn=nburn, 
                                     n=n[trait],
                                     m=m,
                                     pi=pi,
@@ -824,7 +826,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, 
                           updateG=NULL, adjustE=NULL, models=NULL,
-                          nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
+                          nub=NULL, nue=NULL, nit=NULL, nburn=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
 
   if(is.null(m)) m <- length(LDvalues)
   vy <- yy/(n-1)
@@ -880,6 +882,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
                adjustE = adjustE,
                n=n,
                nit=nit,
+               nburn=nburn,
                method=as.integer(method),
                algo=as.integer(algorithm))
   names(fit[[1]]) <- names(LDvalues)
@@ -903,7 +906,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                  checkConvergence=TRUE, convStatVe=2, convStatPi=0.01,
                  nug=4, nub=4, nue=4, verbose=FALSE,msize=100,threshold=NULL,
                  GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
-                 nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
+                 nit=100, nburn=50, nit_local=NULL,nit_global=NULL,
                  method="bayesC", algorithm="mcmc") {
 
 
@@ -1048,6 +1051,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                          method=method,
                                          algorithm=algorithm,
                                          nit=nit,
+                                         nburn=nburn,
                                          n=n[trait],
                                          m=msize_set,
                                          pi=pi,
@@ -1113,7 +1117,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             bs[[i]] <- matrix(fit$bs,nrow=length(rsids))
             ds[[i]] <- matrix(fit$ds,nrow=length(rsids))
             rownames(bs[[i]]) <- rownames(ds[[i]]) <- rsids
-            colnames(bs[[i]]) <- colnames(ds[[i]]) <- 1:nit
+            colnames(bs[[i]]) <- colnames(ds[[i]]) <- 1:(nit+nburn)
             bs[[i]] <- bs[[i]][selected,]
             ds[[i]] <- ds[[i]][selected,]
           }
@@ -1226,6 +1230,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                        method=method,
                                        algorithm=algorithm,
                                        nit=nit,
+                                       nburn=nburn,
                                        n=n[trait],
                                        m=msize_set,
                                        pi=pi,
@@ -1295,7 +1300,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           bs[[chr]][[i]] <- matrix(fit$bs,nrow=length(rsids))
           ds[[chr]][[i]] <- matrix(fit$ds,nrow=length(rsids))
           rownames(bs[[chr]][[i]]) <- rownames(ds[[chr]][[i]]) <- rsids
-          colnames(bs[[chr]][[i]]) <- colnames(ds[[chr]][[i]]) <- 1:nit
+          colnames(bs[[chr]][[i]]) <- colnames(ds[[chr]][[i]]) <- 1:(nit+nburn)
           bs[[chr]][[i]] <- bs[[chr]][[i]][selected,]
           ds[[chr]][[i]] <- ds[[chr]][[i]][selected,]
         }
@@ -1379,7 +1384,7 @@ sbayes_region <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, mask=NULL,
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, 
                           updateG=NULL, adjustE=NULL, models=NULL,
-                          nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
+                          nub=NULL, nue=NULL, nit=NULL, nburn=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
   
   if(is.null(m)) m <- length(LDvalues)
   vy <- yy/(n-1)
@@ -1426,6 +1431,7 @@ sbayes_region <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, mask=NULL,
                adjustE = adjustE,
                n=n,
                nit=nit,
+               nburn=nburn,
                method=as.integer(method),
                algo=as.integer(algorithm))
   names(fit[[1]]) <- names(LDvalues)
