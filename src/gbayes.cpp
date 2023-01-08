@@ -774,6 +774,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
                                               bool adjustE,
                                               int n, 
                                               int nit,
+                                              int nburn,
                                               int method,
                                               int algo) {
   
@@ -799,7 +800,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   //std::vector<bool> mask(m);
   std::vector<double> dm(m),bm(m);
-  std::vector<double> ves(nit),vbs(nit),vgs(nit),pis(nit);
+  std::vector<double> ves(nit+nburn),vbs(nit+nburn),vgs(nit+nburn),pis(nit+nburn);
   
   std::vector<double> x2(m),vadj(m),vbi(m);
   std::vector<int> order(m);
@@ -881,7 +882,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   local_seed = rd();
   std::mt19937 gen(local_seed);
   
-  for ( int it = 0; it < nit; it++) {
+  for ( int it = 0; it < nit+nburn; it++) {
     
     // Compute marker effects (BLUP)
     if (method==0) {
@@ -1056,8 +1057,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         pi[1] = rg/(double)m;
         pi[0] = 1.0 - pi[1];
         pis[it] = pi[1];
-        pim[0] = pim[0] + pi[0];
-        pim[1] = pim[1] + pi[1];
+        if(it>nburn) pim[0] = pim[0] + pi[0];
+        if(it>nburn) pim[1] = pim[1] + pi[1];
       }
       
     }
@@ -1141,7 +1142,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         }
         for (int j = 0; j<nc ; j++) {
           pi[j] = pi[j]/pisum;
-          pim[j] = pim[j] + pi[j];
+          if(it>nburn) pim[j] = pim[j] + pi[j];
         }
       }
     }
@@ -1152,29 +1153,29 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     dfb = 0.0;
     if (method<4) {
       for ( int i = 0; i < m; i++) {
-        bm[i] = bm[i] + b[i];
+        if(it>nburn) bm[i] = bm[i] + b[i];
         ssb = ssb + b[i]*b[i];
         dfb = dfb + 1.0;
-        dm[i] = dm[i] + 1.0;
+        if(it>nburn) dm[i] = dm[i] + 1.0;
       }
     }
     if (method==4) {
       for ( int i = 0; i < m; i++) {
-        bm[i] = bm[i] + b[i];
+        if(it>nburn) bm[i] = bm[i] + b[i];
         if(d[i]==1)   {
           ssb = ssb + b[i]*b[i];
           dfb = dfb + 1.0;
-          dm[i] = dm[i] + 1.0;
+          if(it>nburn) dm[i] = dm[i] + 1.0;
         }
       }
     }
     if (method==5) {
       for ( int i = 0; i < m; i++) {
-        bm[i] = bm[i] + b[i];
+        if(it>nburn) bm[i] = bm[i] + b[i];
         if(d[i]>0)   {
           ssb = ssb + (b[i]*b[i])/gamma[d[i]];
           dfb = dfb + 1.0;
-          dm[i] = dm[i] + (double)d[i];
+          if(it>nburn) dm[i] = dm[i] + (double)d[i];
         }
       }
     }
@@ -1232,10 +1233,10 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   std::vector<std::vector<double>> result(11);
   result[0].resize(m);
   result[1].resize(m);
-  result[2].resize(nit);
-  result[3].resize(nit);
-  result[4].resize(nit);
-  result[5].resize(nit);
+  result[2].resize(nit+nburn);
+  result[3].resize(nit+nburn);
+  result[4].resize(nit+nburn);
+  result[5].resize(nit+nburn);
   result[6].resize(nc);
   result[7].resize(m);
   result[8].resize(m);
@@ -1246,7 +1247,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     result[0][i] = bm[i]/nit;
     result[1][i] = dm[i]/nit;
   }
-  for (int i=0; i < nit; i++) {
+  for (int i=0; i < nit+nburn; i++) {
     //result[2][i] = mus[i];
     result[2][i] = 0.0;
     result[3][i] = vbs[i];
