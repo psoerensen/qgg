@@ -798,7 +798,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
   std::vector<double> r(m),vei(m);
   
-  //std::vector<bool> mask(m);
   std::vector<double> dm(m),bm(m);
   std::vector<double> ves(nit+nburn),vbs(nit+nburn),vgs(nit+nburn),pis(nit+nburn);
   
@@ -808,12 +807,9 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   // Initialize variables
   for ( int i = 0; i < m; i++) {
-    //mask[i]=false;
-    //if(wy[i]==0) mask[i]=0;
     vbi[i]=vb;
     r[i] = wy[i];
     x2[i] = (wy[i]/ww[i])*(wy[i]/ww[i]);
-    //if(wy[i]==0.0) mask[i]=true;
   }
   
   std::fill(bm.begin(), bm.end(), 0.0);
@@ -833,19 +829,15 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     vei[i] = vadj[i]*vg + ve;
   }
   
-  // should be added as argument to function
-  //vy=yy/(n-1);
-  //nug=nub;
-  //ssg_prior=((nug-2.0)/nug)*vg;
   // initialize BayesL parameters
   //if (method==3) {
-    dfb = (nub - 2.0)/nub;
-    lambda2 = 2.0*(1.0 - dfb)/(dfb)*n;
-    shape0 = 1.1;
-    rate0 = (shape0 - 1.0) / lambda2;
-    for ( int i = 0; i < m; i++) {
-      lambda[i] = sqrt(lambda2); 
-    }
+  dfb = (nub - 2.0)/nub;
+  lambda2 = 2.0*(1.0 - dfb)/(dfb)*n;
+  shape0 = 1.1;
+  rate0 = (shape0 - 1.0) / lambda2;
+  for ( int i = 0; i < m; i++) {
+    lambda[i] = sqrt(lambda2); 
+  }
   //}
   for ( int i = 0; i < nc; i++) {
     vbscale[i]=gamma[i];
@@ -1031,7 +1023,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           bn = rnorm(gen);
           if(algo==2 && it<nburn) {
             bn = (1.0-p0)*bn;
-            //bn = (1.0-p0)*(rhs1/lhs1);
           }
         } 
         diff = (bn-b[i]);
@@ -1114,7 +1105,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
             std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
             bj = rnorm(gen);
             bn += probc[j]*bj;
-            //bn += probc[j]*(rhs/lhs);
           }
           }
         }
