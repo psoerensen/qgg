@@ -1386,105 +1386,6 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   
   for ( int it = 0; it < nit; it++) {
     
-    // Compute marker effects (BLUP)
-    if (method==0) {
-      for ( int isort = 0; isort < m; isort++) {
-        int i = order[isort];
-        if(mask[i])   continue;
-        lhs = ww[i] + vei[i]/vb;
-        rhs = r[i] + ww[i]*b[i];
-        bn = rhs/lhs;
-        diff = (bn-b[i]);
-        for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-        }
-        b[i] = bn;
-      }
-    }
-    
-    // Compute marker effects (BayesN or BayesRR)
-    if (method==1) {
-      for ( int isort = 0; isort < m; isort++) {
-        int i = order[isort];
-        if(mask[i])   continue;
-        lhs = ww[i] + vei[i]/vb;
-        rhs = r[i] + ww[i]*b[i];
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
-        bn = rnorm(gen);
-        diff = (bn-b[i]);
-        for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-        }
-        b[i] = bn;
-      }
-    }
-    
-    // Compute marker effects (BayesA)
-    if (method==2) {
-      dfb = 1.0 + nub;
-      for ( int isort = 0; isort < m; isort++) {
-        int i = order[isort];
-        if(mask[i])   continue;
-        ssb = b[i]*b[i];
-        std::chi_squared_distribution<double> rchisq(dfb);
-        chi2 = rchisq(gen);
-        vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
-        lhs = ww[i] + vei[i]/vbi[i];
-        rhs = r[i] + ww[i]*b[i];
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
-        bn = rnorm(gen);
-        diff = (bn-b[i]);
-        for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-        }
-        b[i] = bn;
-      }
-    }
-    
-    // Compute marker effects (BayesL)
-    if (method==3) {
-      dfb = 1.0 + nub;
-      for ( int isort = 0; isort < m; isort++) {
-        int i = order[isort];
-        if(mask[i])   continue;
-        lhs = ww[i] + vei[i]/vbi[i];
-        rhs = r[i] + ww[i]*b[i];
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
-        bn = rnorm(gen);
-        diff = (bn-b[i]);
-        for (size_t j = 0; j < LDindices[i].size(); j++) {
-          r[LDindices[i][j]] += -LDvalues[i][j]*diff;
-        }
-        b[i] = bn;
-        mu_tau=sqrt(vei[i])*lambda[i]/std::abs(b[i]);
-        lambda_tau=lambda2;  
-        std::normal_distribution<double> norm(0.0, 1.0);
-        z = norm(gen);
-        z2=z*z;
-        x_tau=mu_tau+0.5*mu_tau*mu_tau*z2/lambda_tau - 0.5*(mu_tau/lambda_tau)*sqrt(4*mu_tau*lambda_tau*z2+mu_tau*mu_tau*z2*z2);
-        std::uniform_real_distribution<double> runif(0.0, 1.0);
-        u = runif(gen);
-        tau = mu_tau*mu_tau/x_tau;
-        if(u <= mu_tau/(mu_tau+x_tau)) tau=x_tau;
-        vbin = tau;
-        if(vbin > 0)   vbi[i] = vbin;
-      }
-      // update hyperparameters
-      ssb = 0.0;
-      dfb = 0.0;
-      for ( int i = 0; i < m; i++) {
-        ssb = ssb + vbi[i]*vbi[i];
-        dfb = dfb + 1.0;
-      }
-      shape = shape0 + dfb;
-      rate = rate0 + ssb/ 2.0;
-      std::gamma_distribution<double> rgamma(shape, 1.0/rate);
-      lambda2 = rgamma(gen);
-      for ( int i = 0; i < m; i++) {
-        lambda[i] = sqrt(lambda2);
-      }
-    }
-    
 
     // Sample marker effects (BayesC)
     if (method==4) {
@@ -1509,7 +1410,6 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
           bn = rnorm(gen);
           if(algo==2 && it<500 ) {
             bn = (1.0-p0)*bn;
-            //bn = (1.0-p0)*(rhs1/lhs1);
           }
         } 
         diff = (bn-b[i]);
@@ -1664,13 +1564,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
     if(updateB) {
       vb = vbs[it]; 
     }
-    //if(updateB) {
-    //  std::chi_squared_distribution<double> rchisq(dfb+nub);
-    //  chi2 = rchisq(gen);
-    //  vb = (ssb + ssb_prior*nub)/chi2 ;
-    //  vbs[it] = vb;
-    //}
-    
+
     // Sample residual variance
     if(updateE) {
       sse = 0.0;
