@@ -1296,6 +1296,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
                                               bool adjustE,
                                               int n, 
                                               int nit,
+                                              int nburn,
                                               int method,
                                               int algo) {
   
@@ -1309,23 +1310,17 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
   double shape, shape0, rate, rate0, lambda2;
   
-  std::vector<double> vbscale(nc), pic(nc), pim(nc), probc(nc), logLc(nc);
+  std::vector<double> vbscale(nc), probc(nc), logLc(nc), pim(nc);
   double cumprobc, vbc, logLcAdj;
   
-  
-  std::vector<int> d(m);
-  
+  std::vector<int> d(m), order(m);
   std::vector<double> r(m),vei(m);
-  
-  //std::vector<int> mask(m);
-  std::vector<double> dm(m),bm(m),dcm(m);
-  std::vector<double> ves(nit),vbs(nit),vgs(nit),pis(nit);
-  
+  std::vector<double> dm(m),bm(m);
   std::vector<double> x2(m),vadj(m),vbi(m);
-  std::vector<int> order(m);
 
-  std::vector<std::vector<double>> bs(nit, std::vector<double>(m, 0.0));  
-  std::vector<std::vector<int>> ds(nit, std::vector<int>(m, 0));  
+  std::vector<double> ves(nit+nburn),vbs(nit+nburn),vgs(nit+nburn),pis(nit+nburn);
+  std::vector<std::vector<double>> bs(nit+nburn, std::vector<double>(m, 0.0));  
+  std::vector<std::vector<int>> ds(nit+nburn, std::vector<int>(m, 0));  
   
   // Initialize variables
   for ( int i = 0; i < m; i++) {
@@ -1336,7 +1331,6 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   
   std::fill(bm.begin(), bm.end(), 0.0);
   std::fill(dm.begin(), dm.end(), 0.0);
-  std::fill(dcm.begin(), dcm.end(), 0.0);
   std::fill(vbs.begin(), vbs.end(), 0.0);
   std::fill(vgs.begin(), vgs.end(), 0.0);
   std::fill(ves.begin(), ves.end(), 0.0);
@@ -1362,7 +1356,6 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   }
   for ( int i = 0; i < nc; i++) {
     vbscale[i]=gamma[i];
-    pic[i]=pi[i];
   }
   
   // Establish order of markers as they are entered into the model
@@ -1384,9 +1377,9 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   local_seed = rd();
   std::mt19937 gen(local_seed);
   
-  for ( int it = 0; it < nit; it++) {
+  
+  for ( int it = 0; it < nit+nburn; it++) {
     
-
     // Sample marker effects (BayesC)
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
@@ -1408,7 +1401,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
           lhs1 = ww[i] + vei[i]/vb;
           std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(vei[i]/lhs1));
           bn = rnorm(gen);
-          if(algo==2 && it<500 ) {
+          if(algo==2 && it<nburn ) {
             bn = (1.0-p0)*bn;
           }
         } 
@@ -1435,8 +1428,8 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
         pi[1] = rg/(double)m;
         pi[0] = 1.0 - pi[1];
         pis[it] = pi[1];
-        pim[0] = pim[0] + pi[0];
-        pim[1] = pim[1] + pi[1];
+        if(it>nburn) pim[0] = pim[0] + pi[0];
+        if(it>nburn) pim[1] = pim[1] + pi[1];
       }
       
     }
@@ -1483,7 +1476,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
           lhs =ww[i]+vei[i]/vbc;
           std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
           bn = rnorm(gen);
-          if(algo==2 && it<500) {
+          if(algo==2 && it<nburn) {
             bn=0.0;
             for (size_t j = 1; j < gamma.size(); j++) {
               vbc = vb * gamma[j];
@@ -1491,7 +1484,6 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
               std::normal_distribution<double> rnorm(rhs/lhs, sqrt(vei[i]/lhs));
               bj = rnorm(gen);
               bn += probc[j]*bj;
-              //bn += probc[j]*(rhs/lhs);
             }
           }
         }
@@ -1519,7 +1511,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
         }
         for (int j = 0; j<nc ; j++) {
           pi[j] = pi[j]/pisum;
-          pim[j] = pim[j] + pi[j];
+          if(it>nburn) pim[j] = pim[j] + pi[j];
         }
       }
     }
@@ -1529,30 +1521,29 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
     dfb = 0.0;
     if (method<4) {
       for ( int i = 0; i < m; i++) {
-        bm[i] = bm[i] + b[i];
+        if(it>nburn) bm[i] = bm[i] + b[i];
         ssb = ssb + b[i]*b[i];
         dfb = dfb + 1.0;
-        dm[i] = dm[i] + 1.0;
+        if(it>nburn) dm[i] = dm[i] + 1.0;
       }
     }
     if (method==4) {
       for ( int i = 0; i < m; i++) {
-        bm[i] = bm[i] + b[i];
+        if(it>nburn) bm[i] = bm[i] + b[i];
         if(d[i]==1)   {
           ssb = ssb + b[i]*b[i];
           dfb = dfb + 1.0;
-          dm[i] = dm[i] + 1.0;
+          if(it>nburn) dm[i] = dm[i] + 1.0;
         }
       }
     }
     if (method==5) {
       for ( int i = 0; i < m; i++) {
-        bm[i] = bm[i] + b[i];
+        if(it>nburn) bm[i] = bm[i] + b[i];
         if(d[i]>0)   {
           ssb = ssb + (b[i]*b[i])/gamma[d[i]];
           dfb = dfb + 1.0;
-          dm[i] = dm[i] + 1.0;
-          dcm[i] = dcm[i] + (double)d[i];
+          if(it>nburn) dm[i] = dm[i] + 1.0;
         }
       }
     }
@@ -1610,22 +1601,22 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   
   result[0].resize(m);
   result[1].resize(m);
-  result[2].resize(nit);
-  result[3].resize(nit);
-  result[4].resize(nit);
-  result[5].resize(nit);
+  result[2].resize(nit+nburn);
+  result[3].resize(nit+nburn);
+  result[4].resize(nit+nburn);
+  result[5].resize(nit+nburn);
   result[6].resize(nc);
   result[7].resize(m);
   result[8].resize(m);
   result[9].resize(m);
   result[10].resize(3);
-  result[11].resize(nit*m);
-  result[12].resize(nit*m);
+  result[11].resize((nit+nburn)*m);
+  result[12].resize((nit+nburn)*m);
   for (int i=0; i < m; i++) {
     result[0][i] = bm[i]/nit;
     result[1][i] = dm[i]/nit;
   }
-  for (int i=0; i < nit; i++) {
+  for (int i=0; i < nit+nburn; i++) {
     //result[2][i] = mus[i];
     result[2][i] = 0.0;
     result[3][i] = vbs[i];
@@ -1645,7 +1636,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   result[10][1] = ve;
   result[10][2] = pi[0];
 
-  for ( int it = 0; it < nit; it++) {
+  for ( int it = 0; it < nit+nburn; it++) {
     for ( int i = 0; i < m; i++) {
       result[11][it*m + i] = bs[it][i];
       result[12][it*m + i] = (double)ds[it][i];
