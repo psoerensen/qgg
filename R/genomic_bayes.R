@@ -1334,6 +1334,18 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
   fit$method <- methods[method+1]
   fit$mask <- mask
+  zve <- sapply(fit$ves,function(x){geweke.diag(x[nburn:length(x)])$z})
+  zvg <- sapply(fit$vgs,function(x){geweke.diag(x[nburn:length(x)])$z})
+  zvb <- sapply(fit$vbs,function(x){geweke.diag(x[nburn:length(x)])$z})
+  ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
+  vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
+  vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
+  pi <- sapply(fit$pim,function(x){1-x[1]})
+  fit$region <-  NULL
+  fit$region$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb)  
+  fit$region$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi)  
+  fit$ve <- mean(ve)
+  fit$vg <- sum(vg)
   return(fit)
 }
 
