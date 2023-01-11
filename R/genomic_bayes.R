@@ -1065,7 +1065,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                          adjustE=adjustE)
               
               # Check convergence            
-              zve <- geweke.diag(fit$ves[nburn:length(x)])$z
+              zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
               critve <- abs(zve)<convStatVe
               critpi <- (1-fit$pim[1])<convStatPi
               converged <- critve & critpi
@@ -1249,7 +1249,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             #   }
             
             # Check convergence            
-            zve <- geweke.diag(fit$ves[nburn:length(x)])$z
+            zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
             critve <- abs(zve)<convStatVe
             critpi <- (1-fit$pim[1])<convStatPi
             converged <- critve & critpi
