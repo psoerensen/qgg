@@ -900,7 +900,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
 gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
                  chr=NULL, rsids=NULL, ids=NULL, b=NULL, bm=NULL, seb=NULL, mask=NULL, LD=NULL, n=NULL,
                  vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL,
-                 lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, formatLD="dense",
+                 lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, formatLD="dense", pruneLD=TRUE, r2=0.05, checkLD=TRUE,
                  h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  adjustE=TRUE, models=NULL,
                  checkConvergence=TRUE, convStatVe=2, convStatPi=0.01,
@@ -1065,7 +1065,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                          adjustE=adjustE)
               
               # Check convergence            
-              zve <- geweke.diag(fit$ves)$z
+              zve <- geweke.diag(fit$ves[nburn:length(x)])$z
               critve <- abs(zve)<convStatVe
               critpi <- (1-fit$pim[1])<convStatPi
               converged <- critve & critpi
@@ -1077,15 +1077,19 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                 W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
                 B <- crossprod(scale(W))/(length(ids)-1)
                 if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
-                pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=0.1, thold=1) 
-                mask[pruned,trait] <- TRUE
-                
-                badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
-                                      msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
-                z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
-                outliers <- names(z[abs(z)>1.96])
-                mask[outliers,trait] <- TRUE
-                
+                if(pruneLD) {
+                  pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
+                  mask[pruned,trait] <- TRUE
+                }
+
+                if(checkLD) { 
+                  badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
+                                        msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
+                  z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
+                  outliers <- names(z[abs(z)>1.96])
+                  mask[outliers,trait] <- TRUE
+                }
+
               }
             }
             
@@ -1245,7 +1249,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             #   }
             
             # Check convergence            
-            zve <- geweke.diag(fit$ves)$z
+            zve <- geweke.diag(fit$ves[nburn:length(x)])$z
             critve <- abs(zve)<convStatVe
             critpi <- (1-fit$pim[1])<convStatPi
             converged <- critve & critpi
@@ -1257,15 +1261,18 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
               W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
               B <- crossprod(scale(W))/(length(ids)-1)
               if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
-              pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=0.1, thold=1) 
-              mask[pruned,trait] <- TRUE
-              
-              badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
-                                    msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
-              z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
-              outliers <- names(z[abs(z)>1.96])
-              mask[outliers,trait] <- TRUE
-              
+              if(pruneLD) {
+                pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
+                mask[pruned,trait] <- TRUE
+              }
+              if(checkLD) {
+                badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
+                                      msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
+                z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
+                outliers <- names(z[abs(z)>1.96])
+                mask[outliers,trait] <- TRUE
+              }
+
             }
           }
         }
@@ -1341,9 +1348,9 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
   vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
   pi <- sapply(fit$pim,function(x){1-x[1]})
-  fit$region <-  NULL
-  fit$region$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb)  
-  fit$region$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi)  
+  #fit$region <-  NULL
+  fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb)  
+  fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi)  
   fit$ve <- mean(ve)
   fit$vg <- sum(vg)
   return(fit)
