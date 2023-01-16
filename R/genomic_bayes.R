@@ -150,6 +150,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    method="mixed", algorithm="mcmc") {
   
   # mask
+  mask.rsids <- NULL
   if(!is.null(mask)) mask.rsids <- unique(as.vector(apply(mask,2,function(x){as.vector(rownames(mask)[x])})))
 
   
@@ -457,7 +458,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       ww[rownames(stat),1] <-  stat$ww
       wy[rownames(stat),1] <- stat$wy
       mask[rownames(stat),1] <- FALSE
-      mask[rownames(mask)%in%mask.rsids,1] <- TRUE
+      if(!is.null(mask.rsids)) mask[rownames(mask)%in%mask.rsids,1] <- TRUE
       if(any(is.na(wy))) stop("Missing values in wy")
       if(any(is.na(ww))) stop("Missing values in ww")
       
@@ -488,7 +489,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       ww[rownames(stat$ww[rws,]),] <- stat$ww[rws,]
       wy[rownames(stat$wy[rws,]),] <- stat$wy[rws,]
       mask[rownames(stat$wy[rws,]),] <- FALSE
-      mask[rownames(mask)%in%mask.rsids,] <- TRUE
+      if(!is.null(mask.rsids)) mask[rownames(mask)%in%mask.rsids,] <- TRUE
       
       if(any(is.na(wy))) stop("Missing values in wy")
       if(any(is.na(ww))) stop("Missing values in ww")
