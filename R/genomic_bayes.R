@@ -150,7 +150,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    method="mixed", algorithm="mcmc") {
   
   # mask
-  mask.rsids <- unique(as.vector(apply(mask,2,function(x){as.vector(rownames(mask)[x])})))
+  if(!is.null(mask)) mask.rsids <- unique(as.vector(apply(mask,2,function(x){as.vector(rownames(mask)[x])})))
 
   
   # Check methods
