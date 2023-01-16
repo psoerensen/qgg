@@ -565,6 +565,30 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$stat <- res
     fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
     fit$method <- methods[method+1]
+    
+    fit$ves <- lapply(fit[1:22],function(x){x$ves})
+    fit$vgs <- lapply(fit[1:22],function(x){x$vgs})
+    fit$vbs <- lapply(fit[1:22],function(x){x$vbs})
+    fit$pim <- lapply(fit[1:22],function(x){x$pim})
+    fit$param <- lapply(fit[1:22],function(x){x$param})
+    
+    fit$mask <- mask
+    zve <- sapply(fit$ves,function(x){geweke.diag(x[nburn:length(x)])$z})
+    zvg <- sapply(fit$vgs,function(x){geweke.diag(x[nburn:length(x)])$z})
+    zvb <- sapply(fit$vbs,function(x){geweke.diag(x[nburn:length(x)])$z})
+    ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
+    vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
+    vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
+    pi <- sapply(fit$pim,function(x){1-x[1]})
+    fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb)  
+    fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi)  
+    fit$ve <- mean(ve)
+    fit$vg <- sum(vg)
+    fit[1:22] <- NULL
+    
+    
+    
+    
   }
   
   # fit$b vector or matrix (m or mxt)
