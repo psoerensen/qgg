@@ -1006,7 +1006,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     pim <- vector(mode="list",length=length(sets))
     
     chr <- unlist(Glist$chr)
-    chrSets <- qgg:::mapSets(sets=sets, Glist=Glist, index=FALSE)
+    chrSets <- qgg:::mapSets(sets=sets, Glist=Glist, index=TRUE)
     chrSets <- sapply(chrSets,function(x){as.numeric(unique(chr[x]))})
     chromosomes <- unique(chrSets)
     
@@ -1022,7 +1022,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       # BLR model for each set
       for (i in 1:length(sets)) {
         
-        if(chrSets[i]==chr) {
+        if(chrSets[[i]]==chr) {
           message(paste("Processing region:",i))
           rsids <- sets[[i]]
           
