@@ -1006,7 +1006,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     pim <- vector(mode="list",length=length(sets))
     
     chr <- unlist(Glist$chr)
-    chrSets <- qgg:::mapSets(sets=sets, Glist=Glist)
+    chrSets <- qgg:::mapSets(sets=sets, Glist=Glist, index=FALSE)
     chrSets <- sapply(chrSets,function(x){as.numeric(unique(chr[x]))})
     chromosomes <- unique(chrSets)
     
