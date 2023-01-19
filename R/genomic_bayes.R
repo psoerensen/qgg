@@ -1013,7 +1013,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     if(is.null(ids)) ids <- Glist$idsLD
     if(is.null(ids)) ids <- Glist$ids
     
-    for (chr in chromosomes) {
+    #for (chr in chromosomes) {
       
       message(paste("Processing chromosome:",chr))
       if(formatLD=="sparse") {
@@ -1022,7 +1022,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       # BLR model for each set
       for (i in 1:length(sets)) {
         
-        if(chrSets[[i]]==chr) {
+        #if(chrSets[[i]]==chr) {
+          chr <- chrSets[[i]]
           message(paste("Processing region:",i))
           rsids <- sets[[i]]
           
@@ -1044,6 +1045,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             msize_set <- length(rsids)
           }
           
+                  
           if(formatLD=="sparse") {
             B <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
             if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
@@ -1092,9 +1094,9 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
               # Check convergence            
               zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
               critve <- abs(zve)<convStatVe
-              critpi <- (1-fit$pim[1])<convStatPi
+              critpi <- (1-fit$pim[1]) < convStatPi
               converged <- critve & critpi
-              
+
               if (!converged) {
                 message("")
                 message(paste("Region not converged in attempt:",trial))
@@ -1152,9 +1154,9 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           }
           names(bm[[i]]) <- names(dm[[i]]) <- rsids
 
-        }
+        #}
       }
-    }
+    #}
     fit <- NULL
     fit$bm <- bm
     fit$dm <- dm
