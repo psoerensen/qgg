@@ -968,7 +968,6 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       stat$wy <- as.matrix(stat$wy)
       rownames(stat$wy) <- rsids
     }
-    
   }
   if(!is.data.frame(stat) && is.list(stat)) {
     nt <- ncol(stat$b)
@@ -1013,150 +1012,139 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     if(is.null(ids)) ids <- Glist$idsLD
     if(is.null(ids)) ids <- Glist$ids
     
-    #for (chr in chromosomes) {
+    message(paste("Processing chromosome:",chr))
+    if(formatLD=="sparse") {
+      sparseLD <- qgg:::getSparseLD(Glist=Glist,chr=chr)
+    }
+    # BLR model for each set
+    for (i in 1:length(sets)) {
       
-      message(paste("Processing chromosome:",chr))
-      if(formatLD=="sparse") {
-        sparseLD <- qgg:::getSparseLD(Glist=Glist,chr=chr)
+      chr <- chrSets[[i]]
+      rsids <- sets[[i]]
+      message(paste("Processing region:",i,"on chromosome:",chr))
+      
+      pos <- qgg:::getPos(Glist=Glist, chr=chr, rsids=rsids)
+      message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
+      if(!is.null(Glist$map)) map <- qgg:::getMap(Glist=Glist, chr=chr, rsids=rsids)
+      if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
+      
+      if(formatLD=="dense") {
+        W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
+        B <- crossprod(scale(W))/(length(ids)-1)
+        if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+        LD <- NULL
+        LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+        LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
+        rsids <- colnames(B)
+        names(LD$values) <- rsids
+        names(LD$indices) <- rsids
+        msize_set <- length(rsids)
       }
-      # BLR model for each set
-      for (i in 1:length(sets)) {
+      
+      
+      if(formatLD=="sparse") {
+        B <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
+        if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+        LD <- NULL
+        LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+        LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
+        rsids <- colnames(B)
+        names(LD$values) <- rsids
+        names(LD$indices) <- rsids
+        msize_set <- length(rsids)
+      }
+      
+      ntrial <- 2
+      converged <- FALSE
+      
+      for (trial in 1:ntrial) {
         
-        #if(chrSets[[i]]==chr) {
-          chr <- chrSets[[i]]
-          message(paste("Processing region:",i))
-          rsids <- sets[[i]]
+        if (!converged) {
           
-          pos <- qgg:::getPos(Glist=Glist, chr=chr, rsids=rsids)
-          message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
-          if(!is.null(Glist$map)) map <- qgg:::getMap(Glist=Glist, chr=chr, rsids=rsids)
-          if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
+          fit <- qgg:::sbayes_region(yy=yy[trait],
+                                     wy=stat$wy[rsids,trait],
+                                     ww=stat$ww[rsids,trait],
+                                     b=b[rsids,trait],
+                                     mask=mask[rsids,trait],
+                                     LDvalues=LD$values,
+                                     LDindices=LD$indices,
+                                     method=method,
+                                     algorithm=algorithm,
+                                     nit=nit,
+                                     nburn=nburn,
+                                     n=n[trait],
+                                     m=msize_set,
+                                     pi=pi,
+                                     nue=nue,
+                                     nub=nub,
+                                     ssb_prior=ssb_prior,
+                                     updateB=updateB,
+                                     updateE=updateE,
+                                     updatePi=updatePi,
+                                     updateG=updateG,
+                                     adjustE=adjustE)
           
-          if(formatLD=="dense") {
+          # Check convergence            
+          zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
+          critve <- abs(zve)<convStatVe
+          critpi <- (1-fit$pim[1]) < convStatPi
+          converged <- critve & critpi
+          
+          if (!converged) {
+            message("")
+            message(paste("Region not converged in attempt:",trial))
+            message(paste("Pi:",1-fit$pim[1]))
+            message(paste("Zve:",zve))
             W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
             B <- crossprod(scale(W))/(length(ids)-1)
             if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
-            LD <- NULL
-            LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
-            LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
-            rsids <- colnames(B)
-            names(LD$values) <- rsids
-            names(LD$indices) <- rsids
-            msize_set <- length(rsids)
-          }
-          
-                  
-          if(formatLD=="sparse") {
-            B <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
-            if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
-            LD <- NULL
-            LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
-            LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
-            rsids <- colnames(B)
-            names(LD$values) <- rsids
-            names(LD$indices) <- rsids
-            msize_set <- length(rsids)
-            #LD <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
-            #rsids <- LD$rsids
-            #msize <- length(rsids)
-          }
-          
-          ntrial <- 2
-          converged <- FALSE
-
-          for (trial in 1:ntrial) {
-            
-            if (!converged) {
-              
-              fit <- qgg:::sbayes_region(yy=yy[trait],
-                                         wy=stat$wy[rsids,trait],
-                                         ww=stat$ww[rsids,trait],
-                                         b=b[rsids,trait],
-                                         mask=mask[rsids,trait],
-                                         LDvalues=LD$values,
-                                         LDindices=LD$indices,
-                                         method=method,
-                                         algorithm=algorithm,
-                                         nit=nit,
-                                         nburn=nburn,
-                                         n=n[trait],
-                                         m=msize_set,
-                                         pi=pi,
-                                         nue=nue,
-                                         nub=nub,
-                                         ssb_prior=ssb_prior,
-                                         updateB=updateB,
-                                         updateE=updateE,
-                                         updatePi=updatePi,
-                                         updateG=updateG,
-                                         adjustE=adjustE)
-              
-              # Check convergence            
-              zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
-              critve <- abs(zve)<convStatVe
-              critpi <- (1-fit$pim[1]) < convStatPi
-              converged <- critve & critpi
-
-              if (!converged) {
-                message("")
-                message(paste("Region not converged in attempt:",trial))
-                
-                W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
-                B <- crossprod(scale(W))/(length(ids)-1)
-                if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
-                if(pruneLD) {
-                  pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
-                  mask[pruned,trait] <- TRUE
-                }
-
-                if(checkLD) { 
-                  badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
-                                        msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
-                  z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
-                  outliers <- names(z[abs(z)>1.96])
-                  mask[outliers,trait] <- TRUE
-                }
-
-              }
+            if(pruneLD) {
+              pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
+              mask[pruned,trait] <- TRUE
             }
             
+            if(checkLD) { 
+              badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
+                                    msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
+              z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
+              outliers <- names(z[abs(z)>1.96])
+              mask[outliers,trait] <- TRUE
+            }
           }
-          
-          # Make plots to monitor convergence
-          if(verbose) {
-            layout(matrix(1:4,ncol=2))
-            pipsets <- qgg:::splitWithOverlap(1:length(rsids),100,99)
-            #pip <- sapply(pipsets,function(x){sum(fit$dm[x])})
-            pip <- fit$dm
-            plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
-            plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
-            hist(fit$ves, main="Ve", xlab="")
-            plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
-            abline(h=0,v=0, lwd=2, col=2, lty=2)
-          }
-
-          # Save results
-          bm[[i]] <- fit$bm
-          dm[[i]] <- fit$dm
-          pim[[i]] <- fit$pim
-          ves[[i]] <- fit$ves
-          vbs[[i]] <- fit$vbs
-          vgs[[i]] <- fit$vgs
-          selected <- NULL
-          if(!is.null(threshold)) selected <- fit$dm>=threshold
-          if(any(selected)) {
-            bs[[i]] <- matrix(fit$bs,nrow=length(rsids))
-            ds[[i]] <- matrix(fit$ds,nrow=length(rsids))
-            rownames(bs[[i]]) <- rownames(ds[[i]]) <- rsids
-            colnames(bs[[i]]) <- colnames(ds[[i]]) <- 1:(nit+nburn)
-            bs[[i]] <- bs[[i]][selected,]
-            ds[[i]] <- ds[[i]][selected,]
-          }
-          names(bm[[i]]) <- names(dm[[i]]) <- rsids
-
-        #}
+        }
       }
-    #}
+      
+      # Make plots to monitor convergence
+      if(verbose) {
+        layout(matrix(1:4,ncol=2))
+        pipsets <- qgg:::splitWithOverlap(1:length(rsids),100,99)
+        pip <- fit$dm
+        plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
+        plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
+        hist(fit$ves, main="Ve", xlab="")
+        plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
+        abline(h=0,v=0, lwd=2, col=2, lty=2)
+      }
+      
+      # Save results
+      bm[[i]] <- fit$bm
+      dm[[i]] <- fit$dm
+      pim[[i]] <- fit$pim
+      ves[[i]] <- fit$ves
+      vbs[[i]] <- fit$vbs
+      vgs[[i]] <- fit$vgs
+      selected <- NULL
+      if(!is.null(threshold)) selected <- fit$dm>=threshold
+      if(any(selected)) {
+        bs[[i]] <- matrix(fit$bs,nrow=length(rsids))
+        ds[[i]] <- matrix(fit$ds,nrow=length(rsids))
+        rownames(bs[[i]]) <- rownames(ds[[i]]) <- rsids
+        colnames(bs[[i]]) <- colnames(ds[[i]]) <- 1:(nit+nburn)
+        bs[[i]] <- bs[[i]][selected,]
+        ds[[i]] <- ds[[i]][selected,]
+      }
+      names(bm[[i]]) <- names(dm[[i]]) <- rsids
+    }
     fit <- NULL
     fit$bm <- bm
     fit$dm <- dm
