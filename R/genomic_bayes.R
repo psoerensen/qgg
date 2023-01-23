@@ -569,6 +569,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$ves <- lapply(fit[1:22],function(x){x$ves})
     fit$vgs <- lapply(fit[1:22],function(x){x$vgs})
     fit$vbs <- lapply(fit[1:22],function(x){x$vbs})
+    fit$pis <- lapply(fit[1:22],function(x){x$pis})
     fit$pim <- lapply(fit[1:22],function(x){x$pim})
     fit$param <- lapply(fit[1:22],function(x){x$param})
     
@@ -576,11 +577,12 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     zve <- sapply(fit$ves,function(x){geweke.diag(x[nburn:length(x)])$z})
     zvg <- sapply(fit$vgs,function(x){geweke.diag(x[nburn:length(x)])$z})
     zvb <- sapply(fit$vbs,function(x){geweke.diag(x[nburn:length(x)])$z})
+    zpi <- sapply(fit$pis,function(x){geweke.diag(x[nburn:length(x)])$z})
     ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
     vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
     vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
     pi <- sapply(fit$pim,function(x){1-x[1]})
-    fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb)  
+    fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi)  
     fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi)  
     fit$ve <- mean(ve)
     fit$vg <- sum(vg)
@@ -837,6 +839,7 @@ sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n
   names(fit[[1]]) <- rownames(LD)
   if(!is.null(W)) fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
   names(fit[[7]]) <- ids
+  stop("check fit names")
   names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pi","r","param","b")
   
   return(fit)
@@ -911,7 +914,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
                method=as.integer(method),
                algo=as.integer(algorithm))
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pim","r","b","d","param")
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
   return(fit)
 }
 
@@ -928,7 +931,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                  lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, formatLD="dense", pruneLD=TRUE, r2=0.05, checkLD=TRUE,
                  h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  adjustE=TRUE, models=NULL,
-                 checkConvergence=TRUE, convStatVe=2, convStatPi=0.01,
+                 checkConvergence=TRUE, critVe=3, critVg=5, critVb=5, critPi=3,
                  nug=4, nub=4, nue=4, verbose=FALSE,msize=100,threshold=NULL,
                  GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                  nit=100, nburn=50, nit_local=NULL,nit_global=NULL,
@@ -1004,7 +1007,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     
     # Prepare output
     bm <- dm <- vector(mode="list",length=length(sets))
-    ves <- vgs <- vbs <- bs <- ds <- vector(mode="list",length=length(sets))
+    ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=length(sets))
     pim <- vector(mode="list",length=length(sets))
     
     chr <- unlist(Glist$chr)
@@ -1089,15 +1092,20 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           
           # Check convergence            
           zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
-          critve <- abs(zve)<convStatVe
-          critpi <- (1-fit$pim[1]) < convStatPi
-          converged <- critve & critpi
+          zvg <- geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
+          zvb <- geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
+          zpi <- geweke.diag(fit$pis[nburn:length(fit$pis)])$z
+          critve <- abs(zve)<critVe
+          critvg <- abs(zvg)<critVg
+          critvb <- abs(zvb)<critVb
+          critpi <- abs(zpi)<critPi
+          converged <- critve & critvg & critvb & critpi
           
           if (!converged) {
             message("")
             message(paste("Region not converged in attempt:",trial))
-            message(paste("Pi:",1-fit$pim[1]))
             message(paste("Zve:",zve))
+            message(paste("Zpi:",zpi))
             W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
             B <- crossprod(scale(W))/(length(ids)-1)
             if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
@@ -1136,6 +1144,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       ves[[i]] <- fit$ves
       vbs[[i]] <- fit$vbs
       vgs[[i]] <- fit$vgs
+      pis[[i]] <- fit$pis
       selected <- NULL
       if(!is.null(threshold)) selected <- fit$dm>=threshold
       if(any(selected)) {
@@ -1155,6 +1164,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     fit$ves <- ves
     fit$vbs <- vbs
     fit$vgs <- vgs
+    fit$pis <- pis
     if(!is.null(threshold)) fit$bs <- bs
     if(!is.null(threshold)) fit$ds <- ds
     
@@ -1165,7 +1175,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     
     # Prepare output
     bm <- dm <- vector(mode="list",length=22)
-    ves <- vgs <- vbs <- bs <- ds <- vector(mode="list",length=22)
+    ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=22)
     pim <- vector(mode="list",length=22)
     
     chromosomes <- 1:22
@@ -1268,9 +1278,14 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             
             # Check convergence            
             zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
-            critve <- abs(zve)<convStatVe
-            critpi <- (1-fit$pim[1])<convStatPi
-            converged <- critve & critpi
+            zvg <- geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
+            zvb <- geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
+            zpi <- geweke.diag(fit$pis[nburn:length(fit$pis)])$z
+            critve <- abs(zve)<critVe
+            critvg <- abs(zvg)<critVg
+            critvb <- abs(zvb)<critVb
+            critpi <- abs(zpi)<critPi
+            converged <- critve & critvg & critvb & critpi
             
             if (!converged) {
               message("")
@@ -1315,6 +1330,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         ves[[chr]][[i]] <- fit$ves
         vbs[[chr]][[i]] <- fit$vbs
         vgs[[chr]][[i]] <- fit$vgs
+        pis[[chr]][[i]] <- fit$pis
         #bs[[chr]][[i]] <- matrix(fit$bs,nrow=length(rsids))
         #ds[[chr]][[i]] <- matrix(fit$ds,nrow=length(rsids))
         #rownames(bs[[chr]][[i]]) <- rownames(ds[[chr]][[i]]) <- rsids
@@ -1340,6 +1356,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     fit$ves <- unlist(ves, recursive=FALSE)
     fit$vbs <- unlist(vbs, recursive=FALSE)
     fit$vgs <- unlist(vgs, recursive=FALSE)
+    fit$pis <- unlist(pis, recursive=FALSE)
     if(!is.null(threshold)) fit$bs <- unlist(bs, recursive=FALSE)
     if(!is.null(threshold)) fit$ds <- unlist(ds, recursive=FALSE)
   }
@@ -1362,12 +1379,13 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   zve <- sapply(fit$ves,function(x){geweke.diag(x[nburn:length(x)])$z})
   zvg <- sapply(fit$vgs,function(x){geweke.diag(x[nburn:length(x)])$z})
   zvb <- sapply(fit$vbs,function(x){geweke.diag(x[nburn:length(x)])$z})
+  zpi <- sapply(fit$pis,function(x){geweke.diag(x[nburn:length(x)])$z})
   ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
   vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
   vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
   pi <- sapply(fit$pim,function(x){1-x[1]})
   #fit$region <-  NULL
-  fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb)  
+  fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi)  
   fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi)  
   fit$ve <- mean(ve)
   fit$vg <- sum(vg)
@@ -1472,7 +1490,7 @@ sbayes_region <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, mask=NULL,
                method=as.integer(method),
                algo=as.integer(algorithm))
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pim","r","b","d","param","bs","ds")
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param","bs","ds")
   return(fit)
 }
 
@@ -1764,6 +1782,7 @@ computeB <- function(wy=NULL, yy=NULL, b=NULL, WW=NULL, n=NULL,
                method=as.integer(method))
   
   names(fit[[1]]) <- rownames(WW)
+  stop("Check names of fit again")
   names(fit) <- c("bm","dm","mus","vbs","ves","pis","wy","r","param","b")
   
   return(fit)
