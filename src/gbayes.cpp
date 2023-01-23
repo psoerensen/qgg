@@ -1134,6 +1134,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           pi[j] = pi[j]/pisum;
           if(it>nburn) pim[j] = pim[j] + pi[j];
         }
+        pis[it] = 1.0 - pi[0];
       }
     }
     
@@ -1227,8 +1228,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   result[3].resize(nit+nburn);
   result[4].resize(nit+nburn);
   result[5].resize(nit+nburn);
-  result[6].resize(nc);
-  result[7].resize(m);
+  result[6].resize(nit+nburn);
+  result[7].resize(nc);
   result[8].resize(m);
   result[9].resize(m);
   result[10].resize(3);
@@ -1243,15 +1244,16 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
     result[3][i] = vbs[i];
     result[4][i] = vgs[i];
     result[5][i] = ves[i];
+    result[6][i] = pis[i];
   }
   for (int j=0; j < nc; j++) {
-    result[6][j] = pim[j]/nit;
+    result[7][j] = pim[j]/nit;
   }  
   
   for (int i=0; i < m; i++) {
-    result[7][i] = r[i];
-    result[8][i] = b[i];
-    result[9][i] = d[i];
+    result[8][i] = r[i];
+    result[9][i] = b[i];
+    //result[9][i] = d[i];
   }
   result[10][0] = vb;
   result[10][1] = ve;
@@ -1504,6 +1506,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
           pi[j] = pi[j]/pisum;
           if(it>nburn) pim[j] = pim[j] + pi[j];
         }
+        pis[it] = 1.0 - pi[0];
       }
     }
     
@@ -1596,8 +1599,8 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   result[3].resize(nit+nburn);
   result[4].resize(nit+nburn);
   result[5].resize(nit+nburn);
-  result[6].resize(nc);
-  result[7].resize(m);
+  result[6].resize(nit+nburn);
+  result[7].resize(nc);
   result[8].resize(m);
   result[9].resize(m);
   result[10].resize(3);
@@ -1613,15 +1616,16 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
     result[3][i] = vbs[i];
     result[4][i] = vgs[i];
     result[5][i] = ves[i];
+    result[6][i] = pis[i];
   }
   for (int j=0; j < nc; j++) {
-    result[6][j] = pim[j]/nit;
+    result[7][j] = pim[j]/nit;
   }  
   
   for (int i=0; i < m; i++) {
-    result[7][i] = r[i];
-    result[8][i] = b[i];
-    result[9][i] = d[i];
+    result[8][i] = r[i];
+    result[9][i] = b[i];
+    //result[9][i] = d[i];
   }
   result[10][0] = vb;
   result[10][1] = ve;
