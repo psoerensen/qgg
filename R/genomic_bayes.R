@@ -1100,14 +1100,15 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                      adjustE=adjustE)
           
           # Check convergence            
+          critve <- critvg <- critvb <- critpi <- FALSE
           zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
           zvg <- geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
           zvb <- geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
           zpi <- geweke.diag(fit$pis[nburn:length(fit$pis)])$z
-          critve <- abs(zve)<critVe
-          critvg <- abs(zvg)<critVg
-          critvb <- abs(zvb)<critVb
-          critpi <- abs(zpi)<critPi
+          if(!is.na(zve)) critve <- abs(zve)<critVe
+          if(!is.na(zvg)) critvg <- abs(zvg)<critVg
+          if(!is.na(zvb)) critvb <- abs(zvb)<critVb
+          if(!is.na(zpi)) critpi <- abs(zpi)<critPi
           converged <- critve & critvg & critvb & critpi
           
           if (!converged) {
@@ -1286,14 +1287,15 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             #   }
             
             # Check convergence            
+            critve <- critvg <- critvb <- critpi <- FALSE
             zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
             zvg <- geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
             zvb <- geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
             zpi <- geweke.diag(fit$pis[nburn:length(fit$pis)])$z
-            critve <- abs(zve)<critVe
-            critvg <- abs(zvg)<critVg
-            critvb <- abs(zvb)<critVb
-            critpi <- abs(zpi)<critPi
+            if(!is.na(zve)) critve <- abs(zve)<critVe
+            if(!is.na(zvg)) critvg <- abs(zvg)<critVg
+            if(!is.na(zvb)) critvb <- abs(zvb)<critVb
+            if(!is.na(zpi)) critpi <- abs(zpi)<critPi
             converged <- critve & critvg & critvb & critpi
             
             if (!converged) {
