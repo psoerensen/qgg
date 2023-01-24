@@ -947,7 +947,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   if(is.na(algorithm)) stop("algorithm argument specified not valid")
   if(shrinkLD) {
     if(is.null(Glist$map)) {
-      warning("No map information in Glist - LD matrix shrinkage truned off")
+      warning("No map information in Glist - LD matrix shrinkage turned off")
       shrinkLD <- FALSE
     }
   } 
@@ -1003,7 +1003,9 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   
   if(!is.null(sets))  { 
     
+    sets <- qgg:::mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
     if(any(sapply(sets,function(x){any(is.na(x))}))) stop("NAs in sets detected - please remove these")
+    
     
     # Prepare output
     bm <- dm <- vector(mode="list",length=length(sets))
@@ -1013,7 +1015,14 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     chr <- unlist(Glist$chr)
     chrSets <- qgg:::mapSets(sets=sets, Glist=Glist, index=TRUE)
     chrSets <- sapply(chrSets,function(x){as.numeric(unique(chr[x]))})
-    #chromosomes <- unique(chrSets)
+    lsets <- sapply(chrSets,length)
+    sets <- sets[lsets==1]
+    if(any(lsets>1)) {
+      warning(paste("Marker sets mapped to multiple chromosome:",paste(which(lsets>1),collapse=",")))
+    }
+    if(any(lsets==0)) {
+      warning(paste("Marker sets mapped to multiple chromosome:",paste(which(lsets==0),collapse=",")))
+    }
     
     if(is.null(ids)) ids <- Glist$idsLD
     if(is.null(ids)) ids <- Glist$ids
