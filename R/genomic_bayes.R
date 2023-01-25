@@ -1005,13 +1005,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     
     sets <- qgg:::mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
     if(any(sapply(sets,function(x){any(is.na(x))}))) stop("NAs in sets detected - please remove these")
-    
-    
-    # Prepare output
-    bm <- dm <- vector(mode="list",length=length(sets))
-    ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=length(sets))
-    pim <- vector(mode="list",length=length(sets))
-    
+
     chr <- unlist(Glist$chr)
     chrSets <- qgg:::mapSets(sets=sets, Glist=Glist, index=TRUE)
     chrSets <- sapply(chrSets,function(x){as.numeric(unique(chr[x]))})
@@ -1023,6 +1017,14 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     if(any(lsets==0)) {
       warning(paste("Marker sets mapped to multiple chromosome:",paste(which(lsets==0),collapse=",")))
     }
+    
+    
+    # Prepare output
+    bm <- dm <- vector(mode="list",length=length(sets))
+    ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=length(sets))
+    pim <- vector(mode="list",length=length(sets))
+    names(bm) <- names(dm) <- names(ves) <- names(vgs) <- names(pis) <- names(bs)  <- names(ds) <- names(sets)     
+    names(pim) <- names(bs)  <- names(ds) <- names(sets)     
     
     if(is.null(ids)) ids <- Glist$idsLD
     if(is.null(ids)) ids <- Glist$ids
