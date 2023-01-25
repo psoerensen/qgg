@@ -143,7 +143,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      if (!is.null(ids)) rws <- match(ids, Glist$ids)
      cls <- match(rsids, Glist$rsids[[chr]])
      if(any( !stat$ea == Glist$a1[[chr]][cls] )) {
-       warning("Some variants appear to be flipped => changing sign of variant effect for those variants ")
+       message("Some variants appear to be flipped => changing sign of variant effect for those variants ")
        flipped <- !stat$ea == Glist$a1[[chr]][cls]
        S[flipped,] <- -S[flipped,]  
      }
