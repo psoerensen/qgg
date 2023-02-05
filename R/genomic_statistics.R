@@ -959,3 +959,58 @@ mapStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   return(stat)
 }
 
+
+mapStatID <- function(Glist=NULL, stat=NULL, cpra=NULL) {
+  # we use cpra to link sumstats and Glist
+  if(!is.null(cpra)) rsids <- cpra 
+  if(is.null(cpra)) {
+    cpra <- unlist(Glist$cpra)
+    rsids <- unlist(Glist$rsids)
+  }
+  # stat is a data.frame
+  if(!is.data.frame(stat)) stop("stat should be  a data frame")
+  fm_internal <- c("marker","chr","pos","ea","nea")
+  fm_internal1 <- c("rsids","chr","pos","ea","nea")
+  fm_internal2 <- c("marker","chr","pos","ea","nea")
+  format <- "unknown"
+  if(all(fm_internal1%in%colnames(stat))) format <- "internal"
+  if(all(fm_internal2%in%colnames(stat))) format <- "internal"
+  if(format=="unknown") {
+    message("Column headings for stat object not found")
+    message("First five elements in column heading for stat object should be:")
+    print(fm_internal)
+    stop("please revised your stat object accordingly")
+  }
+  cpra1 <- paste(stat[,"chr"],stat[,"pos"],toupper(stat[,"ea"]),toupper(stat[,"nea"]),sep="_")
+  cpra2 <- paste(stat[,"chr"],stat[,"pos"],toupper(stat[,"nea"]),toupper(stat[,"ea"]),sep="_")
+  mapped <- cpra1%in%cpra | cpra2%in%cpra
+  message("Map markers based on cpra")
+  message(paste("Number of markers in stat mapped to marker ids in Glist:",sum(mapped)))
+  message(paste("Number of markers in stat not mapped to marker ids in Glist:",sum(!mapped)))
+  stat <- stat[mapped,]
+  cpra1 <- cpra1[mapped]
+  cpra2 <- cpra2[mapped]
+  rws1 <- match(cpra1,cpra)
+  rws2 <- match(cpra2,cpra)
+  
+  if(colnames(stat)[1]=="marker"){
+    stat$marker[!is.na(rws1)] <- rsids[rws1[!is.na(rws1)]]
+    stat$marker[!is.na(rws2)] <- rsids[rws2[!is.na(rws2)]]  
+  }
+  if(colnames(stat)[1]=="rsids"){
+    stat$rsids[!is.na(rws1)] <- rsids[rws1[!is.na(rws1)]]
+    stat$rsids[!is.na(rws2)] <- rsids[rws2[!is.na(rws2)]]  
+  }
+  
+  colnames(stat)[1] <- "rsids"
+  
+  isdup <- duplicated(stat$rsids)
+  if(any(isdup)) message("Removing markers with duplicated ids")
+  if(any(isdup)) message(paste("Number of markers duplicated in stat:",sum(isdup)))
+  
+  stat <- stat[!isdup,]
+  
+  rownames(stat) <- stat$rsids
+  
+  return(stat)
+}
