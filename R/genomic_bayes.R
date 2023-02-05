@@ -357,85 +357,85 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   
   # Single trait BLR using y and dense LD
   #if( nt==1 && !is.null(y) &&  algorithm=="dense") {
-  if( nt==1 && !is.null(y) &&  formatLD=="dense") {
-    
-    overlap <- 0
-    
-    if(is.null(Glist)) stop("Please provide Glist")
-    fit <- NULL
-    if(is.matrix(y)) ids <- rownames(y)
-    if(is.vector(y)) ids <- names(y)
-    rws <- match(ids,Glist$ids)
-    if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
-    n <- length(y)
-    
-    if(is.null(chr)) chromosomes <- 1:Glist$nchr
-    if(!is.null(chr)) chromosomes <- chr
-    
-    rsids <- unlist(Glist$rsidsLD)
-    cls <- lapply(Glist$rsids,function(x) { 
-      splitWithOverlap(na.omit(match(rsids,x)),msize,0)})
-    vblist <- lapply(sapply(cls,length),function(x) 
-    {vector(length=x, mode="numeric")})
-    velist <- lapply(sapply(cls,length),function(x) 
-    {vector(length=x, mode="numeric")})
-    pilist <- lapply(sapply(cls,length),function(x) 
-    {vector(length=x, mode="numeric")})
-    b <- lapply(Glist$mchr,function(x){rep(0,x)})
-    bm <- lapply(Glist$mchr,function(x){rep(0,x)})
-    dm <- lapply(Glist$mchr,function(x){rep(0,x)})
-    
-    if(is.null(nit_local)) nit_local <- nit
-    if(is.null(nit_global)) nit_global <- 1
-    
-    for (it in 1:nit_global) {
-      e <- y-mean(y)
-      yy <- sum(e**2)
-      for (chr in 1:length(Glist$nchr)) {
-        for (i in 1:length(cls[[chr]])) {
-          wy <- computeWy(y=e,Glist=Glist,chr=chr,cls=cls[[chr]][[i]])
-          WW <- computeWW(Glist=Glist, chr=chr, cls=cls[[chr]][[i]], rws=rws)
-          if(it>1) {
-            if(updateB) vb <- vblist[[chr]][i]
-            if(updateE) ve <- velist[[chr]][i]
-            if(updatePi) pi <- pilist[[chr]][i]
-          }
-          fitS <- computeB(wy=wy, yy=yy, WW=WW, n=n,
-                           b=b[[chr]][cls[[chr]][[i]]],
-                           ve=ve, vb=vb, pi=pi,
-                           nub=nub, nue=nue,
-                           updateB=updateB, updateE=updateE, updatePi=updatePi,
-                           nit=nit, nburn=nburn, method=method) 
-          b[[chr]][cls[[chr]][[i]]] <- fitS$b
-          bm[[chr]][cls[[chr]][[i]]] <- fitS$bm
-          dm[[chr]][cls[[chr]][[i]]] <- fitS$dm
-          vblist[[chr]][i] <- fitS$param[1]
-          velist[[chr]][i] <- fitS$param[2]
-          pilist[[chr]][i] <- fitS$param[3]
-          grs <- computeGRS(Glist = Glist, chr = chr, 
-                            cls = cls[[chr]][[i]], 
-                            b=bm[[chr]][cls[[chr]][[i]]])  
-          e <- e - grs[rws,]
-        }
-      }
-    }   
-    bm <- unlist(bm)
-    dm <- unlist(dm)
-    names(bm) <- names(dm) <- unlist(Glist$rsids)
-    rsids2rws <- match(rsids,unlist(Glist$rsids))
-    stat <- data.frame(rsids=rsids,
-                       chr=unlist(Glist$chr)[rsids2rws],
-                       pos=unlist(Glist$pos)[rsids2rws], 
-                       ea=unlist(Glist$a1)[rsids2rws],
-                       nea=unlist(Glist$a2)[rsids2rws], 
-                       eaf=unlist(Glist$af)[rsids2rws],
-                       bm=bm[rsids],
-                       dm=dm[rsids], stringsAsFactors = FALSE)
-    fit$stat <- stat
-    fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
-    fit$method <- methods[method+1]
-    
-  }
+  # if( nt==1 && !is.null(y) &&  formatLD=="dense") {
+  #   
+  #   overlap <- 0
+  #   
+  #   if(is.null(Glist)) stop("Please provide Glist")
+  #   fit <- NULL
+  #   if(is.matrix(y)) ids <- rownames(y)
+  #   if(is.vector(y)) ids <- names(y)
+  #   rws <- match(ids,Glist$ids)
+  #   if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
+  #   n <- length(y)
+  #   
+  #   if(is.null(chr)) chromosomes <- 1:Glist$nchr
+  #   if(!is.null(chr)) chromosomes <- chr
+  #   
+  #   rsids <- unlist(Glist$rsidsLD)
+  #   cls <- lapply(Glist$rsids,function(x) { 
+  #     splitWithOverlap(na.omit(match(rsids,x)),msize,0)})
+  #   vblist <- lapply(sapply(cls,length),function(x) 
+  #   {vector(length=x, mode="numeric")})
+  #   velist <- lapply(sapply(cls,length),function(x) 
+  #   {vector(length=x, mode="numeric")})
+  #   pilist <- lapply(sapply(cls,length),function(x) 
+  #   {vector(length=x, mode="numeric")})
+  #   b <- lapply(Glist$mchr,function(x){rep(0,x)})
+  #   bm <- lapply(Glist$mchr,function(x){rep(0,x)})
+  #   dm <- lapply(Glist$mchr,function(x){rep(0,x)})
+  #   
+  #   if(is.null(nit_local)) nit_local <- nit
+  #   if(is.null(nit_global)) nit_global <- 1
+  #   
+  #   for (it in 1:nit_global) {
+  #     e <- y-mean(y)
+  #     yy <- sum(e**2)
+  #     for (chr in 1:length(Glist$nchr)) {
+  #       for (i in 1:length(cls[[chr]])) {
+  #         wy <- computeWy(y=e,Glist=Glist,chr=chr,cls=cls[[chr]][[i]])
+  #         WW <- computeWW(Glist=Glist, chr=chr, cls=cls[[chr]][[i]], rws=rws)
+  #         if(it>1) {
+  #           if(updateB) vb <- vblist[[chr]][i]
+  #           if(updateE) ve <- velist[[chr]][i]
+  #           if(updatePi) pi <- pilist[[chr]][i]
+  #         }
+  #         fitS <- computeB(wy=wy, yy=yy, WW=WW, n=n,
+  #                          b=b[[chr]][cls[[chr]][[i]]],
+  #                          ve=ve, vb=vb, pi=pi,
+  #                          nub=nub, nue=nue,
+  #                          updateB=updateB, updateE=updateE, updatePi=updatePi,
+  #                          nit=nit, nburn=nburn, method=method) 
+  #         b[[chr]][cls[[chr]][[i]]] <- fitS$b
+  #         bm[[chr]][cls[[chr]][[i]]] <- fitS$bm
+  #         dm[[chr]][cls[[chr]][[i]]] <- fitS$dm
+  #         vblist[[chr]][i] <- fitS$param[1]
+  #         velist[[chr]][i] <- fitS$param[2]
+  #         pilist[[chr]][i] <- fitS$param[3]
+  #         grs <- computeGRS(Glist = Glist, chr = chr, 
+  #                           cls = cls[[chr]][[i]], 
+  #                           b=bm[[chr]][cls[[chr]][[i]]])  
+  #         e <- e - grs[rws,]
+  #       }
+  #     }
+  #   }   
+  #   bm <- unlist(bm)
+  #   dm <- unlist(dm)
+  #   names(bm) <- names(dm) <- unlist(Glist$rsids)
+  #   rsids2rws <- match(rsids,unlist(Glist$rsids))
+  #   stat <- data.frame(rsids=rsids,
+  #                      chr=unlist(Glist$chr)[rsids2rws],
+  #                      pos=unlist(Glist$pos)[rsids2rws], 
+  #                      ea=unlist(Glist$a1)[rsids2rws],
+  #                      nea=unlist(Glist$a2)[rsids2rws], 
+  #                      eaf=unlist(Glist$af)[rsids2rws],
+  #                      bm=bm[rsids],
+  #                      dm=dm[rsids], stringsAsFactors = FALSE)
+  #   fit$stat <- stat
+  #   fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
+  #   fit$method <- methods[method+1]
+  #   
+  # }
   
   # Single trait BLR using summary statistics and sparse LD provided in Glist
   if(analysis=="st-blr-sumstat-sparse-ld") {
@@ -928,7 +928,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
 gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
                  chr=NULL, rsids=NULL, ids=NULL, b=NULL, bm=NULL, seb=NULL, mask=NULL, LD=NULL, n=NULL,
                  vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL,
-                 lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, formatLD="dense", pruneLD=TRUE, r2=0.05, checkLD=TRUE,
+                 lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, formatLD="dense", pruneLD=TRUE, r2=0.05, checkLD=TRUE,
                  h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  adjustE=TRUE, models=NULL,
                  checkConvergence=TRUE, critVe=3, critVg=5, critVb=5, critPi=3,
@@ -1048,6 +1048,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       if(formatLD=="dense") {
         W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
         B <- crossprod(scale(W))/(length(ids)-1)
+        if(shrinkCor) B <- cor.shrink(W)
         if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
         LD <- NULL
         LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
@@ -1061,6 +1062,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       
       if(formatLD=="sparse") {
         B <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
+        if(shrinkCor) B <- cor.shrink(W)
         if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
         LD <- NULL
         LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
@@ -1103,6 +1105,10 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           
           # Check convergence            
           critve <- critvg <- critvb <- critpi <- FALSE
+          if(!updateE) critve <- TRUE
+          if(!updateG) critvg <- TRUE
+          if(!updateB) critvb <- TRUE
+          if(!updatePi) critpi <- TRUE
           zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
           zvg <- geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
           zvb <- geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
@@ -1116,22 +1122,27 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           if (!converged) {
             message("")
             message(paste("Region not converged in attempt:",trial))
-            message(paste("Zve:",zve))
-            message(paste("Zpi:",zpi))
+            if(!critve) message(paste("Zve:",zve))
+            if(!critvg) message(paste("Zvg:",zvg))
+            if(!critvb) message(paste("Zvb:",zvb))
+            if(!critpi) message(paste("Zpi:",zpi))
             W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
             B <- crossprod(scale(W))/(length(ids)-1)
+            if(shrinkCor) B <- cor.shrink(W)
             if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
-            if(pruneLD) {
-              pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
-              mask[pruned,trait] <- TRUE
-            }
-            
-            if(checkLD) { 
+            if(checkLD & trial==1) { 
               badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
                                     msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
               z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
               outliers <- names(z[abs(z)>1.96])
-              mask[outliers,trait] <- TRUE
+              #mask[outliers,trait] <- TRUE
+              stat$b[outliers,trait] <- badj[abs(z)>1.96]
+              stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
+              stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
+            }
+            if(pruneLD & trial==2) {
+              pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
+              mask[pruned,trait] <- TRUE
             }
           }
         }
@@ -1229,6 +1240,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         if(formatLD=="dense") {
           W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
           B <- crossprod(scale(W))/(length(ids)-1)
+          if(shrinkCor) B <- cor.shrink(W)
           if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
           LD <- NULL
           LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
@@ -1290,6 +1302,10 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             
             # Check convergence            
             critve <- critvg <- critvb <- critpi <- FALSE
+            if(!updateE) critve <- TRUE
+            if(!updateG) critvg <- TRUE
+            if(!updateB) critvb <- TRUE
+            if(!updatePi) critpi <- TRUE
             zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
             zvg <- geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
             zvb <- geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
@@ -1303,22 +1319,28 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             if (!converged) {
               message("")
               message(paste("Region not converged in attempt:",trial))
-              
+              if(!critve) message(paste("Zve:",zve))
+              if(!critvg) message(paste("Zvg:",zvg))
+              if(!critvb) message(paste("Zvb:",zvb))
+              if(!critpi) message(paste("Zpi:",zpi))
               W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
               B <- crossprod(scale(W))/(length(ids)-1)
+              if(shrinkCor) B <- cor.shrink(W)
               if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
-              if(pruneLD) {
-                pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
-                mask[pruned,trait] <- TRUE
-              }
-              if(checkLD) {
+              if(checkLD & trial==1) { 
                 badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
                                       msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
                 z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
                 outliers <- names(z[abs(z)>1.96])
-                mask[outliers,trait] <- TRUE
+                #mask[outliers,trait] <- TRUE
+                stat$b[outliers,trait] <- badj[abs(z)>1.96]
+                stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
+                stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
               }
-
+              if(pruneLD & trial==2) {
+                pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
+                mask[pruned,trait] <- TRUE
+              }
             }
           }
         }
@@ -1397,9 +1419,18 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
   vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
   pi <- sapply(fit$pim,function(x){1-x[1]})
+  
+  if(!is.null(Glist$map)) map <- unlist(Glist$map)
+  pos <- unlist(Glist$pos)
+  sets <- lapply(fit$bm,names)
+  setsindex <- qgg:::mapSets(sets=sets, rsids=unlist(Glist$rsids))
+  if(!is.null(Glist$map)) cm <- sapply(setsindex, function(x){ max(map[x])-min(map[x]) })
+  mb <- sapply(setsindex, function(x){ (max(pos[x])-min(pos[x]))/1000000 })
+  
   #fit$region <-  NULL
   fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi)  
-  fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi)  
+  if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi,mb=mb)  
+  if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi,mb=mb, cm=cm)  
   fit$ve <- mean(ve)
   fit$vg <- sum(vg)
   return(fit)
