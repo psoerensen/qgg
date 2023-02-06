@@ -1427,12 +1427,19 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   if(!is.null(Glist$map)) cm <- sapply(setsindex, function(x){ max(map[x])-min(map[x]) })
   mb <- sapply(setsindex, function(x){ (max(pos[x])-min(pos[x]))/1000000 })
   
+  pip <- sapply(fit$dm,sum)
+  minb <- sapply(fit$bm,min)
+  maxb <- sapply(fit$bm,max)
+  m <- sapply(fit$bm,length)
+  b <- stat[fit$stat$rsids,"b"]
+  
   #fit$region <-  NULL
   fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi)  
-  if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi,mb=mb)  
-  if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi,mb=mb, cm=cm)  
+  if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb)  
+  if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm)  
   fit$ve <- mean(ve)
   fit$vg <- sum(vg)
+  fit$b <- b
   return(fit)
 }
 
