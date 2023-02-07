@@ -1395,9 +1395,15 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     if(!is.null(threshold)) fit$bs <- unlist(bs, recursive=FALSE)
     if(!is.null(threshold)) fit$ds <- unlist(ds, recursive=FALSE)
   }
+
+
+  pip <- sapply(fit$dm,sum)
+  minb <- sapply(fit$bm,min)
+  maxb <- sapply(fit$bm,max)
+  m <- sapply(fit$bm,length)
   
-  bm <- unlist(fit$bm)
-  dm <- unlist(fit$dm)
+  bm <- unlist(unname(fit$bm))
+  dm <- unlist(unname(fit$dm))
   #selected <- dm>0
   #bm <- bm[selected]
   #dm <- dm[selected]
@@ -1427,10 +1433,6 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   if(!is.null(Glist$map)) cm <- sapply(setsindex, function(x){ max(map[x])-min(map[x]) })
   mb <- sapply(setsindex, function(x){ (max(pos[x])-min(pos[x]))/1000000 })
   
-  pip <- sapply(fit$dm,sum)
-  minb <- sapply(fit$bm,min)
-  maxb <- sapply(fit$bm,max)
-  m <- sapply(fit$bm,length)
   b <- stat[fit$stat$rsids,"b"]
   
   #fit$region <-  NULL
