@@ -1073,8 +1073,12 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         msize_set <- length(rsids)
       }
       
-      ntrial <- 2
+      ntrial <- 3
       converged <- FALSE
+      
+      updateB_reg <- updateB
+      updatePi_reg <- updatePi
+      
       
       for (trial in 1:ntrial) {
         
@@ -1097,9 +1101,9 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                      nue=nue,
                                      nub=nub,
                                      ssb_prior=ssb_prior,
-                                     updateB=updateB,
+                                     updateB=updateB_reg,
                                      updateE=updateE,
-                                     updatePi=updatePi,
+                                     updatePi=updatePi_reg,
                                      updateG=updateG,
                                      adjustE=adjustE)
           
@@ -1117,7 +1121,12 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           if(!is.na(zvg)) critvg <- abs(zvg)<critVg
           if(!is.na(zvb)) critvb <- abs(zvb)<critVb
           if(!is.na(zpi)) critpi <- abs(zpi)<critPi
-          converged <- critve & critvg & critvb & critpi
+          
+          critb1 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat$b[rsids,trait]
+          critb2 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat$b[rsids,trait]
+          critb <- !any(critb1 | critb2)
+          converged <- critve & critvg & critvb & critpi & critb
+          
           
           if (!converged) {
             message("")
@@ -1143,6 +1152,10 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             if(pruneLD & trial==2) {
               pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
               mask[pruned,trait] <- TRUE
+            }
+            if(trial==3) {
+              updateB_reg <- FALSE 
+              updatePi_reg <- FALSE 
             }
           }
         }
@@ -1268,10 +1281,12 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           #msize <- length(rsids)
         }
         
-        ntrial <- 2
-        
+        ntrial <- 3
         converged <- FALSE
 
+        updateB_reg <- updateB
+        updatePi_reg <- updatePi
+        
         for (trial in 1:ntrial) {
           
           if (!converged) {
@@ -1293,9 +1308,9 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                        nue=nue,
                                        nub=nub,
                                        ssb_prior=ssb_prior,
-                                       updateB=updateB,
+                                       updateB=updateB_reg,
                                        updateE=updateE,
-                                       updatePi=updatePi,
+                                       updatePi=updatePi_reg,
                                        updateG=updateG,
                                        adjustE=adjustE)
             #   }
@@ -1314,7 +1329,11 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             if(!is.na(zvg)) critvg <- abs(zvg)<critVg
             if(!is.na(zvb)) critvb <- abs(zvb)<critVb
             if(!is.na(zpi)) critpi <- abs(zpi)<critPi
-            converged <- critve & critvg & critvb & critpi
+
+            critb1 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat$b[rsids,trait]
+            critb2 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat$b[rsids,trait]
+            critb <- !any(critb1 | critb2)
+            converged <- critve & critvg & critvb & critpi & critb
             
             if (!converged) {
               message("")
@@ -1340,6 +1359,10 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
               if(pruneLD & trial==2) {
                 pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
                 mask[pruned,trait] <- TRUE
+              }
+              if(trial==3) {
+                updateB_reg <- FALSE 
+                updatePi_reg <- FALSE 
               }
             }
           }
@@ -1432,13 +1455,18 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   setsindex <- qgg:::mapSets(sets=sets, rsids=unlist(Glist$rsids))
   if(!is.null(Glist$map)) cm <- sapply(setsindex, function(x){ max(map[x])-min(map[x]) })
   mb <- sapply(setsindex, function(x){ (max(pos[x])-min(pos[x]))/1000000 })
+  minmb <- sapply(setsindex, function(x){ min(pos[x]) })
+  maxmb <- sapply(setsindex, function(x){ max(pos[x]) })
+  
+  chr <- unlist(Glist$chr)
+  chr <- sapply(setsindex,function(x){as.numeric(unique(chr[x]))})
   
   b <- stat[fit$stat$rsids,"b"]
   
   #fit$region <-  NULL
   fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi)  
-  if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb)  
-  if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm)  
+  if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, chr=chr, minmb=minmb, maxmb=maxmb)  
+  if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm, chr=chr, minmb=minmb, maxmb=maxmb)  
   fit$ve <- mean(ve)
   fit$vg <- sum(vg)
   fit$b <- b
