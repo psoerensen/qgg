@@ -1074,12 +1074,12 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         msize_set <- length(rsids)
       }
       
-      ntrial <- 3
+      ntrial <- 5
       converged <- FALSE
       
       updateB_reg <- updateB
       updatePi_reg <- updatePi
-      
+      pi_reg <- pi
       
       for (trial in 1:ntrial) {
         
@@ -1100,7 +1100,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                                      nburn=nburn,
                                      n=n[trait],
                                      m=msize_set,
-                                     pi=pi,
+                                     pi=pi_reg,
                                      nue=nue,
                                      nub=nub,
                                      ssb_prior=ssb_prior,
@@ -1143,6 +1143,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             if(shrinkCor) B <- cor.shrink(W)
             if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
             if(checkLD & trial==1) { 
+              message("Adjust summary statistics using imputation")
               badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
                                     msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
               z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
@@ -1153,12 +1154,20 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
               stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
             }
             if(pruneLD & trial==2) {
+              message("Adjust summary statistics using pruning")
               pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
               mask[pruned,trait] <- TRUE
             }
             if(trial==3) {
+              message("Set updateB and updatePi to FALSE")
               updateB_reg <- FALSE 
               updatePi_reg <- FALSE 
+            }
+            if(trial>3) {
+              message("Decrease Pi by a factor 10")
+              updateB_reg <- FALSE 
+              updatePi_reg <- FALSE
+              pi_reg <- pi_reg*0.1
             }
           }
         }
@@ -1286,11 +1295,12 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           #msize <- length(rsids)
         }
         
-        ntrial <- 3
+        ntrial <- 5
         converged <- FALSE
 
         updateB_reg <- updateB
         updatePi_reg <- updatePi
+        pi_reg <- pi
 
         for (trial in 1:ntrial) {
           
@@ -1355,6 +1365,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
               if(shrinkCor) B <- cor.shrink(W)
               if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
               if(checkLD & trial==1) { 
+                message("Adjust summary statistics using imputation")
                 badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
                                       msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
                 z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
@@ -1365,12 +1376,20 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                 stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
               }
               if(pruneLD & trial==2) {
+                message("Adjust summary statistics using pruning")
                 pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
                 mask[pruned,trait] <- TRUE
               }
               if(trial==3) {
+                message("Set updateB and updatePi to FALSE")
                 updateB_reg <- FALSE 
                 updatePi_reg <- FALSE 
+              }
+              if(trial>3) {
+                message("Decrease Pi by a factor 10")
+                updateB_reg <- FALSE 
+                updatePi_reg <- FALSE
+                pi_reg <- pi_reg*0.1
               }
             }
           }
