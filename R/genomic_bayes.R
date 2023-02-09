@@ -1024,7 +1024,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     pim <- vector(mode="list",length=length(sets))
     names(bm) <- names(dm) <- names(ves) <- names(vgs) <- names(pis) <- names(bs)  <- names(ds) <- names(sets)     
     names(pim) <- names(bs)  <- names(ds) <- names(sets)     
-    attempts <- vector(0, length=length(sets))
+    attempts <- rep(0, length=length(sets))
     
 
     if(is.null(ids)) ids <- Glist$idsLD
@@ -1291,7 +1291,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
 
         updateB_reg <- updateB
         updatePi_reg <- updatePi
-        
+
         for (trial in 1:ntrial) {
           
           if (!converged) {
