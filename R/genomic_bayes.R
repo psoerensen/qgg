@@ -1017,15 +1017,16 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     if(any(lsets==0)) {
       warning(paste("Marker sets mapped to multiple chromosome:",paste(which(lsets==0),collapse=",")))
     }
-    
-    
+
     # Prepare output
     bm <- dm <- vector(mode="list",length=length(sets))
     ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=length(sets))
     pim <- vector(mode="list",length=length(sets))
     names(bm) <- names(dm) <- names(ves) <- names(vgs) <- names(pis) <- names(bs)  <- names(ds) <- names(sets)     
     names(pim) <- names(bs)  <- names(ds) <- names(sets)     
+    attempts <- vector(0, length=length(sets))
     
+
     if(is.null(ids)) ids <- Glist$idsLD
     if(is.null(ids)) ids <- Glist$ids
     
@@ -1083,6 +1084,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       for (trial in 1:ntrial) {
         
         if (!converged) {
+          
+          attempts[i] <- trial
           
           fit <- qgg:::sbayes_region(yy=yy[trait],
                                      wy=stat$wy[rsids,trait],
@@ -1201,6 +1204,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     fit$vbs <- vbs
     fit$vgs <- vgs
     fit$pis <- pis
+    fit$attempts <- attempts
     if(!is.null(threshold)) fit$bs <- bs
     if(!is.null(threshold)) fit$ds <- ds
     
@@ -1212,7 +1216,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     # Prepare output
     bm <- dm <- vector(mode="list",length=22)
     ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=22)
-    pim <- vector(mode="list",length=22)
+    pim <- attempts <- vector(mode="list",length=22)
     
     chromosomes <- 1:22
     if(!is.null(chr)) chromosomes <- chr 
@@ -1236,6 +1240,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       #  mx <- sum(ww/mean(stat$n))
       #  ssb_prior <- vy*h2*(nub+2)/mx/pi
       #}
+      
       if(formatLD=="sparse") {
         sparseLD <- qgg:::getSparseLD(Glist=Glist,chr=chr)
       }
@@ -1290,6 +1295,9 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         for (trial in 1:ntrial) {
           
           if (!converged) {
+            
+            attempts[[chr]][[i]] <- trial
+            
             
             fit <- qgg:::sbayes_region(yy=yy[trait],
                                        wy=stat$wy[rsids,trait],
@@ -1415,6 +1423,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     fit$vbs <- unlist(vbs, recursive=FALSE)
     fit$vgs <- unlist(vgs, recursive=FALSE)
     fit$pis <- unlist(pis, recursive=FALSE)
+    fit$attempts <- unlist(attempts, recursive=TRUE)
     if(!is.null(threshold)) fit$bs <- unlist(bs, recursive=FALSE)
     if(!is.null(threshold)) fit$ds <- unlist(ds, recursive=FALSE)
   }
