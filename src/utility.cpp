@@ -70,7 +70,11 @@ std::vector<int> psets( std::vector<int> msets,
       for ( int k = k1; k < k2; k++) { 
         sumstat = sumstat + stat[k];
       }
-      if (sumstat > setstat[i]) p[i] = p[i] + 1;
+      //if (sumstat > setstat[i]) p[i] = p[i] + 1;
+      if (std::abs(sumstat - setstat[i]) < 1e-10 ||
+          sumstat > setstat[i]) {
+        p[i] = p[i] + 1;
+      }
     }
   }
   
