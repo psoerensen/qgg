@@ -355,7 +355,8 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
   #names(res) <- c("Corr", "R2", "Nagel R2", "AUC", "intercept", "slope", "MSPE")
   if (is.null(names(G))) names(G) <- paste("G", 1:(np - 1), sep = "")
   colnames(theta) <- c(names(G), "E")
-  theta <- as.data.frame(round(theta, 3))
+  theta <- as.data.frame(theta)
+  #theta <- as.data.frame(round(theta, 3))
   rownames(theta) <- cvnames
   #if (makeplots) {
   #  layout(matrix(1:4, ncol = 2))
