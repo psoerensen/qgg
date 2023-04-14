@@ -566,13 +566,20 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
     fit$method <- methods[method+1]
     
-    fit$ves <- lapply(fit[1:22],function(x){x$ves})
-    fit$vgs <- lapply(fit[1:22],function(x){x$vgs})
-    fit$vbs <- lapply(fit[1:22],function(x){x$vbs})
-    fit$pis <- lapply(fit[1:22],function(x){x$pis})
-    fit$pim <- lapply(fit[1:22],function(x){x$pim})
-    fit$param <- lapply(fit[1:22],function(x){x$param})
+    fit$ves <- lapply(fit[chromosomes],function(x){x$ves})
+    fit$vgs <- lapply(fit[chromosomes],function(x){x$vgs})
+    fit$vbs <- lapply(fit[chromosomes],function(x){x$vbs})
+    fit$pis <- lapply(fit[chromosomes],function(x){x$pis})
+    fit$pim <- lapply(fit[chromosomes],function(x){x$pim})
+    fit$param <- lapply(fit[chromosomes],function(x){x$param})
     
+    #fit$ves <- lapply(fit[1:22],function(x){x$ves})
+    #fit$vgs <- lapply(fit[1:22],function(x){x$vgs})
+    #fit$vbs <- lapply(fit[1:22],function(x){x$vbs})
+    #fit$pis <- lapply(fit[1:22],function(x){x$pis})
+    #fit$pim <- lapply(fit[1:22],function(x){x$pim})
+    #fit$param <- lapply(fit[1:22],function(x){x$param})
+
     fit$mask <- mask
     zve <- sapply(fit$ves,function(x){geweke.diag(x[nburn:length(x)])$z})
     zvg <- sapply(fit$vgs,function(x){geweke.diag(x[nburn:length(x)])$z})
@@ -586,7 +593,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi)  
     fit$ve <- mean(ve)
     fit$vg <- sum(vg)
-    fit[1:22] <- NULL
+    #fit[1:22] <- NULL
     
     
     
