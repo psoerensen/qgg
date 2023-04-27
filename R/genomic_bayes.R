@@ -1311,7 +1311,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
 
         for (trial in 1:ntrial) {
           
-          if (!converged) {
+          if (!converged & checkConvergence) {
             
             attempts[[chr]][[i]] <- trial
             
@@ -1360,7 +1360,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             critb <- !any(critb1 | critb2)
             converged <- critve & critvg & critvb & critpi & critb
             
-            if (!converged) {
+            if (!converged & checkConvergence) {
               message("")
               message(paste("Region not converged in attempt:",trial))
               if(!critve) message(paste("Zve:",zve))
