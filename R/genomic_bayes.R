@@ -938,7 +938,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                  lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, formatLD="dense", pruneLD=TRUE, r2=0.05, checkLD=TRUE,
                  h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  adjustE=TRUE, models=NULL,
-                 checkConvergence=TRUE, critVe=3, critVg=5, critVb=5, critPi=3, ntrial=5,
+                 checkConvergence=FALSE, critVe=3, critVg=5, critVb=5, critPi=3, ntrial=1,
                  nug=4, nub=4, nue=4, verbose=FALSE,msize=100,threshold=NULL,
                  GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                  nit=100, nburn=50, nit_local=NULL,nit_global=NULL,
