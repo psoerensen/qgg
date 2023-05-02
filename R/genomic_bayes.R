@@ -935,7 +935,8 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
 gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
                  chr=NULL, rsids=NULL, ids=NULL, b=NULL, bm=NULL, seb=NULL, mask=NULL, LD=NULL, n=NULL,
                  vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL,
-                 lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, formatLD="dense", pruneLD=TRUE, r2=0.05, checkLD=TRUE,
+                 lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, formatLD="dense", pruneLD=TRUE, 
+                 r2=0.05, checkLD=TRUE,
                  h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  adjustE=TRUE, models=NULL,
                  checkConvergence=FALSE, critVe=3, critVg=5, critVb=5, critPi=3, ntrial=1,
@@ -1160,7 +1161,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
               stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
               stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
             }
-            if(pruneLD & trial==2) {
+            #if(pruneLD & trial==2) {
+            if(pruneLD) {
               message("Adjust summary statistics using pruning")
               pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
               mask[pruned,trait] <- TRUE
