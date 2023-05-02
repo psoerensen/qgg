@@ -1384,7 +1384,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                 stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
                 stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
               }
-              if(pruneLD & trial==2) {
+              if(pruneLD) {
+                #if(pruneLD & trial==2) {
                 message("Adjust summary statistics using pruning")
                 pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
                 mask[pruned,trait] <- TRUE
