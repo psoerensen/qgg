@@ -135,6 +135,7 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g
       p <- gsets(stat = stat, sets = sets, ncores = ncores, np = nperm, method = method)
       res <- cbind(m = msets, stat = setstat, p = p)
       rownames(res) <- names(sets)
+      res <- as.data.frame(res)
     }
     return(res)
   }
@@ -178,7 +179,7 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g
   }
   if (method == "hyperg") {
     res <- hgtest(p = stat, sets = sets, threshold = threshold)
-    return(res)
+    return(as.data.frame(res))
   }
 }
 
@@ -345,18 +346,48 @@ scoretest <- function(e = NULL, W = NULL, sets = NULL, nperm = 100) {
 }
 
 
-
 hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
-  N <- length(p)
-  Na <- sum(p < threshold)
-  Nna <- N - Na
-  Nf <- sapply(sets, length)
-  Naf <- sapply(sets, function(x) {
+  population_size <- length(p)
+  sample_size <- sapply(sets, length)
+  n_successes_population <- sum(p < threshold)
+  n_successes_sample <- sapply(sets, function(x) {
     sum(p[x] < threshold)
   })
-  Nnaf <- Nf - Naf
-  Nanf <- Na - Naf
-  Nnanf <- Nna - Nnaf
-  phyperg <- 1 - phyper(Naf - 1, Nf, N - Nf, Na)
-  phyperg
+  phyperg <- rep(1,length(sets))
+  names(phyperg) <- names(sets)
+  for (i in 1:length(sets)) {
+    phyperg[i] <- 1.0-phyper(n_successes_sample[i]-1, n_successes_population,
+                             population_size-n_successes_population,
+                             sample_size[i])
+  }
+  # Calculate enrichment factor
+  ef <- (n_successes_sample/sample_size)/
+    (n_successes_population/population_size)
+  
+  # Create data frame for table
+  res <- data.frame(ng = sample_size,
+                   nag = n_successes_sample,
+                   ef=ef,
+                   p = phyperg)
+  #colnames(res) <- c("Feature", "Number of Genes",
+  #                  "Number of Associated Genes",
+  #                  "Enrichment Factor",
+  #                  "p")
+  res
 }
+
+
+# hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
+#   N <- length(p)
+#   Na <- sum(p < threshold)
+#   Nna <- N - Na
+#   Nf <- sapply(sets, length)
+#   Naf <- sapply(sets, function(x) {
+#     sum(p[x] < threshold)
+#   })
+#   Nnaf <- Nf - Naf
+#   Nanf <- Na - Naf
+#   Nnanf <- Nna - Nnaf
+#   phyperg <- 1 - phyper(Naf - 1, Nf, N - Nf, Na)
+#   phyperg
+# }
