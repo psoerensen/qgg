@@ -452,7 +452,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       trait_names <- "bm"     
       
       stat <- stat[rownames(stat)%in%rsidsLD,]
-      if(is.null(stat$ww)) stat$ww <- 1/(stat$seb^2 + stat$b/stat$n)
+      if(is.null(stat$ww)) stat$ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
       if(is.null(stat$wy)) stat$wy <- stat$b*stat$ww
       if(!is.null(stat$n)) n <- as.integer(median(stat$n))
       ww[rownames(stat),1] <-  stat$ww
@@ -881,17 +881,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
   gamma <- c(0,1.0)
   if(method==5) pi <- c(0.95,0.02,0.02,0.01)
   if(method==5) gamma <- c(0,0.01,0.1,1.0)
-  
-  #print(h2)
-  #print(vy)
-  #print(vb)
-  #print(vg)
-  #print(ve)
-  #print(ssb_prior)
-  #print(sse_prior)
-  #print(pi)
-  #print(gamma)
-  
+
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy, 
                ww=ww, 
