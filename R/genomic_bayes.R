@@ -253,7 +253,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   #if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") {
   if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="sparse") {
     
-    fit <- sbayes(y=y, X=X, W=W, b=b, bm=bm, seb=seb, LD=LD, n=n,
+    fit <- sbayes_wy(y=y, X=X, W=W, b=b, bm=bm, seb=seb, LD=LD, n=n,
                   vg=vg, vb=vb, ve=ve, 
                   ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
                   h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
@@ -787,7 +787,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=
 }
 
 # Single trait BLR based on individual level data based on fast algorithm  
-sbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
+sbayes_wy <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
                    vg=NULL, vb=NULL, ve=NULL, 
                    ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                    h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
@@ -915,6 +915,100 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
   return(fit)
 }
 
+#'
+#' @export
+#'
+
+# Single trait BLR using summary statistics and sparse LD provided in Glist
+sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
+                   LD=NULL, LDvalues=NULL,LDindices=NULL,
+                   mask=NULL, lambda=NULL,
+                   vg=NULL, vb=NULL, ve=NULL, h2=NULL, pi=NULL,
+                   ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
+                   updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
+                   adjustE=TRUE, models=NULL,
+                   nit=500, nburn=100, method="bayesC", algorithm=1, verbose=FALSE) {
+  
+  # Check method
+  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+  method <- match(method, methods) - 1
+  if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid")
+  
+  # Prepare summary statistics input
+  if( is.null(stat) ) stop("Please provide summary statistics")
+  m <- nrow(stat)
+  if(is.null(mask)) mask <- rep(FALSE, m)
+  if(is.null(stat$n)) stat$n <- stat$dfe
+  if( is.null(stat$n) ) stop("Please provide summary statistics that include n")
+  
+  n <- as.integer(median(stat$n))
+  ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
+  wy <- stat$b*ww
+  if(!is.null(stat$ww)) ww <- stat$ww
+  if(!is.null(stat$wy)) wy <- stat$wy
+  
+  b2 <- stat$b^2
+  seb2 <- stat$seb^2
+  yy <- (b2 + (stat$n-2)*seb2)*ww
+  yy <- median(yy)
+  
+  # Prepare sparse LD matrix
+  if( is.null(LD) ) stop("Please provide LD matrix")
+  LDvalues <- split(LD, rep(1:ncol(LD), each = nrow(LD)))
+  LDindices <- lapply(1:ncol(LD),function(x) { (1:ncol(LD))-1 } )
+  
+  # Prepare starting parameters
+  vy <- yy/(n-1)
+  if(is.null(pi)) pi <- 0.001
+  if(is.null(h2)) h2 <- 0.5
+  if(is.null(ve)) ve <- vy*(1-h2)
+  if(is.null(vg)) vg <- vy*h2
+  if(method<4 && is.null(vb)) vb <- vg/m
+  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,m)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+  if(is.null(b)) b <- rep(0,m)
+  
+  pi <- c(1-pi,pi)
+  gamma <- c(0,1.0)
+  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
+  if(method==5) gamma <- c(0,0.01,0.1,1.0)
+  
+  fit <- .Call("_qgg_sbayes_spa",
+               wy=wy,
+               ww=ww,
+               LDvalues=LDvalues,
+               LDindices=LDindices,
+               b = b,
+               lambda = lambda,
+               mask=mask,
+               yy = yy,
+               pi = pi,
+               gamma = gamma,
+               vg = vg,
+               vb = vb,
+               ve = ve,
+               ssb_prior=ssb_prior,
+               sse_prior=sse_prior,
+               nub=nub,
+               nue=nue,
+               updateB = updateB,
+               updateE = updateE,
+               updatePi = updatePi,
+               updateG = updateG,
+               adjustE = adjustE,
+               n=n,
+               nit=nit,
+               nburn=nburn,
+               method=as.integer(method),
+               algo=as.integer(algorithm))
+  names(fit[[1]]) <- names(LDvalues)
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
+  return(fit)
+}
+
 ################################################################################
 # Single trait fine-mapping BLR using summary statistics and sparse LD provided in Glist 
 # gmap full version
@@ -994,6 +1088,17 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   b <- matrix(0, nrow=length(rsids), ncol=nt)
   if(is.null(mask)) mask <- matrix(FALSE, nrow=length(rsids), ncol=nt)
   rownames(b) <- rownames(mask) <- rsids
+  
+  vy <- yy/(n-1)
+  if(is.null(pi)) pi <- 0.001
+  if(is.null(h2)) h2 <- 0.5
+  if(is.null(ve)) ve <- vy*(1-h2)
+  if(is.null(vg)) vg <- vy*h2
+  mc <- min(5000,m)
+  if(method>=4 && is.null(vb)) vb <- vg/(mc*pi)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(mc*pi))
+  
+  
 
   if(is.null(trait)) trait <- 1
   message(paste("Processing trait:",trait))
