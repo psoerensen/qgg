@@ -1048,7 +1048,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   if(is.data.frame(stat)) {
     nt <- 1
     rsids <- stat$rsids
-    m <- sum(rsids%in%unlist(Glist$rsidsLD))
+    m <- sum(rsids%in%unlist(Glist$rsids))
+    if(!is.null(Glist$rsidsLD)) m <- sum(rsids%in%unlist(Glist$rsidsLD))
     stat$b <- as.matrix(stat$b)
     stat$seb <- as.matrix(stat$seb)
     stat$n <- as.matrix(stat$n)
@@ -1067,7 +1068,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   if(!is.data.frame(stat) && is.list(stat)) {
     nt <- ncol(stat$b)
     rsids <- rownames(stat$b)
-    m <- sum(rsids%in%unlist(Glist$rsidsLD))
+    m <- sum(rsids%in%unlist(Glist$rsids))
+    if(!is.null(Glist$rsidsLD)) m <- sum(rsids%in%unlist(Glist$rsidsLD))
   }
   
 
@@ -1094,11 +1096,9 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   if(is.null(h2)) h2 <- 0.5
   if(is.null(ve)) ve <- vy*(1-h2)
   if(is.null(vg)) vg <- vy*h2
-  mc <- min(5000,m)
+  mc <- min(c(5000,m))
   if(method>=4 && is.null(vb)) vb <- vg/(mc*pi)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(mc*pi))
-  
-  
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <- ((nub-2.0)/nub)*(vg/(mc*pi))
 
   if(is.null(trait)) trait <- 1
   message(paste("Processing trait:",trait))
