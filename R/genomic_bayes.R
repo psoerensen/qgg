@@ -882,6 +882,8 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
   if(method==5) pi <- c(0.95,0.02,0.02,0.01)
   if(method==5) gamma <- c(0,0.01,0.1,1.0)
 
+  seed <- sample.int(.Machine$integer.max, 1)
+  
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy, 
                ww=ww, 
@@ -909,7 +911,8 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
                nit=nit,
                nburn=nburn,
                method=as.integer(method),
-               algo=as.integer(algorithm))
+               algo=as.integer(algorithm),
+               seed=seed)
   names(fit[[1]]) <- names(LDvalues)
   names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
   return(fit)
@@ -976,6 +979,8 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
   if(method==5) pi <- c(0.95,0.02,0.02,0.01)
   if(method==5) gamma <- c(0,0.01,0.1,1.0)
   
+  seed <- sample.int(.Machine$integer.max, 1)
+  
   fit <- .Call("_qgg_sbayes_spa",
                wy=wy,
                ww=ww,
@@ -1003,7 +1008,8 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
                nit=nit,
                nburn=nburn,
                method=as.integer(method),
-               algo=as.integer(algorithm))
+               algo=as.integer(algorithm),
+               seed=seed)
   names(fit[[1]]) <- names(LDvalues)
   names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
   return(fit)
@@ -1824,7 +1830,7 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
 
 # Multiple trait BLR based on individual level data based on fast algorithm  
 mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
-                    vg=NULL, vb=NULL, ve=NULL, 
+                    vg=NULL, vb=NULL, ve=NULL, formatLD=NULL,
                     ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                     h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
                     nub=NULL, nue=NULL, nit=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
