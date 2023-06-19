@@ -776,7 +776,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
                                               int nit,
                                               int nburn,
                                               int method,
-                                              int algo) {
+                                              int algo,
+                                              int seed) {
   
   
     
@@ -870,9 +871,10 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
   // Start Gibbs sampler
   std::random_device rd;
-  unsigned int local_seed;
-  local_seed = rd();
-  std::mt19937 gen(local_seed);
+  //unsigned int local_seed;
+  //local_seed = rd();
+  //std::mt19937 gen(local_seed);
+  std::mt19937 gen(seed);
   
   for ( int it = 0; it < nit+nburn; it++) {
     
@@ -1300,8 +1302,9 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   double rhs, lhs, bn, bj, diff;
   double rhs1, lhs1, like0, like1, p0, v0, v1;
   double ssb, sse, ssg, dfb, dfe, dfg, chi2;
-  double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
-  double shape, shape0, rate, rate0, lambda2;
+  //double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
+  //double shape, shape0, rate, rate0, lambda2;
+  double u, shape0, rate0, lambda2;
   
   std::vector<double> vbscale(nc), probc(nc), logLc(nc), pim(nc);
   double cumprobc, vbc, logLcAdj;
