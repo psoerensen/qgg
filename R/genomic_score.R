@@ -53,7 +53,8 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
      if ( !is.null(Glist))  {
           prs <- NULL
           if (!is.null(chr)) chromosomes <- chr
-          if (is.null(chr)) chromosomes <- 1:length(Glist$bedfiles)
+          if (is.null(chr)) chromosomes <- unique(stat$chr)
+          #if (is.null(chr)) chromosomes <- 1:length(Glist$bedfiles)
           if(sum(colnames(stat)%in%c("rsids","chr","pos", "ea","nea", "eaf","bm","dm")) == 8) {
             # Output from gbayes detected
             stat <- stat[,1:7]
