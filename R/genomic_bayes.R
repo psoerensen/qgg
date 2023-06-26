@@ -178,6 +178,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   }
   if(!is.null(stat)) {
     if(!is.data.frame(stat) && is.list(stat)) nt <- ncol(stat$b)
+    if( any(sapply(stat[,-c(1:5)],function(x){any(!is.finite(x))}))) stop("Some elements in stat not finite")
+    if( any(sapply(stat[,-c(1:5)],function(x){any(is.na(x))}))) stop("Some elements in stat are NA's")
   }
   
   # Define type of analysis
@@ -1052,6 +1054,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   
   # check this again
   if(is.data.frame(stat)) {
+    if( any(sapply(stat[,-c(1:5)],function(x){any(!is.finite(x))}))) stop("Some elements in stat not finite")
+    if( any(sapply(stat[,-c(1:5)],function(x){any(is.na(x))}))) stop("Some elements in stat NA")
     nt <- 1
     rsids <- stat$rsids
     m <- sum(rsids%in%unlist(Glist$rsids))
