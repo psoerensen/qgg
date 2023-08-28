@@ -37,8 +37,8 @@
 #'
 
 #'
-#' @param Glist list of information about genotype matrix stored on disk - only provided if task="summary" or task="sparseld"
-#' @param task character specifying which task to perform ("prepare" is default, "summary", or "sparseld")
+#' @param Glist list of information about genotype matrix stored on disk
+#' @param task character specifying which task to perform ("prepare" which is default, or "sparseld", "ldscores", "ldsets" or "geneticmap")
 #' @param study name of the study
 #' @param fnBED path and filename of the binary file .bed used for storing genotypes on the disk
 #' @param bedfiles vector of names for the PLINK bed-files
@@ -233,7 +233,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     if(!is.null(kb)) message(paste("Computing ldscores using kb:",kb))
     ldscores <- NULL
     for (chr in 1:22) { 
-      ldscores[[chr]] <- ldscore(Glist=Glist, chr=chr, cm=cm) 
+      ldscores[[chr]] <- ldscore(Glist=Glist, chr=chr, cm=cm, kb=kb) 
     }
     return(ldscores)
   }
@@ -833,6 +833,78 @@ regionLD <- function(sparseLD = NULL, onebased=TRUE, rsids=NULL, format="matrix"
   }
 }
 
+
+ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=NULL) {
+  
+  chromosomes <- chr
+  
+  if(is.null(chr)) chromosomes <- 1:Glist$nchr  
+  
+  ldscores2 <- vector(length=length(chromosomes),mode="list")
+  
+  for (chr in chromosomes) {
+    message(paste("Compute LD scores for chromosome:",chr))
+    rsids <- Glist$rsidsLD[[chr]]
+    m <- length(rsids)
+    msize <- Glist$msize
+    
+    # LD indexes
+    k1 <- rep(1, m)
+    k1[1:msize] <- msize - 1:msize + 2
+    k2 <- rep((2 * msize + 1), m)
+    k2[(m - msize + 1):m] <- msize + m - ((m - msize + 1):m) + 1
+    
+    ldchr <- rep(0,m)
+    names(ldchr) <- rsids
+    
+    if(!is.null(kb)) kb <- kb*1000
+    #if(!is.null(cm)) cm <- cm*1000000
+    
+    map <- Glist$map[[chr]][rsids]
+    #if(!is.null(cm)) if(any(is.na(map))) stop("Missing values in Glist$map")
+    ldmap <- c(rep(NA, msize),map, rep(NA, msize))
+    
+    pos <- Glist$pos[[chr]][rsids]
+    #if(!is.null(kb)) if(any(is.na(pos))) stop("Missing values in Glist$pos")
+    ldpos <- c(rep(NA, msize),pos, rep(NA, msize))
+    
+    nld <- 1:as.integer(msize * 2 + 1)
+    
+    fnLD <- Glist$ldfiles[[chr]]
+    bfLD <- file(fnLD, "rb")
+    
+    for (j in 1:m) {
+      ld <- readBin(bfLD, "numeric", n = (2*msize+1), size = nbytes, endian = "little")
+      rwsLD <- k1[j]:k2[j]
+      ld <- ld[rwsLD]
+      rwsMAP <- rwsPOS <- (nld + j - 1)
+      if(!is.null(kb)) {
+        if(!is.na(pos[j])) {
+          posdiff <- abs(ldpos[rwsPOS][rwsLD]-pos[j])
+          ld <- ld[!is.na(posdiff)]
+          posdiff <- posdiff[!is.na(posdiff)]
+          ld <- ld[posdiff<kb]
+          ldchr[j] <- sum(ld**2)
+        }
+      }
+      if(!is.null(cm)) {
+        if(!is.na(map[j])) {
+          mapdiff <- abs(ldmap[rwsMAP][rwsLD]-map[j])
+          ld <- ld[!is.na(mapdiff)]
+          mapdiff <- mapdiff[!is.na(mapdiff)]
+          ld <- ld[mapdiff<cm]
+          ldchr[j] <- sum(ld**2)
+        }  
+      }
+      if(is.null(cm) && is.null(kb)) ldchr[j] <- sum(ld**2)
+    }
+    close(bfLD)
+    ldchr <- ldchr[ldchr>0]
+    ldscores2[[chr]] <- ldchr
+  }
+  
+  return(unlist(ldscores2))
+}
 
 
 adjustB <- function(b=NULL, LD = NULL, msize=NULL, overlap=NULL, shrink=0.001, threshold=1e-8) {
