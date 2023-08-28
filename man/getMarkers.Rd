@@ -2,18 +2,22 @@
 % Please edit documentation in R/genomic_matrix.R
 \name{getMarkers}
 \alias{getMarkers}
-\title{Get marker rsids in a genome region}
+\title{Retrieve marker rsids in a specified genome region.}
 \usage{
 getMarkers(Glist = NULL, chr = NULL, region = NULL)
 }
 \arguments{
-\item{Glist}{list structure with information about genotypes stored on disk}
+\item{Glist}{A list structure with information about genotypes stored on disk.}
 
-\item{chr}{chromosome from which markers are extracted}
+\item{chr}{A chromosome from which markers are extracted.}
 
-\item{region}{genome region (in base pairs) from which markers are extracted}
+\item{region}{A genome region (in base pairs) from which markers are extracted.}
+}
+\value{
+A vector of rsids that fall within the specified region on the given chromosome.
 }
 \description{
-Get marker rsids in a specific genome region based on marker in Glist
+Get marker rsids (reference SNP cluster IDs) from a specified genome region 
+based on markers present in `Glist`.
 }
 \keyword{internal}
