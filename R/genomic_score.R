@@ -53,18 +53,23 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
      if ( !is.null(Glist))  {
           prs <- NULL
           if (!is.null(chr)) chromosomes <- chr
-          if (is.null(chr)) chromosomes <- unique(stat$chr)
-          #if (is.null(chr)) chromosomes <- 1:length(Glist$bedfiles)
-          if(sum(colnames(stat)%in%c("rsids","chr","pos", "ea","nea", "eaf","bm","dm")) == 8) {
-            # Output from gbayes detected
-            stat <- stat[,1:7]
-          }
+          #if (is.null(chr)) chromosomes <- unique(stat$chr)
+          if (is.null(chr)) chromosomes <- 1:length(Glist$bedfiles)
+          # Output from gbayes
+          cnames <- c("rsids","chr","pos", "ea","nea", "eaf","bm","dm")
+          if(sum(colnames(stat)%in%cnames) == 8) stat <- stat[,1:7]
+          # Output from glma
+          cnames <- c("rsids", "chr", "pos", "ea", "nea", "eaf", 
+                      "b", "seb","stat","p", "n", "ww", "wy")
+          if(sum(colnames(stat)%in%cnames) == 13) stat <- stat[,1:7]
           for (chr in chromosomes) {
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                  prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
                                       ids = ids, scale = scale, ncores = ncores, msize = msize, verbose=verbose)
-                 if (chr==chromosomes[1]) prs <- prschr
-                 if (!chr==chromosomes[1]) prs <- prs + prschr
+                 if (is.null(prs)) prs <- prschr
+                 if (is.null(prs)) prs <- prs + prschr
+                 #if (chr==chromosomes[1]) prs <- prschr
+                 #if (!chr==chromosomes[1]) prs <- prs + prschr
                  
                }
           }
