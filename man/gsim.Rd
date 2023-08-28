@@ -4,7 +4,7 @@
 \alias{gsim}
 \title{Genomic simulation}
 \usage{
-gsim(Glist = NULL, chr = 1, nt = 1, W = NULL, n = 1000, m = 1000)
+gsim(Glist = NULL, chr = 1, nt = 1, W = NULL, n = 1000, m = 1000, rsids = NULL)
 }
 \arguments{
 \item{Glist}{list of information about genotype matrix}
