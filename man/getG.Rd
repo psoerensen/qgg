@@ -2,7 +2,7 @@
 % Please edit documentation in R/genomic_matrix.R
 \name{getG}
 \alias{getG}
-\title{Extract elements from genotype matrix stored on disk}
+\title{Retrieve Elements from Genotype Matrix Stored On Disk}
 \usage{
 getG(
   Glist = NULL,
@@ -19,28 +19,41 @@ getG(
 )
 }
 \arguments{
-\item{Glist}{list structure with information about genotypes stored on disk}
+\item{Glist}{A list structure containing information about genotypes stored on disk.}
 
-\item{chr}{chromosome for which W is to be extracted}
+\item{chr}{An integer representing the chromosome for which the genotype matrix is to be extracted. 
+It is required.}
 
-\item{bedfiles}{vector of name for the PLINK bed-file}
+\item{bedfiles}{A vector of filenames for the PLINK bed-file.}
 
-\item{bimfiles}{vector of name for the PLINK bim-file}
+\item{bimfiles}{A vector of filenames for the PLINK bim-file.}
 
-\item{famfiles}{vector of name for the PLINK fam-file}
+\item{famfiles}{A vector of filenames for the PLINK fam-file.}
 
-\item{ids}{vector of ids in W to be extracted}
+\item{ids}{A vector of individual IDs for whom the genotype data needs to be extracted.}
 
-\item{rsids}{vector of rsids in W to be extracted}
+\item{rsids}{A vector of SNP identifiers for which the genotype data needs to be extracted.}
 
-\item{rws}{vector of rows in W to be extracted}
+\item{rws}{A vector of row numbers to be extracted from the genotype matrix.}
 
-\item{cls}{vector of columns in W to be extracted}
+\item{cls}{A vector of column numbers to be extracted from the genotype matrix.}
 
-\item{impute}{logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)}
+\item{impute}{A logical or integer. If TRUE, missing genotypes are replaced with their expected values 
+(2 times the allele frequency). If set to an integer, missing values are replaced by that integer.}
 
-\item{scale}{logical if TRUE the genotype markers have been scale to mean zero and variance one}
+\item{scale}{A logical. If TRUE, the genotype markers are scaled to have a mean of zero and variance of one.}
+}
+\value{
+A matrix with extracted genotypic data. Rows correspond to individuals, and columns correspond 
+        to SNPs. Row names are set to individual IDs, and column names are set to rsids.
 }
 \description{
-Extract elements from genotype matrix (rows/columns, ids/rsids) stored on disk.
+Extracts specific rows (based on ids or row numbers) and columns (based on rsids or column numbers) 
+from a genotype matrix stored on disk. The extraction is based on provided arguments such as chromosome 
+number, ids, rsids, etc. Genotypes can be optionally scaled and imputed.
+}
+\details{
+This function facilitates the extraction of specific genotype data from storage based on various criteria. 
+The extracted genotype data can be optionally scaled or imputed. If rsids are provided that are not found 
+in the `Glist`, a warning is raised.
 }
