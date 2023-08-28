@@ -16,7 +16,7 @@ gbayes(
   chr = NULL,
   rsids = NULL,
   b = NULL,
-  badj = NULL,
+  bm = NULL,
   seb = NULL,
   LD = NULL,
   n = NULL,
@@ -76,7 +76,7 @@ gbayes(
 
 \item{b}{is a vector or matrix of marginal marker effects}
 
-\item{badj}{is a vector or matrix of adjusted marker effects for the BLR model}
+\item{bm}{is a vector or matrix of adjusted marker effects for the BLR model}
 
 \item{seb}{is a vector or matrix of standard error of marginal effects}
 
