@@ -2,18 +2,27 @@
 % Please edit documentation in R/genomic_matrix.R
 \name{getLD}
 \alias{getLD}
-\title{Get sparse LD matrix}
+\title{Retrieve Sparse LD Matrix for a Given Chromosome}
 \usage{
 getLD(Glist = NULL, chr = NULL, rsids = NULL)
 }
 \arguments{
-\item{Glist}{list structure with information about genotypes stored on disk}
+\item{Glist}{A list structure containing genotypic data, including rsids for LD calculation (`rsidsLD`), LD file locations (`ldfiles`), and `msize` which indicates the size for surrounding region to consider for LD.}
 
-\item{chr}{chromosome from which LD sets are extracted}
+\item{chr}{A specific chromosome from which LD sets need to be extracted.}
 
-\item{rsids}{included in the sparse LD matrix extracted}
+\item{rsids}{A vector of rsids that need to be included in the sparse LD matrix. Default is NULL, implying all rsids in the chromosome will be used.}
+}
+\value{
+A matrix containing LD values. The matrix is of size (msize * 2 + 1) x mchr, where mchr is the number of rsids in the chromosome.
+        The returned matrix has column names corresponding to rsids in the chromosome, and row names representing relative positions to the current SNP, from -msize to msize.
 }
 \description{
-Get sparse LD matrix in Glist
+Extracts and returns a sparse LD (Linkage Disequilibrium) matrix for the specified chromosome based on genotypic data provided in `Glist`.
+}
+\details{
+The function constructs the LD matrix by reading LD values from binary files stored in `Glist$ldfiles`.
+Each column of the matrix represents a SNP from `rsidsLD`, and rows represent LD values for surrounding SNPs. 
+The main diagonal (msize + 1 row) is set to 1 for all SNPs.
 }
 \keyword{internal}
