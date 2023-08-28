@@ -26,9 +26,9 @@ gprep(
 )
 }
 \arguments{
-\item{Glist}{list of information about genotype matrix stored on disk - only provided if task="summary" or task="sparseld"}
+\item{Glist}{list of information about genotype matrix stored on disk}
 
-\item{task}{character specifying which task to perform ("prepare" is default, "summary", or "sparseld")}
+\item{task}{character specifying which task to perform ("prepare" which is default, or "sparseld", "ldscores", "ldsets" or "geneticmap")}
 
 \item{study}{name of the study}
 
