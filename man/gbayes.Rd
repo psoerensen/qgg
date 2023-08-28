@@ -20,6 +20,7 @@ gbayes(
   seb = NULL,
   LD = NULL,
   n = NULL,
+  formatLD = "dense",
   vg = NULL,
   vb = NULL,
   ve = NULL,
@@ -41,6 +42,7 @@ gbayes(
   nue = 4,
   verbose = FALSE,
   msize = 100,
+  mask = NULL,
   GRMlist = NULL,
   ve_prior = NULL,
   vg_prior = NULL,
@@ -50,7 +52,7 @@ gbayes(
   nit_local = NULL,
   nit_global = NULL,
   method = "mixed",
-  algorithm = "default"
+  algorithm = "mcmc"
 )
 }
 \arguments{
