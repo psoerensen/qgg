@@ -71,7 +71,7 @@ phenotype data (y), covariate data (X), genotype data (G or Glist), a genomic re
 matrix (GRM or GRMlist) and genetic marker sets (sets).
 
 The genotypes are stored in a matrix (n x m (individuals x markers)) in memory (G) or in a
-binary file on disk (Glist).h
+binary file on disk (Glist).
 
 It is only for small data sets that the genotype matrix (G) can stored in memory. For large data
 sets the genotype matrix has to stored in a binary file on disk (Glist). Glist is as a list
@@ -92,7 +92,7 @@ which is assumed to be centered and scaled.
 
 The Glist structure is used as input parameter for a number of qgg core functions including:
 1) construction of genomic relationship matrices (grm), 2) construction of sparse ld matrices,
-3) estimating genomic parameters (greml), 4) single marker association analyses (lma or mlma),
+3) estimating genomic parameters (greml), 4) single marker association analyses (glma),
 5) gene set enrichment analyses (gsea), and 6) genomic prediction from genotypes
 and phenotypes (gsolve) or genotypes and summary statistics (gscore).
 }
