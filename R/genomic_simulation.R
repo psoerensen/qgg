@@ -5,40 +5,48 @@
 #' Genomic simulation
 #' 
 #'
-#' @description
-#' The gsim function is used for simulating genotype and phenotype data based Glist.
-#' It is currently under active development.
-#' 
-#' @param Glist list of information about genotype matrix
-#' @param chr is the chromosome(s) being used in the simulation
-#' @param W matrix of centered and scaled genotypes
-#' @param nt number of traits 
-#' @param n number of individuals
-#' @param m number of markers 
-#' 
-#' 
-#' @author Peter Soerensen
-#' 
+#' Simulate Genotype and Phenotype Data
+#'
+#' This function simulates genotype and phenotype data based on the `Glist`, which is 
+#' information about the genotype matrix. 
+#'
+#' @param Glist A list of information about the genotype matrix. Default is `NULL`.
+#' @param chr The chromosome(s) being used in the simulation. Default is 1.
+#' @param nt Number of traits. Default is 1.
+#' @param W Matrix of centered and scaled genotypes. Default is `NULL`.
+#' @param n Number of individuals. Default is 1000.
+#' @param m Number of markers. Default is 1000.
+#' @param rsids A character vector of rsids. Default is `NULL`.
+#'
+#' @return 
+#' A list containing:
+#' \itemize{
+#'   \item \code{y}: Phenotypes.
+#'   \item \code{W}: Matrix of centered and scaled genotypes.
+#'   \item \code{e}: Errors.
+#'   \item \code{g}: Genotype effect.
+#'   \item \code{b0}, \code{b1}: Coefficients.
+#'   \item \code{set0}, \code{set1}: Selected markers.
+#'   \item \code{causal}: Causal markers.
+#' }
 #' 
 #' @examples
+#' ## Plink bed/bim/fam files
+#' bedfiles <- system.file("extdata", paste0("sample_chr",1:2,".bed"), package = "qgg")
+#' bimfiles <- system.file("extdata", paste0("sample_chr",1:2,".bim"), package = "qgg")
+#' famfiles <- system.file("extdata", paste0("sample_chr",1:2,".fam"), package = "qgg")
 #'
-#'  ## Plink bed/bim/fam files
-#'  bedfiles <- system.file("extdata", paste0("sample_chr",1:2,".bed"), package = "qgg")
-#'  bimfiles <- system.file("extdata", paste0("sample_chr",1:2,".bim"), package = "qgg")
-#'  famfiles <- system.file("extdata", paste0("sample_chr",1:2,".fam"), package = "qgg")
-#'  
-#'  # Summarize bed/bim/fam files
-#'  Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles)
-#'  
-#'  # Simulate phenotype
-#'  sim <- gsim(Glist=Glist, chr=1, nt=1)
-#'  head(sim$y)
-#'  head(sim$e)
-#'  head(sim$causal)
-#'  
+#' # Summarize bed/bim/fam files
+#' Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles)
 #'
+#' # Simulate phenotype
+#' sim <- gsim(Glist=Glist, chr=1, nt=1)
+#' head(sim$y)
+#' head(sim$e)
+#' head(sim$causal)
+#'
+#' @author Peter Soerensen
 #' @export
-#'
 
 gsim <- function(Glist=NULL, chr=1, nt=1,W=NULL, n=1000, m=1000, rsids=NULL) {
   
