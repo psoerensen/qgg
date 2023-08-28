@@ -4,14 +4,14 @@
 \alias{plotBayes}
 \title{Plot fit from gbayes}
 \usage{
-plotBayes(fit = NULL, causal = NULL, what = "Beta", chr = 1)
+plotBayes(fit = NULL, causal = NULL, what = "bm", chr = 1)
 }
 \arguments{
 \item{fit}{object from gbayes}
 
 \item{causal}{indices for "causal" markers}
 
-\item{what}{character fro what to plot (e.g. "trace", "Beta", "Ve", "Vg", "Vb")}
+\item{what}{character fro what to plot (e.g. "trace", "bpm", "ve", "vg", "vb")}
 
 \item{chr}{chromosome to plot}
 }
