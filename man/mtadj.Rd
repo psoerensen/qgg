@@ -87,7 +87,7 @@ The mtadj function use selection index theory to find the optimal weights across
  #
  ## Adjust summary statistics using estimated genetic parameters
  #b <- cbind(b1=maLM1[,"b"],b2=maLM2[,"b"])
- #badj <- mtadj( h2=h2, rg=rg, b=b, n=c(500,500), method="ols")
+ #bm <- mtadj( h2=h2, rg=rg, b=b, n=c(500,500), method="ols")
  
  
 }
