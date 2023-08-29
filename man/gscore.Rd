@@ -21,35 +21,37 @@ gscore(
 )
 }
 \arguments{
-\item{Glist}{list of information about genotype matrix}
+\item{Glist}{List of information about genotype matrix. Default is NULL.}
 
-\item{chr}{chromosome for which genomic scores is computed}
+\item{chr}{Chromosome for which genomic scores is computed. Default is NULL.}
 
-\item{bedfiles}{name of the PLINK bed-files}
+\item{bedfiles}{Names of the PLINK bed-files. Default is NULL.}
 
-\item{bimfiles}{name of the PLINK bim-files}
+\item{bimfiles}{Names of the PLINK bim-files. Default is NULL.}
 
-\item{famfiles}{name of the PLINK fam-files}
+\item{famfiles}{Names of the PLINK fam-files. Default is NULL.}
 
-\item{stat}{matrix of single marker effects}
+\item{stat}{Matrix of single marker effects. Default is NULL.}
 
-\item{fit}{fit object output from gbayes}
+\item{fit}{Fit object output from gbayes. Default is NULL.}
 
-\item{ids}{vector of individuals used in the analysis}
+\item{ids}{Vector of individuals used in the analysis. Default is NULL.}
 
-\item{scale}{logical if TRUE the genotype markers have been scale to mean zero and variance one}
+\item{scale}{Logical; if TRUE the genotype markers are scaled to mean zero and variance one. Default is TRUE.}
 
-\item{impute}{logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)}
+\item{impute}{Logical; if TRUE, missing genotypes are set to its expected value (2*af where af is allele frequency). Default is TRUE.}
 
-\item{msize}{number of genotype markers used for batch processing}
+\item{msize}{Number of genotype markers used for batch processing. Default is 100.}
 
-\item{ncores}{number of cores used in the analysis}
+\item{ncores}{Number of cores used in the analysis. Default is 1.}
 
-\item{verbose}{is a logical; if TRUE it prints more details during optimization}
+\item{verbose}{Logical; if TRUE, more details are printed during optimization. Default is FALSE.}
+}
+\value{
+Returns the genomic scores based on the provided parameters.
 }
 \description{
-The gscore function is used for genomic predictions based on single marker summary statistics
-(coefficients, log-odds ratios, z-scores) and observed genotypes.
+Computes genomic predictions using single marker summary statistics and observed genotypes.
 }
 \examples{
 
