@@ -68,6 +68,7 @@
 #' @param rsids is a character vector of rsids
 #' @param b is a vector or matrix of marginal marker effects 
 #' @param seb is a vector or matrix of standard error of marginal effects
+#' @param mask is a vector or matrix of TRUE/FALSE specifying if marker should be ignored 
 #' @param bm is a vector or matrix of adjusted marker effects for the BLR model
 #' @param LD is a list with sparse LD matrices
 #' @param n is a scalar or vector of number of observations for each trait
@@ -88,6 +89,7 @@
 #' @param updatePi is a logical for updating pi
 #' @param adjustE is a logical for adjusting residual variance
 #' @param models is a list structure with models evaluated in bayesC
+#' @param formatLD is a character specifying LD format (formatLD="dense" is default)
 #' @param verbose is a logical; if TRUE it prints more details during iteration
 #' @param scaleY is a logical; if TRUE y is centered and scaled 
 #' @param msize number of markers used in compuation of sparseld
@@ -583,10 +585,10 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$param <- lapply(fit[1:22],function(x){x$param})
 
     fit$mask <- mask
-    zve <- sapply(fit$ves[chromosomes],function(x){geweke.diag(x[nburn:length(x)])$z})
-    zvg <- sapply(fit$vgs[chromosomes],function(x){geweke.diag (x[nburn:length(x)])$z})
-    zvb <- sapply(fit$vbs[chromosomes],function(x){geweke.diag(x[nburn:length(x)])$z})
-    zpi <- sapply(fit$pis[chromosomes],function(x){geweke.diag(x[nburn:length(x)])$z})
+    zve <- sapply(fit$ves[chromosomes],function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+    zvg <- sapply(fit$vgs[chromosomes],function(x){coda::geweke.diag (x[nburn:length(x)])$z})
+    zvb <- sapply(fit$vbs[chromosomes],function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+    zpi <- sapply(fit$pis[chromosomes],function(x){coda::geweke.diag(x[nburn:length(x)])$z})
     ve <- sapply(fit$ves[chromosomes],function(x){mean(x[nburn:length(x)])})
     vg <- sapply(fit$vgs[chromosomes],function(x){mean(x[nburn:length(x)])})
     vb <- sapply(fit$vbs[chromosomes],function(x){mean(x[nburn:length(x)])})
@@ -1229,10 +1231,10 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           if(!updateG) critvg <- TRUE
           if(!updateB) critvb <- TRUE
           if(!updatePi) critpi <- TRUE
-          zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
-          zvg <- geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
-          zvb <- geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
-          zpi <- geweke.diag(fit$pis[nburn:length(fit$pis)])$z
+          zve <- coda::geweke.diag(fit$ves[nburn:length(fit$ves)])$z
+          zvg <- coda::geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
+          zvb <- coda::geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
+          zpi <- coda::geweke.diag(fit$pis[nburn:length(fit$pis)])$z
           if(!is.na(zve)) critve <- abs(zve)<critVe
           if(!is.na(zvg)) critvg <- abs(zvg)<critVg
           if(!is.na(zvb)) critvb <- abs(zvb)<critVb
@@ -1453,10 +1455,10 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             if(!updateG) critvg <- TRUE
             if(!updateB) critvb <- TRUE
             if(!updatePi) critpi <- TRUE
-            zve <- geweke.diag(fit$ves[nburn:length(fit$ves)])$z
-            zvg <- geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
-            zvb <- geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
-            zpi <- geweke.diag(fit$pis[nburn:length(fit$pis)])$z
+            zve <- coda::geweke.diag(fit$ves[nburn:length(fit$ves)])$z
+            zvg <- coda::geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
+            zvb <- coda::geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
+            zpi <- coda::geweke.diag(fit$pis[nburn:length(fit$pis)])$z
             if(!is.na(zve)) critve <- abs(zve)<critVe
             if(!is.na(zvg)) critvg <- abs(zvg)<critVg
             if(!is.na(zvb)) critvb <- abs(zvb)<critVb
@@ -1583,10 +1585,10 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
   fit$method <- methods[method+1]
   fit$mask <- mask
-  zve <- sapply(fit$ves,function(x){geweke.diag(x[nburn:length(x)])$z})
-  zvg <- sapply(fit$vgs,function(x){geweke.diag(x[nburn:length(x)])$z})
-  zvb <- sapply(fit$vbs,function(x){geweke.diag(x[nburn:length(x)])$z})
-  zpi <- sapply(fit$pis,function(x){geweke.diag(x[nburn:length(x)])$z})
+  zve <- sapply(fit$ves,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  zvg <- sapply(fit$vgs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  zvb <- sapply(fit$vbs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  zpi <- sapply(fit$pis,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
   ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
   vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
   vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
