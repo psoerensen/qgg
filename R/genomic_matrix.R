@@ -341,8 +341,6 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 #' @export
 #'
 
-
-
 gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO=NULL,excludeCGAT=TRUE,
                     excludeINDEL=TRUE, excludeDUPS=TRUE, excludeHWE=1e-12, excludeMHC=FALSE, assembly="GRCh37") {
 # excludeINFO is a numeric value of the info score used for filtering
@@ -475,25 +473,35 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
 # }
 
 
-#' Extract elements from genotype matrix stored on disk
+#' Retrieve Elements from Genotype Matrix Stored On Disk
 #'
-#' @description
-#' Extract elements from genotype matrix (rows/columns, ids/rsids) stored on disk.
-
-#' @param Glist list structure with information about genotypes stored on disk
-#' @param bedfiles vector of name for the PLINK bed-file
-#' @param bimfiles vector of name for the PLINK bim-file
-#' @param famfiles vector of name for the PLINK fam-file
-#' @param ids vector of ids in W to be extracted
-#' @param chr chromosome for which W is to be extracted
-#' @param rsids vector of rsids in W to be extracted
-#' @param rws vector of rows in W to be extracted
-#' @param cls vector of columns in W to be extracted
-#' @param scale logical if TRUE the genotype markers have been scale to mean zero and variance one
-#' @param impute logical if TRUE missing genotypes are set to its expected value (2*af where af is allele frequency)
-
+#' Extracts specific rows (based on ids or row numbers) and columns (based on rsids or column numbers) 
+#' from a genotype matrix stored on disk. The extraction is based on provided arguments such as chromosome 
+#' number, ids, rsids, etc. Genotypes can be optionally scaled and imputed.
+#'
+#' @param Glist A list structure containing information about genotypes stored on disk.
+#' @param chr An integer representing the chromosome for which the genotype matrix is to be extracted. 
+#'            It is required.
+#' @param bedfiles A vector of filenames for the PLINK bed-file.
+#' @param bimfiles A vector of filenames for the PLINK bim-file.
+#' @param famfiles A vector of filenames for the PLINK fam-file.
+#' @param ids A vector of individual IDs for whom the genotype data needs to be extracted.
+#' @param rsids A vector of SNP identifiers for which the genotype data needs to be extracted.
+#' @param rws A vector of row numbers to be extracted from the genotype matrix.
+#' @param cls A vector of column numbers to be extracted from the genotype matrix.
+#' @param scale A logical. If TRUE, the genotype markers are scaled to have a mean of zero and variance of one.
+#' @param impute A logical or integer. If TRUE, missing genotypes are replaced with their expected values 
+#'               (2 times the allele frequency). If set to an integer, missing values are replaced by that integer.
+#'
+#' @return A matrix with extracted genotypic data. Rows correspond to individuals, and columns correspond 
+#'         to SNPs. Row names are set to individual IDs, and column names are set to rsids.
+#'
+#' @details
+#' This function facilitates the extraction of specific genotype data from storage based on various criteria. 
+#' The extracted genotype data can be optionally scaled or imputed. If rsids are provided that are not found 
+#' in the `Glist`, a warning is raised.
+#'
 #' @export
-#'
 
 getG <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, famfiles = NULL, ids = NULL, rsids = NULL,
                  rws = NULL, cls = NULL, impute = TRUE, scale = FALSE) {
@@ -714,15 +722,24 @@ getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   
 }
 
-#' Get sparse LD matrix
-#' @description
-#' Get sparse LD matrix in Glist
+#' Retrieve Sparse LD Matrix for a Given Chromosome
+#'
+#' Extracts and returns a sparse LD (Linkage Disequilibrium) matrix for the specified chromosome based on genotypic data provided in `Glist`.
+#'
+#' @param Glist A list structure containing genotypic data, including rsids for LD calculation (`rsidsLD`), LD file locations (`ldfiles`), and `msize` which indicates the size for surrounding region to consider for LD.
+#' @param chr A specific chromosome from which LD sets need to be extracted.
+#' @param rsids A vector of rsids that need to be included in the sparse LD matrix. Default is NULL, implying all rsids in the chromosome will be used.
+#' 
+#' @return A matrix containing LD values. The matrix is of size (msize * 2 + 1) x mchr, where mchr is the number of rsids in the chromosome.
+#'         The returned matrix has column names corresponding to rsids in the chromosome, and row names representing relative positions to the current SNP, from -msize to msize.
+#'
+#' @details
+#' The function constructs the LD matrix by reading LD values from binary files stored in `Glist$ldfiles`.
+#' Each column of the matrix represents a SNP from `rsidsLD`, and rows represent LD values for surrounding SNPs. 
+#' The main diagonal (msize + 1 row) is set to 1 for all SNPs.
+#'
 #' @keywords internal
-#' @param Glist list structure with information about genotypes stored on disk
-#' @param chr chromosome from which LD sets are extracted
-#' @param rsids included in the sparse LD matrix extracted
 #' @export
-
 getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
   msize <- Glist$msize
   rsidsChr <- Glist$rsidsLD[[chr]]
@@ -790,6 +807,22 @@ getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=N
 }
 
 
+#' Plot LD Matrix
+#'
+#' Visualizes the linkage disequilibrium (LD) matrix using a color gradient.
+#' The function produces an image plot with custom color mapping.
+#'
+#' @param LD A matrix representing the LD values to be plotted. Each element should be 
+#'           a numeric value, typically between 0 and 1, representing the degree of LD.
+#'           Rows and columns of the matrix should correspond to specific genetic markers (e.g., SNPs).
+#' @param cols A color palette to use for the plot. By default, it creates a blue gradient 
+#'             ranging from light blue ('#f0f3ff') to dark blue ('#0033BB').
+#'
+#' @return A plot visualizing the LD matrix. Row and column names of the LD matrix are used 
+#'         as labels on the x and y axes, respectively.
+#'
+#' @keywords internal
+#' @export
 plotLD <- function(LD=NULL, cols=NULL) {
   if(is.null(cols)) cols <- colorRampPalette(c('#f0f3ff','#0033BB'))(256)
   LD <- LD[,ncol(LD):1]
@@ -833,6 +866,28 @@ regionLD <- function(sparseLD = NULL, onebased=TRUE, rsids=NULL, format="matrix"
   }
 }
 
+
+#' Compute LD (Linkage Disequilibrium) Scores for a Given Chromosome.
+#'
+#' This function calculates LD scores for the specified chromosome(s) based on genotypic data provided in `Glist`.
+#' The LD score quantifies the amount of Linkage Disequilibrium at a given SNP.
+#' 
+#' @param Glist A list structure with genotypic data stored, including positions (`pos`), map information (`map`), rsids for LD calculation (`rsidsLD`), and LD file locations (`ldfiles`).
+#' @param chr A single chromosome or a vector of chromosomes for which LD scores need to be computed. Default is NULL, implying all chromosomes in `Glist` will be used.
+#' @param onebased Logical, if `TRUE`, the indexing of positions and other genomic information is 1-based. Default is `TRUE`.
+#' @param nbytes The size (in bytes) of each numeric value to read from the binary LD files. Default is 4.
+#' @param cm The threshold in centiMorgans for filtering LD values. Default is NULL.
+#' @param kb The threshold in kilobases for filtering LD values. Default is NULL. If specified, it will be converted to base pairs internally.
+#' 
+#' @return A list containing computed LD scores for each chromosome in the input.
+#'
+#' @details
+#' The function computes the LD scores for each SNP by reading LD values from binary files stored in `Glist$ldfiles`.
+#' It can filter SNPs based on physical distance (`kb`) or genetic map distance (`cm`). 
+#' If both `cm` and `kb` are NULL, all LD values are used in computation.
+#'
+#' @keywords internal
+#' @export
 
 ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=NULL) {
   
@@ -929,34 +984,55 @@ adjustB <- function(b=NULL, LD = NULL, msize=NULL, overlap=NULL, shrink=0.001, t
 
 
 
-#' Get marker rsids in a genome region
-#' @description
-#' Get marker rsids in a specific genome region based on marker in Glist
-#' @keywords internal
-#' @param Glist list structure with information about genotypes stored on disk
-#' @param chr chromosome from which markers are extracted
-#' @param region genome region (in base pairs) from which markers are extracted
-#' @export
 
-getMarkers <- function(Glist=NULL, chr=NULL, region=NULL) {
+
+
+#' Retrieve marker rsids in a specified genome region.
+#'
+#' Get marker rsids (reference SNP cluster IDs) from a specified genome region 
+#' based on markers present in `Glist`.
+#'
+#' @param Glist A list structure with information about genotypes stored on disk.
+#' @param chr A chromosome from which markers are extracted.
+#' @param region A genome region (in base pairs) from which markers are extracted.
+#' @return A vector of rsids that fall within the specified region on the given chromosome.
+#' @keywords internal
+#' @export
+getMarkers <- function(Glist = NULL, chr = NULL, region = NULL) {
   minpos <- min(region)
   maxpos <- max(region)
   select <-  Glist$pos[[chr]] > minpos & Glist$pos[[chr]] < maxpos
   Glist$rsids[[chr]][select]
 }
 
+#' Retrieve the map for specified rsids on a given chromosome.
+#'
+#' Fetch the map associated with provided rsids for a given chromosome from the list `Glist`.
+#'
+#' @param Glist A list structure with information about genotypes stored on disk.
+#' @param chr A chromosome from which the map is retrieved.
+#' @param rsids A vector of rsids for which the map is needed.
+#' @return A vector containing the map corresponding to the specified rsids on the given chromosome.
+#' @keywords internal
 #' @export
-getMap <- function(Glist = NULL, chr=NULL, rsids=NULL) {
-  rws <- match(rsids,Glist$rsids[[chr]])
+getMap <- function(Glist = NULL, chr = NULL, rsids = NULL) {
+  rws <- match(rsids, Glist$rsids[[chr]])
   map <- Glist$map[[chr]][rws]
   return(map)
 }
 
+#' Retrieve the positions for specified rsids on a given chromosome.
+#'
+#' Fetch the genomic positions associated with provided rsids for a given chromosome from the list `Glist`.
+#'
+#' @param Glist A list structure with information about genotypes stored on disk.
+#' @param chr A chromosome from which the positions are retrieved.
+#' @param rsids A vector of rsids for which the positions are needed.
+#' @return A vector containing the positions corresponding to the specified rsids on the given chromosome.
+#' @keywords internal
 #' @export
-getPos <- function(Glist = NULL, chr=NULL, rsids=NULL) {
-  rws <- match(rsids,Glist$rsids[[chr]])
+getPos <- function(Glist = NULL, chr = NULL, rsids = NULL) {
+  rws <- match(rsids, Glist$rsids[[chr]])
   pos <- Glist$pos[[chr]][rws]
   return(pos)
 }
-
-
