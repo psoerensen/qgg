@@ -14,7 +14,8 @@
 #' @param stat Matrix of single marker effects. Default is NULL.
 #' @param fit Fit object output from gbayes. Default is NULL.
 #' @param ids Vector of individuals used in the analysis. Default is NULL.
-#' @param scale Logical; if TRUE the genotype markers are scaled to mean zero and variance one. Default is TRUE.
+#' @param scaleMarker Logical; if TRUE the genotype markers are scaled to mean zero and variance one. Default is TRUE.
+#' @param scaleGRS Logical; if TRUE the GRS are scaled to mean zero and variance one. Default is TRUE.
 #' @param impute Logical; if TRUE, missing genotypes are set to its expected value (2*af where af is allele frequency). Default is TRUE.
 #' @param msize Number of genotype markers used for batch processing. Default is 100.
 #' @param ncores Number of cores used in the analysis. Default is 1.
@@ -48,7 +49,7 @@
 #' @export
 #'
 
-gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = NULL, ids = NULL, scale = TRUE, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
+gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = NULL, ids = NULL, scaleMarker = TRUE, scaleGRS=TRUE, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
      
      if ( !is.null(Glist))  {
           prs <- NULL
@@ -65,7 +66,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
           for (chr in chromosomes) {
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                  prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
-                                      ids = ids, scale = scale, ncores = ncores, msize = msize, verbose=verbose)
+                                      ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose)
                  if (is.null(prs)) prs <- prschr
                  if (is.null(prs)) prs <- prs + prschr
                  #if (chr==chromosomes[1]) prs <- prschr
@@ -73,7 +74,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
                  
                }
           }
-          prs <- scale(prs[,1:ncol(prs),drop=FALSE])
+          if(scaleGRS) prs <- scale(prs[,1:ncol(prs),drop=FALSE])
      }
      if ( !is.null(bedfiles))  {
           prs <- run_gscore(bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, stat = stat, 
@@ -188,8 +189,8 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
           cls <- match(stat$rsids, Glist$rsids[[chr]])
           #af <- stat$eaf
           af <- Glist$af[[chr]][cls]
-          if(scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], Glist$n, cls, af, scale, Slist)
-          if(!scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=FALSE, Slist)
+          if(scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=TRUE, Slist=Slist)
+          if(!scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=FALSE, Slist=Slist)
           grs <- do.call(cbind, grs)
           #grs <- as.matrix(as.data.frame(grs))
           rownames(grs) <- Glist$ids
