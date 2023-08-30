@@ -2,7 +2,7 @@
 % Please edit documentation in R/genomic_statistics.R
 \name{qcStat}
 \alias{qcStat}
-\title{Quality control of marker summary statistics}
+\title{Quality Control of Marker Summary Statistics}
 \usage{
 qcStat(
   Glist = NULL,
@@ -19,53 +19,56 @@ qcStat(
 )
 }
 \arguments{
-\item{Glist}{list of information about genotype matrix stored on disk}
+\item{Glist}{List containing information about genotype matrix stored on disk.}
 
-\item{stat}{data frame with marker summary statistics (see required format above)}
+\item{stat}{Data frame of marker summary statistics. It should either follow 
+the "internal" or "external" format.}
 
-\item{excludeMAF}{exclude marker if minor allele frequency (MAF) is below threshold (0.01 is default)}
+\item{excludeMAF}{Numeric. Exclusion threshold for minor allele frequency. Default is 0.01.}
 
-\item{excludeMAFDIFF}{exclude marker if minor allele frequency difference (MAFDIFF) between Glist$af and stat$af is above threshold (0.05 is default)}
+\item{excludeMAFDIFF}{Numeric. Threshold for excluding markers based on allele frequency difference. Default is 0.05.}
 
-\item{excludeINFO}{exclude marker if info score (INFO) is below threshold (0.8 is default)}
+\item{excludeINFO}{Numeric. Exclusion threshold for info score. Default is 0.8.}
 
-\item{excludeCGAT}{exclude marker if alleles are ambiguous (CG or AT)}
+\item{excludeCGAT}{Logical. Exclude ambiguous alleles (CG or AT). Default is TRUE.}
 
-\item{excludeINDEL}{exclude marker if it an insertion/deletion}
+\item{excludeINDEL}{Logical. Exclude insertion/deletion markers. Default is TRUE.}
 
-\item{excludeDUPS}{exclude marker id if duplicated}
+\item{excludeDUPS}{Logical. Exclude markers with duplicated ids. Default is TRUE.}
 
-\item{excludeMHC}{exclude marker if located in MHC region}
+\item{excludeMHC}{Logical. Exclude markers located in MHC region. Default is FALSE.}
 
-\item{excludeMISS}{exclude marker if sample missingness (MISS) is above threshold (0.05 is default)}
+\item{excludeMISS}{Numeric. Exclusion threshold for sample missingness. Default is 0.05.}
 
-\item{excludeHWE}{exclude marker if p-value for Hardy Weinberg Equilibrium test is below threshold (0.01 is default)}
+\item{excludeHWE}{Numeric. Exclusion threshold for Hardy Weinberg Equilibrium test p-value. Default is 1e-12.}
+}
+\value{
+A data frame with processed and quality-controlled summary statistics.
 }
 \description{
-Quality control is a critical step for working with GWAS summary statistics. 
-Processing and quality control of summary statistics includes:                                                                      
+Quality control is a fundamental step in GWAS summary statistics analysis.
+The function is equipped to handle various tasks including mapping marker ids,
+checking the effect allele and its frequency, determining build versions, and 
+excluding data based on multiple criteria.
+}
+\details{
+Performs quality control on GWAS summary statistics, which includes:
+- Mapping marker ids to LD reference panel data.
+- Checking effect allele, frequency, and build version.
+- Excluding based on various criteria like MAF, HWE, INDELS, and more.
 
-- map marker ids (rsids/cpra (chr, pos, ref, alt)) to LD reference panel data 
 
-- check effect allele (flip EA, EAF, Effect)
-
-- check effect allele frequency
-
-- thresholds for MAF and HWE
-
-- exclude INDELS, CG/AT and MHC region
-
-- remove duplicated marker ids
-
-- check which build version
-
-- check for concordance between marker effect and LD data
+The function works with both "internal" and "external" formats of summary statistics. 
+When the summary statistics format is "external", the function maps marker ids based 
+on chr-pos-ref-alt information. It also aligns the effect allele with the LD reference 
+panel and flips effect sizes if necessary. When allele frequencies are not provided, 
+it uses the frequencies from the genotype data.
 
 Required headers for external summary statistics:
- marker, chr, pos, effect_allele, non_effect_allele, effect_allele_freq, effect, effect_se, stat, p, n    
+ marker, chr, pos, ea, nea, eaf, b, seb, stat, p, n    
 
 Required headers for internal summary statistics:
- rsids, chr, pos, a1, a2, af, b, seb, stat, p, n
+ rsids, chr, pos, ea, nea, eaf, b, seb, stat, p, n
 }
 \author{
 Peter Soerensen
