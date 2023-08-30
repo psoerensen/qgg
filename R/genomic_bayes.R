@@ -1023,9 +1023,122 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
 # Single trait fine-mapping BLR using summary statistics and sparse LD provided in Glist 
 # gmap full version
 
+#' Finemapping using Bayesian Linear Regression Models
+#'
+#' This function implements Bayesian linear regression models to provide unified mapping of 
+#' genetic variants, estimate genetic parameters (e.g. heritability), and predict disease risk.
+#' It is designed to handle various genetic architectures and scale efficiently with large datasets.
+#'
+#' @description
+#' In the Bayesian multiple regression model, the posterior density of the model parameters depends
+#' on the likelihood of the data given the parameters and a prior probability for the model parameters.
+#' The choice of the prior for marker effects can influence the type and extent of shrinkage induced in the model.
+#'
+#' @param y A vector or matrix of phenotypes.
+#' @param X A matrix of covariates.
+#' @param W A matrix of centered and scaled genotypes.
+#' @param nburn Number of burnin iterations.
+#' @param nit Number of iterations.
+#' @param nit_global Number of global iterations.
+#' @param nit_local Number of local iterations.
+#' @param pi Proportion of markers in each marker variance class.
+#' @param h2 Trait heritability.
+#' @param method Method used (e.g. "bayesN","bayesA","bayesL","bayesC","bayesR").
+#' @param algorithm Specifies the algorithm.
+#' @param tol Convergence criteria used in gbayes.
+#' @param Glist List of information about genotype matrix stored on disk.
+#' @param stat Dataframe with marker summary statistics.
+#' @param covs List of summary statistics (output from internal cvs function).
+#' @param fit List of results from gbayes.
+#' @param trait Integer used for selection traits in covs object.
+#' @param chr Chromosome for which to fit BLR models.
+#' @param rsids Character vector of rsids.
+#' @param b Vector or matrix of marginal marker effects.
+#' @param seb Vector or matrix of standard error of marginal effects.
+#' @param mask Vector or matrix specifying if marker should be ignored.
+#' @param bm Vector or matrix of adjusted marker effects for the BLR model.
+#' @param LD List with sparse LD matrices.
+#' @param n Scalar or vector of number of observations for each trait.
+#' @param vb Scalar or matrix of marker (co)variances.
+#' @param vg Scalar or matrix of genetic (co)variances.
+#' @param ve Scalar or matrix of residual (co)variances.
+#' @param ssb_prior Scalar or matrix of prior marker (co)variances.
+#' @param ssg_prior Scalar or matrix of prior genetic (co)variances.
+#' @param sse_prior Scalar or matrix of prior residual (co)variances.
+#' @param vg_prior Scalar or matrix of prior genetic (co)variances.
+#' @param ve_prior Scalar or matrix of prior residual (co)variances.
+#' @param nub Scalar or vector of prior degrees of freedom for marker (co)variances.
+#' @param nug Scalar or vector of prior degrees of freedom for genetic (co)variances.
+#' @param nue Scalar or vector of prior degrees of freedom for residual (co)variances.
+#' @param updateB Logical indicating if marker (co)variances should be updated.
+#' @param updateG Logical indicating if genetic (co)variances should be updated.
+#' @param updateE Logical indicating if residual (co)variances should be updated.
+#' @param updatePi Logical indicating if pi should be updated.
+#' @param adjustE Logical indicating if residual variance should be adjusted.
+#' @param models List structure with models evaluated in bayesC.
+#' @param formatLD Character specifying LD format (default is "dense").
+#' @param verbose Logical; if TRUE, it prints more details during iteration.
+#'
+#' @return 
+#' A list containing:
+#' \itemize{
+#'   \item{\code{bm}}{Vector or matrix of posterior means for marker effects.}
+#'   \item{\code{dm}}{Vector or matrix of posterior means for marker inclusion probabilities.}
+#'   \item{\code{vb}}{Scalar or vector of posterior means for marker variances.}
+#'   \item{\code{vg}}{Scalar or vector of posterior means for genomic variances.}
+#'   \item{\code{ve}}{Scalar or vector of posterior means for residual variances.}
+#'   \item{\code{rb}}{Matrix of posterior means for marker correlations.}
+#'   \item{\code{rg}}{Matrix of posterior means for genomic correlations.}
+#'   \item{\code{re}}{Matrix of posterior means for residual correlations.}
+#'   \item{\code{pi}}{Vector of posterior probabilities for models.}
+#'   \item{\code{h2}}{Vector of posterior means for model probability.}
+#'   \item{\code{param}}{List of current parameters used for restarting the analysis.}
+#'   \item{\code{stat}}{Matrix of marker information and effects used for genomic risk scoring.}
+#' }
+#'
+#' @author Peter Sørensen
+#'
+#' @examples
+#' 
+#' # Plink bed/bim/fam files
+#' bedfiles <- system.file("extdata", paste0("sample_chr",1:2,".bed"), package = "qgg")
+#' bimfiles <- system.file("extdata", paste0("sample_chr",1:2,".bim"), package = "qgg")
+#' famfiles <- system.file("extdata", paste0("sample_chr",1:2,".fam"), package = "qgg")
+#' 
+#' # Prepare Glist
+#' Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles)
+#' 
+#' # Simulate phenotype
+#' sim <- gsim(Glist=Glist, chr=1, nt=1)
+#' 
+#' # Compute single marker summary statistics
+#' stat <- glma(y=sim$y, Glist=Glist, scale=FALSE)
+#' str(stat)
+#' 
+#' # Define fine-mapping regions 
+#' sets <- Glist$rsids
+#' Glist$chr[[1]] <- gsub("21","1",Glist$chr[[1]]) 
+#' Glist$chr[[2]] <- gsub("22","2",Glist$chr[[2]]) 
+#' 
+#' # Fine map
+#' fit <- gmap(Glist=Glist, stat=stat, sets=sets, verbose=TRUE, 
+#'             method="bayesC", nit=1500, nburn=500, pi=0.001)
+#'             
+#' fit$post  # Posterior inference for every fine-mapped region
+#' fit$conv  # Convergence statistics for every fine-mapped region
+#' 
+#' # Posterior inference for marker effect
+#' head(fit$stat)             
+#'
+
+
+#' @author Peter Sørensen
+
+
 #'
 #' @export
 #'
+
 gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
                  chr=NULL, rsids=NULL, ids=NULL, b=NULL, bm=NULL, seb=NULL, mask=NULL, LD=NULL, n=NULL,
                  vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL,
