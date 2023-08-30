@@ -17,37 +17,36 @@ adjStat(
 )
 }
 \arguments{
-\item{stat}{a data frame with marker summary statistics (see required format above)}
+\item{stat}{A data frame with marker summary statistics (see required format above).}
 
-\item{Glist}{list of information about genotype matrix stored on disk}
+\item{Glist}{List of information about genotype matrix stored on disk.}
 
-\item{chr}{chromosome(s) being processed}
+\item{chr}{Chromosome(s) being processed.}
 
-\item{statistics}{specificy what type of statistics ("b" or "z") is being processed (default is "b")}
+\item{statistics}{Specify what type of statistics ("b" or "z") is being processed. Default is "b".}
 
-\item{r2}{threshold used in clumping/pruning procedure (default is 0.9)}
+\item{r2}{Threshold used in clumping/pruning procedure. Default is 0.9.}
 
-\item{ldSets}{list of marker sets - names corresponds to row names in stat}
+\item{ldSets}{List of marker sets - names correspond to row names in `stat`.}
 
-\item{threshold}{p-value threshold used in clumping procedure (default is 1)}
+\item{threshold}{P-value threshold used in clumping procedure. Default is 1.}
 
-\item{header}{character vector with column names to be excluded in the LD adjustment}
+\item{header}{Character vector with column names to be excluded in the LD adjustment.}
 
-\item{method}{method used in adjustment for linkage disequilibrium (default is "clumping")}
+\item{method}{Method used in adjustment for linkage disequilibrium. Default is "clumping".}
 }
 \description{
-Adjust marker summary statistics using linkage disequilibrium information from Glist
-
-Required input format for summary statistics:
-
-stat can be a data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
-
-stat can be a list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
+Adjust marker summary statistics using linkage disequilibrium information from Glist.
 }
 \details{
-stat can be a data.frame(rsids, chr, pos, a1, a2, af, b, seb, stat, p, n)     (single trait)
+Required input format for summary statistics:
 
-stat can be a list(marker=(rsids, chr, pos, a1, a2, af), b, seb, stat, p, n)  (multiple trait)
+stat can be a data.frame(rsids, chr, pos, ea, nea, eaf, b, seb, stat, p, n) (single trait)
+
+stat can be a list(marker=(rsids, chr, pos, ea, nea, eaf), b, seb, stat, p, n) (multiple trait)
+
+
+For details about the summary statistics format, see the main function description.
 }
 \author{
 Peter Soerensen
