@@ -16,21 +16,21 @@ adjLD(
 )
 }
 \arguments{
-\item{stat}{a data frame with marker summary statistics (see required format above)}
+\item{stat}{A data frame with marker summary statistics. Ensure that it is in the correct format.}
 
-\item{Glist}{list of information about genotype matrix stored on disk}
+\item{Glist}{List of information about the genotype matrix stored on disk.}
 
-\item{chr}{chromosome(s) being processed}
+\item{chr}{Chromosome(s) being processed.}
 
-\item{statistics}{specificy what type of statistics ("b" or "z") is being processed (default is "b")}
+\item{statistics}{Specify what type of statistics ("b", "z", or "p-value") is being processed. Default is "p-value".}
 
-\item{r2}{threshold used in clumping/pruning procedure (default is 0.9)}
+\item{r2}{Threshold used in the clumping/pruning procedure. Default is 0.9.}
 
-\item{ldSets}{list of marker sets - names corresponds to row names in stat}
+\item{ldSets}{List of marker sets - names correspond to row names in `stat`.}
 
-\item{threshold}{p-value threshold used in LD pruning}
+\item{threshold}{P-value threshold used in LD pruning.}
 
-\item{method}{method used in adjustment for linkage disequilibrium (default is "clumping")}
+\item{method}{Method used in adjustment for linkage disequilibrium. Options are "pruning" or "clumping". Default is "pruning".}
 }
 \description{
 Perform LD pruning of summary statistics before they are used in gene set enrichment analyses.
