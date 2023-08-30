@@ -13,7 +13,8 @@ gscore(
   stat = NULL,
   fit = NULL,
   ids = NULL,
-  scale = TRUE,
+  scaleMarker = TRUE,
+  scaleGRS = TRUE,
   impute = TRUE,
   msize = 100,
   ncores = 1,
@@ -37,7 +38,9 @@ gscore(
 
 \item{ids}{Vector of individuals used in the analysis. Default is NULL.}
 
-\item{scale}{Logical; if TRUE the genotype markers are scaled to mean zero and variance one. Default is TRUE.}
+\item{scaleMarker}{Logical; if TRUE the genotype markers are scaled to mean zero and variance one. Default is TRUE.}
+
+\item{scaleGRS}{Logical; if TRUE the GRS are scaled to mean zero and variance one. Default is TRUE.}
 
 \item{impute}{Logical; if TRUE, missing genotypes are set to its expected value (2*af where af is allele frequency). Default is TRUE.}
 
