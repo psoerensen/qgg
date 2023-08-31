@@ -52,7 +52,6 @@
 gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = NULL, ids = NULL, scaleMarker = TRUE, scaleGRS=TRUE, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
      
      if ( !is.null(Glist))  {
-          prs <- NULL
           if (!is.null(chr)) chromosomes <- chr
           #if (is.null(chr)) chromosomes <- unique(stat$chr)
           if (is.null(chr)) chromosomes <- 1:length(Glist$bedfiles)
@@ -63,6 +62,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
           cnames <- c("rsids", "chr", "pos", "ea", "nea", "eaf", 
                       "b", "seb","stat","p", "n", "ww", "wy")
           if(sum(colnames(stat)%in%cnames) == 13) stat <- stat[,1:7]
+          prs <- NULL
           for (chr in chromosomes) {
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                  prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
@@ -163,13 +163,14 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
           message(paste("Processing bed file", Glist$bedfiles[chr]))
           nt <- ncol(S)
           grs <- matrix(0,nrow=nt,ncol=Glist$n)
-          rsids <- splitWithOverlap(rsids,msize,0)
-          nsets <- length(rsids)
+          sets <- splitWithOverlap(1:length(rsids),msize,0)
+          #rsids <- splitWithOverlap(rsids,msize,0)
+          nsets <- length(sets)
           print(paste("Processing chromosome", chr))
           for (set in 1:nsets) {
-               cls <- match(rsids[[set]],Glist$rsids[[chr]])
+               cls <- match(rsids[sets[[set]]],Glist$rsids[[chr]])
                W <- getG(Glist=Glist, cls=cls, chr=chr, scale=scale)
-               grs <- grs + tcrossprod(t(S[rsids[[set]],]),W)
+               grs <- grs + tcrossprod(t(S[sets[[set]],]),W)
                if(verbose) print(paste("Processing segment",set, "of", nsets,"on chromosome", chr))
           }
           grs <- t(grs)
