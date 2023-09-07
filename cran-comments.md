@@ -1,3 +1,12 @@
+## Submission
+This is a new submission where:
+
+* Fixed issue with depencies on C11 has been removed
+* Major revision of documentation 
+* Fixed notes related to unused arguments
+* Added new finemapping function gmap
+* Removed qgg/man/qgg-package.Rd to avoid issues with redundant package info
+
 ## Resubmission
 This is a revised version of the package where we have:
 

@@ -7,21 +7,24 @@
 predict_r2_mt(h2x, Nx, h2y, Ny, rg, Me, M)
 }
 \arguments{
-\item{h2x}{is the heritability of the target trait}
+\item{h2x}{Heritability of the target trait.}
 
-\item{Nx}{is the number of samples for the target trait}
+\item{Nx}{Number of samples for the target trait.}
 
-\item{h2y}{is the heritability of the correlated trait}
+\item{h2y}{Heritability of the correlated trait.}
 
-\item{Ny}{is the number of samples for the correlated trait}
+\item{Ny}{Number of samples for the correlated trait.}
 
-\item{rg}{is the genetic correlation between the target and correlated trait}
+\item{rg}{Genetic correlation between the target and correlated trait.}
 
-\item{Me}{is the number of independent chromosome segments}
+\item{Me}{Number of independent chromosome segments.}
 
-\item{M}{is the number of markers}
+\item{M}{Number of markers.}
+}
+\value{
+A numeric value representing the expected R2 for the multiple trait prediction.
 }
 \description{
-Expected R2 for multiple trait prediction of continuous traits
+Computes the expected R2 value for the multiple trait prediction of continuous traits.
 }
 \keyword{internal}

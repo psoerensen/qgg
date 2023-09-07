@@ -16,7 +16,7 @@ getSparseLD(
 \arguments{
 \item{Glist}{A list containing details such as the LD file path, msize, rsids for LD.}
 
-\item{chr}{A numeric or character value representing the chromosome for which LD data is to be extracted.}
+\item{chr}{A numeric value representing the chromosome for which LD data is to be extracted.}
 
 \item{r2}{A numeric value specifying the LD threshold for extraction. Default is 0.}
 

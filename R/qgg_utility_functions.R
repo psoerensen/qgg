@@ -92,13 +92,19 @@ hwe <- function(Glist=NULL){
 ###########################################################################################
 
 #' Expected R2 for single trait prediction of a continuous trait
-#' @description
-#' Expected R2 for single trait prediction of a continuous trait ££ continuous spelled wrong in code (line 182)
+#'
+#' Computes the expected R2 value for the single trait prediction of a continuous trait.
+#'
+#' @param h2x Heritability of the target trait.
+#' @param Nx Number of samples for the target trait.
+#' @param M Number of markers.
+#' @param Me Number of independent chromosome segments.
+#'
+#' @return A numeric value representing the expected R2 for the single trait prediction.
+#'
 #' @keywords internal
-#' @param h2x is the heritability of the target trait
-#' @param Nx is the number of samples for the target trait
-#' @param M is the number of markers
-#' @param Me is the number of independent chromosome segments
+#' @export
+#' 
 predict_r2_st = function(h2x, Nx, Me, M){
   b = M / (M + Me)
   r_uu = sqrt(h2x)*sqrt((b * h2x ) / (b * h2x  +  Me / (Nx)))
@@ -106,16 +112,22 @@ predict_r2_st = function(h2x, Nx, Me, M){
 }
 
 #' Expected R2 for multiple trait prediction of continuous traits
-#' @description
-#' Expected R2 for multiple trait prediction of continuous traits
+#'
+#' Computes the expected R2 value for the multiple trait prediction of continuous traits.
+#'
+#' @param h2x Heritability of the target trait.
+#' @param h2y Heritability of the correlated trait.
+#' @param Nx Number of samples for the target trait.
+#' @param Ny Number of samples for the correlated trait.
+#' @param rg Genetic correlation between the target and correlated trait.
+#' @param M Number of markers.
+#' @param Me Number of independent chromosome segments.
+#'
+#' @return A numeric value representing the expected R2 for the multiple trait prediction.
+#' 
 #' @keywords internal
-#' @param h2x is the heritability of the target trait
-#' @param h2y is the heritability of the correlated trait
-#' @param Nx is the number of samples for the target trait
-#' @param Ny is the number of samples for the correlated trait
-#' @param rg is the genetic correlation between the target and correlated trait
-#' @param M is the number of markers
-#' @param Me is the number of independent chromosome segments
+#' @export
+#' 
 predict_r2_mt = function(h2x, Nx, h2y, Ny, rg, Me, M){
   b = M / (M + Me)
   r2_uu1 = h2x * (b * h2x ) / (b * h2x  +  Me / ( Nx))
@@ -127,22 +139,28 @@ predict_r2_mt = function(h2x, Nx, h2y, Ny, rg, Me, M){
   return(r_uu[1,1]**2)
 }
 
+
 #' Expected AUC for prediction of a binary trait using information on a correlated continuous trait
-#' @description
-#' Expected AUC for prediction of a binary trait using information on a correlated continuous trait
+#'
+#' Computes the expected Area Under the Curve (AUC) for predicting a binary trait using 
+#' information from a correlated continuous trait.
+#'
+#' @param h2x Heritability of the target trait.
+#' @param h2y Heritability of the correlated trait.
+#' @param Nx Number of samples for the target trait.
+#' @param Ny Number of samples for the correlated trait.
+#' @param rg Genetic correlation between the target and correlated trait.
+#' @param Kx Prevalence of the target trait.
+#' @param Px Case-control proportion of the target trait.
+#' @param M Number of markers.
+#' @param Me Number of independent chromosome segments.
+#'
+#' @return A numeric value representing the expected AUC.
+#' 
 #' @keywords internal
-#' @param h2x is the heritability of the target trait
-#' @param h2y is the heritability of the correlated trait
-#' @param Nx is the number of samples for the target trait
-#' @param Ny is the number of samples for the correlated trait
-#' @param rg is the genetic correlation between the target and correlated trait
-#' @param Kx is the prevalence of the target trait
-#' @param Ky is the prevalence of the correlated trait
-#' @param Px is the case-control proportion of the target trait
-#' @param Py is the case-control proportion of the correlated trait
-#' @param M is the number of markers
-#' @param Me is the number of independent chromosome segments
-predict_auc_mt_continous = function(h2x, Nx, Kx, Px, h2y, Ny, rg, Me, M){
+#' @export
+#' 
+predict_auc_mt_continuous = function(h2x, Nx, Kx, Px, h2y, Ny, rg, Me, M){
   b = M / (M + Me)
   zx = dnorm(-qnorm(Kx))
   r2_uu1 = (b * h2x * zx^2) / (b * h2x * zx^2 + (Kx * (1-Kx))^2 * Me / (Px * (1-Px) * Nx))
@@ -159,14 +177,21 @@ predict_auc_mt_continous = function(h2x, Nx, Kx, Px, h2y, Ny, rg, Me, M){
 
 
 #' Expected AUC for prediction of a binary trait
-#' @description
-#' Expected AUC for prediction of a binary trait
+#'
+#' Computes the expected Area Under the Curve (AUC) for predicting a binary trait.
+#'
+#' @param h2x Heritability of the target trait.
+#' @param Nx Number of samples for the target trait.
+#' @param Kx Prevalence of the target trait.
+#' @param Px Case-control proportion of the target trait.
+#' @param M Number of markers.
+#' @param Me Number of independent chromosome segments.
+#'
+#' @return A numeric value representing the expected AUC.
+#' 
 #' @keywords internal
-#' @param h2x is the heritability of the target trait
-#' @param Nx is the number of samples for the target trait
-#' @param Kx is the prevalence of the target trait
-#' @param M is the number of markers
-#' @param Me is the number of independent chromosome segments
+#' @export
+#' 
 predict_auc_st = function(h2x, Nx, Kx, Px, Me, M){
   b = M / (M + Me)
   zx = dnorm(-qnorm(Kx))
@@ -178,20 +203,27 @@ predict_auc_st = function(h2x, Nx, Kx, Px, Me, M){
 }
 
 #' Expected AUC for prediction of a binary trait using information on correlated binary trait
-#' @description
-#' Expected AUC for prediction of a binary trait using information on correlated binary trait
+#'
+#' Computes the expected Area Under the Curve (AUC) for predicting a binary trait using 
+#' information on a correlated binary trait.
+#'
+#' @param h2x Heritability of the target trait.
+#' @param h2y Heritability of the correlated trait.
+#' @param Nx Number of samples for the target trait.
+#' @param Ny Number of samples for the correlated trait.
+#' @param rg Genetic correlation between the target and the correlated trait.
+#' @param Kx Prevalence of the target trait.
+#' @param Ky Prevalence of the correlated trait.
+#' @param Px Case-control proportion of the target trait.
+#' @param Py Case-control proportion of the correlated trait.
+#' @param M Number of markers.
+#' @param Me Number of independent chromosome segments.
+#'
+#' @return A numeric value representing the expected AUC.
+#' 
 #' @keywords internal
-#' @param h2x is the heritability of the target trait
-#' @param h2y is the heritability of the correlated trait
-#' @param Nx is the number of samples for the target trait
-#' @param Ny is the number of samples for the correlated trait
-#' @param rg is the genetic correlation between the target and the correlated trait
-#' @param Kx is the prevalence of the target trait
-#' @param Ky is the prevalence of the correlated trait
-#' @param Px is the case-control proportion of the target trait
-#' @param Py is the case-control proportion of the correlated trait
-#' @param M is the number of markers
-#' @param Me is the number of independent chromosome segments
+#' @export
+#' 
 predict_auc_mt_cc = function(h2x, Nx, Kx, Px, h2y, Ny, Ky, Py, rg, Me, M){
   b = M / (M + Me)
   zx = dnorm(-qnorm(Kx))
@@ -210,11 +242,25 @@ predict_auc_mt_cc = function(h2x, Nx, Kx, Px, h2y, Ny, Ky, Py, rg, Me, M){
 
 
 #' Forest plot
-#' @description
-#' Forest plot
+#'
+#' This function generates a forest plot, which is commonly used to visualize
+#' effect sizes and their confidence intervals.
+#'
+#' @param x A vector of point estimates or effect sizes.
+#' @param sd A vector of standard deviations corresponding to the values in `x`.
+#' @param cex A numerical value indicating the amount by which plotting text and symbols should be scaled. Default is 1.
+#' @param mar A numerical vector of the form `c(bottom, left, top, right)` which gives the number of lines of margin to be specified on the four sides of the plot. Default is `c(5,12,3,1)`.
+#' @param mai A numerical vector indicating the margins in inches.
+#' @param xlim The x limits (x1, x2) of the plot.
+#' @param pos Position of y-axis labels.
+#' @param reorder A logical value. If `TRUE`, data points are reordered based on the values in `x`. Default is `TRUE`.
+#' @param xaxis A logical value. If `TRUE`, x-axis is drawn. Default is `TRUE`.
+#' @param main An overall title for the plot.
+#' @param xlab A label for the x-axis. Default is "x".
+#'
 #' @keywords internal
-#' @param x is a vector of values
-#' @param sd is a vector of sd values
+#' @export
+#' 
 plotForest <- function(x=NULL,sd=NULL,cex=1, mar=NULL, mai=NULL, xlim=NULL, pos=NULL, reorder=TRUE, xaxis=TRUE, main=NULL, xlab="x") {
   if(is.null(mar)) par(mar=c(5,12,3,1))
   # mai <- c(0.5,5.2,0.3,0.1)

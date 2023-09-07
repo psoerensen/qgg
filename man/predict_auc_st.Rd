@@ -7,17 +7,22 @@
 predict_auc_st(h2x, Nx, Kx, Px, Me, M)
 }
 \arguments{
-\item{h2x}{is the heritability of the target trait}
+\item{h2x}{Heritability of the target trait.}
 
-\item{Nx}{is the number of samples for the target trait}
+\item{Nx}{Number of samples for the target trait.}
 
-\item{Kx}{is the prevalence of the target trait}
+\item{Kx}{Prevalence of the target trait.}
 
-\item{Me}{is the number of independent chromosome segments}
+\item{Px}{Case-control proportion of the target trait.}
 
-\item{M}{is the number of markers}
+\item{Me}{Number of independent chromosome segments.}
+
+\item{M}{Number of markers.}
+}
+\value{
+A numeric value representing the expected AUC.
 }
 \description{
-Expected AUC for prediction of a binary trait
+Computes the expected Area Under the Curve (AUC) for predicting a binary trait.
 }
 \keyword{internal}

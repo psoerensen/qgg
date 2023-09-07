@@ -26,44 +26,44 @@ gprep(
 )
 }
 \arguments{
-\item{Glist}{list of information about genotype matrix stored on disk}
+\item{Glist}{A list containing information about the genotype matrix stored on disk.}
 
-\item{task}{character specifying which task to perform ("prepare" which is default, or "sparseld", "ldscores", "ldsets" or "geneticmap")}
+\item{task}{A character string specifying the task to perform. Possible tasks are "prepare" (default), "sparseld", "ldscores", "ldsets", and "geneticmap".}
 
-\item{study}{name of the study}
+\item{study}{The name of the study.}
 
-\item{fnBED}{path and filename of the binary file .bed used for storing genotypes on the disk}
+\item{fnBED}{Path and filename of the .bed binary file used to store genotypes on disk.}
 
-\item{ldfiles}{path and filename of the binary files .ld for storing sparse ld matrix on the disk}
+\item{ldfiles}{Path and filename of the .ld binary files used for storing the sparse LD matrix on disk.}
 
-\item{bedfiles}{vector of names for the PLINK bed-files}
+\item{bedfiles}{A vector of filenames for the PLINK bed-files.}
 
-\item{bimfiles}{vector of names for the PLINK bim-files}
+\item{bimfiles}{A vector of filenames for the PLINK bim-files.}
 
-\item{famfiles}{vector of names for the PLINK fam-files}
+\item{famfiles}{A vector of filenames for the PLINK fam-files.}
 
-\item{mapfiles}{vector of names for the mapfiles}
+\item{mapfiles}{A vector of filenames for the mapfiles.}
 
-\item{ids}{vector of individuals used in the study}
+\item{ids}{A vector of individual identifiers used in the study.}
 
-\item{rsids}{vector of marker rsids used in the study}
+\item{rsids}{A vector of marker rsids used in the study.}
 
-\item{assembly}{character name of assembly}
+\item{assembly}{Character string indicating the name of the assembly.}
 
-\item{overwrite}{logical if TRUE overwite binary genotype/ld file}
+\item{overwrite}{A logical value; if TRUE, the binary genotype/LD file will be overwritten.}
 
-\item{msize}{number of markers used in compuation of sparseld}
+\item{msize}{Number of markers used in the computation of sparseld.}
 
-\item{r2}{threshold}
+\item{r2}{A threshold value (more context might be beneficial, e.g., threshold for what?).}
 
-\item{kb}{size of genomic region in kb}
+\item{kb}{Size of the genomic region in kilobases (kb).}
 
-\item{cm}{size of genomic region in cm}
+\item{cm}{Size of the genomic region in centimorgans (cm).}
 
-\item{ncores}{number of cores used to process the genotypes}
+\item{ncores}{Number of processing cores to be used for genotype processing.}
 }
 \value{
-Returns a list structure (Glist) with information about genotypes
+Returns a list structure (Glist) with information about the genotypes.
 }
 \description{
 All functions in qgg relies on a simple data infrastructure that takes five main input sources;

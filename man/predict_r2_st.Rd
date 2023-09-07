@@ -7,15 +7,18 @@
 predict_r2_st(h2x, Nx, Me, M)
 }
 \arguments{
-\item{h2x}{is the heritability of the target trait}
+\item{h2x}{Heritability of the target trait.}
 
-\item{Nx}{is the number of samples for the target trait}
+\item{Nx}{Number of samples for the target trait.}
 
-\item{Me}{is the number of independent chromosome segments}
+\item{Me}{Number of independent chromosome segments.}
 
-\item{M}{is the number of markers}
+\item{M}{Number of markers.}
+}
+\value{
+A numeric value representing the expected R2 for the single trait prediction.
 }
 \description{
-Expected R2 for single trait prediction of a continuous trait ££ continuous spelled wrong in code (line 182)
+Computes the expected R2 value for the single trait prediction of a continuous trait.
 }
 \keyword{internal}

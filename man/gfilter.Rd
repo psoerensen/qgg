@@ -18,25 +18,25 @@ gfilter(
 )
 }
 \arguments{
-\item{Glist}{list of information about genotype matrix stored on disk}
+\item{Glist}{A list containing information about the genotype matrix stored on disk.}
 
-\item{excludeMAF}{exclude marker if minor allele frequency (MAF) is below threshold (0.01 is default)}
+\item{excludeMAF}{A scalar threshold. Exclude markers with a minor allele frequency (MAF) below this threshold. Default is 0.01.}
 
-\item{excludeMISS}{exclude marker if missingness (MISS) is above threshold (0.05 is default)}
+\item{excludeMISS}{A scalar threshold. Exclude markers with missingness (MISS) above this threshold. Default is 0.05.}
 
-\item{excludeINFO}{exclude marker if info score (INFO) is below threshold (0.8 is default)}
+\item{excludeINFO}{A scalar threshold. Exclude markers with an info score (INFO) below this threshold. Default is 0.8.}
 
-\item{excludeCGAT}{exclude marker if alleles are ambigous (CG or AT)}
+\item{excludeCGAT}{A logical value; if TRUE exclude markers if the alleles are ambiguous (i.e., either CG or AT combinations).}
 
-\item{excludeINDEL}{exclude marker if it an insertion/deletion}
+\item{excludeINDEL}{A logical value; if TRUE exclude markers that are insertions or deletions (INDELs).}
 
-\item{excludeDUPS}{exclude marker id if duplicated}
+\item{excludeDUPS}{A logical value; if TRUE exclude markers if their identifiers are duplicated.}
 
-\item{excludeHWE}{exclude marker if p-value for Hardy Weinberg Equilibrium test is below threshold (0.01 is default)}
+\item{excludeHWE}{A scalar threshold. Exclude markers where the p-value for the Hardy-Weinberg Equilibrium test is below this threshold. Default is 0.01.}
 
-\item{excludeMHC}{exclude marker if located in MHC region}
+\item{excludeMHC}{A logical value; if TRUE exclude markers located within the MHC region.}
 
-\item{assembly}{character name of assembly}
+\item{assembly}{A character string indicating the name of the genome assembly (e.g., "GRCh38").}
 }
 \description{
 Quality control is a critical step for working with summary statistics (in particular

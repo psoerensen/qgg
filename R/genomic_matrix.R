@@ -35,28 +35,26 @@
 #' 5) gene set enrichment analyses (gsea), and 6) genomic prediction from genotypes
 #' and phenotypes (gsolve) or genotypes and summary statistics (gscore).
 #'
-
+#' @param Glist A list containing information about the genotype matrix stored on disk.
+#' @param task A character string specifying the task to perform. Possible tasks are "prepare" (default), "sparseld", "ldscores", "ldsets", and "geneticmap".
+#' @param study The name of the study.
+#' @param fnBED Path and filename of the .bed binary file used to store genotypes on disk.
+#' @param bedfiles A vector of filenames for the PLINK bed-files.
+#' @param famfiles A vector of filenames for the PLINK fam-files.
+#' @param bimfiles A vector of filenames for the PLINK bim-files.
+#' @param mapfiles A vector of filenames for the mapfiles.
+#' @param ids A vector of individual identifiers used in the study.
+#' @param rsids A vector of marker rsids used in the study.
+#' @param ldfiles Path and filename of the .ld binary files used for storing the sparse LD matrix on disk.
+#' @param msize Number of markers used in the computation of sparseld.
+#' @param overwrite A logical value; if TRUE, the binary genotype/LD file will be overwritten.
+#' @param ncores Number of processing cores to be used for genotype processing.
+#' @param assembly Character string indicating the name of the assembly.
+#' @param r2 A threshold value (more context might be beneficial, e.g., threshold for what?).
+#' @param kb Size of the genomic region in kilobases (kb).
+#' @param cm Size of the genomic region in centimorgans (cm).
 #'
-#' @param Glist list of information about genotype matrix stored on disk
-#' @param task character specifying which task to perform ("prepare" which is default, or "sparseld", "ldscores", "ldsets" or "geneticmap")
-#' @param study name of the study
-#' @param fnBED path and filename of the binary file .bed used for storing genotypes on the disk
-#' @param bedfiles vector of names for the PLINK bed-files
-#' @param famfiles vector of names for the PLINK fam-files
-#' @param bimfiles vector of names for the PLINK bim-files
-#' @param mapfiles vector of names for the mapfiles
-#' @param ids vector of individuals used in the study
-#' @param rsids vector of marker rsids used in the study
-#' @param ldfiles path and filename of the binary files .ld for storing sparse ld matrix on the disk
-#' @param msize number of markers used in compuation of sparseld
-#' @param overwrite logical if TRUE overwite binary genotype/ld file
-#' @param ncores number of cores used to process the genotypes
-#' @param assembly character name of assembly
-#' @param r2 threshold
-#' @param kb size of genomic region in kb
-#' @param cm size of genomic region in cm
-#'
-#' @return Returns a list structure (Glist) with information about genotypes
+#' @return Returns a list structure (Glist) with information about the genotypes.
 #'
 
 
@@ -322,17 +320,16 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 #'  rsids, chr, pos, a1, a2, af, b, seb, stat, p, n
 #' 
 #'
-#' @param Glist list of information about genotype matrix stored on disk
-#' @param excludeMAF exclude marker if minor allele frequency (MAF) is below threshold (0.01 is default)
-#' @param excludeINFO exclude marker if info score (INFO) is below threshold (0.8 is default)
-#' @param excludeMISS exclude marker if missingness (MISS) is above threshold (0.05 is default)
-#' @param excludeHWE exclude marker if p-value for Hardy Weinberg Equilibrium test is below threshold (0.01 is default)
-#' @param excludeCGAT exclude marker if alleles are ambigous (CG or AT)
-#' @param excludeMHC exclude marker if located in MHC region 
-#' @param excludeINDEL exclude marker if it an insertion/deletion  
-#' @param excludeDUPS exclude marker id if duplicated
-#' @param assembly character name of assembly
-
+#' @param Glist A list containing information about the genotype matrix stored on disk.
+#' @param excludeMAF A scalar threshold. Exclude markers with a minor allele frequency (MAF) below this threshold. Default is 0.01.
+#' @param excludeINFO A scalar threshold. Exclude markers with an info score (INFO) below this threshold. Default is 0.8.
+#' @param excludeMISS A scalar threshold. Exclude markers with missingness (MISS) above this threshold. Default is 0.05.
+#' @param excludeHWE A scalar threshold. Exclude markers where the p-value for the Hardy-Weinberg Equilibrium test is below this threshold. Default is 0.01.
+#' @param excludeCGAT A logical value; if TRUE exclude markers if the alleles are ambiguous (i.e., either CG or AT combinations).
+#' @param excludeMHC A logical value; if TRUE exclude markers located within the MHC region.
+#' @param excludeINDEL A logical value; if TRUE exclude markers that are insertions or deletions (INDELs).
+#' @param excludeDUPS A logical value; if TRUE exclude markers if their identifiers are duplicated.
+#' @param assembly A character string indicating the name of the genome assembly (e.g., "GRCh38").
 
 #' @author Peter Soerensen
 
@@ -689,14 +686,17 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
 }
 
 #' Get marker LD sets
+#'
 #' @description
-#' Get marker LD sets based on sparse LD matrix in Glist
+#' Extracts marker LD sets based on a sparse LD matrix stored in the Glist object.
+#'
+#' @param Glist A list structure containing information about genotypes stored on disk.
+#' @param chr A numeric value specifying the chromosome for which LD sets are to be extracted.
+#' @param r2 A numeric threshold, defaulting to 0.5, used for extracting LD sets.
+#'
 #' @keywords internal
-#' @param Glist list structure with information about genotypes stored on disk
-#' @param chr chromosome for which LD sets are extracted
-#' @param r2 threshold used for extracting LD sets
 #' @export
-
+#' 
 getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
   if(!is.null(chr)) {
     msize <- Glist$msize
@@ -719,7 +719,6 @@ getLDsets <- function(Glist = NULL, chr = NULL, r2 = 0.5) {
     close(bfLD)
     return(ldSetsChr)
   }
-  
 }
 
 #' Retrieve Sparse LD Matrix for a Given Chromosome
@@ -766,7 +765,7 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
 #' It provides options for returning the data in sparse or dense format.
 #'
 #' @param Glist A list containing details such as the LD file path, msize, rsids for LD.
-#' @param chr A numeric or character value representing the chromosome for which LD data is to be extracted.
+#' @param chr A numeric value representing the chromosome for which LD data is to be extracted.
 #' @param r2 A numeric value specifying the LD threshold for extraction. Default is 0.
 #' @param onebased A logical value indicating whether indices are one-based (default) or zero-based.
 #' @param rsids A vector of rsids for which the LD data needs to be extracted in dense format. Default is NULL.

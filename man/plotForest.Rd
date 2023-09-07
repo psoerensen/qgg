@@ -19,11 +19,30 @@ plotForest(
 )
 }
 \arguments{
-\item{x}{is a vector of values}
+\item{x}{A vector of point estimates or effect sizes.}
 
-\item{sd}{is a vector of sd values}
+\item{sd}{A vector of standard deviations corresponding to the values in `x`.}
+
+\item{cex}{A numerical value indicating the amount by which plotting text and symbols should be scaled. Default is 1.}
+
+\item{mar}{A numerical vector of the form `c(bottom, left, top, right)` which gives the number of lines of margin to be specified on the four sides of the plot. Default is `c(5,12,3,1)`.}
+
+\item{mai}{A numerical vector indicating the margins in inches.}
+
+\item{xlim}{The x limits (x1, x2) of the plot.}
+
+\item{pos}{Position of y-axis labels.}
+
+\item{reorder}{A logical value. If `TRUE`, data points are reordered based on the values in `x`. Default is `TRUE`.}
+
+\item{xaxis}{A logical value. If `TRUE`, x-axis is drawn. Default is `TRUE`.}
+
+\item{main}{An overall title for the plot.}
+
+\item{xlab}{A label for the x-axis. Default is "x".}
 }
 \description{
-Forest plot
+This function generates a forest plot, which is commonly used to visualize
+effect sizes and their confidence intervals.
 }
 \keyword{internal}

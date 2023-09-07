@@ -7,13 +7,13 @@
 getLDsets(Glist = NULL, chr = NULL, r2 = 0.5)
 }
 \arguments{
-\item{Glist}{list structure with information about genotypes stored on disk}
+\item{Glist}{A list structure containing information about genotypes stored on disk.}
 
-\item{chr}{chromosome for which LD sets are extracted}
+\item{chr}{A numeric value specifying the chromosome for which LD sets are to be extracted.}
 
-\item{r2}{threshold used for extracting LD sets}
+\item{r2}{A numeric threshold, defaulting to 0.5, used for extracting LD sets.}
 }
 \description{
-Get marker LD sets based on sparse LD matrix in Glist
+Extracts marker LD sets based on a sparse LD matrix stored in the Glist object.
 }
 \keyword{internal}
