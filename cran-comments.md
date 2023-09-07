@@ -1,5 +1,5 @@
 ## Submission
-This is a new submission where:
+This is a new submission:
 
 * Fixed issue with depencies on C11 has been removed
 * Major revision of documentation 
