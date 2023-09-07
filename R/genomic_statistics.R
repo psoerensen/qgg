@@ -45,6 +45,8 @@
 #' A data frame with processed and quality-controlled summary statistics.
 #'
 #' @author Peter Soerensen
+#' 
+#' @keywords internal
 #' @export
 
 qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, 

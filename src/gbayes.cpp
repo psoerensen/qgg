@@ -1304,7 +1304,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   double ssb, sse, ssg, dfb, dfe, dfg, chi2;
   //double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
   //double shape, shape0, rate, rate0, lambda2;
-  double u, shape0, rate0, lambda2;
+  double u, lambda2;
   
   std::vector<double> vbscale(nc), probc(nc), logLc(nc), pim(nc);
   double cumprobc, vbc, logLcAdj;
@@ -1345,8 +1345,8 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   // initialize BayesL parameters
   dfb = (nub - 2.0)/nub;
   lambda2 = 2.0*(1.0 - dfb)/(dfb)*n;
-  shape0 = 1.1;
-  rate0 = (shape0 - 1.0) / lambda2;
+  //shape0 = 1.1;
+  //rate0 = (shape0 - 1.0) / lambda2;
   for ( int i = 0; i < m; i++) {
     lambda[i] = sqrt(lambda2); 
   }

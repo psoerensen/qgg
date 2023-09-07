@@ -56,7 +56,6 @@ gmap(
   verbose = FALSE,
   msize = 100,
   threshold = NULL,
-  GRMlist = NULL,
   ve_prior = NULL,
   vg_prior = NULL,
   tol = 0.001,
@@ -79,6 +78,9 @@ gmap(
 
 \item{trait}{Integer used for selection traits in covs object.}
 
+\item{sets}{A list of character vectors where each vector represents a set of items. If the names
+of the sets are not provided, they are named as "Set1", "Set2", etc.}
+
 \item{fit}{List of results from gbayes.}
 
 \item{Glist}{List of information about genotype matrix stored on disk.}
@@ -86,6 +88,8 @@ gmap(
 \item{chr}{Chromosome for which to fit BLR models.}
 
 \item{rsids}{Character vector of rsids.}
+
+\item{ids}{vector of individuals used in the study}
 
 \item{b}{Vector or matrix of marginal marker effects.}
 
@@ -111,7 +115,21 @@ gmap(
 
 \item{sse_prior}{Scalar or matrix of prior residual (co)variances.}
 
+\item{lambda}{Vector or matrix of lambda values}
+
+\item{scaleY}{Logical indicating if y should be scaled.}
+
+\item{shrinkLD}{Logical indicating if LD should be shrunk.}
+
+\item{shrinkCor}{Logical indicating if cor should be shrunk.}
+
 \item{formatLD}{Character specifying LD format (default is "dense").}
+
+\item{pruneLD}{Logical indicating if LD pruning should be applied.}
+
+\item{r2}{Scalar providing value for r2 threshold used in pruning}
+
+\item{checkLD}{Logical indicating if LD matches summary statistics.}
 
 \item{h2}{Trait heritability.}
 
@@ -129,6 +147,18 @@ gmap(
 
 \item{models}{List structure with models evaluated in bayesC.}
 
+\item{checkConvergence}{Logical indicating if convergences should be checked.}
+
+\item{critVe}{Scalar providing value for z-score threshold used in checking convergence for Ve}
+
+\item{critVg}{Scalar providing value for z-score threshold used in checking convergence for Vg}
+
+\item{critVb}{Scalar providing value for z-score threshold used in checking convergence for Vg}
+
+\item{critPi}{Scalar providing value for z-score threshold used in checking convergence for Pi}
+
+\item{ntrial}{Integer providing number of trials used if convergence is not obtaines}
+
 \item{nug}{Scalar or vector of prior degrees of freedom for genetic (co)variances.}
 
 \item{nub}{Scalar or vector of prior degrees of freedom for marker (co)variances.}
@@ -136,6 +166,10 @@ gmap(
 \item{nue}{Scalar or vector of prior degrees of freedom for residual (co)variances.}
 
 \item{verbose}{Logical; if TRUE, it prints more details during iteration.}
+
+\item{msize}{Integer providing number of markers used in computation of sparseld}
+
+\item{threshold}{Scalar providing value for threshold used in adjustment of B}
 
 \item{ve_prior}{Scalar or matrix of prior residual (co)variances.}
 
@@ -154,8 +188,6 @@ gmap(
 \item{method}{Method used (e.g. "bayesN","bayesA","bayesL","bayesC","bayesR").}
 
 \item{algorithm}{Specifies the algorithm.}
-
-\item{covs}{List of summary statistics (output from internal cvs function).}
 }
 \value{
 A list containing:
@@ -207,7 +239,7 @@ Glist$chr[[1]] <- gsub("21","1",Glist$chr[[1]])
 Glist$chr[[2]] <- gsub("22","2",Glist$chr[[2]]) 
 
 # Fine map
-fit <- gmap(Glist=Glist, stat=stat, sets=sets, verbose=TRUE, 
+fit <- gmap(Glist=Glist, stat=stat, sets=sets, verbose=FALSE, 
             method="bayesC", nit=1500, nburn=500, pi=0.001)
             
 fit$post  # Posterior inference for every fine-mapped region

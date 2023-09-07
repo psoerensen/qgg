@@ -299,7 +299,7 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 }
 
 #'
-#' Quality control of marker summary statistics
+#' Quality control of genetic marker data in Glist
 #'
 #' @description
 #' Quality control is a critical step for working with summary statistics (in particular
@@ -760,6 +760,25 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
   return(ld)
 }
 
+#' Extract Sparse Linkage Disequilibrium (LD) Information
+#'
+#' Retrieves and formats linkage disequilibrium (LD) data from binary files based on a specified chromosome and LD threshold.
+#' It provides options for returning the data in sparse or dense format.
+#'
+#' @param Glist A list containing details such as the LD file path, msize, rsids for LD.
+#' @param chr A numeric or character value representing the chromosome for which LD data is to be extracted.
+#' @param r2 A numeric value specifying the LD threshold for extraction. Default is 0.
+#' @param onebased A logical value indicating whether indices are one-based (default) or zero-based.
+#' @param rsids A vector of rsids for which the LD data needs to be extracted in dense format. Default is NULL.
+#' @param format A character string specifying the format of the result, either "sparse" (default) or "dense".
+#'
+#' @return If `format` is "sparse", a list with two components: `indices` and `values`. Each component is a list 
+#' of length equal to the number of rsids in the specified chromosome. If `format` is "dense", a matrix with rows 
+#' and columns named after the rsids is returned.
+#'
+#' @keywords internal
+#' @export
+#' 
 getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=NULL, format="sparse") {
   msize <- Glist$msize
   rsidsChr <- Glist$rsidsLD[[chr]]
@@ -830,6 +849,7 @@ plotLD <- function(LD=NULL, cols=NULL) {
   axis(1, at = seq(0, 1, length = nrow(LD)), labels = rownames(LD), las=2, cex.axis=0.5)
   axis(2, at = seq(0, 1, length = ncol(LD)), labels = colnames(LD), las=2, cex.axis=0.5)
 }
+
 
 regionLD <- function(sparseLD = NULL, onebased=TRUE, rsids=NULL, format="matrix") {
   rsidsChr <- names(sparseLD$values)
@@ -961,11 +981,27 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=N
   return(unlist(ldscores2))
 }
 
+#' Adjust B-values
+#'
+#' This function adjusts the B-values based on the LD structure and other parameters.
+#' The adjustment is done in subsets, and a plot of observed vs. predicted values is produced for each subset.
+#'
+#' @param b A numeric vector containing the B-values to be adjusted. If NULL (default), no adjustments are made.
+#' @param LD A matrix representing the linkage disequilibrium (LD) structure.
+#' @param msize An integer specifying the size of the subsets.
+#' @param overlap An integer specifying the overlap size between consecutive subsets.
+#' @param shrink A numeric value used for shrinkage. Default is 0.001.
+#' @param threshold A numeric value specifying the threshold. Default is 1e-8.
+#'
+#' @return A list containing the adjusted B-values.
+#' 
+#' @keywords internal
+#' @export
 
 adjustB <- function(b=NULL, LD = NULL, msize=NULL, overlap=NULL, shrink=0.001, threshold=1e-8) {
   m <- length(b)
   badj <- rep(0,m)
-  sets <- qgg:::splitWithOverlap(1:m,msize,overlap)
+  sets <- splitWithOverlap(1:m,msize,overlap)
   for( i in 1:length(sets) ) {
     rws <- sets[[i]]
     mset <- length(rws)

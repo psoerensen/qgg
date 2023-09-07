@@ -27,6 +27,8 @@
 #' @importFrom grDevices colorRampPalette
 #' @importFrom graphics axis hist image legend lines
 #' @importFrom stats cov cov2cor dnorm median model.matrix na.omit pnorm qnorm
+#' @importFrom corpcor cor.shrink
+#' @importFrom coda geweke.diag
 NULL
 
 #' @useDynLib qgg, .registration = TRUE

@@ -201,6 +201,21 @@ gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum
 }
 
 
+#' Map Sets to RSIDs
+#'
+#' This function maps sets to rsids. If a `Glist` is provided, `rsids` are extracted from the `Glist`.
+#' It returns a list of matched RSIDs for each set.
+#'
+#' @param sets A list of character vectors where each vector represents a set of items. If the names
+#'   of the sets are not provided, they are named as "Set1", "Set2", etc.
+#' @param rsids A character vector of RSIDs. If `Glist` is provided, this parameter is ignored.
+#' @param Glist A list containing an element `rsids` which is a character vector of RSIDs.
+#' @param index A logical. If `TRUE` (default), it returns indices of RSIDs; otherwise, it returns the RSID names.
+#' 
+#' @return A list where each element represents a set and contains matched RSIDs or their indices.
+#' 
+#' @keywords internal
+#' @export
 mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
   if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
   nsets <- sapply(sets, length)

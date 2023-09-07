@@ -922,10 +922,6 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
   return(fit)
 }
 
-#'
-#' @export
-#'
-
 # Single trait BLR using summary statistics and sparse LD provided in Glist
 sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
                    LD=NULL, LDvalues=NULL,LDindices=NULL,
@@ -1048,7 +1044,6 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
 #' @param tol Convergence criteria used in gbayes.
 #' @param Glist List of information about genotype matrix stored on disk.
 #' @param stat Dataframe with marker summary statistics.
-#' @param covs List of summary statistics (output from internal cvs function).
 #' @param fit List of results from gbayes.
 #' @param trait Integer used for selection traits in covs object.
 #' @param chr Chromosome for which to fit BLR models.
@@ -1057,6 +1052,7 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
 #' @param seb Vector or matrix of standard error of marginal effects.
 #' @param mask Vector or matrix specifying if marker should be ignored.
 #' @param bm Vector or matrix of adjusted marker effects for the BLR model.
+#' @param lambda Vector or matrix of lambda values 
 #' @param LD List with sparse LD matrices.
 #' @param n Scalar or vector of number of observations for each trait.
 #' @param vb Scalar or matrix of marker (co)variances.
@@ -1078,6 +1074,25 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
 #' @param models List structure with models evaluated in bayesC.
 #' @param formatLD Character specifying LD format (default is "dense").
 #' @param verbose Logical; if TRUE, it prints more details during iteration.
+#' @param sets A list of character vectors where each vector represents a set of items. If the names
+#'   of the sets are not provided, they are named as "Set1", "Set2", etc.
+#' @param ids vector of individuals used in the study
+#' @param scaleY Logical indicating if y should be scaled.
+#' @param shrinkLD Logical indicating if LD should be shrunk.
+#' @param shrinkCor Logical indicating if cor should be shrunk.
+#' @param pruneLD Logical indicating if LD pruning should be applied.
+#' @param r2 Scalar providing value for r2 threshold used in pruning
+#' @param checkLD Logical indicating if LD matches summary statistics.
+#' @param checkConvergence Logical indicating if convergences should be checked.
+#' @param checkLD Logical indicating if LD matches summary statistics.
+#' @param critVe Scalar providing value for z-score threshold used in checking convergence for Ve
+#' @param critVg Scalar providing value for z-score threshold used in checking convergence for Vg
+#' @param critVb Scalar providing value for z-score threshold used in checking convergence for Vg
+#' @param critPi Scalar providing value for z-score threshold used in checking convergence for Pi
+#' @param ntrial Integer providing number of trials used if convergence is not obtaines
+#' @param msize Integer providing number of markers used in computation of sparseld
+#' @param threshold Scalar providing value for threshold used in adjustment of B
+#'
 #'
 #' @return 
 #' A list containing:
@@ -1121,7 +1136,7 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
 #' Glist$chr[[2]] <- gsub("22","2",Glist$chr[[2]]) 
 #' 
 #' # Fine map
-#' fit <- gmap(Glist=Glist, stat=stat, sets=sets, verbose=TRUE, 
+#' fit <- gmap(Glist=Glist, stat=stat, sets=sets, verbose=FALSE, 
 #'             method="bayesC", nit=1500, nburn=500, pi=0.001)
 #'             
 #' fit$post  # Posterior inference for every fine-mapped region
@@ -1148,7 +1163,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
                  adjustE=TRUE, models=NULL,
                  checkConvergence=FALSE, critVe=3, critVg=5, critVb=5, critPi=3, ntrial=1,
                  nug=4, nub=4, nue=4, verbose=FALSE,msize=100,threshold=NULL,
-                 GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
+                 ve_prior=NULL, vg_prior=NULL,tol=0.001,
                  nit=100, nburn=50, nit_local=NULL,nit_global=NULL,
                  method="bayesC", algorithm="mcmc") {
 
@@ -1231,11 +1246,11 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   
   if(!is.null(sets))  { 
     
-    sets <- qgg:::mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
+    sets <- mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
     if(any(sapply(sets,function(x){any(is.na(x))}))) stop("NAs in sets detected - please remove these")
 
     chr <- unlist(Glist$chr)
-    chrSets <- qgg:::mapSets(sets=sets, Glist=Glist, index=TRUE)
+    chrSets <- mapSets(sets=sets, Glist=Glist, index=TRUE)
     chrSets <- sapply(chrSets,function(x){as.numeric(unique(chr[x]))})
     lsets <- sapply(chrSets,length)
     sets <- sets[lsets==1]
@@ -1260,7 +1275,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
     
     #message(paste("Processing chromosome:",chr))
     if(formatLD=="sparse") {
-      sparseLD <- qgg:::getSparseLD(Glist=Glist,chr=chr)
+      sparseLD <- getSparseLD(Glist=Glist,chr=chr)
     }
     # BLR model for each set
     for (i in 1:length(sets)) {
@@ -1269,16 +1284,16 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       rsids <- sets[[i]]
       message(paste("Processing region:",i,"on chromosome:",chr))
       
-      pos <- qgg:::getPos(Glist=Glist, chr=chr, rsids=rsids)
+      pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
       message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
-      if(!is.null(Glist$map)) map <- qgg:::getMap(Glist=Glist, chr=chr, rsids=rsids)
+      if(!is.null(Glist$map)) map <- getMap(Glist=Glist, chr=chr, rsids=rsids)
       if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
       
       if(formatLD=="dense") {
         W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
         B <- crossprod(scale(W))/(length(ids)-1)
-        if(shrinkCor) B <- cor.shrink(W)
-        if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+        if(shrinkCor) B <- corpcor::cor.shrink(W)
+        if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
         LD <- NULL
         LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
         LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
@@ -1290,9 +1305,9 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       
       
       if(formatLD=="sparse") {
-        B <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
-        if(shrinkCor) B <- cor.shrink(W)
-        if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+        B <- regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
+        if(shrinkCor) B <- corpcor::cor.shrink(W)
+        if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
         LD <- NULL
         LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
         LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
@@ -1315,7 +1330,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           
           attempts[i] <- trial
           
-          fit <- qgg:::sbayes_region(yy=yy[trait],
+          fit <- sbayes_region(yy=yy[trait],
                                      wy=stat$wy[rsids,trait],
                                      ww=stat$ww[rsids,trait],
                                      b=b[rsids,trait],
@@ -1368,11 +1383,11 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             if(!critpi) message(paste("Zpi:",zpi))
             W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
             B <- crossprod(scale(W))/(length(ids)-1)
-            if(shrinkCor) B <- cor.shrink(W)
-            if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+            if(shrinkCor) B <- corpcor::cor.shrink(W)
+            if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
             if(checkLD & trial==1) { 
               message("Adjust summary statistics using imputation")
-              badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
+              badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
                                     msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
               z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
               outliers <- names(z[abs(z)>1.96])
@@ -1384,7 +1399,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             #if(pruneLD & trial==2) {
             if(pruneLD) {
               message("Adjust summary statistics using pruning")
-              pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
+              pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
               mask[pruned,trait] <- TRUE
             }
             if(trial==3) {
@@ -1405,7 +1420,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       # Make plots to monitor convergence
       if(verbose) {
         layout(matrix(1:4,ncol=2))
-        pipsets <- qgg:::splitWithOverlap(1:length(rsids),100,99)
+        pipsets <- splitWithOverlap(1:length(rsids),100,99)
         pip <- fit$dm
         plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
         plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
@@ -1480,7 +1495,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       #}
       
       if(formatLD=="sparse") {
-        sparseLD <- qgg:::getSparseLD(Glist=Glist,chr=chr)
+        sparseLD <- getSparseLD(Glist=Glist,chr=chr)
       }
       
       # BLR model for each set
@@ -1488,16 +1503,16 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         
         message(paste("Processing region:",i))
         rsids <- sets[[i]]
-        pos <- qgg:::getPos(Glist=Glist, chr=chr, rsids=rsids)
+        pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
         message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
-        if(!is.null(Glist$map)) map <- qgg:::getMap(Glist=Glist, chr=chr, rsids=rsids)
+        if(!is.null(Glist$map)) map <- getMap(Glist=Glist, chr=chr, rsids=rsids)
         if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
         
         if(formatLD=="dense") {
           W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
           B <- crossprod(scale(W))/(length(ids)-1)
-          if(shrinkCor) B <- cor.shrink(W)
-          if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+          if(shrinkCor) B <- corpcor::cor.shrink(W)
+          if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
           LD <- NULL
           LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
           LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
@@ -1510,8 +1525,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         
         
         if(formatLD=="sparse") {
-          B <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
-          if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+          B <- regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
+          if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
           LD <- NULL
           LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
           LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
@@ -1519,7 +1534,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           names(LD$values) <- rsids
           names(LD$indices) <- rsids
           msize_set <- length(rsids)
-          #LD <- qgg:::regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
+          #LD <- regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
           #rsids <- LD$rsids
           #msize <- length(rsids)
         }
@@ -1538,7 +1553,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             attempts[[chr]][[i]] <- trial
             
             
-            fit <- qgg:::sbayes_region(yy=yy[trait],
+            fit <- sbayes_region(yy=yy[trait],
                                        wy=stat$wy[rsids,trait],
                                        ww=stat$ww[rsids,trait],
                                        b=b[rsids,trait],
@@ -1591,11 +1606,11 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
               if(!critpi) message(paste("Zpi:",zpi))
               W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
               B <- crossprod(scale(W))/(length(ids)-1)
-              if(shrinkCor) B <- cor.shrink(W)
-              if(shrinkLD) B <- qgg:::adjustMapLD(LD = B, map=map)
+              if(shrinkCor) B <- corpcor::cor.shrink(W)
+              if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
               if(checkLD & trial==1) { 
                 message("Adjust summary statistics using imputation")
-                badj <- qgg:::adjustB(b=stat$b[rsids,trait], LD = B, 
+                badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
                                       msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
                 z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
                 outliers <- names(z[abs(z)>1.96])
@@ -1607,7 +1622,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
               if(pruneLD) {
                 #if(pruneLD & trial==2) {
                 message("Adjust summary statistics using pruning")
-                pruned <- qgg:::adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
+                pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
                 mask[pruned,trait] <- TRUE
               }
               if(trial==3) {
@@ -1628,7 +1643,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         # Make plots to monitor convergence
         if(verbose) {
           layout(matrix(1:4,ncol=2))
-          pipsets <- qgg:::splitWithOverlap(1:length(rsids),100,99)
+          pipsets <- splitWithOverlap(1:length(rsids),100,99)
           #pip <- sapply(pipsets,function(x){sum(fit$dm[x])})
           pip <- fit$dm
           plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
@@ -1710,7 +1725,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   if(!is.null(Glist$map)) map <- unlist(Glist$map)
   pos <- unlist(Glist$pos)
   sets <- lapply(fit$bm,names)
-  setsindex <- qgg:::mapSets(sets=sets, rsids=unlist(Glist$rsids))
+  setsindex <- mapSets(sets=sets, rsids=unlist(Glist$rsids))
   if(!is.null(Glist$map)) cm <- sapply(setsindex, function(x){ max(map[x])-min(map[x]) })
   mb <- sapply(setsindex, function(x){ (max(pos[x])-min(pos[x]))/1000000 })
   minmb <- sapply(setsindex, function(x){ min(pos[x]) })
@@ -1734,7 +1749,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
 adjustB <- function(b=NULL, LD = NULL, msize=NULL, overlap=NULL, shrink=0.001, threshold=1e-8) {
   m <- length(b)
   badj <- rep(0,m)
-  sets <- qgg:::splitWithOverlap(1:m,msize,overlap)
+  sets <- splitWithOverlap(1:m,msize,overlap)
   for( i in 1:length(sets) ) {
     mset <- length(sets[[i]])
     bset <- b[sets[[i]]]
@@ -1758,7 +1773,7 @@ adjLDregion <- function(LD=NULL, p=NULL, r2=0.5, thold=1) {
   message(paste("Pruning using r2 threshold:",r2))
   message(paste("Pruning using p-value threshold:",thold))
   ldSets <- apply(LD,1,function(x){colnames(LD)[x>r2]})
-  ldSets <- qgg:::mapSets(sets = ldSets, rsids = rsids)
+  ldSets <- mapSets(sets = ldSets, rsids = rsids)
   for (j in o) {
     if (p[j] <= thold) {
       if (indx1[j]) {
@@ -2257,7 +2272,19 @@ plotCvs <- function(fit=NULL, causal=NULL) {
 }
 
 
-
+#' Split Vector with Overlapping Segments
+#'
+#' Splits a vector into segments of a specified length with a specified overlap.
+#' The function returns a list where each element contains a segment of the vector.
+#'
+#' @param vec A numeric or character vector to be split.
+#' @param seg.length An integer specifying the length of each segment.
+#' @param overlap An integer specifying the number of overlapping elements between consecutive segments.
+#'
+#' @return A list where each element is a segment of the input vector. The segments can overlap based on the specified overlap.
+#'
+#' @keywords internal
+#' @export
 splitWithOverlap <- function(vec, seg.length, overlap) {
   starts = seq(1, length(vec), by=seg.length-overlap)
   ends   = starts + seg.length - 1
@@ -2265,6 +2292,21 @@ splitWithOverlap <- function(vec, seg.length, overlap) {
   lapply(1:length(starts), function(i) vec[starts[i]:ends[i]])
 }
 
+#' Adjust Linkage Disequilibrium (LD) Using Map Information
+#'
+#' Adjusts the linkage disequilibrium (LD) values based on map information, effective population size,
+#' and sample size used for map construction.
+#'
+#' @param LD A matrix representing the linkage disequilibrium (LD) structure.
+#' @param map A numeric vector containing the map information.
+#' @param neff An integer representing the effective population size. Default is 11600.
+#' @param nmap An integer representing the sample size used for map construction. Default is 186.
+#' @param threshold A numeric value specifying the threshold for setting LD to zero. Currently unused in the function. Default is 0.001.
+#'
+#' @return A matrix where each value is the adjusted LD based on the input map, effective population size, and map construction sample size.
+#'
+#' @keywords internal
+#' @export
 adjustMapLD <- function(LD = NULL, map=NULL, neff=11600, nmap=186, threshold=0.001) {
   # neff: effective population size
   # nmap: sample size used for map contruction
