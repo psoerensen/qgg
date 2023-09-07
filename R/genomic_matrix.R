@@ -2,7 +2,7 @@
 #  Prepare (processed genotypes) for target population
 ###############################################################################################
 
-#' Prepare genotype data for all statistical analyses (initial step)
+#' Prepare genotype data for all statistical analyses
 #'
 #' @description
 #' All functions in qgg relies on a simple data infrastructure that takes five main input sources;
@@ -299,7 +299,7 @@ summaryBED <- function(Glist = NULL, ids = NULL, rsids = NULL, rws = NULL, cls =
 }
 
 #'
-#' Quality control of genetic marker data in Glist
+#' Filter genetic marker data based on different quality measures
 #'
 #' @description
 #' Quality control is a critical step for working with summary statistics (in particular
@@ -473,7 +473,7 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
 # }
 
 
-#' Retrieve Elements from Genotype Matrix Stored On Disk
+#' Get elements from genotype matrix stored in PLINK bedfiles
 #'
 #' Extracts specific rows (based on ids or row numbers) and columns (based on rsids or column numbers) 
 #' from a genotype matrix stored on disk. The extraction is based on provided arguments such as chromosome 

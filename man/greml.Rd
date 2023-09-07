@@ -2,7 +2,7 @@
 % Please edit documentation in R/genomic_reml.R
 \name{greml}
 \alias{greml}
-\title{GREML analysis}
+\title{Genomic rescticted maximum likelihood (GREML) analysis}
 \usage{
 greml(
   y = NULL,

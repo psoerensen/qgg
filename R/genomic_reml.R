@@ -2,7 +2,7 @@
 #    Module 4: Genomic REML (GREML) analysis
 ####################################################################################################################
 #'
-#' GREML analysis
+#' Genomic rescticted maximum likelihood (GREML) analysis
 #'
 #' @description
 #' The greml function is used for the estimation of genomic parameters (co-variance, heritability and correlation)

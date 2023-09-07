@@ -2,7 +2,7 @@
 % Please edit documentation in R/genomic_matrix.R
 \name{gfilter}
 \alias{gfilter}
-\title{Quality control of genetic marker data in Glist}
+\title{Filter genetic marker data based on different quality measures}
 \usage{
 gfilter(
   Glist = NULL,

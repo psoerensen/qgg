@@ -235,25 +235,26 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
 }
 
 
-#' Adjust marker effects based on correlated information
-#'
+
+#' Adjustment of marker effects using correlated trait information
 #'
 #' @description
-#' The mtadj function use selection index theory to find the optimal weights across n traits, which is used to adjust marker effects by n correlated traits.
-#' (https://www.nature.com/articles/s41467-017-02769-6)
+#' The `mtadj` function uses selection index theory to determine the optimal weights across `n` traits. 
+#' These weights are then used to adjust marker effects by `n` correlated traits. 
+#' More details can be found [here](https://www.nature.com/articles/s41467-017-02769-6).
 #'    
-#' @param h2 vector of heritability estimates
-#' @param rg n-by-n matrix of genetic correlations
-#' @param n vector of sample size used to estimate marker effects for each trait
-#' @param b matrix of marker effects
-#' @param z matrix of z-scores
-#' @param meff effective number of uncorrelated genomic segments (default=60,000)
-#' @param mtotal total number of markers 
-#' @param statistics which kind of statistics ("b" or "z") used in the analysis
-#' @param method method used to estimate marker effects; OLS: ordinary least square (default), or BLUP: best linear unbiased prediction
-#' @param stat dataframe with marker summary statistics
+#' @param h2 A vector of heritability estimates.
+#' @param rg An n-by-n matrix of genetic correlations.
+#' @param n A vector indicating the sample size used to estimate marker effects for each trait.
+#' @param b A matrix of marker effects.
+#' @param z A matrix of z-scores.
+#' @param meff Effective number of uncorrelated genomic segments (default = 60,000).
+#' @param mtotal Total number of markers.
+#' @param statistics Specifies which kind of statistics ("b" or "z") should be used in the analysis.
+#' @param method Method to estimate marker effects. Can be "OLS" (ordinary least square, default) or "BLUP" (best linear unbiased prediction).
+#' @param stat A dataframe containing marker summary statistics.
 #' 
-#' @return Matrix of adjusted marker effects for each trait
+#' @return A matrix of adjusted marker effects for each trait.
 #' 
 #' @author Palle Duun Rohde and Peter Soerensen
 #' 

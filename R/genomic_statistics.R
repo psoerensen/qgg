@@ -214,7 +214,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
 }
 
 
-#' LD adjustment of marker summary statistics
+#' Adjustment of marker summary statistics using clumping and thresholding
 #'
 #' Adjust marker summary statistics using linkage disequilibrium information from Glist.
 #'

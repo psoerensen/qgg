@@ -2,7 +2,7 @@
 % Please edit documentation in R/genomic_score.R
 \name{mtadj}
 \alias{mtadj}
-\title{Adjust marker effects based on correlated information}
+\title{Adjustment of marker effects using correlated trait information}
 \usage{
 mtadj(
   h2 = NULL,
@@ -18,32 +18,33 @@ mtadj(
 )
 }
 \arguments{
-\item{h2}{vector of heritability estimates}
+\item{h2}{A vector of heritability estimates.}
 
-\item{rg}{n-by-n matrix of genetic correlations}
+\item{rg}{An n-by-n matrix of genetic correlations.}
 
-\item{stat}{dataframe with marker summary statistics}
+\item{stat}{A dataframe containing marker summary statistics.}
 
-\item{b}{matrix of marker effects}
+\item{b}{A matrix of marker effects.}
 
-\item{z}{matrix of z-scores}
+\item{z}{A matrix of z-scores.}
 
-\item{n}{vector of sample size used to estimate marker effects for each trait}
+\item{n}{A vector indicating the sample size used to estimate marker effects for each trait.}
 
-\item{mtotal}{total number of markers}
+\item{mtotal}{Total number of markers.}
 
-\item{meff}{effective number of uncorrelated genomic segments (default=60,000)}
+\item{meff}{Effective number of uncorrelated genomic segments (default = 60,000).}
 
-\item{method}{method used to estimate marker effects; OLS: ordinary least square (default), or BLUP: best linear unbiased prediction}
+\item{method}{Method to estimate marker effects. Can be "OLS" (ordinary least square, default) or "BLUP" (best linear unbiased prediction).}
 
-\item{statistics}{which kind of statistics ("b" or "z") used in the analysis}
+\item{statistics}{Specifies which kind of statistics ("b" or "z") should be used in the analysis.}
 }
 \value{
-Matrix of adjusted marker effects for each trait
+A matrix of adjusted marker effects for each trait.
 }
 \description{
-The mtadj function use selection index theory to find the optimal weights across n traits, which is used to adjust marker effects by n correlated traits.
-(https://www.nature.com/articles/s41467-017-02769-6)
+The `mtadj` function uses selection index theory to determine the optimal weights across `n` traits. 
+These weights are then used to adjust marker effects by `n` correlated traits. 
+More details can be found [here](https://www.nature.com/articles/s41467-017-02769-6).
 }
 \examples{
 

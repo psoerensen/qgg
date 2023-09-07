@@ -2,7 +2,7 @@
 % Please edit documentation in R/genomic_matrix.R
 \name{getG}
 \alias{getG}
-\title{Retrieve Elements from Genotype Matrix Stored On Disk}
+\title{Get elements from genotype matrix stored in PLINK bedfiles}
 \usage{
 getG(
   Glist = NULL,

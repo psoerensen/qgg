@@ -2,7 +2,7 @@
 % Please edit documentation in R/genomic_statistics.R
 \name{adjStat}
 \alias{adjStat}
-\title{LD adjustment of marker summary statistics}
+\title{Adjustment of marker summary statistics using clumping and thresholding}
 \usage{
 adjStat(
   stat = NULL,

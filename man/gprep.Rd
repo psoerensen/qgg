@@ -2,7 +2,7 @@
 % Please edit documentation in R/genomic_matrix.R
 \name{gprep}
 \alias{gprep}
-\title{Prepare genotype data for all statistical analyses (initial step)}
+\title{Prepare genotype data for all statistical analyses}
 \usage{
 gprep(
   Glist = NULL,
