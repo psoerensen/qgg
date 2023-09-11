@@ -760,7 +760,8 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=
   if(formatLD=="dense") {
     fit <- .Call("_qgg_bayes",
                  y=y, 
-                 W=split(W, rep(1:ncol(W), each = nrow(W))), 
+                 #W=split(W, rep(1:ncol(W), each = nrow(W))), 
+                 W=as.list(as.data.frame(W)), 
                  b=b,
                  lambda = lambda,
                  pi = pi,
@@ -829,7 +830,8 @@ sbayes_wy <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL
   
   fit <- .Call("_qgg_sbayes",
                wy=wy, 
-               LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
+               #LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
+               LD=as.list(as.data.frame(LD)), 
                b = b,
                lambda = lambda,
                yy = yy,
@@ -957,7 +959,8 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
   
   # Prepare sparse LD matrix
   if( is.null(LD) ) stop("Please provide LD matrix")
-  LDvalues <- split(LD, rep(1:ncol(LD), each = nrow(LD)))
+  #LDvalues <- split(LD, rep(1:ncol(LD), each = nrow(LD)))
+  LDvalues=as.list(as.data.frame(LD)) 
   LDindices <- lapply(1:ncol(LD),function(x) { (1:ncol(LD))-1 } )
   
   # Prepare starting parameters
@@ -1011,6 +1014,95 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
                algo=as.integer(algorithm),
                seed=seed)
   names(fit[[1]]) <- names(LDvalues)
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
+  return(fit)
+}
+
+# Single trait BLR using summary statistics and sparse LD provided in Glist
+sbayesXy <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
+                     mask=NULL, lambda=NULL,
+                     vg=NULL, vb=NULL, ve=NULL, h2=NULL, pi=NULL,
+                     ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
+                     updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
+                     adjustE=TRUE, models=NULL,
+                     nit=500, nburn=100, method="bayesC", algorithm="mcmc", verbose=FALSE) {
+  
+  # Check methods and parameter settings
+  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+  method <- match(method, methods) - 1
+  if( !sum(method%in%c(0:5))== 1 ) stop("method argument specified not valid")
+  algorithms <- c("mcmc","em-mcmc")
+  algorithm <- match(algorithm, algorithms)
+  if(is.na(algorithm)) stop("algorithm argument specified not valid")
+  
+  if( is.null(n) ) stop("Please provide n")
+  if( is.null(yy) ) stop("Please provide yy")
+  if( is.null(Xy) ) stop("Please provide Xy matrix")
+  if( is.null(XX) ) stop("Please provide XX matrix")
+  
+  xx <- diag(XX)  
+  m <- length(xx)
+  
+  XX <- cov2cor(XX)  
+  XXvalues <- split(XX, rep(1:ncol(XX), each = nrow(XX)))
+  XXindices <- lapply(1:ncol(XX),function(x) { (1:ncol(XX))-1 } )
+  
+  b <- rep(0, m)
+  mask <- rep(FALSE, m)
+  
+  
+  
+  # Prepare starting parameters
+  vy <- yy/(n-1)
+  if(is.null(pi)) pi <- 0.001
+  if(is.null(h2)) h2 <- 0.5
+  if(is.null(ve)) ve <- vy*(1-h2)
+  if(is.null(vg)) vg <- vy*h2
+  if(method<4 && is.null(vb)) vb <- vg/m
+  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,m)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+  if(is.null(b)) b <- rep(0,m)
+  
+  pi <- c(1-pi,pi)
+  gamma <- c(0,1.0)
+  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
+  if(method==5) gamma <- c(0,0.01,0.1,1.0)
+  
+  seed <- sample.int(.Machine$integer.max, 1)
+  
+  fit <- .Call("_qgg_sbayes_spa",
+               wy=Xy,
+               ww=xx,
+               LDvalues=XXvalues,
+               LDindices=XXindices,
+               b = b,
+               lambda = lambda,
+               mask=mask,
+               yy = yy,
+               pi = pi,
+               gamma = gamma,
+               vg = vg,
+               vb = vb,
+               ve = ve,
+               ssb_prior=ssb_prior,
+               sse_prior=sse_prior,
+               nub=nub,
+               nue=nue,
+               updateB = updateB,
+               updateE = updateE,
+               updatePi = updatePi,
+               updateG = updateG,
+               adjustE = adjustE,
+               n=n,
+               nit=nit,
+               nburn=nburn,
+               method=as.integer(method),
+               algo=as.integer(algorithm),
+               seed=seed)
+  names(fit[[1]]) <- names(XXvalues)
   names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
   return(fit)
 }
@@ -1295,7 +1387,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         if(shrinkCor) B <- corpcor::cor.shrink(W)
         if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
         LD <- NULL
-        LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+        #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+        LD$values <- as.list(as.data.frame(B))
         LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
         rsids <- colnames(B)
         names(LD$values) <- rsids
@@ -1309,7 +1402,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
         if(shrinkCor) B <- corpcor::cor.shrink(W)
         if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
         LD <- NULL
-        LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+        #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+        LD$values <- as.list(as.data.frame(B))
         LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
         rsids <- colnames(B)
         names(LD$values) <- rsids
@@ -1514,7 +1608,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           if(shrinkCor) B <- corpcor::cor.shrink(W)
           if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
           LD <- NULL
-          LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+          #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+          LD$values <- as.list(as.data.frame(B))
           LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
           rsids <- colnames(B)
           names(LD$values) <- rsids
@@ -1528,7 +1623,8 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
           B <- regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
           if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
           LD <- NULL
-          LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+          #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+          LD$values <- as.list(as.data.frame(B))
           LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
           rsids <- colnames(B)
           names(LD$values) <- rsids
