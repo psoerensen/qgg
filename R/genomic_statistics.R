@@ -49,10 +49,10 @@
 #' @keywords internal
 #' @export
 
-qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, 
-                   excludeINFO=0.8, excludeCGAT=TRUE, excludeINDEL=TRUE, 
-                   excludeDUPS=TRUE, excludeMHC=FALSE, excludeMISS=0.05, 
-                   excludeHWE=1e-12) {
+checkStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05, 
+                      excludeINFO=0.8, excludeCGAT=TRUE, excludeINDEL=TRUE, 
+                      excludeDUPS=TRUE, excludeMHC=FALSE, excludeMISS=0.05, 
+                      excludeHWE=1e-12) {
   
   # we use cpra to link sumstats and Glist
   cpra <- unlist(Glist$cpra)
@@ -69,7 +69,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   
   fm_internal <- c("rsids","chr","pos","ea","nea","eaf","b","seb","p","n","info")
   fm_external <- c("marker","chr","pos","ea","nea","eaf","b","seb","p","n","info")
-
+  
   # external summary statistic column format
   # optimal format:
   # marker, chromosome, position, effect_allele, non_effect_allele, 
@@ -173,7 +173,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   message(paste("Number of effect alleles not aligned with first allele in bimfiles:", sum(!aligned)))
   message("")
   
-
+  
   # align stat if format external
   #if(format=="external") {
   
@@ -188,7 +188,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   stat[!aligned,"ea"] <- non_effect_allele[!aligned]
   stat[!aligned,"nea"] <- effect_allele[!aligned] 
   if(!is.null(stat$eaf)) stat[!aligned,"eaf"] <- 1-effect_allele_freq[!aligned]
-
+  
   if(is.null(stat$eaf)) {
     message("No effect allele frequency (eaf) provided - using eaf in Glist")
     stat$eaf <- marker$eaf
@@ -203,7 +203,7 @@ qcStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.05,
   
   #colnames(stat) <- fm_internal
   if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$eaf)
-
+  
   if(!is.null(stat$info)) {
     lowINFO <- stat$info < excludeINFO
     message(paste("Number of markers excluded by low INFO score:", sum(lowINFO)))
