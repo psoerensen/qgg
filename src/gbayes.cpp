@@ -245,24 +245,41 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
 
       // Sample pi for Bayes C
       if(updatePi) {
-        dfb=0.0;
+        std::vector<double> mc(2);
+        std::fill(mc.begin(), mc.end(), 0.0);
         for (int i = 0; i<m ; i++) {
-          if(d[i]==1)   {
-            dfb = dfb + 1.0;
-          }
+          mc[d[i]] = mc[d[i]] + 1.0;
         }
-        double count = dfb + 1.0;
-        std::gamma_distribution<double> rgamma(count,1.0);
-        double rg = rgamma(gen);
         double pisum=0.0;
-        pi[1] = rg/(double)m;
-        pi[0] = 1.0 - pi[1];
-        pisum = pi[0] + pi[1];
-        pi[0] = pi[0]/pisum;
-        pi[1] = pi[1]/pisum;
+        for (int j = 0; j<2 ; j++) {
+          std::gamma_distribution<double> rgamma(mc[j]+1.0,1.0);
+          double rg = rgamma(gen);
+          pi[j] = rg/m;
+          pisum = pisum + pi[j];
+        }
+        for (int j = 0; j<2 ; j++) {
+          pi[j] = pi[j]/pisum;
+          pim[j] = pim[j] + pi[j];
+        }
         pis[it] = pi[1];
-        pim[0] = pim[0] + pi[0];
-        pim[1] = pim[1] + pi[1];
+        // dfb=0.0;
+        // for (int i = 0; i<m ; i++) {
+        //   if(d[i]==1)   {
+        //     dfb = dfb + 1.0;
+        //   }
+        // }
+        // double count = dfb + 1.0;
+        // std::gamma_distribution<double> rgamma(count,1.0);
+        // double rg = rgamma(gen);
+        // double pisum=0.0;
+        // pi[1] = rg/(double)m;
+        // pi[0] = 1.0 - pi[1];
+        // pisum = pi[0] + pi[1];
+        // pi[0] = pi[0]/pisum;
+        // pi[1] = pi[1]/pisum;
+        // pis[it] = pi[1];
+        // pim[0] = pim[0] + pi[0];
+        // pim[1] = pim[1] + pi[1];
       }  
       
             
@@ -1059,9 +1076,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
           if(it>nburn) pim[j] = pim[j] + pi[j];
         }
         pis[it] = pi[1];
-        if(it>nburn) pim[0] = pim[0] + pi[0];
-        if(it>nburn) pim[1] = pim[1] + pi[1];
-        
         // dfb=0.0;
         // for (int i = 0; i<m ; i++) {
         //   if(d[i]==1)   {
