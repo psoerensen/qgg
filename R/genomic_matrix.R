@@ -184,7 +184,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     Glist$rsidsLD <- vector(mode = "list", length = length(Glist$ldfiles))
     Glist$ldscores <- vector(mode = "list", length = length(Glist$ldfiles))
     if (is.null(ids)) ids <- Glist$ids
-    Glist$idsLD <- ids
+    Glist$idsLD <- as.character(ids)
     for( chr in 1:length(Glist$ldfiles)) {
       message(paste("Compute sparse LD matrix for chromosome:",chr))
       Glist <- sparseLD(Glist = Glist, fnLD = Glist$ldfiles[chr], msize = msize, chr = chr, rsids = rsids,
