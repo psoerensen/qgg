@@ -49,8 +49,6 @@
 #' @export
 
 gsim <- function(Glist=NULL, chr=1, nt=1,W=NULL, n=1000, m=1000, rsids=NULL) {
-  
-  
   if(!is.null(Glist)) {
     if(is.null(rsids)) rsids <- Glist$rsidsLD[[chr]]
     W <- getG(Glist=Glist, chr=chr, rsids=rsids)
@@ -87,12 +85,40 @@ gsim <- function(Glist=NULL, chr=1, nt=1,W=NULL, n=1000, m=1000, rsids=NULL) {
   if(nt>1) return( list(y=as.matrix(as.data.frame(y)),W=W,e=as.matrix(as.data.frame(e)),g=g,b0=b0,b1=b1,set0=set0,set1=set1,causal=c(set0,unlist(set1))))
 }
 
+
+#' Simulate Genetic Data Based on Given Parameters
+#'
+#' This function simulates phenotype data by random sampling of markers available on `Glist`.
+#' Default parameters for the simulated phenotype reflect the genetic architecture assumed by BayesC prior(Habier et al., 2011).
+#'
+#' @param Glist A list containing genetic data. If NULL, the function will stop with an error.
+#' @param h2 Heritability. If NULL, heritability of 0.5 is assumed.
+#' @param m Number of causal markers. The values for either `m` or `prp.cau` should be provided at any given time. 
+#' If the list of quality controlled markers is not available then list of raw markers is used.  
+#' If `m` is NULL and `prp.cau` is also NULL, `prp.cau` will default to 0.001.
+#' @param prp.cau Proportion of causal markers. The values for either `m` or `prp.cau` should be provided at any given time. 
+#' @param n Number of individuals randomly sampled from `Glist`. If NULL, all the individuals on `Glist` is used.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item \code{y}: Vector of simulated phenotypes.
+#'   \item \code{g}: Vector of simulated genetic values.
+#'   \item \code{e}: Vector of simulated residual effects.
+#'   \item \code{b}: Vector of effect sizes of the simulated causal markers.
+#'   \item \code{causal}: Vector of ids for the simulated causal markers.
+#'   \item \code{h2}: Estimated heritability of the simulated phenotype.
+#' }
+#'
+#' @examples
+#' @author Peter Soerensen 
+#' @author Merina Shrestha
 #' @keywords internal
 #' @export
-gsimC <- function (Glist = NULL, hsnp = NULL, m = NULL, prp.cau = NULL, n = NULL)
+
+gsimC <- function (Glist = NULL, h2 = NULL, m = NULL, prp.cau = NULL, n = NULL)
 {if(is.null(Glist)){stop("Error:Glist is NULL")}
   y <- g <- e <- NULL
-  if(is.null(hsnp)){hsnp = 0.5}
+  if(is.null(h2)){hsnp = 0.5} else {hsnp = h2}
   print(paste("heritability :",hsnp,sep=""))
   if(is.null(m) && is.null(prp.cau)) {
     prp.cau = 0.001
