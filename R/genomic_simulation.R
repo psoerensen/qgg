@@ -87,3 +87,78 @@ gsim <- function(Glist=NULL, chr=1, nt=1,W=NULL, n=1000, m=1000, rsids=NULL) {
   if(nt>1) return( list(y=as.matrix(as.data.frame(y)),W=W,e=as.matrix(as.data.frame(e)),g=g,b0=b0,b1=b1,set0=set0,set1=set1,causal=c(set0,unlist(set1))))
 }
 
+#' @keywords internal
+#' @export
+gsimC <- function (Glist = NULL, hsnp = NULL, m = NULL, prp.cau = NULL, n = NULL)
+{if(is.null(Glist)){stop("Error:Glist is NULL")}
+  y <- g <- e <- NULL
+  if(is.null(hsnp)){hsnp = 0.5}
+  print(paste("heritability :",hsnp,sep=""))
+  if(is.null(m) && is.null(prp.cau)) {
+    prp.cau = 0.001
+  } else if(!is.null(m) && is.null(prp.cau)) {
+    snp.cau = m 
+  } else if(is.null(m) && !is.null(prp.cau)){
+    if(!is.null(Glist$rsidsLD)) { 
+      tot.snps <- length(unlist(Glist$rsidsLD))   
+    } else if(is.null(Glist$rsidsLD)) {
+      tot.snps <- length(unlist(Glist$rsids))  
+    }
+    snp.cau <- tot.snps * prp.cau  
+  }
+  print(paste("Number of causal snps :",snp.cau,sep=""))
+  pop.var <- hsnp/snp.cau 
+  pop.sd <- sqrt(pop.var) 
+  b0 <- rnorm(n=snp.cau, mean=0, sd=pop.sd)
+  if(!is.null(Glist$rsidsLD)) { 
+    rsidsLD <- unlist(Glist$rsidsLD)
+    print(paste("QC'd SNPs used")) 
+  } else if(is.null(Glist$rsidsLD)){
+    rsidsLD <- unlist(Glist$rsids)
+    print(paste("Raw SNPs used"))
+  }
+  rsids.cau <- sample(rsidsLD,snp.cau)
+  if(is.null(n)){
+    ids.1 <- NULL
+    print(paste("Number of samples:",length(Glist$ids)))
+  } else {
+    ids.1 <- sample(x=Glist$ids, size=n, replace = FALSE) 
+    print(paste("Number of samples:",n))
+  }
+  var.x = 1
+  tpb <- txtProgressBar(min=0, max=length(rsids.cau), style=3)
+  for (snp.num in 1:length(rsids.cau)){  
+    setTxtProgressBar(tpb,snp.num) 
+    w.snp <- rsids.cau[snp.num]
+    for(chr.ms in 1:length(Glist$bedfiles)){ 
+      for (j in 1:length(Glist$rsids[[chr.ms]])){ 
+        if(w.snp == Glist$rsids[[chr.ms]][j]){
+          cls <- j
+          w <- NULL
+          w <- getG(Glist = Glist, chr = chr.ms, bedfiles = NULL, bimfiles = NULL,
+                    famfiles = NULL, ids = ids.1, rsids = NULL, rws = NULL, cls = cls,
+                    impute = TRUE, scale = TRUE)
+          b1 <- as.matrix(b0[snp.num])
+          g1 <- w %*% b1
+          ifelse( var.x == 1, g1.1 <- g1, g1.1 <- g1.1 + g1) # this is the way to add matrix
+          var.x <- var.x + 1
+        }}}} 
+  rm(var.x)
+  close(tpb) 
+  g <- cbind(g, g1.1)
+  res.var <- var(g)*((1/hsnp)-1) 
+  res.sd <- sqrt(res.var)
+  if(is.null(n)) {
+    if(length(Glist$ids) != 0){
+      e <- rnorm(length(Glist$ids), mean = 0, sd = res.sd)
+      y <- as.vector(g + e)
+      names(y) <- Glist$ids 
+    } else {stop("Error: no ids in Glist")}
+  } else if(!is.null(n)){
+    e <- rnorm(n, mean = 0, sd = res.sd) 
+    y <- as.vector(g + e)
+    names(y) <- ids.1   
+  }
+  return(list(y = y, g = g, e = e, b = b0, causal = rsids.cau, h2 = round(var(g)/(var(g)+var(e)),2)))
+} 
+
