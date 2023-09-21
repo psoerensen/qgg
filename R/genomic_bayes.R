@@ -2638,6 +2638,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   fit$rg <- cov2cor(vgm)
   fit$rgset <- lapply(fit$vgm,function(x) {cov2cor(x)})
   
+  # nt = (sqrt(1 + 8 * ncol(ves)) - 1) / 2
   # mat <- matrix(0,nt,nt)
   # upperindex <- upper.tri(mat, diag=TRUE)
   # lowerindex <- lower.tri(mat, diag=TRUE)
