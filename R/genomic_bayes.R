@@ -2638,6 +2638,23 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
   fit$rg <- cov2cor(vgm)
   fit$rgset <- lapply(fit$vgm,function(x) {cov2cor(x)})
   
+  # mat <- matrix(0,nt,nt)
+  # upperindex <- upper.tri(mat, diag=TRUE)
+  # lowerindex <- lower.tri(mat, diag=TRUE)
+  # fit$res <- apply(fit$ves,1,function(x) {
+  #   mat[upperindex] <- x
+  #   mat[lowerindex] <- x
+  #   rgmat <- cov2cor(mat)
+  #   rgmat[upper.tri(mat, diag=FALSE)]
+  # })
+  # fit$rgs <- apply(fit$vgs,1,function(x) {
+  #   mat[upperindex] <- x
+  #   mat[lowerindex] <- x
+  #   rgmat <- cov2cor(mat)
+  #   rgmat[upper.tri(mat, diag=FALSE)]
+  # })
+  
+  
   gset <- NULL
   for ( i in 1:nset) {                        
     gset[[i]] <- matrix(0,nrow=length(idsG),ncol=nt)         
