@@ -90,6 +90,7 @@ gsim <- function(Glist=NULL, chr=1, nt=1,W=NULL, n=1000, m=1000, rsids=NULL) {
 #'
 #' This function simulates phenotype data by random sampling of markers available on `Glist`.
 #' Default parameters for the simulated phenotype reflect the genetic architecture assumed by BayesC prior(Habier et al., 2011).
+#' This function is under active development.
 #'
 #' @param Glist A list containing genetic data. If NULL, the function will stop with an error.
 #' @param h2 Heritability. If NULL, heritability of 0.5 is assumed.
@@ -187,4 +188,135 @@ gsimC <- function (Glist = NULL, h2 = NULL, m = NULL, prp.cau = NULL, n = NULL)
   }
   return(list(y = y, g = g, e = e, b = b0, causal = rsids.cau, h2 = round(var(g)/(var(g)+var(e)),2)))
 } 
+
+
+#' Simulate Genetic Data Based on Given Parameters
+#'
+#' This function simulates phenotype data by random sampling of markers available on `Glist`.
+#' Default parameters for the simulated phenotype reflect the genetic architecture assumed by BayesR prior(Erbe et al., 2012).
+#' Marker effect are sampled from mixture distributions leading to small, moderate and large effect sizes. 
+#' This function is under active development.
+#' 
+#' @param Glist A list containing genetic data. If NULL, the function will stop with an error.
+#' @param h2 Heritability. If NULL, heritability of 0.5 is assumed.
+#' @param m Number of causal markers. The values for either `m` or `prp.cau` should be provided at any given time. 
+#' If the list of quality controlled markers is not available then list of raw markers is used.  
+#' If `m` is NULL and `prp.cau` is also NULL, `prp.cau` will default to 0.001.
+#' @param prp.cau Proportion of causal markers. The values for either `m` or `prp.cau` should be provided at any given time. 
+#' @param n Number of individuals randomly sampled from `Glist`. If NULL, all the individuals on `Glist` is used.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item \code{y}: Vector of simulated phenotypes.
+#'   \item \code{g}: Vector of simulated genetic values.
+#'   \item \code{e}: Vector of simulated residual effects.
+#'   \item \code{b}: list of vectors for effect sizes of the simulated causal markers in three classes.
+#'   \item \code{causal}: list of vectors for ids for the simulated causal markers in three classes.
+#'   \item \code{h2}: Estimated heritability of the simulated phenotype.
+#' }
+#' 
+#' @examples
+#' @author Peter Soerensen 
+#' @author Merina Shrestha
+#' @keywords internal
+#' @export
+
+gsimR <- function (Glist = NULL, h2 = NULL, m = NULL, prp.cau = NULL, n = NULL)  
+{if(is.null(Glist)){stop("Error:Glist is NULL")}
+  y <- g <- e <- NULL
+  if(is.null(h2)){hsnp = 0.5} else {hsnp = h2}
+  print(paste("heritability :",hsnp,sep=""))
+  if(is.null(m) && is.null(prp.cau)) {
+    prp.cau = 0.001
+    m = NULL
+  }
+  if(!is.null(m) && is.null(prp.cau)) {
+    snp.cau = m
+    prp.cau = NULL
+  }
+  if(is.null(m) && !is.null(prp.cau)){
+    if(!is.null(Glist$rsidsLD)) { 
+      tot.snps <- length(unlist(Glist$rsidsLD))} else if(is.null(Glist$rsidsLD)) {tot.snps <- length(unlist(Glist$rsids))}
+    snp.cau <- tot.snps * prp.cau  #### number of causal snps
+  }
+  print(paste("Number of causal snps :",snp.cau,sep=""))
+  
+  snp.cau.1 <- round(snp.cau * 0.94, digits=0)
+  snp.cau.2 <- round(snp.cau * 0.05, digits=0)
+  snp.cau.3 <- round(snp.cau * 0.01, digits=0)
+  if(is.null(snp.cau.1)){snp.cau.1 <- 1}
+  if(is.null(snp.cau.2)){snp.cau.2 <- 1}
+  if(is.null(snp.cau.3)){snp.cau.3 <- 1}
+  lapply(1:3, function(i) print(paste("Number of causal snps in class", i, ":", get(paste("snp.cau.", i, sep="")))))
+  
+  hsnp.1 <- (snp.cau.1 * 0.001)/hsnp
+  hsnp.2 <- (snp.cau.2 * 0.01)/hsnp
+  hsnp.3 <- (snp.cau.3 * 0.1)/hsnp
+  
+  if(is.null(Glist$rsidsLD)){
+    rsidsLD <- unlist(Glist$rsids)
+  } else { rsidsLD <- unlist(Glist$rsidsLD)} 
+  rsids.cau.1 <- sample(rsidsLD,snp.cau.1) 
+  rsidsLD <- rsidsLD[!(rsidsLD %in% rsids.cau.1)]
+  rsids.cau.2 <- sample(rsidsLD,snp.cau.2) 
+  rsidsLD <- rsidsLD[!(rsidsLD %in% rsids.cau.2)]
+  rsids.cau.3 <- sample(rsidsLD,snp.cau.3) 
+  if(is.null(n)){
+    ids.1 <- NULL
+    print(paste("Number of samples:",length(Glist$ids)))
+  } else {
+    ids.1 <- sample(x=Glist$ids, size=n, replace = FALSE)
+    print(paste("Number of samples:",n))
+  }
+  
+  g.eff <- function(h_snp, snp_cau, rsids_cau, Glist) {
+    pop.var <- h_snp/snp_cau
+    pop.sd <- sqrt(pop.var)
+    b <- rnorm(n=snp_cau, mean=0, sd=pop.sd)
+    g_final <- 0
+    var.x = 1
+    tpb <- txtProgressBar(min=0, max=length(rsids_cau), style=3)
+    for (snp.num in 1:length(rsids_cau)){ 
+      setTxtProgressBar(tpb,snp.num)
+      w.snp <- rsids_cau[snp.num]
+      for(chr.ms in 1:length(Glist$bedfiles)){ 
+        for (j in 1:length(Glist$rsids[[chr.ms]])){  
+          if(w.snp == Glist$rsids[[chr.ms]][j]){
+            cls <- j
+            w <- getG(Glist = Glist, chr = chr.ms, bedfiles = NULL, bimfiles = NULL, 
+                      famfiles = NULL, ids = ids.1, rsids = NULL, rws = NULL, cls = cls, 
+                      impute = TRUE, scale = TRUE) 
+            b_temp <- as.matrix(b[snp.num])  
+            g <- w %*% b_temp 
+            ifelse(var.x == 1, g_final <- g, g_final <- g_final + g)
+            var.x = var.x + 1
+          }}}}
+    rm(var.x)
+    close(tpb)
+    return(list(g_final = g_final, b = b))
+  }
+  print("Class 1")
+  res1 <- g.eff(hsnp.1, snp.cau.1, rsids.cau.1, Glist)
+  print("Class 2")
+  res2 <- g.eff(hsnp.2, snp.cau.2, rsids.cau.2, Glist)
+  print("Class 3")
+  res3 <- g.eff(hsnp.3, snp.cau.3, rsids.cau.3, Glist)
+  g <- cbind(g, res1$g_final + res2$g_final + res3$g_final) 
+  res.var <- var(g) * ((1/hsnp)-1) 
+  res.sd <- sqrt(res.var)
+  if(is.null(n)) {
+    if(length(Glist$ids) != 0){
+      e <- rnorm(length(Glist$ids), mean = 0, sd = res.sd)
+      y <- as.vector(g + e)
+      names(y) <- Glist$ids 
+    } else {stop("Error: no ids in Glist")}
+  } else if(!is.null(n)){
+    e <- rnorm(n, mean = 0, sd = res.sd)
+    y <- as.vector(g + e)
+    names(y) <- ids.1   
+  }
+  return(list(y = y, e = e, g = g, b = list(class1=res1$b,class2=res2$b,class3=res3$b), 
+              causal=list(class1=rsids.cau.1,class2=rsids.cau.2,class3=rsids.cau.3),
+              h2 = round(var(g)/(var(g)+var(e)),2)))
+}
 
