@@ -1471,6 +1471,7 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
           pi[j] = pi[j]/pisum;
           if(it>nburn) pim[j] = pim[j] + pi[j];
         }
+        pis[it] = pi[1];
         // dfb=0.0;
         // for (int i = 0; i<m ; i++) {
         //   if(d[i]==1)   {
