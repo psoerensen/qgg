@@ -1836,6 +1836,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi)  
   if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, chr=chr, minmb=minmb, maxmb=maxmb)  
   if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm, chr=chr, minmb=minmb, maxmb=maxmb)  
+  rownames(fit$conv) <- rownames(fit$post) <- names(sets) 
   fit$ve <- mean(ve)
   fit$vg <- sum(vg)
   fit$b <- b
