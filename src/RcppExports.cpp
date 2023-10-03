@@ -348,6 +348,36 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mtblr
+std::vector<std::vector<std::vector<double>>> mtblr(std::vector<std::vector<double>> wy, std::vector<std::vector<double>> ww, std::vector<double> yy, std::vector<std::vector<double>> b, std::vector<std::vector<std::vector<double>>> XXvalues, std::vector<std::vector<int>> XXindices, arma::mat B, arma::mat E, std::vector<std::vector<double>> ssb_prior, std::vector<std::vector<double>> sse_prior, std::vector<std::vector<int>> models, std::vector<double> pi, double nub, double nue, bool updateB, bool updateE, bool updatePi, std::vector<int> n, int nit, int method);
+RcppExport SEXP _qgg_mtblr(SEXP wySEXP, SEXP wwSEXP, SEXP yySEXP, SEXP bSEXP, SEXP XXvaluesSEXP, SEXP XXindicesSEXP, SEXP BSEXP, SEXP ESEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP modelsSEXP, SEXP piSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nSEXP, SEXP nitSEXP, SEXP methodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type wy(wySEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type ww(wwSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type yy(yySEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type b(bSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<std::vector<double>>> >::type XXvalues(XXvaluesSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<int>> >::type XXindices(XXindicesSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type E(ESEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type ssb_prior(ssb_priorSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type sse_prior(sse_priorSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<int>> >::type models(modelsSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type pi(piSEXP);
+    Rcpp::traits::input_parameter< double >::type nub(nubSEXP);
+    Rcpp::traits::input_parameter< double >::type nue(nueSEXP);
+    Rcpp::traits::input_parameter< bool >::type updateB(updateBSEXP);
+    Rcpp::traits::input_parameter< bool >::type updateE(updateESEXP);
+    Rcpp::traits::input_parameter< bool >::type updatePi(updatePiSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
+    Rcpp::traits::input_parameter< int >::type method(methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(mtblr(wy, ww, yy, b, XXvalues, XXindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method));
+    return rcpp_result_gen;
+END_RCPP
+}
 // solvebed
 std::vector<std::vector<double>> solvebed(const char* file, int n, std::vector<int> cls, int nit, std::vector<double> af, std::vector<double> b, std::vector<double> lambda, std::vector<double> y);
 RcppExport SEXP _qgg_solvebed(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP nitSEXP, SEXP afSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP ySEXP) {
