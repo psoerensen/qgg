@@ -33,6 +33,7 @@ A list containing:
 \description{
 This function simulates phenotype data by random sampling of markers available on `Glist`.
 Default parameters for the simulated phenotype reflect the genetic architecture assumed by BayesC prior(Habier et al., 2011).
+This function is under active development.
 }
 \author{
 Peter Soerensen
