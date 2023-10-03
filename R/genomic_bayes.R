@@ -1107,6 +1107,96 @@ sbayesXy <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   return(fit)
 }
 
+
+# Single trait BLR using summary statistics and sparse LD provided in Glist
+blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
+                     mask=NULL, lambda=NULL,
+                     vg=NULL, vb=NULL, ve=NULL, h2=NULL, pi=NULL,
+                     ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
+                     updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
+                     adjustE=TRUE, models=NULL,
+                     nit=500, nburn=100, method="bayesC", algorithm="mcmc", verbose=FALSE) {
+  
+  # Check methods and parameter settings
+  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+  method <- match(method, methods) - 1
+  if( !sum(method%in%c(0:5))== 1 ) stop("method argument specified not valid")
+  algorithms <- c("mcmc","em-mcmc")
+  algorithm <- match(algorithm, algorithms)
+  if(is.na(algorithm)) stop("algorithm argument specified not valid")
+  
+  if( is.null(n) ) stop("Please provide n")
+  if( is.null(yy) ) stop("Please provide yy")
+  if( is.null(Xy) ) stop("Please provide Xy matrix")
+  if( is.null(XX) ) stop("Please provide XX matrix")
+  
+  xx <- diag(XX)  
+  m <- length(xx)
+  
+  XX <- cov2cor(XX)  
+  XXvalues <- split(XX, rep(1:ncol(XX), each = nrow(XX)))
+  XXindices <- lapply(1:ncol(XX),function(x) { (1:ncol(XX))-1 } )
+  
+  b <- rep(0, m)
+  mask <- rep(FALSE, m)
+  
+  
+  
+  # Prepare starting parameters
+  vy <- yy/(n-1)
+  if(is.null(pi)) pi <- 0.001
+  if(is.null(h2)) h2 <- 0.5
+  if(is.null(ve)) ve <- vy*(1-h2)
+  if(is.null(vg)) vg <- vy*h2
+  if(method<4 && is.null(vb)) vb <- vg/m
+  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,m)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+  if(is.null(b)) b <- rep(0,m)
+  
+  pi <- c(1-pi,pi)
+  gamma <- c(0,1.0)
+  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
+  if(method==5) gamma <- c(0,0.01,0.1,1.0)
+  
+  seed <- sample.int(.Machine$integer.max, 1)
+  
+  fit <- .Call("_qgg_sbayes_spa",
+               wy=Xy,
+               ww=xx,
+               LDvalues=XXvalues,
+               LDindices=XXindices,
+               b = b,
+               lambda = lambda,
+               mask=mask,
+               yy = yy,
+               pi = pi,
+               gamma = gamma,
+               vg = vg,
+               vb = vb,
+               ve = ve,
+               ssb_prior=ssb_prior,
+               sse_prior=sse_prior,
+               nub=nub,
+               nue=nue,
+               updateB = updateB,
+               updateE = updateE,
+               updatePi = updatePi,
+               updateG = updateG,
+               adjustE = adjustE,
+               n=n,
+               nit=nit,
+               nburn=nburn,
+               method=as.integer(method),
+               algo=as.integer(algorithm),
+               seed=seed)
+  names(fit[[1]]) <- names(XXvalues)
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
+  return(fit)
+}
+
 ################################################################################
 # Single trait fine-mapping BLR using summary statistics and sparse LD provided in Glist 
 # gmap full version
@@ -1840,6 +1930,117 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   fit$ve <- mean(ve)
   fit$vg <- sum(vg)
   fit$b <- b
+  return(fit)
+}
+
+
+# Multiple trait BLR using summary statistics and sparse LD provided in Glist
+mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
+                  b=NULL,R2=0.1, pi=NULL, models=NULL,
+                  vg=NULL, vb=NULL, ve=NULL,
+                  ssb_prior=NULL, sse_prior=NULL,
+                  updateB=TRUE, updateE=TRUE, updatePi=TRUE,
+                  nub=4, nue=4, nit=100, method="bayesC", verbose=NULL) {
+  
+  ww <- lapply(XX,diag)
+  wy <- lapply(Xy, as.vector)
+  m <- mean(sapply(wy,length))
+  nt <- length(wy)
+  XXvalues <- lapply(XX, function(x){split(x, rep(1:ncol(x), each = nrow(x)))})
+  XXindices <- lapply(1:m,function(x) { (1:m)-1 } )
+  
+  if(!method=="bayesC") stop("Only method==bayesC is allowed")
+  method <- 4
+  
+  if(is.null(b)) b <- lapply(1:nt,function(x){rep(0,m)})
+  if(is.matrix(b)) b <- split(b, rep(1:ncol(b), each = nrow(b)))
+  
+  if(is.null(models)) {
+    models <- rep(list(0:1), nt)
+    models <- t(do.call(expand.grid, models))
+    models <- split(models, rep(1:ncol(models), each = nrow(models)))
+    pi <- c(0.5,rep(0.1,length(models)-1))
+    pi <- pi/sum(pi)
+  }
+  if(is.character(models)) {
+    if(models=="restrictive") {
+      models <- list(rep(0,nt),rep(1,nt))
+      pi <- c(0.999,0.001)
+    }
+  }
+  
+  vy <- diag(yy/(n-1),nt)
+  if(is.null(R2)) R2 <- 0.5
+  if(is.null(vg)) vg <- diag(diag(vy)*R2)
+  if(is.null(ve)) ve <- diag(diag(vy)*(1-R2))
+  if(method<4 && is.null(vb)) vb <- diag((diag(vy)*R2)/m)
+  if(method>=4 && is.null(vb)) vb <- diag((diag(vy)*R2)/(m*pi[length(models)]))
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/m))
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi[length(models)])))
+  if(is.null(sse_prior)) sse_prior <- diag(((nue-2.0)/nue)*diag(ve))
+  
+  fit <- .Call("_qgg_mtblr",
+               wy=wy,
+               ww=ww,
+               yy=yy,
+               b = b,
+               XXvalues=XXvalues,
+               XXindices=XXindices,
+               B = vb,
+               E = ve,
+               ssb_prior=split(ssb_prior, rep(1:ncol(ssb_prior), each = nrow(ssb_prior))),
+               sse_prior=split(sse_prior, rep(1:ncol(sse_prior), each = nrow(sse_prior))),
+               models=models,
+               pi=pi,
+               nub=nub,
+               nue=nue,
+               updateB = updateB,
+               updateE = updateE,
+               updatePi = updatePi,
+               n=n,
+               nit=nit,
+               method=as.integer(method))
+  
+  fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
+  fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
+  trait_names <- names(yy)
+  if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
+  colnames(fit[[6]]) <- rownames(fit[[6]]) <- trait_names
+  colnames(fit[[7]]) <- rownames(fit[[7]]) <- trait_names
+  fit[[11]] <- matrix(unlist(fit[[11]]), ncol = nt, byrow = TRUE)
+  fit[[12]] <- matrix(unlist(fit[[12]]), ncol = nt, byrow = TRUE)
+  colnames(fit[[11]]) <- rownames(fit[[11]]) <- trait_names
+  colnames(fit[[12]]) <- rownames(fit[[12]]) <- trait_names
+  # add colnames/rownames e, g and gm
+  # add colnames/rownames rg and covg
+  fit[[13]] <- fit[[13]][[1]]
+  fit[[14]] <- fit[[14]][[1]]
+  fit[[15]] <- fit[[15]][[1]]
+  fit[[16]] <- fit[[6]]
+  fit[[17]] <- fit[[7]]
+  if(sum(diag(fit[[16]]))>0) fit[[16]] <- cov2cor(fit[[16]])
+  if(sum(diag(fit[[17]]))>0)  fit[[17]] <- cov2cor(fit[[17]])
+  for(i in 1:nt){
+    names(fit[[1]][[i]]) <- names(XXvalues)
+    names(fit[[2]][[i]]) <- names(XXvalues)
+    names(fit[[10]][[i]]) <- names(XXvalues)
+  }
+  names(fit[[1]]) <- trait_names
+  names(fit[[2]]) <- trait_names
+  names(fit[[3]]) <- trait_names
+  names(fit[[4]]) <- trait_names
+  names(fit[[5]]) <- trait_names
+  names(fit[[8]]) <- trait_names
+  names(fit[[9]]) <- trait_names
+  names(fit[[13]]) <- sapply(models,paste,collapse="_")
+  names(fit[[14]]) <- sapply(models,paste,collapse="_")
+  
+  names(fit) <- c("bm","dm","coef","vbs","ves","covb","cove",
+                  "wy","r","b","vb","ve","pi","pim","order",
+                  "rb","re")
+  fit$bm <- as.matrix(as.data.frame(fit$bm))
+  fit$dm <- as.matrix(as.data.frame(fit$dm))
+  fit$b <- as.matrix(as.data.frame(fit$b))
   return(fit)
 }
 
