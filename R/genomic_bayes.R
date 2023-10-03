@@ -1044,7 +1044,9 @@ sbayesXy <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   m <- length(xx)
   
   XX <- cov2cor(XX)  
-  XXvalues <- split(XX, rep(1:ncol(XX), each = nrow(XX)))
+  #XXvalues <- split(XX, rep(1:ncol(XX), each = nrow(XX)))
+  XXvalues <- as.list(as.data.frame(XX)) 
+  
   XXindices <- lapply(1:ncol(XX),function(x) { (1:ncol(XX))-1 } )
   
   b <- rep(0, m)
@@ -1134,7 +1136,8 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   m <- length(xx)
   
   XX <- cov2cor(XX)  
-  XXvalues <- split(XX, rep(1:ncol(XX), each = nrow(XX)))
+  #XXvalues <- split(XX, rep(1:ncol(XX), each = nrow(XX)))
+  XXvalues <- as.list(as.data.frame(XX)) 
   XXindices <- lapply(1:ncol(XX),function(x) { (1:ncol(XX))-1 } )
   
   b <- rep(0, m)
@@ -1946,7 +1949,9 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   wy <- lapply(Xy, as.vector)
   m <- mean(sapply(wy,length))
   nt <- length(wy)
-  XXvalues <- lapply(XX, function(x){split(x, rep(1:ncol(x), each = nrow(x)))})
+
+  #XXvalues <- lapply(XX, function(x){split(x, rep(1:ncol(x), each = nrow(x))) })
+  XXvalues <- lapply(XX, function(x){as.list(as.data.frame(x))})
   XXindices <- lapply(1:m,function(x) { (1:m)-1 } )
   
   if(!method=="bayesC") stop("Only method==bayesC is allowed")
