@@ -69,6 +69,10 @@ mtsbayes <- function(wy, ww, yy, b, LDvalues, LDindices, B, E, ssb_prior, sse_pr
     .Call(`_qgg_mtsbayes`, wy, ww, yy, b, LDvalues, LDindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method)
 }
 
+mtblr <- function(wy, ww, yy, b, XXvalues, XXindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method) {
+    .Call(`_qgg_mtblr`, wy, ww, yy, b, XXvalues, XXindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method)
+}
+
 solvebed <- function(file, n, cls, nit, af, b, lambda, y) {
     .Call(`_qgg_solvebed`, file, n, cls, nit, af, b, lambda, y)
 }
