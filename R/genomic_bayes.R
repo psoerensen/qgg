@@ -1399,12 +1399,17 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
   
 
   # Prepare summary statistics
-  if(is.null(stat[["ww"]])) stat$ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
-  if(is.null(stat[["wy"]])) stat$wy <- stat$b*stat$ww
   if(nt==1) {
-    yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww)
+    yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$n)
     n <- median(stat$n)
   }
+  if(is.null(stat[["ww"]])) stat$ww <- (yy/n)/(stat$seb^2 + stat$b^2/stat$n)
+  #if(is.null(stat[["ww"]])) stat$ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
+  if(is.null(stat[["wy"]])) stat$wy <- stat$b*stat$ww
+  # if(nt==1) {
+  #   yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww)
+  #   n <- median(stat$n)
+  # }
   if(nt>1) {
     yy <- (stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww
     yy <- apply(yy,2,median)
