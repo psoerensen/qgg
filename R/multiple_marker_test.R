@@ -406,3 +406,92 @@ hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 #   phyperg <- 1 - phyper(Naf - 1, Nf, N - Nf, Na)
 #   phyperg
 # }
+
+
+magma <- function(Glist=NULL, sets=NULL, stat=NULL, threshold=1e-10, tol=1e-7, verbose=FALSE) {
+  
+  if(is.null(Glist)) stop("Please provide Glist object")
+  if(is.null(stat)) stop("Please provide stat object")
+  if(is.null(sets)) stop("Please provide sets object")
+  
+  if(verbose) message("Map stat to markers in Glist")
+  sets <- mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
+  sets <- mapSets(sets=sets, rsids=unlist(Glist$rsids), index=FALSE)
+  
+  isets <- mapSets(sets=sets, rsids=stat$rsids, index=TRUE)
+  
+  # Compute marker statistics
+  p <- as.numeric(stat$p)
+  p[p<threshold] <- threshold
+  chisq <- qchisq(p, df = 1, lower.tail = FALSE)
+  
+  chistat <- sapply(isets,function(x){sum(chisq[x])})
+  chr <- sapply(isets,function(x){stat$chr[x][1]})
+  m <- sapply(sets,function(x){length(x)})
+  
+  pg <- rep(1,length(sets))
+  names(pg) <- names(sets)
+  for(i in 1:length(sets)) {
+    B <- getG(Glist=Glist, chr[i], rsids=sets[[i]], scale=TRUE)
+    ev <- eigen(cor(B))$values
+    ev[ev < tol] <- tol
+    pg[i] <- pchisqsum(chistat[i], df = rep(1, length(ev)), a = ev, lower.tail = FALSE)
+    if(verbose) message(paste("Finished processing gene" ,i))
+  }
+  zstat <- -qnorm(pg/2,TRUE)
+  df <- data.frame(Gene=names(pg),chr=chr,m=m,X=chistat,Z=zstat,p=pg)
+  return(df)
+}
+
+pchisqsum <- function (x, df, a, lower.tail = TRUE) {
+  sat <- satterthwaite(a, df)
+  guess <- pchisq(x / sat$scale, sat$df, lower.tail = lower.tail)
+  for (i in seq(length = length(x))) {
+    lambda <- rep(a, df)
+    sad <- sapply(x, saddle, lambda = lambda)
+    if (lower.tail) sad <- 1 - sad
+    guess <- ifelse(is.na(sad), guess, sad)
+  }
+  return(guess)
+}
+
+satterthwaite <- function(a, df) {
+  if (any(df > 1)) {
+    a <- rep(a, df)
+  }
+  tr <- mean(a)
+  tr2 <- mean(a^2) / (tr^2)
+  list(scale = tr * tr2, df = length(a) / tr2)
+}
+
+saddle <- function(x, lambda) {
+  d <- max(lambda)
+  lambda <- lambda / d
+  x <- x / d
+  k0 <- function(zeta) {
+    -sum(log(1 - 2 * zeta * lambda)) / 2
+  }
+  kprime0 <- function(zeta) {
+    sapply(zeta, function(zz) sum(lambda / (1 - 2 * zz * lambda)))
+  }
+  kpprime0 <- function(zeta) {
+    2 * sum(lambda^2 / (1 - 2 * zeta * lambda)^2)
+  }
+  if (any(lambda < 0)) {
+    lmin <- max(1 / (2 * lambda[lambda < 0])) * 0.99999
+  } else if (x > sum(lambda)) {
+    lmin <- -0.01
+  } else {
+    lmin <- -length(lambda) / (2 * x)
+  }
+  lmax <- min(1 / (2 * lambda[lambda > 0])) * 0.99999
+  hatzeta <- uniroot(function(zeta) kprime0(zeta) - x, lower = lmin,
+                     upper = lmax, tol = 1e-08)$root
+  w <- sign(hatzeta) * sqrt(2 * (hatzeta * x - k0(hatzeta)))
+  v <- hatzeta * sqrt(kpprime0(hatzeta))
+  if (abs(hatzeta) < 1e-04) {
+    NA
+  }  else {
+    pnorm(w + log(v / w) / w, lower.tail = FALSE)
+  }
+}
