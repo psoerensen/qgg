@@ -2462,6 +2462,64 @@ computeWW <- function(Glist = NULL, chr = NULL, cls = NULL, rws=NULL, scale=TRUE
   return(WW)
 }
 
+computeStatDB <- function(X=NULL, y=NULL, scale=TRUE) {
+  
+  if(is.vector(y)) y <- as.matrix(y)
+  if(is.data.frame(y)) y <- as.matrix(y)
+  selected <- intersect(rownames(y),rownames(X))
+  
+  if(length(selected)<10) stop("Number of matching rows in y and X is less than 10")
+  y <- y[selected,]
+  X <- X[selected,]
+  if(scale) y <- scale(y)
+  mu <- colMeans(X)
+  sigma <- rep(0,ncol(X))
+  for(i in 1:ncol(X)) { sigma[i] <- var(X[,i]) }
+  
+  n <- nrow(X)
+  mu_crossprod <- n * crossprod(t(mu))
+  XX <- as.matrix((crossprod(X) - mu_crossprod) / outer(sigma, sigma))
+  if(ncol(y)==1) {
+    Xy <- as.vector(crossprod(X,y))
+    Xy <- (Xy - mu*sum(y))/sigma
+    yy <- sum(y^2)
+    n <- length(y)
+  }
+  if(ncol(y)>1) {
+    Xy <- as.matrix(crossprod(X,y))
+    for(i in 1:ncol(y)) {
+      Xy[,i] <- (Xy[,i] - mu*sum(y[,i]))/sigma
+    }
+    yy <- colSums(y^2)
+    n <- nrow(y)
+  }
+  list(XX=XX, Xy=Xy, yy=yy, n=n)
+}
+
+
+designMatrix <- function(sets=NULL, values=NULL, rowids=NULL, format="sparse") {
+  if(format=="sparse") {
+    # Compute design matrix for marker sets in sparse format
+    is <- qgg::mapSets(sets=sets, rsids=rowids, index=TRUE)
+    js <- rep(1:length(is),times=sapply(is,length))
+    W <- sparseMatrix(unlist(is),as.integer(js),x=rep(1,length(js)))
+    indx <- 1:max(sapply(is,max))
+    rowids <- rowids[indx]
+    colnames(W) <- names(is)
+    rownames(W) <- rowids
+  }
+  if(format=="dense") {
+    sets <- qgg:::mapSets(sets=sets,rsids=rowids, index=TRUE)
+    W <- matrix(0,nrow=length(rowids), ncol=length(sets))
+    for(i in 1:length(sets)) {
+      W[sets[[i]],i] <- 1
+    }
+    colnames(W) <- names(sets)
+    rownames(W) <- rowids
+  }
+  return(W)
+}
+
 computeGRS <- function(Glist = NULL, chr = NULL, cls = NULL, b=NULL, scale=TRUE) { 
   af <- Glist$af[[chr]][cls]  
   grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], 
