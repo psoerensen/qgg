@@ -2462,31 +2462,37 @@ computeWW <- function(Glist = NULL, chr = NULL, cls = NULL, rws=NULL, scale=TRUE
   return(WW)
 }
 
-computeStatDB <- function(X=NULL, y=NULL, scale=TRUE) {
-  
+#' @export
+#' @importFrom Matrix sparseMatrix
+computeStat <- function(X=NULL, y=NULL, scale=FALSE) {
+
+  if (!inherits(X, "sparseMatrix")) {
+    stop("The provided matrix is not sparse.")
+  }  
   if(is.vector(y)) y <- as.matrix(y)
   if(is.data.frame(y)) y <- as.matrix(y)
-  selected <- intersect(rownames(y),rownames(X))
+  #selected <- intersect(rownames(y),rownames(X))
   
-  if(length(selected)<10) stop("Number of matching rows in y and X is less than 10")
-  y <- y[selected,]
-  X <- X[selected,]
-  if(scale) y <- scale(y)
-  mu <- colMeans(X)
+  #if(length(selected)) stop("Number of matching rows in y and X is less than 10")
+  #y <- y[selected,]
+  #X <- X[selected,]
+  #if(scale) y <- scale(y)
+  mu <- Matrix::colMeans(X)
   sigma <- rep(0,ncol(X))
   for(i in 1:ncol(X)) { sigma[i] <- var(X[,i]) }
+  sigma <- sqrt(sigma)
   
   n <- nrow(X)
   mu_crossprod <- n * crossprod(t(mu))
-  XX <- as.matrix((crossprod(X) - mu_crossprod) / outer(sigma, sigma))
+  XX <- as.matrix((Matrix::crossprod(X) - mu_crossprod) / outer(sigma, sigma))
   if(ncol(y)==1) {
-    Xy <- as.vector(crossprod(X,y))
+    Xy <- as.vector(Matrix::crossprod(X,y))
     Xy <- (Xy - mu*sum(y))/sigma
     yy <- sum(y^2)
     n <- length(y)
   }
   if(ncol(y)>1) {
-    Xy <- as.matrix(crossprod(X,y))
+    Xy <- as.matrix(Matrix::crossprod(X,y))
     for(i in 1:ncol(y)) {
       Xy[,i] <- (Xy[,i] - mu*sum(y[,i]))/sigma
     }
@@ -2496,7 +2502,8 @@ computeStatDB <- function(X=NULL, y=NULL, scale=TRUE) {
   list(XX=XX, Xy=Xy, yy=yy, n=n)
 }
 
-
+#' @export
+#' @importFrom Matrix sparseMatrix
 designMatrix <- function(sets=NULL, values=NULL, rowids=NULL, format="sparse") {
   if(format=="sparse") {
     # Compute design matrix for marker sets in sparse format
