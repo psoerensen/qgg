@@ -2521,8 +2521,9 @@ computeStat <- function(X=NULL, y=NULL, scale=FALSE) {
     for(i in 1:ncol(y)) {
       Xy[,i] <- (Xy[,i] - mu*sum(y[,i]))/sigma
     }
+    Xy <- as.list(as.data.frame(Xy)) 
     yy <- colSums(y^2)
-    n <- nrow(y)
+    n <- rep(nrow(y),ncol(y))
   }
   list(XX=XX, Xy=Xy, yy=yy, n=n)
 }
