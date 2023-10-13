@@ -408,39 +408,96 @@ hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 # }
 
 
-magma <- function(Glist=NULL, sets=NULL, stat=NULL, threshold=1e-10, tol=1e-7, verbose=FALSE) {
+magma <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol=1e-7, minsize=2, verbose=FALSE) {
   
   if(is.null(Glist)) stop("Please provide Glist object")
-  if(is.null(stat)) stop("Please provide stat object")
+  #if(is.null(stat)) stop("Please provide stat object")
   if(is.null(sets)) stop("Please provide sets object")
   
-  if(verbose) message("Map stat to markers in Glist")
-  sets <- mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
-  sets <- mapSets(sets=sets, rsids=unlist(Glist$rsids), index=FALSE)
-  
-  isets <- mapSets(sets=sets, rsids=stat$rsids, index=TRUE)
-  
-  # Compute marker statistics
-  p <- as.numeric(stat$p)
-  p[p<threshold] <- threshold
-  chisq <- qchisq(p, df = 1, lower.tail = FALSE)
-  
-  chistat <- sapply(isets,function(x){sum(chisq[x])})
-  chr <- sapply(isets,function(x){stat$chr[x][1]})
-  m <- sapply(sets,function(x){length(x)})
-  
-  pg <- rep(1,length(sets))
-  names(pg) <- names(sets)
-  for(i in 1:length(sets)) {
-    B <- getG(Glist=Glist, chr[i], rsids=sets[[i]], scale=TRUE)
-    ev <- eigen(cor(B))$values
-    ev[ev < tol] <- tol
-    pg[i] <- pchisqsum(chistat[i], df = rep(1, length(ev)), a = ev, lower.tail = FALSE)
-    if(verbose) message(paste("Finished processing gene" ,i))
+  if(!is.null(stat)) {
+    if(verbose) message("Map stat to markers in Glist")
+    sets <- mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
+    sets <- mapSets(sets=sets, rsids=unlist(Glist$rsids), index=FALSE)
+    
+    isets <- mapSets(sets=sets, rsids=stat$rsids, index=TRUE)
+    
+    # Compute marker statistics
+    p <- as.numeric(stat$p)
+    p[p<threshold] <- threshold
+    chisq <- qchisq(p, df = 1, lower.tail = FALSE)
+    
+    chistat <- sapply(isets,function(x){sum(chisq[x])})
+    chr <- sapply(isets,function(x){stat$chr[x][1]})
+    m <- sapply(sets,function(x){length(x)})
+    
+    pg <- rep(1,length(sets))
+    names(pg) <- names(sets)
+    for(i in 1:length(sets)) {
+      B <- getG(Glist=Glist, chr[i], rsids=sets[[i]], scale=TRUE)
+      ev <- eigen(cor(B))$values
+      ev[ev < tol] <- tol
+      pg[i] <- pchisqsum(chistat[i], df = rep(1, length(ev)), a = ev, lower.tail = FALSE)
+      if(verbose) message(paste("Finished processing gene" ,i))
+    }
+    zstat <- -qnorm(pg/2,TRUE)
+    df <- data.frame(Gene=names(pg),chr=chr,m=m,X=chistat,Z=zstat,p=pg)
+    return(df)
   }
-  zstat <- -qnorm(pg/2,TRUE)
-  df <- data.frame(Gene=names(pg),chr=chr,m=m,X=chistat,Z=zstat,p=pg)
-  return(df)
+  if(!is.null(p)) {
+    if(is.vector(p)) p <- as.matrix(p)
+    rsids <- rownames(p)
+    nstudy <- ncol(p)
+    if(is.null(rsids)) stop("Please provide names/rownames in for your p object")
+    #p <- apply(p,2,as.numeric)
+    p[p<threshold] <- threshold
+    #rownames(p) <- rsids
+    
+    sets <- mapSets(sets=sets, rsids=rsids, index=FALSE)
+    if(!is.null(Glist$rsidsLD)) sets <- mapSets(sets=sets, rsids=unlist(Glist$rsidsLD), index=FALSE)
+    if(is.null(Glist$rsidsLD)) sets <- mapSets(sets=sets, rsids=unlist(Glist$rsids), index=FALSE)
+    
+    # Compute some relevant statistics
+    msets <- sapply(sets,function(x){length(x)})
+    sets <- sets[msets>minsize]
+    msets <- sapply(sets,function(x){length(x)})
+    chrSets <- mapSets(sets=sets, Glist=Glist, index=TRUE)
+    chr <- unlist(Glist$chr)
+    chr <- sapply(chrSets,function(x){as.numeric(unique(chr[x]))[1]})
+    
+    # set indices
+    isets <- mapSets(sets=sets, rsids=rsids, index=TRUE)
+    
+    # Compute marker statistics
+    chisq <- qchisq(p, df = 1, lower.tail = FALSE)
+    
+    # Compute gene statistics
+    chistat <- sapply(isets,function(x){colSums(chisq[x,])})
+    chistat <- t(chistat)
+    
+    pg <- matrix(1,ncol=nstudy, nrow=length(sets))
+    rownames(pg) <- names(sets)
+    colnames(pg) <- colnames(p)
+    for(i in 1:length(sets)) {
+      B <- getG(Glist=Glist, chr[i], rsids=sets[[i]], scale=TRUE)
+      ev <- eigen(cor(B))$values
+      ev[ev < tol] <- tol
+      for (j in 1:nstudy) {
+        pg[i,j] <- qgg:::pchisqsum(chistat[i,j], df = rep(1, length(ev)), a = ev, lower.tail = FALSE)
+      }
+      if(verbose) message(paste("Finished processing gene" ,i))
+    }
+    zstat <- -qnorm(pg/2,TRUE)
+    
+    if(ncol(pg)==1) {
+      res <- data.frame("EnsemblID"=rownames(pg),chr=chr,m=msets,X=chistat,Z=zstat,p=pg)
+      return(res)
+    }
+    if(ncol(pg)>1) {
+      res <- list( genes=data.frame(EnsemblID=rownames(pg),chr=chr,m=msets),
+                   X=chistat,Z=zstat,p=pg)
+      return(res)
+    }
+  }
 }
 
 pchisqsum <- function (x, df, a, lower.tail = TRUE) {
