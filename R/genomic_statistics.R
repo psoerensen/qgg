@@ -54,6 +54,10 @@ checkStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.0
                       excludeDUPS=TRUE, excludeMHC=FALSE, excludeMISS=0.05, 
                       excludeHWE=1e-12) {
   
+  # Some summary statistics provide ea and nea in lower case
+  stat$ea <- toupper(stat$ea)
+  stat$nea <- toupper(stat$nea)
+  
   # we use cpra to link sumstats and Glist
   cpra <- unlist(Glist$cpra)
   rsids <- unlist(Glist$rsids)
