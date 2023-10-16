@@ -411,6 +411,72 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
   return(unlist(rsidsQC))  
 }
 
+#' Write a subset of data from a BED file
+#'
+#' This function reads a BED file and writes a subset of it based on a list of
+#' SNP (rsids) identifiers to output BED, BIM, and FAM files.
+#'
+#' @param bedRead The full path to the input BED file to read.
+#' @param bimRead The full path to the input BIM file to read.
+#' @param famRead The full path to the input FAM file to read.
+#' @param bedWrite The full path to the output BED file to write.
+#' @param bimWrite The full path to the output BIM file to write.
+#' @param famWrite The full path to the output FAM file to write.
+#' @param rsids A character vector containing SNP rsids to select from the BIM file.
+#' 
+#' @return No return value. Files are written to the specified output paths.
+#'
+#' @keywords internal
+#' @export
+
+writeBED <- function(bedRead=NULL, bimRead=NULL, famRead=NULL, 
+                     bedWrite=NULL, bimWrite=NULL, famWrite=NULL,
+                     rsids=NULL) {
+  
+  
+  bim <- data.table::fread(input = bimRead, header = FALSE, data.table = FALSE, colClasses = "character")
+  fam <- data.table::fread(input = famRead, header = FALSE, data.table = FALSE, colClasses = "character")
+  
+  if(is.null(rsids)) stop("Missing rsids argument")
+
+  n <- nrow(fam)
+  m <- nrow(bim)
+
+  # Number of bytes for each marker
+  nbytes <- ceiling(n/4)
+  
+  if(!file.size(bedRead)==nbytes*m+3) stop("Size of bedfile does not number of individuals in famfile")
+  
+  selected <- bim[,2]%in%rsids
+  
+  data.table::fwrite(bim[selected,], file=bimWrite, col.names=FALSE, row.names=FALSE)
+  data.table::fwrite(fam, file=famWrite, col.names=FALSE, row.names=FALSE)
+
+  # Check magic number
+  bfbedRead <- file(bedRead, "rb")
+  magic <- readBin(bfbedRead, "raw", n = 3)
+  if (!all(magic[1] == "6c", magic[2] == "1b", magic[3] == "01")) {
+    close(bfbedRead)
+    stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
+  }
+  
+  bfbedRead <- file(bedRead, "rb")
+  bfbedWrite <- file(bedWrite, "wb")
+  
+  # Read/write magic number
+  magic <- readBin(bfbedRead, "raw", n = 3)
+  writeBin(magic, bfbedWrite)
+  
+  # Read/write genotypes for each marker
+  for(i in 1:m) {
+    g <- readBin(bfbedRead, "raw", n = nbytes)
+    if(selected[i]) writeBin(g, bfbedWrite)
+  }
+  close(bfbedRead)
+  close(bfbedWrite)
+  
+}
+
 
 # writeBED <- function(bedfiles = NULL, bimfiles = NULL, famfiles = NULL, 
 #                      fnBED=NULL, fnBIM=NULL, fnFAM=NULL, ids = NULL, rsids = NULL, overwrite = FALSE) {
