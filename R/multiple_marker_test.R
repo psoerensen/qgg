@@ -438,7 +438,7 @@ magma <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol
       B <- getG(Glist=Glist, chr[i], rsids=sets[[i]], scale=TRUE)
       ev <- eigen(cor(B))$values
       ev[ev < tol] <- tol
-      pg[i] <- pchisqsum(chistat[i], df = rep(1, length(ev)), a = ev, lower.tail = FALSE)
+      try(pg[i] <- pchisqsum(chistat[i], df = rep(1, length(ev)), a = ev, lower.tail = FALSE))
       if(verbose) message(paste("Finished processing gene" ,i))
     }
     zstat <- -qnorm(pg/2,TRUE)
@@ -486,7 +486,7 @@ magma <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol
       ev <- eigen(cor(B))$values
       ev[ev < tol] <- tol
       for (j in 1:nstudy) {
-        pg[i,j] <- qgg:::pchisqsum(chistat[i,j], df = rep(1, length(ev)), a = ev, lower.tail = FALSE)
+        try(pg[i,j] <- qgg:::pchisqsum(chistat[i,j], df = rep(1, length(ev)), a = ev, lower.tail = FALSE))
       }
       if(verbose) message(paste("Finished processing gene" ,i))
     }
