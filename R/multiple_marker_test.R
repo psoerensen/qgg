@@ -429,7 +429,7 @@ magma <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol
     chistat <- sapply(isets,function(x){sum(chisq[x])})
     chr <- sapply(isets,function(x){stat$chr[x][1]})
     # This is just a preliminary fix
-    if(length(Glist$bedfiles)) chr <- rep(1,length(chr))
+    if(length(Glist$bedfiles)==1) chr <- rep(1,length(chr))
     m <- sapply(sets,function(x){length(x)})
     
     pg <- rep(1,length(sets))
@@ -466,7 +466,7 @@ magma <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol
     chr <- unlist(Glist$chr)
     chr <- sapply(chrSets,function(x){as.numeric(unique(chr[x]))[1]})
     # This is just a preliminary fix
-    if(length(Glist$bedfiles)) chr <- rep(1,length(chr))
+    if(length(Glist$bedfiles)==1) chr <- rep(1,length(chr))
       
     # set indices
     isets <- mapSets(sets=sets, rsids=rsids, index=TRUE)
