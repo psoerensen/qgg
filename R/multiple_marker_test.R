@@ -107,6 +107,7 @@
 gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g = NULL, e = NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
   if(is.data.frame(stat)) {
     colstat <- !colnames(stat)%in%c("rsids","chr","pos","ea","nea","eaf")
+    if(any(!rownames(stat)==stat$rsids)) stop("Row names of stat does not match stat$rsids")
     if(any(colstat)) stat <- as.matrix(stat[,colstat])**2
     if(!any(colstat)) stat <- as.matrix(stat[,colstat])
   }
