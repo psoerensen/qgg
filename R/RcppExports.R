@@ -49,8 +49,8 @@ mmult <- function(A, B) {
     .Call(`_qgg_mmult`, A, B)
 }
 
-mvrnorm <- function(sigma) {
-    .Call(`_qgg_mvrnorm`, sigma)
+mvrnormARMA <- function(sigma) {
+    .Call(`_qgg_mvrnormARMA`, sigma)
 }
 
 rwishart <- function(df, S) {
@@ -65,12 +65,12 @@ mtbayes <- function(y, W, b, B, E, ssb_prior, sse_prior, models, pi, nub, nue, u
     .Call(`_qgg_mtbayes`, y, W, b, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, nit, method)
 }
 
-mtsbayes <- function(wy, ww, yy, b, LDvalues, LDindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method) {
-    .Call(`_qgg_mtsbayes`, wy, ww, yy, b, LDvalues, LDindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method)
+mtsbayes <- function(wy, ww, yy, b, LDvalues, LDindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, nburn, nthin, seed, method) {
+    .Call(`_qgg_mtsbayes`, wy, ww, yy, b, LDvalues, LDindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, nburn, nthin, seed, method)
 }
 
-mtblr <- function(wy, ww, yy, b, XXvalues, XXindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method) {
-    .Call(`_qgg_mtblr`, wy, ww, yy, b, XXvalues, XXindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, method)
+mtblr <- function(wy, ww, yy, b, XXvalues, XXindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, nburn, nthin, seed, method) {
+    .Call(`_qgg_mtblr`, wy, ww, yy, b, XXvalues, XXindices, B, E, ssb_prior, sse_prior, models, pi, nub, nue, updateB, updateE, updatePi, n, nit, nburn, nthin, seed, method)
 }
 
 solvebed <- function(file, n, cls, nit, af, b, lambda, y) {
