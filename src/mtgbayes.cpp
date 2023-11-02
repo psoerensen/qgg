@@ -17,7 +17,7 @@ arma::mat mmult(arma::mat A, arma::mat B) {
 }
 
 // [[Rcpp::export]]
-arma::mat mvrnorm(arma::mat sigma) {
+arma::mat mvrnormARMA(arma::mat sigma) {
   int ncols = sigma.n_cols;
   arma::mat Y = arma::randn(1, ncols);
   return (Y * arma::chol(sigma));
@@ -200,7 +200,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           C(t,t) = C(t,t) + ww[t][i]*Ei(t,t);       
         }
         arma::mat Ci = arma::inv(C);
-        arma::mat mub = mvrnorm(Ci);
+        arma::mat mub = mvrnormARMA(Ci);
         
         for ( int t1 = 0; t1 < nt; t1++) {
           if(method==0) {
@@ -296,7 +296,7 @@ std::vector<std::vector<std::vector<double>>>  mtbayes(   std::vector<std::vecto
           } 
         }
         arma::mat Ci = arma::inv(C);
-        arma::mat mub = mvrnorm(Ci);
+        arma::mat mub = mvrnormARMA(Ci);
         for ( int t1 = 0; t1 < nt; t1++) {
           if(models[mselect][t1]!=1) {
             mub(0,t1) = 0.0;  
@@ -524,6 +524,9 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
                                                            bool updatePi,
                                                            std::vector<int> n,
                                                            int nit,
+                                                           int nburn,
+                                                           int nthin,
+                                                           int seed,
                                                            int method) {
   
   // Define local variables
@@ -607,8 +610,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   
   // Start Gibbs sampler
   std::random_device rd;
-  unsigned int seed;
-  seed = rd();
+  //unsigned int seed;
+  //seed = rd();
   std::mt19937 gen(seed);
   
   for ( int it = 0; it < nit; it++) {
@@ -635,7 +638,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           C(t1,t1) = C(t1,t1) + ww[t1][i]*Ei(t1,t1);       
         }
         arma::mat Ci = arma::inv(C);
-        arma::mat mub = mvrnorm(Ci);
+        arma::mat mub = mvrnormARMA(Ci);
         for ( int t1 = 0; t1 < nt; t1++) {
           mub(0,t1) = 0.0;
           for ( int t2 = 0; t2 < nt; t2++) {
@@ -644,9 +647,10 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         } 
         
         for ( int t = 0; t < nt; t++) {
-          diff = (mub(0,t)-b[t][i])*ww[t][i];
+          //diff = (mub(0,t)-b[t][i])*ww[t][i];
+          diff = (mub(0,t)-b[t][i])*std::sqrt(ww[t][i]);
           for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff;
+            r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff*std::sqrt(ww[t][LDindices[i][j]]);
           }
           conv[t] = conv[t] + diff*diff;
           b[t][i] = mub(0,t);
@@ -686,7 +690,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
                 loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 if(t1!=t2) {
                   loglik[k] = loglik[k] + 0.5*rhs[t2]*rhs[t1]*Ci(t2,t1);
-                  //loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
+                  loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 }
               }
             }
@@ -720,7 +724,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         for ( int t = 0; t < nt; t++) { 
           d[t][i] = models[mselect][t];
         }
-        
+
         // Sample marker effect conditional on variance class indicator
         arma::mat C = Bi;
         for ( int t1 = 0; t1 < nt; t1++) {
@@ -729,10 +733,10 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           } 
         }
         arma::mat Ci = arma::inv(C);
-        arma::mat mub = mvrnorm(Ci);
+        arma::mat mub = mvrnormARMA(Ci);
         for ( int t1 = 0; t1 < nt; t1++) {
           if(models[mselect][t1]!=1) {
-            mub(0,t1) = 0.0;
+           mub(0,t1) = 0.0;
           } 
           for ( int t2 = 0; t2 < nt; t2++) {
             if(models[mselect][t2]==1) {
@@ -741,12 +745,16 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           }
         } 
 
-        
+
         // Adjust residuals based on sample marker effects
         for ( int t = 0; t < nt; t++) {
-          diff = (mub(0,t)-b[t][i])*ww[t][i];
+          //diff = (mub(0,t)-b[t][i])*ww[t][i];
+          //for (size_t j = 0; j < LDindices[i].size(); j++) {
+          //  r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff;
+          //}
+          diff = (mub(0,t)-b[t][i])*std::sqrt(ww[t][i]);
           for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff;
+            r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff*std::sqrt(ww[t][LDindices[i][j]]);
           }
           conv[t] = conv[t] + diff*diff;
           b[t][i] = mub(0,t);
@@ -793,15 +801,26 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           if (t1!=t2) {
             for (int i=0; i < m; i++) {
               if( d[t1][i]==1 && d[t2][i]==1 ) {
-                ssb = ssb + b[t1][i]*b[t2][i];  
+                ssb = ssb + b[t1][i]*b[t2][i];
               }
             }
             Sb(t1,t2) = ssb + nub*ssb_prior[t1][t2];
             Sb(t2,t1) = ssb + nub*ssb_prior[t2][t1];
-          } 
+          }
         }
       }
-      int dfSb = dfb/nt + nub;
+      dfb = 0.0;
+      for (int i=0; i < m; i++) {
+        double dfb0=0.0;
+        for (int t1 = 0; t1 < nt; t1++) {
+          if( d[t1][i]==1 ) {
+            dfb0=1.0;
+          }
+          dfb = dfb + dfb0;
+        }
+      }
+      int dfSb = dfb + nub;
+      //int dfSb = dfb/nt + nub;
       arma::mat B = riwishart(dfSb, Sb);
       for (int t = 0; t < nt; t++) {
         vbs[t][it] = B(t,t);
@@ -937,6 +956,9 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
                                                          bool updatePi,
                                                          std::vector<int> n,
                                                          int nit,
+                                                         int nburn,
+                                                         int nthin,
+                                                         int seed,
                                                          int method) {
   
   // Define local variables
@@ -1017,8 +1039,8 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   
   // Start Gibbs sampler
   std::random_device rd;
-  unsigned int seed;
-  seed = rd();
+  //unsigned int seed;
+  //seed = rd();
   std::mt19937 gen(seed);
   
   for ( int it = 0; it < nit; it++) {
@@ -1055,7 +1077,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
                 loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 if(t1!=t2) {
                   loglik[k] = loglik[k] + 0.5*rhs[t2]*rhs[t1]*Ci(t2,t1);
-                  //loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
+                  loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 }
               }
             }
@@ -1098,7 +1120,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
           }
         }
         arma::mat Ci = arma::inv(C);
-        arma::mat mub = mvrnorm(Ci);
+        arma::mat mub = mvrnormARMA(Ci);
         
         for ( int t1 = 0; t1 < nt; t1++) {
           if(models[mselect][t1]!=1) {
@@ -1143,8 +1165,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
       }
       std::fill(cmodel.begin(), cmodel.end(), 1.0);
     }
-    
-    
+
     // Sample marker variance
     if(updateB) {
       arma::mat Sb(nt,nt, fill::zeros);
@@ -1172,7 +1193,18 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
           }
         }
       }
-      int dfSb = dfb/nt + nub;
+      dfb = 0.0;
+      for (int i=0; i < m; i++) {
+        double dfb0=0.0;
+        for (int t1 = 0; t1 < nt; t1++) {
+          if( d[t1][i]==1 ) {
+            dfb0=1.0;
+          }
+          dfb = dfb + dfb0;
+        }
+      }
+      int dfSb = dfb + nub;
+      //int dfSb = dfb/nt + nub;
       arma::mat B = riwishart(dfSb, Sb);
       for (int t = 0; t < nt; t++) {
         vbs[t][it] = B(t,t);
@@ -1431,7 +1463,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
 //           C(t1,t1) = C(t1,t1) + ww[t1][i]*Ei(t1,t1);       
 //         }
 //         arma::mat Ci = arma::inv(C);
-//         arma::mat mub = mvrnorm(Ci);
+//         arma::mat mub = mvrnormARMA(Ci);
 //         for ( int t1 = 0; t1 < nt; t1++) {
 //           for ( int t2 = 0; t2 < nt; t2++) {
 //             mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
@@ -1540,7 +1572,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
 //           } 
 //         }
 //         arma::mat Ci = arma::inv(C);
-//         arma::mat mub = mvrnorm(Ci);
+//         arma::mat mub = mvrnormARMA(Ci);
 //         for ( int t1 = 0; t1 < nt; t1++) {
 //           mub(0,t1) = 0.0;
 //           for ( int t2 = 0; t2 < nt; t2++) {
