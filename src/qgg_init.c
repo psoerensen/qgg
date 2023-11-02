@@ -18,11 +18,11 @@ extern SEXP _qgg_getWlist(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_grsbed(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_mmult(SEXP, SEXP);
 extern SEXP _qgg_mtbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _qgg_mtsbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _qgg_mtblr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _qgg_mtsbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _qgg_mtblr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_mtgrsbed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_mtsolvebed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _qgg_mvrnorm(SEXP);
+extern SEXP _qgg_mvrnormARMA(SEXP);
 extern SEXP _qgg_pruneld(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_pruneldmat(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_psets(SEXP, SEXP, SEXP, SEXP);
@@ -45,11 +45,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_qgg_grsbed",                (DL_FUNC) &_qgg_grsbed,                 5},
     {"_qgg_mmult",                 (DL_FUNC) &_qgg_mmult,                  2},
     {"_qgg_mtbayes",               (DL_FUNC) &_qgg_mtbayes,               16},
-    {"_qgg_mtsbayes",               (DL_FUNC) &_qgg_mtsbayes,               20},
-    {"_qgg_mtblr",               (DL_FUNC) &_qgg_mtblr,               20},
+    {"_qgg_mtsbayes",               (DL_FUNC) &_qgg_mtsbayes,               23},
+    {"_qgg_mtblr",               (DL_FUNC) &_qgg_mtblr,               23},
     {"_qgg_mtgrsbed",              (DL_FUNC) &_qgg_mtgrsbed,               6},
     {"_qgg_mtsolvebed",            (DL_FUNC) &_qgg_mtsolvebed,             8},
-    {"_qgg_mvrnorm",               (DL_FUNC) &_qgg_mvrnorm,                1},
+    {"_qgg_mvrnormARMA",               (DL_FUNC) &_qgg_mvrnormARMA,                1},
     {"_qgg_pruneld",               (DL_FUNC) &_qgg_pruneld,                6},
     {"_qgg_pruneldmat",            (DL_FUNC) &_qgg_pruneldmat,             5},
     {"_qgg_psets",                 (DL_FUNC) &_qgg_psets,                  4},
