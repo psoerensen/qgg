@@ -533,8 +533,9 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   int nt = wy.size();
   int m = wy[0].size();
   int nmodels = models.size();
+  double nsamples=0.0;
   
-  double ssb, sse, dfb, u, logliksum, detC, diff, cumprobc;
+  double ssb, sse, sse1, sse2, dfb, u, logliksum, detC, diff, cumprobc;
   int mselect;
   
   std::vector<std::vector<int>> d(nt, std::vector<int>(m, 0));
@@ -546,11 +547,11 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   
   std::vector<std::vector<double>> bm(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> dm(nt, std::vector<double>(m, 0.0));
-  std::vector<std::vector<double>> ves(nt, std::vector<double>(nit, 0.0));
-  std::vector<std::vector<double>> vbs(nt, std::vector<double>(nit, 0.0));
+  std::vector<std::vector<double>> ves(nt, std::vector<double>(nit+nburn, 0.0));
+  std::vector<std::vector<double>> vbs(nt, std::vector<double>(nit+nburn, 0.0));
   std::vector<std::vector<double>> cvbm(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> cvem(nt, std::vector<double>(nt, 0.0));
-  std::vector<std::vector<double>> mus(nt, std::vector<double>(nit, 0.0));
+  std::vector<std::vector<double>> mus(nt, std::vector<double>(nit+nburn, 0.0));
   
   std::vector<double> x2t(m);
   std::vector<std::vector<double>> x2(nt, std::vector<double>(m, 0.0));
@@ -614,11 +615,14 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   //seed = rd();
   std::mt19937 gen(seed);
   
-  for ( int it = 0; it < nit; it++) {
+  for ( int it = 0; it < nit+nburn; it++) {
     for ( int t = 0; t < nt; t++) {
       conv[t] = 0.0;
     }
-
+    if ( (it > nburn) && (it % nthin == 0) ) {
+      nsamples = nsamples + 1.0;
+    }
+    
     // Sample marker effects (bayesN)
     if (method==1) {
       for ( int i = 0; i < m; i++) {
@@ -759,8 +763,10 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           conv[t] = conv[t] + diff*diff;
           b[t][i] = mub(0,t);
           if(d[t][i]==1) {
-            dm[t][i] = dm[t][i] + 1.0;
-            bm[t][i] = bm[t][i] + b[t][i];     
+            if ( (it > nburn) && (it % nthin == 0) ) {
+              dm[t][i] = dm[t][i] + 1.0;
+              bm[t][i] = bm[t][i] + b[t][i]; 
+            }
           }
         }
       }
@@ -827,7 +833,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
-          cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2);
+          if(it>nburn) cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2);
         } 
       } 
       arma::mat Bi = arma::inv(B);
@@ -838,13 +844,32 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     if(updateE) {
       arma::mat Se(nt,nt, fill::zeros);
       for ( int t1 = 0; t1 < nt; t1++) {
-        sse = 0.0;
-        for ( int i = 0; i < m; i++) {
-          sse = sse + b[t1][i] * (r[t1][i] + wy[t1][i]);
+        for ( int t2 = t1; t2 < nt; t2++) {
+          if (t1==t2) {
+            sse = 0.0;
+            for ( int i = 0; i < m; i++) {
+              sse = sse + b[t1][i] * (r[t1][i] + wy[t1][i]);
+            }
+            sse = yy[t1] - sse;
+            Se(t1,t1) = sse + nue*sse_prior[t1][t1];
+          }
+          // if (t1!=t2) {
+          //   sse = 0.0;
+          //   sse1 = 0.0;
+          //   sse2 = 0.0;
+          //   for ( int i = 0; i < m; i++) {
+          //     sse1 = sse1 + b[t1][i] * (r[t2][i] + wy[t2][i]);
+          //     sse2 = sse2 + b[t2][i] * (r[t1][i] + wy[t1][i]);
+          //   }
+          //   sse1 = yy[t1] - sse1;
+          //   sse2 = yy[t2] - sse2;
+          //   sse = (sse1+sse2)/10.0;
+          //   Se(t1,t2) = sse + nue*sse_prior[t1][t2];
+          //   Se(t2,t1) = sse + nue*sse_prior[t2][t1];
+          // }
         }
-        sse = yy[t1] - sse;
-        Se(t1,t1) = sse + nue*sse_prior[t1][t1];
       }
+      
       int dfSe = n[0] + nue;
       arma::mat E = riwishart(dfSe, Se);
       arma::mat Ei = arma::inv(E);
@@ -853,7 +878,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
-          cvem[t1][t2] = cvem[t1][t2] + E(t1,t2);
+          if(it>nburn) cvem[t1][t2] = cvem[t1][t2] + E(t1,t2);
         } 
       } 
     }
@@ -884,9 +909,9 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   for (int t=0; t < nt; t++) {
     result[0][t].resize(m);
     result[1][t].resize(m);
-    result[2][t].resize(nit);
-    result[3][t].resize(nit);
-    result[4][t].resize(nit);
+    result[2][t].resize(nit+nburn);
+    result[3][t].resize(nit+nburn);
+    result[4][t].resize(nit+nburn);
     result[5][t].resize(nt);
     result[6][t].resize(nt);
     result[7][t].resize(m);
@@ -901,8 +926,10 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   
   for (int t=0; t < nt; t++) {
     for (int i=0; i < m; i++) {
-      result[0][t][i] = bm[t][i]/nit;
-      result[1][t][i] = dm[t][i]/nit;
+      //result[0][t][i] = bm[t][i]/nit;
+      //result[1][t][i] = dm[t][i]/nit;
+      result[0][t][i] = bm[t][i]/nsamples;
+      result[1][t][i] = dm[t][i]/nsamples;
       result[9][t][i] = b[t][i];
       result[14][t][i] = order[i];
     }
@@ -913,7 +940,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   }
   
   for (int t=0; t < nt; t++) {
-    for (int i=0; i < nit; i++) {
+    for (int i=0; i < nit+nburn; i++) {
       result[2][t][i] = mus[t][i];
       result[3][t][i] = vbs[t][i];
       result[4][t][i] = ves[t][i];
@@ -965,6 +992,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   int nt = wy.size();
   int m = wy[0].size();
   int nmodels = models.size();
+  double nsamples=0.0;
   
   double ssb, sse, dfb, u, logliksum, detC, diff, cumprobc;
   int mselect;
@@ -977,11 +1005,11 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   
   std::vector<std::vector<double>> bm(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> dm(nt, std::vector<double>(m, 0.0));
-  std::vector<std::vector<double>> ves(nt, std::vector<double>(nit, 0.0));
-  std::vector<std::vector<double>> vbs(nt, std::vector<double>(nit, 0.0));
+  std::vector<std::vector<double>> ves(nt, std::vector<double>(nit+nburn, 0.0));
+  std::vector<std::vector<double>> vbs(nt, std::vector<double>(nit+nburn, 0.0));
   std::vector<std::vector<double>> cvbm(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> cvem(nt, std::vector<double>(nt, 0.0));
-  std::vector<std::vector<double>> mus(nt, std::vector<double>(nit, 0.0));
+  std::vector<std::vector<double>> mus(nt, std::vector<double>(nit+nburn, 0.0));
   
   std::vector<double> x2t(m);
   std::vector<std::vector<double>> x2(nt, std::vector<double>(m, 0.0));
@@ -1043,11 +1071,15 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   //seed = rd();
   std::mt19937 gen(seed);
   
-  for ( int it = 0; it < nit; it++) {
+  for ( int it = 0; it < nit+nburn; it++) {
     for ( int t = 0; t < nt; t++) {
       conv[t] = 0.0;
     }
     
+    if ( (it > nburn) && (it % nthin == 0) ) {
+      nsamples = nsamples + 1.0;
+    }
+
     // Sample marker effects (BayesC)
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
@@ -1144,8 +1176,10 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
           conv[t] = conv[t] + diff*diff;
           b[t][i] = mub(0,t);
           if(d[t][i]==1) {
-            dm[t][i] = dm[t][i] + 1.0;
-            bm[t][i] = bm[t][i] + b[t][i];
+            if ( (it > nburn) && (it % nthin == 0) ) {
+              dm[t][i] = dm[t][i] + 1.0;
+              bm[t][i] = bm[t][i] + b[t][i];
+            }
           }
         }
       }
@@ -1211,7 +1245,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
-          cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2);
+          if(it>nburn) cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2);
         }
       }
       arma::mat Bi = arma::inv(B);
@@ -1237,7 +1271,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
       }
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
-          cvem[t1][t2] = cvem[t1][t2] + E(t1,t2);
+          if(it>nburn) cvem[t1][t2] = cvem[t1][t2] + E(t1,t2);
         }
       }
     }
@@ -1268,9 +1302,9 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   for (int t=0; t < nt; t++) {
     result[0][t].resize(m);
     result[1][t].resize(m);
-    result[2][t].resize(nit);
-    result[3][t].resize(nit);
-    result[4][t].resize(nit);
+    result[2][t].resize(nit+nburn);
+    result[3][t].resize(nit+nburn);
+    result[4][t].resize(nit+nburn);
     result[5][t].resize(nt);
     result[6][t].resize(nt);
     result[7][t].resize(m);
@@ -1285,8 +1319,10 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   
   for (int t=0; t < nt; t++) {
     for (int i=0; i < m; i++) {
-      result[0][t][i] = bm[t][i]/nit;
-      result[1][t][i] = dm[t][i]/nit;
+      //result[0][t][i] = bm[t][i]/nit;
+      //result[1][t][i] = dm[t][i]/nit;
+      result[0][t][i] = bm[t][i]/nsamples;
+      result[1][t][i] = dm[t][i]/nsamples;
       result[9][t][i] = b[t][i];
       result[14][t][i] = order[i];
     }
@@ -1297,7 +1333,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   }
   
   for (int t=0; t < nt; t++) {
-    for (int i=0; i < nit; i++) {
+    for (int i=0; i < nit+nburn; i++) {
       result[2][t][i] = mus[t][i];
       result[3][t][i] = vbs[t][i];
       result[4][t][i] = ves[t][i];
