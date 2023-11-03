@@ -140,8 +140,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // sbayes_spa
-std::vector<std::vector<double>> sbayes_spa(std::vector<double> wy, std::vector<double> ww, std::vector<std::vector<double>> LDvalues, std::vector<std::vector<int>> LDindices, std::vector<double> b, std::vector<double> lambda, std::vector<bool> mask, double yy, std::vector<double> pi, std::vector<double> gamma, double vg, double vb, double ve, double ssb_prior, double sse_prior, double nub, double nue, bool updateB, bool updateE, bool updatePi, bool updateG, bool adjustE, int n, int nit, int nburn, int method, int algo, int seed);
-RcppExport SEXP _qgg_sbayes_spa(SEXP wySEXP, SEXP wwSEXP, SEXP LDvaluesSEXP, SEXP LDindicesSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP maskSEXP, SEXP yySEXP, SEXP piSEXP, SEXP gammaSEXP, SEXP vgSEXP, SEXP vbSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP updateGSEXP, SEXP adjustESEXP, SEXP nSEXP, SEXP nitSEXP, SEXP nburnSEXP, SEXP methodSEXP, SEXP algoSEXP, SEXP seedSEXP) {
+std::vector<std::vector<double>> sbayes_spa(std::vector<double> wy, std::vector<double> ww, std::vector<std::vector<double>> LDvalues, std::vector<std::vector<int>> LDindices, std::vector<double> b, std::vector<double> lambda, std::vector<bool> mask, double yy, std::vector<double> pi, std::vector<double> gamma, double vg, double vb, double ve, double ssb_prior, double sse_prior, double nub, double nue, bool updateB, bool updateE, bool updatePi, bool updateG, bool adjustE, int n, int nit, int nburn, int nthin, int method, int algo, int seed);
+RcppExport SEXP _qgg_sbayes_spa(SEXP wySEXP, SEXP wwSEXP, SEXP LDvaluesSEXP, SEXP LDindicesSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP maskSEXP, SEXP yySEXP, SEXP piSEXP, SEXP gammaSEXP, SEXP vgSEXP, SEXP vbSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP updateGSEXP, SEXP adjustESEXP, SEXP nSEXP, SEXP nitSEXP, SEXP nburnSEXP, SEXP nthinSEXP, SEXP methodSEXP, SEXP algoSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -170,10 +170,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
     Rcpp::traits::input_parameter< int >::type nburn(nburnSEXP);
+    Rcpp::traits::input_parameter< int >::type nthin(nthinSEXP);
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
     Rcpp::traits::input_parameter< int >::type algo(algoSEXP);
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(sbayes_spa(wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, nburn, method, algo, seed));
+    rcpp_result_gen = Rcpp::wrap(sbayes_spa(wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, nburn, nthin, method, algo, seed));
     return rcpp_result_gen;
 END_RCPP
 }
