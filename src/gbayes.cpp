@@ -808,6 +808,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   double rhs, lhs, bn, bj, diff;
   double rhs1, lhs1, like0, like1, p0, v0, v1;
+  double rhs0, lhs0;
   double ssb, sse, ssg, dfb, dfe, dfg, chi2;
   double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
   double shape, shape0, rate, rate0, lambda2;
@@ -1024,8 +1025,8 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
         //rhs1 = r[i] + ww[i]*b[i];
         //lhs0 = 1.0/vb;
         //lhs1 = ww[i]/vei[i] + 1.0/vb;
-        //like0 = std::log(1.0/std::sqrt(lhs0)) + 0.5*(rhs0*rhs0)/lhs0 + std::log(1.0-pi); 
-        //like1 = std::log(1.0/std::sqrt(lhs1)) + 0.5*(rhs1*rhs1)/lhs1 + std::log(pi); 
+        //like0 = std::log(1.0/std::sqrt(lhs0)) + 0.5*(rhs0*rhs0)/lhs0 + std::log(pi[0]); 
+        //like1 = std::log(1.0/std::sqrt(lhs1)) + 0.5*(rhs1*rhs1)/lhs1 + std::log(pi[1]); 
         //p0 = 1.0/(std::exp(like1 - like0) + 1.0);
         // version 2
         rhs = r[i] + ww[i]*b[i];
