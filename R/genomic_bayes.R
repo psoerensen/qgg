@@ -1944,21 +1944,20 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
 
 # Multiple trait BLR using summary statistics and sparse LD provided in Glist
 mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
-                  b=NULL,R2=0.1, pi=NULL, models=NULL,
+                  b=NULL,R2=NULL, pi=NULL, models=NULL,
                   vg=NULL, vb=NULL, ve=NULL,
                   ssb_prior=NULL, sse_prior=NULL,
                   updateB=TRUE, updateE=TRUE, updatePi=TRUE,
-                  nub=4, nue=4, nit=100, method="bayesC", verbose=NULL) {
+                  nub=4, nue=4, nit=1000, nburn=500, nthin=1, method="bayesC", verbose=NULL) {
   
   ww <- lapply(XX,diag)
   wy <- lapply(Xy, as.vector)
   m <- mean(sapply(wy,length))
   nt <- length(wy)
-
-  #XXvalues <- lapply(XX, function(x){split(x, rep(1:ncol(x), each = nrow(x))) })
   XXvalues <- lapply(XX, function(x){as.list(as.data.frame(x))})
   XXindices <- lapply(1:m,function(x) { (1:m)-1 } )
-  
+
+    
   if(!method=="bayesC") stop("Only method==bayesC is allowed")
   method <- 4
   
@@ -1989,6 +1988,8 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi[length(models)])))
   if(is.null(sse_prior)) sse_prior <- diag(((nue-2.0)/nue)*diag(ve))
   
+  seed <- sample.int(.Machine$integer.max, 1)
+  
   fit <- .Call("_qgg_mtblr",
                wy=wy,
                ww=ww,
@@ -2009,8 +2010,11 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                updatePi = updatePi,
                n=n,
                nit=nit,
+               nburn=nburn,
+               nthin=nthin,
+               seed=seed,
                method=as.integer(method))
-  
+
   fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
   fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
   trait_names <- names(yy)
@@ -2051,6 +2055,94 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   fit$bm <- as.matrix(as.data.frame(fit$bm))
   fit$dm <- as.matrix(as.data.frame(fit$dm))
   fit$b <- as.matrix(as.data.frame(fit$b))
+  return(fit)
+}
+
+# Multiple trait BLR using summary statistics and sparse LD provided in Glist
+mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
+                   b=NULL,R2=0.5, h2=0.5, pi=NULL, models=NULL,
+                   vg=NULL, vb=NULL, ve=NULL,
+                   ssb_prior=NULL, sse_prior=NULL,
+                   updateB=TRUE, updateE=TRUE, updatePi=TRUE,
+                   nub=4, nue=4, nit=1000, nburn=500, nthin=1, method="bayesC", verbose=NULL) {
+  # Check method
+  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+  method <- match(method, methods) - 1
+  if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid")
+  
+    
+  # Prepare summary statistics input
+  if( is.null(stat) ) stop("Please provide summary statistics")
+  
+  if( is.null(stat$n) ) stop("Please provide summary statistics that include n")
+  
+  nt <- ncol(stat$b)
+  m <- nrow(stat$b)
+  trait_names <- colnames(stat$b)
+  if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
+  b <- matrix(0,nrow=m,ncol=nt)
+  rownames(b) <- rownames(stat$b) 
+  colnames(b) <- trait_names
+  
+  # If genotypes are centered and y standardized to unit variance
+  if(scaled) ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
+  
+  # If genotypes are centered and y not standardized
+  if(!scaled ) {
+    if(is.null(vy)) stop("Please provide phenotypic variance for each trait")
+    ww <- t(t(1/(stat$seb^2 + stat$b^2/stat$n))*vy)
+  }
+  # If genotypes are centered and scaled
+  #ww <- stat$n
+  
+  wy <- stat$b*ww
+  
+  yy <- (stat$b^2 + (stat$n-2)*stat$seb^2)*ww
+  yy <- apply(yy,2,median)
+  n <- as.integer(apply(stat$n,2,median))
+  
+  if(is.null(models)) {
+    models <- rep(list(0:1), nt)
+    models <- t(do.call(expand.grid, models))
+    models <- split(models, rep(1:ncol(models), each = nrow(models)))
+    pi <- c(0.9,rep(0.1,length(models)-1))
+    pi <- pi/sum(pi)
+  }
+  if(is.character(models)) {
+    if(models=="restrictive") {
+      models <- list(rep(0,nt),rep(1,nt))
+      pi <- c(0.999,0.001)
+    }
+  }
+  
+  seed <- sample.int(.Machine$integer.max, 1)
+  
+  fit <- qgg:::mt_sbayes_sparse(yy=yy,
+                                ww=ww,
+                                wy=wy,
+                                b=b,
+                                LDvalues=LD$values,
+                                LDindices=LD$indices,
+                                n=n,
+                                nit=nit,
+                                nburn=nburn,
+                                nthin=nthin,
+                                seed=seed,
+                                pi=pi,
+                                nue=nue,
+                                nub=nub,
+                                h2=h2,
+                                vb=vb,
+                                ve=ve,
+                                ssb_prior=ssb_prior,
+                                sse_prior=sse_prior,
+                                updateB=updateB,
+                                updateE=updateE,
+                                updatePi=updatePi,
+                                models=models,
+                                method=method,
+                                verbose=verbose)
+  
   return(fit)
 }
 
@@ -2164,7 +2256,7 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
                              ssb_prior=NULL, sse_prior=NULL, 
                              h2=NULL, pi=NULL, updateB=NULL, 
                              updateE=NULL, updatePi=NULL, models=NULL,
-                             nub=NULL, nue=NULL, nit=NULL, method=NULL, verbose=NULL) {
+                             nub=NULL, nue=NULL, nit=1000, nburn=500, nthin=1, seed=NULL, method=NULL, verbose=NULL) {
   
   nt <- length(yy)
   m <- length(LDvalues)
@@ -2186,6 +2278,7 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
     models <- t(do.call(expand.grid, models))
     models <- split(models, rep(1:ncol(models), each = nrow(models)))
     pi <- c(0.999,rep(0.001,length(models)-1)) 
+    pi <- pi/sum(pi) 
   } 
   if(is.character(models)) {
     if(models=="restrictive") {
@@ -2224,6 +2317,9 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
                updatePi = updatePi,
                n=n,
                nit=nit,
+               nburn=nburn,
+               nthin=nthin,
+               seed=seed,
                method=as.integer(method))
   
   fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
