@@ -535,12 +535,12 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   int nmodels = models.size();
   double nsamples=0.0;
   
-  double ssb, sse, sse1, sse2, dfb, u, logliksum, detC, diff, cumprobc;
+  double ssb, sse,ssg, sse1, sse2, dfb, u, logliksum, detC, diff, cumprobc;
   int mselect;
   
   std::vector<std::vector<int>> d(nt, std::vector<int>(m, 0));
   
-  std::vector<double> mu(nt), rhs(nt), conv(nt);
+  std::vector<double> mu(nt), rhs(nt);
   std::vector<double> pmodel(nmodels), pcum(nmodels), loglik(nmodels), cmodel(nmodels);
   std::vector<double> pis(nmodels);
   //std::vector<int> dfe(nt);
@@ -549,15 +549,17 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   std::vector<std::vector<double>> dm(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> ves(nt, std::vector<double>(nit+nburn, 0.0));
   std::vector<std::vector<double>> vbs(nt, std::vector<double>(nit+nburn, 0.0));
+  std::vector<std::vector<double>> vgs(nt, std::vector<double>(nit+nburn, 0.0));
   std::vector<std::vector<double>> cvbm(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> cvem(nt, std::vector<double>(nt, 0.0));
+  std::vector<std::vector<double>> cvgm(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> mus(nt, std::vector<double>(nit+nburn, 0.0));
   
   std::vector<double> x2t(m);
   std::vector<std::vector<double>> x2(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> r(nt, std::vector<double>(m, 0.0));
   std::vector<int> order(m),cat(nmodels), morder(nmodels);
-  
+  std::vector<double> vei(m),vadj(m);
   
   // Initialize variables
   for (int i = 0; i < m; i++) {
@@ -592,6 +594,16 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     }
   }
   
+  // // adjust sparseld
+  // for ( int i = 0; i < m; i++) {
+  //   vadj[i] = 0.0;
+  //   //if(adjustE) {
+  //     vadj[i] = ((double)m-(double)LDindices[i].size())/(double)m;
+  //   //}  
+  //   //vei[i] = vadj[i]*vg + ve;
+  //   vei[i] = vadj[i]*0.5 + ve;
+  // }
+  
   
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
@@ -607,8 +619,6 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   
   arma::rowvec probs(nmodels, fill::zeros);
   
-  
-  
   // Start Gibbs sampler
   std::random_device rd;
   //unsigned int seed;
@@ -616,53 +626,9 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   std::mt19937 gen(seed);
   
   for ( int it = 0; it < nit+nburn; it++) {
-    for ( int t = 0; t < nt; t++) {
-      conv[t] = 0.0;
-    }
+    
     if ( (it > nburn) && (it % nthin == 0) ) {
       nsamples = nsamples + 1.0;
-    }
-    
-    // Sample marker effects (bayesN)
-    if (method==1) {
-      for ( int i = 0; i < m; i++) {
-        for ( int t = 0; t < nt; t++) {
-          rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
-          //rhs[t] = r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
-        }
-        for ( int t = 0; t < nt; t++) { 
-          d[t][i] = 1;
-        }
-        arma::mat C = Bi;
-        for ( int t1 = 0; t1 < nt; t1++) {
-          for ( int t2 = t1; t2 < nt; t2++) {
-            C(t1,t2) = Bi(t1,t2);
-            C(t2,t1) = Bi(t2,t1);
-          }
-          C(t1,t1) = C(t1,t1) + ww[t1][i]*Ei(t1,t1);       
-        }
-        arma::mat Ci = arma::inv(C);
-        arma::mat mub = mvrnormARMA(Ci);
-        for ( int t1 = 0; t1 < nt; t1++) {
-          mub(0,t1) = 0.0;
-          for ( int t2 = 0; t2 < nt; t2++) {
-            mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
-          }
-        } 
-        
-        for ( int t = 0; t < nt; t++) {
-          //diff = (mub(0,t)-b[t][i])*ww[t][i];
-          diff = (mub(0,t)-b[t][i])*std::sqrt(ww[t][i]);
-          for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff*std::sqrt(ww[t][LDindices[i][j]]);
-          }
-          conv[t] = conv[t] + diff*diff;
-          b[t][i] = mub(0,t);
-          dm[t][i] = dm[t][i] + 1.0;
-          bm[t][i] = bm[t][i] + b[t][i];     
-        }
-        
-      }
     }
     
     // Sample marker effects (BayesC)
@@ -672,9 +638,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         
         // compute rhs
         for ( int t = 0; t < nt; t++) {
-          //rhs[t] = r[t][i] + ww[t][i]*b[t][i];
           rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
-          //rhs[t] = r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
         }
         
         // Compute 
@@ -694,7 +658,6 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
                 loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 if(t1!=t2) {
                   loglik[k] = loglik[k] + 0.5*rhs[t2]*rhs[t1]*Ci(t2,t1);
-                  loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 }
               }
             }
@@ -739,34 +702,32 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         arma::mat Ci = arma::inv(C);
         arma::mat mub = mvrnormARMA(Ci);
         for ( int t1 = 0; t1 < nt; t1++) {
-          if(models[mselect][t1]!=1) {
-           mub(0,t1) = 0.0;
-          } 
-          for ( int t2 = 0; t2 < nt; t2++) {
-            if(models[mselect][t2]==1) {
-              mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
+          if(models[mselect][t1]==0) {
+            mub(0,t1) = 0.0;
+          }
+          if(models[mselect][t1]==1) {
+            mub(0,t1) = mub(0,t1) + Ci(t1,t1)*rhs[t1];
+            for ( int t2 = 0; t2 < nt; t2++) {
+              if(t1!=t2 && models[mselect][t2]==1) {
+                mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
+              }
             }
           }
-        } 
-
+        }
 
         // Adjust residuals based on sample marker effects
         for ( int t = 0; t < nt; t++) {
-          //diff = (mub(0,t)-b[t][i])*ww[t][i];
-          //for (size_t j = 0; j < LDindices[i].size(); j++) {
-          //  r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff;
-          //}
-          diff = (mub(0,t)-b[t][i])*std::sqrt(ww[t][i]);
-          for (size_t j = 0; j < LDindices[i].size(); j++) {
-            r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff*std::sqrt(ww[t][LDindices[i][j]]);
-          }
-          conv[t] = conv[t] + diff*diff;
-          b[t][i] = mub(0,t);
-          if(d[t][i]==1) {
-            if ( (it > nburn) && (it % nthin == 0) ) {
-              dm[t][i] = dm[t][i] + 1.0;
-              bm[t][i] = bm[t][i] + b[t][i]; 
+          diff = (mub(0,t)-b[t][i]);
+          if(diff!=0.0) {
+            diff = (mub(0,t)-b[t][i])*std::sqrt(ww[t][i]);
+            for (size_t j = 0; j < LDindices[i].size(); j++) {
+              r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff*std::sqrt(ww[t][LDindices[i][j]]);
             }
+          }
+          b[t][i] = mub(0,t);
+          if ( d[t][i]==1 && (it > nburn) && (it % nthin == 0) ) {
+            dm[t][i] = dm[t][i] + 1.0;
+            bm[t][i] = bm[t][i] + b[t][i]; 
           }
         }
       }
@@ -839,6 +800,29 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       arma::mat Bi = arma::inv(B);
     }
     
+    //Update genetic variance
+    arma::mat G(nt,nt, fill::zeros);
+    for ( int t1 = 0; t1 < nt; t1++) {
+      for ( int t2 = t1; t2 < nt; t2++) {
+        if (t1==t2) {
+          ssg = 0.0;
+          for ( int i = 0; i < m; i++) {
+            ssg = ssg + b[t1][i]*(wy[t1][i]-r[t1][i]);
+          }
+          G(t1,t2) = ssg/(std::sqrt((double)n[t1])*std::sqrt((double)n[t2]));
+        }
+      }
+    }
+    for (int t = 0; t < nt; t++) {
+      vgs[t][it] = G(t,t);
+    }
+    for (int t1 = 0; t1 < nt; t1++) {
+      for (int t2 = 0; t2 < nt; t2++) {
+        if(it>nburn) cvgm[t1][t2] = cvgm[t1][t2] + G(t1,t2);
+      } 
+    } 
+    
+    
     // Sample residual variance 
     // (current version assume uncorrelated residuals among traits traits)
     if(updateE) {
@@ -853,20 +837,6 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
             sse = yy[t1] - sse;
             Se(t1,t1) = sse + nue*sse_prior[t1][t1];
           }
-          // if (t1!=t2) {
-          //   sse = 0.0;
-          //   sse1 = 0.0;
-          //   sse2 = 0.0;
-          //   for ( int i = 0; i < m; i++) {
-          //     sse1 = sse1 + b[t1][i] * (r[t2][i] + wy[t2][i]);
-          //     sse2 = sse2 + b[t2][i] * (r[t1][i] + wy[t1][i]);
-          //   }
-          //   sse1 = yy[t1] - sse1;
-          //   sse2 = yy[t2] - sse2;
-          //   sse = (sse1+sse2)/10.0;
-          //   Se(t1,t2) = sse + nue*sse_prior[t1][t2];
-          //   Se(t2,t1) = sse + nue*sse_prior[t2][t1];
-          // }
         }
       }
       
@@ -941,7 +911,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   
   for (int t=0; t < nt; t++) {
     for (int i=0; i < nit+nburn; i++) {
-      result[2][t][i] = mus[t][i];
+      result[2][t][i] = vgs[t][i];
       result[3][t][i] = vbs[t][i];
       result[4][t][i] = ves[t][i];
     }
@@ -950,7 +920,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     for (int t2=0; t2 < nt; t2++) {
       result[5][t1][t2] = cvbm[t1][t2]/nit;
       result[6][t1][t2] = cvem[t1][t2]/nit;
-      result[10][t1][t2] = B(t1,t2);
+      result[10][t1][t2] = cvgm[t1][t2]/nit;
       result[11][t1][t2] = E(t1,t2);
     }
   }
@@ -1087,9 +1057,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
         
         // compute rhs
         for ( int t = 0; t < nt; t++) {
-          //rhs[t] = r[t][i] + ww[t][i]*b[t][i];
           rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
-          //rhs[t] = r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
         }
         
         // Compute
@@ -1109,7 +1077,6 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
                 loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 if(t1!=t2) {
                   loglik[k] = loglik[k] + 0.5*rhs[t2]*rhs[t1]*Ci(t2,t1);
-                  loglik[k] = loglik[k] + 0.5*rhs[t1]*rhs[t2]*Ci(t1,t2);
                 }
               }
             }
@@ -1167,9 +1134,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
         
         // Adjust residuals based on sample marker effects
         for ( int t = 0; t < nt; t++) {
-          //diff = (mub(0,t)-b[t][i])*ww[t][i];
           diff = (mub(0,t)-b[t][i]);
-          //std::cout << "Diff: " << diff << "\n";
           for (size_t j = 0; j < XXindices[i].size(); j++) {
             r[t][XXindices[i][j]] = r[t][XXindices[i][j]] - XXvalues[t][i][j]*diff;
           }
