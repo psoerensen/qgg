@@ -2117,7 +2117,7 @@ mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
   if(is.character(models)) {
     if(models=="restrictive") {
       models <- list(rep(0,nt),rep(1,nt))
-      pi <- c(0.999,0.001)
+      pi <- c(1-pi,pi)
     }
   }
   
