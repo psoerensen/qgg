@@ -1137,3 +1137,27 @@ getPos <- function(Glist = NULL, chr = NULL, rsids = NULL) {
   pos <- Glist$pos[[chr]][rws]
   return(pos)
 }
+
+
+readLD <- function(fileLD=NULL, onebased=FALSE, r2=0, p=NULL, nbytes=8, full=TRUE) {
+  # Read/write LD matrix from LDPRED
+  p <- as.integer(sqrt(file.size(fileLD)/8))
+  r2 <- 0
+  onebased <- FALSE
+  cls <- 1:p
+  if (!onebased) cls <- cls-1
+  ld_indices <- vector(length = p, mode = "list")
+  ld_values <- vector(length = p, mode = "list")
+  bfLD <- file(fileLD, "rb")
+  for(i in 1:p) {
+    ld <- readBin(bfLD, "numeric", n = p)
+    nonzeroes <- which((ld**2) > r2)
+    ld_indices[[i]] <- cls[nonzeroes]
+    ld_values[[i]] <- ld[nonzeroes]
+  }
+  close(bfLD)
+  LD <- NULL
+  LD$values <- ld_values
+  LD$indices <- ld_indices
+  return(LD)
+}
