@@ -867,7 +867,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, 
                           updateG=NULL, adjustE=NULL, models=NULL,
-                          nub=NULL, nue=NULL, nit=NULL, nburn=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
+                          nub=NULL, nue=NULL, nit=NULL, nburn=NULL, nthin=1, method=NULL, algorithm=NULL, verbose=NULL) {
 
   if(is.null(m)) m <- length(LDvalues)
   vy <- yy/(n-1)
@@ -916,6 +916,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
                n=n,
                nit=nit,
                nburn=nburn,
+               nthin=nthin,
                method=as.integer(method),
                algo=as.integer(algorithm),
                seed=seed)
@@ -932,7 +933,7 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
                    ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
                    updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
                    adjustE=TRUE, models=NULL,
-                   nit=500, nburn=100, method="bayesC", algorithm=1, verbose=FALSE) {
+                   nit=500, nburn=100, nthin=1, method="bayesC", algorithm=1, verbose=FALSE) {
   
   # Check method
   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
@@ -1010,6 +1011,7 @@ sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
                n=n,
                nit=nit,
                nburn=nburn,
+               nthin=nthin,
                method=as.integer(method),
                algo=as.integer(algorithm),
                seed=seed)
@@ -1025,7 +1027,7 @@ sbayesXy <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                      ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
                      updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
                      adjustE=TRUE, models=NULL,
-                     nit=500, nburn=100, method="bayesC", algorithm="mcmc", verbose=FALSE) {
+                     nit=500, nburn=100, nthin=1, method="bayesC", algorithm="mcmc", verbose=FALSE) {
   
   # Check methods and parameter settings
   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
@@ -1101,6 +1103,7 @@ sbayesXy <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                n=n,
                nit=nit,
                nburn=nburn,
+               nthin=nthin,
                method=as.integer(method),
                algo=as.integer(algorithm),
                seed=seed)
@@ -1117,7 +1120,7 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                      ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
                      updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
                      adjustE=TRUE, models=NULL,
-                     nit=500, nburn=100, method="bayesC", algorithm="mcmc", verbose=FALSE) {
+                     nit=500, nburn=100, nthin=1, method="bayesC", algorithm="mcmc", verbose=FALSE) {
   
   # Check methods and parameter settings
   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
@@ -1192,6 +1195,7 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                n=n,
                nit=nit,
                nburn=nburn,
+               nthin=nthin,
                method=as.integer(method),
                algo=as.integer(algorithm),
                seed=seed)
@@ -2058,9 +2062,10 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   return(fit)
 }
 
+
 # Multiple trait BLR using summary statistics and sparse LD provided in Glist
 mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
-                   b=NULL,R2=0.5, h2=0.5, pi=NULL, models=NULL,
+                   b=NULL,R2=0.5, h2=0.5, pi=0.0001, models=NULL,
                    vg=NULL, vb=NULL, ve=NULL,
                    ssb_prior=NULL, sse_prior=NULL,
                    updateB=TRUE, updateE=TRUE, updatePi=TRUE,
@@ -2105,8 +2110,9 @@ mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
     models <- rep(list(0:1), nt)
     models <- t(do.call(expand.grid, models))
     models <- split(models, rep(1:ncol(models), each = nrow(models)))
-    pi <- c(0.9,rep(0.1,length(models)-1))
-    pi <- pi/sum(pi)
+    #pi <- c(0.9,rep(0.1,length(models)-1))
+    #pi <- pi/sum(pi)
+    pi <- c(1-pi,rep(pi/(length(models)-1),length(models)-1)) 
   }
   if(is.character(models)) {
     if(models=="restrictive") {
@@ -2249,6 +2255,105 @@ sbayes_region <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, mask=NULL,
 }
 
 
+# Single trait BLR using summary statistics and sparse LD provided in Glist
+sblr <- function(stat=NULL, b=NULL, seb=NULL, n=NULL, vy=1,
+                 LD=NULL, LDvalues=NULL,LDindices=NULL,
+                 mask=NULL, lambda=NULL,
+                 vg=NULL, vb=NULL, ve=NULL, h2=NULL, pi=NULL,
+                 ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
+                 updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
+                 adjustE=TRUE, models=NULL,
+                 nit=500, nburn=100, nthin=1, method="bayesC", algorithm=1, verbose=FALSE) {
+  
+  # Check method
+  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+  method <- match(method, methods) - 1
+  if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid")
+  
+  # Prepare summary statistics input
+  if( is.null(stat) ) stop("Please provide summary statistics")
+  m <- nrow(stat)
+  if(is.null(mask)) mask <- rep(FALSE, m)
+  if(is.null(stat$n)) stat$n <- stat$dfe
+  if( is.null(stat$n) ) stop("Please provide summary statistics that include n")
+  
+  n <- as.integer(median(stat$n))
+  
+  #ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
+  # use this if y is not scaled
+  ww <- vy/(stat$seb^2 + stat$b^2/stat$n)
+  wy <- stat$b*ww
+  if(!is.null(stat$ww)) ww <- stat$ww
+  if(!is.null(stat$wy)) wy <- stat$wy
+  
+  b2 <- stat$b^2
+  seb2 <- stat$seb^2
+  yy <- (b2 + (stat$n-2)*seb2)*ww
+  yy <- median(yy)
+  
+  # Prepare sparse LD matrix
+  if( is.null(LD) ) stop("Please provide LD matrix")
+  #LDvalues <- split(LD, rep(1:ncol(LD), each = nrow(LD)))
+  #LDvalues=as.list(as.data.frame(LD)) 
+  #LDindices <- lapply(1:ncol(LD),function(x) { (1:ncol(LD))-1 } )
+  
+  # Prepare starting parameters
+  vy <- yy/(n-1)
+  if(is.null(pi)) pi <- 0.001
+  if(is.null(h2)) h2 <- 0.5
+  if(is.null(ve)) ve <- vy*(1-h2)
+  if(is.null(vg)) vg <- vy*h2
+  if(method<4 && is.null(vb)) vb <- vg/m
+  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,m)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+  if(is.null(b)) b <- rep(0,m)
+  
+  pi <- c(1-pi,pi)
+  gamma <- c(0,1.0)
+  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
+  if(method==5) gamma <- c(0,0.01,0.1,1.0)
+  
+  seed <- sample.int(.Machine$integer.max, 1)
+  
+  fit <- .Call("_qgg_sbayes_spa",
+               wy=wy,
+               ww=ww,
+               LDvalues=LD$values,
+               LDindices=LD$indices,
+               b = b,
+               lambda = lambda,
+               mask=mask,
+               yy = yy,
+               pi = pi,
+               gamma = gamma,
+               vg = vg,
+               vb = vb,
+               ve = ve,
+               ssb_prior=ssb_prior,
+               sse_prior=sse_prior,
+               nub=nub,
+               nue=nue,
+               updateB = updateB,
+               updateE = updateE,
+               updatePi = updatePi,
+               updateG = updateG,
+               adjustE = adjustE,
+               n=n, 
+               nit=nit,
+               nburn=nburn,
+               nthin=nthin,
+               method=as.integer(method),
+               algo=as.integer(algorithm),
+               seed=seed)
+  names(fit[[1]]) <- names(LDvalues)
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
+  return(fit)
+}
+
+
 # Multiple trait BLR using summary statistics and sparse LD provided in Glist 
 mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL, 
                              LDvalues=NULL,LDindices=NULL, n=NULL,
@@ -2256,7 +2361,8 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
                              ssb_prior=NULL, sse_prior=NULL, 
                              h2=NULL, pi=NULL, updateB=NULL, 
                              updateE=NULL, updatePi=NULL, models=NULL,
-                             nub=NULL, nue=NULL, nit=1000, nburn=500, nthin=1, seed=NULL, method=NULL, verbose=NULL) {
+                             nub=NULL, nue=NULL, nit=1000, nburn=500, nthin=1, 
+                             seed=NULL, method=NULL, verbose=NULL) {
   
   nt <- length(yy)
   m <- length(LDvalues)
@@ -2277,8 +2383,9 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
     models <- rep(list(0:1), nt)
     models <- t(do.call(expand.grid, models))
     models <- split(models, rep(1:ncol(models), each = nrow(models)))
-    pi <- c(0.999,rep(0.001,length(models)-1)) 
-    pi <- pi/sum(pi) 
+    #pi <- c(0.999,rep(0.001,length(models)-1)) 
+    #pi <- pi/sum(pi) 
+    pi <- c(1-pi,rep(pi/(length(models)-1),length(models)-1)) 
   } 
   if(is.character(models)) {
     if(models=="restrictive") {
