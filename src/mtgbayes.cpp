@@ -543,7 +543,6 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   std::vector<double> mu(nt), rhs(nt);
   std::vector<double> pmodel(nmodels), pcum(nmodels), loglik(nmodels), cmodel(nmodels);
   std::vector<double> pis(nmodels);
-  //std::vector<int> dfe(nt);
   
   std::vector<std::vector<double>> bm(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> dm(nt, std::vector<double>(m, 0.0));
@@ -558,7 +557,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   std::vector<double> x2t(m);
   std::vector<std::vector<double>> x2(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> r(nt, std::vector<double>(m, 0.0));
-  std::vector<int> order(m),cat(nmodels), morder(nmodels);
+  std::vector<int> order(m);
   std::vector<double> vei(m),vadj(m);
   
   // Initialize variables
@@ -569,9 +568,6 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     }
   }
 
-  for (int k = 0; k<nmodels ; k++) {
-    cat[k] = k;
-  }  
   // Wy - W'Wb
   for ( int i = 0; i < m; i++) {
     for (int t = 0; t < nt; t++) {
@@ -584,9 +580,6 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     }
   }
   
-  std::fill(cmodel.begin(), cmodel.end(), 1.0);
-  std::fill(pis.begin(), pis.end(), 0.0);
-  
   for ( int i = 0; i < m; i++) {
     x2t[i] = 0.0;
     for ( int t = 0; t < nt; t++) { 
@@ -594,15 +587,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     }
   }
   
-  // // adjust sparseld
-  // for ( int i = 0; i < m; i++) {
-  //   vadj[i] = 0.0;
-  //   //if(adjustE) {
-  //     vadj[i] = ((double)m-(double)LDindices[i].size())/(double)m;
-  //   //}  
-  //   //vei[i] = vadj[i]*vg + ve;
-  //   vei[i] = vadj[i]*0.5 + ve;
-  // }
+  std::fill(cmodel.begin(), cmodel.end(), 1.0);
+  std::fill(pis.begin(), pis.end(), 0.0);
   
   
   // Establish order of markers as they are entered into the model
@@ -616,13 +602,11 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   arma::mat C(nt,nt, fill::zeros);
   arma::mat Bi = arma::inv(B);
   arma::mat Ei = arma::inv(E);
-  
+
   arma::rowvec probs(nmodels, fill::zeros);
   
   // Start Gibbs sampler
   std::random_device rd;
-  //unsigned int seed;
-  //seed = rd();
   std::mt19937 gen(seed);
   
   for ( int it = 0; it < nit+nburn; it++) {
@@ -636,12 +620,12 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         
-        // compute rhs
+        // Compute rhs
         for ( int t = 0; t < nt; t++) {
           rhs[t] = Ei(t,t)*r[t][i] + Ei(t,t)*ww[t][i]*b[t][i];
         }
         
-        // Compute 
+        // Compute log likelihood for each marker variance class  
         for ( int k = 0; k < nmodels; k++) {
           arma::mat C = Bi;
           for ( int t1 = 0; t1 < nt; t1++) {
@@ -715,7 +699,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           }
         }
 
-        // Adjust residuals based on sample marker effects
+        // Adjust residuals based on sampled marker effects
         for ( int t = 0; t < nt; t++) {
           diff = (mub(0,t)-b[t][i]);
           if(diff!=0.0) {
@@ -759,12 +743,12 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           if (t1==t2) {
             for (int i=0; i < m; i++) {
               if( d[t1][i]==1 ) {
-                ssb = ssb + b[t1][i]*b[t1][i];  
+                ssb = ssb + b[t1][i]*b[t1][i];
                 dfb = dfb + 1.0;
               }
             }
             Sb(t1,t1) = ssb + nub*ssb_prior[t1][t1];
-          } 
+          }
           if (t1!=t2) {
             for (int i=0; i < m; i++) {
               if( d[t1][i]==1 && d[t2][i]==1 ) {
@@ -787,7 +771,6 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         }
       }
       int dfSb = dfb + nub;
-      //int dfSb = dfb/nt + nub;
       arma::mat B = riwishart(dfSb, Sb);
       for (int t = 0; t < nt; t++) {
         vbs[t][it] = B(t,t);
@@ -795,8 +778,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = 0; t2 < nt; t2++) {
           if(it>nburn) cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2);
-        } 
-      } 
+        }
+      }
       arma::mat Bi = arma::inv(B);
     }
     
@@ -984,7 +967,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   std::vector<double> x2t(m);
   std::vector<std::vector<double>> x2(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> r(nt, std::vector<double>(m, 0.0));
-  std::vector<int> order(m),cat(nmodels), morder(nmodels);
+  std::vector<int> order(m);
   
   
   // Initialize variables
@@ -995,23 +978,16 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     }
   }
   
-  for (int k = 0; k<nmodels ; k++) {
-    cat[k] = k;
-  }
   // Wy - W'Wb
   for ( int i = 0; i < m; i++) {
     for (int t = 0; t < nt; t++) {
       if (b[t][i]!= 0.0) {
-        diff = b[t][i];
         for (size_t j = 0; j < XXindices[i].size(); j++) {
-          r[t][XXindices[i][j]]=r[t][XXindices[i][j]] - XXvalues[t][i][j]*diff;
+          r[t][XXindices[i][j]]=r[t][XXindices[i][j]] - XXvalues[t][i][j]*b[t][i];
         }
       }
     }
   }
-  
-  std::fill(cmodel.begin(), cmodel.end(), 1.0);
-  std::fill(pis.begin(), pis.end(), 0.0);
   
   for ( int i = 0; i < m; i++) {
     x2t[i] = 0.0;
@@ -1019,6 +995,9 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
       x2t[i] = x2t[i] + x2[t][i];
     }
   }
+  
+  std::fill(cmodel.begin(), cmodel.end(), 1.0);
+  std::fill(pis.begin(), pis.end(), 0.0);
   
   
   // Establish order of markers as they are entered into the model
