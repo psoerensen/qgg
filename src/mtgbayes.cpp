@@ -727,7 +727,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       double psum = std::accumulate(pi.begin(), pi.end(), 0.0);
       for (int k = 0; k<nmodels ; k++) {
         pi[k] = pi[k]/psum;
-        pis[k] = pis[k] + pi[k];
+        if(it>nburn) pis[k] = pis[k] + pi[k];
       }
       std::fill(cmodel.begin(), cmodel.end(), 1.0);
     }
@@ -767,8 +767,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           if( d[t1][i]==1 ) {
             dfb0=1.0;
           }
-          dfb = dfb + dfb0;
         }
+        dfb = dfb + dfb0;
       }
       int dfSb = dfb + nub;
       arma::mat B = riwishart(dfSb, Sb);
@@ -793,6 +793,16 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
             ssg = ssg + b[t1][i]*(wy[t1][i]-r[t1][i]);
           }
           G(t1,t2) = ssg/(std::sqrt((double)n[t1])*std::sqrt((double)n[t2]));
+        }
+        if (t1!=t2) {
+          ssg = 0.0;
+          for ( int i = 0; i < m; i++) {
+            ssg = ssg + b[t1][i]*(wy[t1][i]-r[t1][i]);
+            ssg = ssg + b[t2][i]*(wy[t2][i]-r[t2][i]);
+          }
+          ssg = ssg/2.0;
+          G(t1,t2) = ssg/(std::sqrt((double)n[t1])*std::sqrt((double)n[t2]));
+          G(t2,t1) = G(t1,t2);
         }
       }
     }
@@ -995,7 +1005,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
       x2t[i] = x2t[i] + x2[t][i];
     }
   }
-  
+
   std::fill(cmodel.begin(), cmodel.end(), 1.0);
   std::fill(pis.begin(), pis.end(), 0.0);
   
@@ -1094,30 +1104,34 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
         arma::mat C = Bi;
         for ( int t1 = 0; t1 < nt; t1++) {
           if(models[mselect][t1]==1) {
-            C(t1,t1) = C(t1,t1) + ww[t1][i]*Ei(t1,t1);
-          }
+            C(t1,t1) = C(t1,t1) + ww[t1][i]*Ei(t1,t1);       
+          } 
         }
         arma::mat Ci = arma::inv(C);
         arma::mat mub = mvrnormARMA(Ci);
-        
         for ( int t1 = 0; t1 < nt; t1++) {
-          if(models[mselect][t1]!=1) {
+          if(models[mselect][t1]==0) {
             mub(0,t1) = 0.0;
           }
-          for ( int t2 = 0; t2 < nt; t2++) {
-            if(models[mselect][t2]==1) {
-              mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
+          if(models[mselect][t1]==1) {
+            mub(0,t1) = mub(0,t1) + Ci(t1,t1)*rhs[t1];
+            for ( int t2 = 0; t2 < nt; t2++) {
+              if(t1!=t2 && models[mselect][t2]==1) {
+                mub(0,t1) = mub(0,t1) + Ci(t1,t2)*rhs[t2];
+              }
             }
           }
         }
-        
+
+                
         // Adjust residuals based on sample marker effects
         for ( int t = 0; t < nt; t++) {
           diff = (mub(0,t)-b[t][i]);
-          for (size_t j = 0; j < XXindices[i].size(); j++) {
-            r[t][XXindices[i][j]] = r[t][XXindices[i][j]] - XXvalues[t][i][j]*diff;
+          if(diff!=0.0) {
+            for (size_t j = 0; j < XXindices[i].size(); j++) {
+              r[t][XXindices[i][j]] = r[t][XXindices[i][j]] - XXvalues[t][i][j]*diff;
+            }
           }
-          conv[t] = conv[t] + diff*diff;
           b[t][i] = mub(0,t);
           if(d[t][i]==1) {
             if ( (it > nburn) && (it % nthin == 0) ) {
@@ -1139,7 +1153,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
       double psum = std::accumulate(pi.begin(), pi.end(), 0.0);
       for (int k = 0; k<nmodels ; k++) {
         pi[k] = pi[k]/psum;
-        pis[k] = pis[k] + pi[k];
+        if(it>nburn) pis[k] = pis[k] + pi[k];
       }
       std::fill(cmodel.begin(), cmodel.end(), 1.0);
     }
@@ -1147,7 +1161,6 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     // Sample marker variance
     if(updateB) {
       arma::mat Sb(nt,nt, fill::zeros);
-      dfb = 0.0;
       for (int t1 = 0; t1 < nt; t1++) {
         for (int t2 = t1; t2 < nt; t2++) {
           ssb = 0.0;
@@ -1155,7 +1168,6 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
             for (int i=0; i < m; i++) {
               if( d[t1][i]==1 ) {
                 ssb = ssb + b[t1][i]*b[t1][i];
-                dfb = dfb + 1.0;
               }
             }
             Sb(t1,t1) = ssb + nub*ssb_prior[t1][t1];
@@ -1178,11 +1190,10 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
           if( d[t1][i]==1 ) {
             dfb0=1.0;
           }
-          dfb = dfb + dfb0;
         }
+        dfb = dfb + dfb0;
       }
       int dfSb = dfb + nub;
-      //int dfSb = dfb/nt + nub;
       arma::mat B = riwishart(dfSb, Sb);
       for (int t = 0; t < nt; t++) {
         vbs[t][it] = B(t,t);
