@@ -2446,8 +2446,10 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
   fit[[15]] <- fit[[15]][[1]]
   fit[[16]] <- fit[[6]]
   fit[[17]] <- fit[[7]]
+  fit[[18]] <- fit[[11]]
   if(sum(diag(fit[[16]]))>0) fit[[16]] <- cov2cor(fit[[16]])
   if(sum(diag(fit[[17]]))>0)  fit[[17]] <- cov2cor(fit[[17]])
+  if(sum(diag(fit[[18]]))>0)  fit[[18]] <- cov2cor(fit[[18]])
   for(i in 1:nt){
     names(fit[[1]][[i]]) <- names(LDvalues)
     names(fit[[2]][[i]]) <- names(LDvalues)
@@ -2464,8 +2466,8 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
   names(fit[[14]]) <- sapply(models,paste,collapse="_")
   
   names(fit) <- c("bm","dm","coef","vbs","ves","covb","cove",
-                  "wy","r","b","vb","ve","pi","pim","order",
-                  "rb","re")
+                  "wy","r","b","covg","ve","pi","pim","order",
+                  "rb","re","rg")
   fit$bm <- as.matrix(as.data.frame(fit$bm))
   fit$dm <- as.matrix(as.data.frame(fit$dm))
   fit$b <- as.matrix(as.data.frame(fit$b))
