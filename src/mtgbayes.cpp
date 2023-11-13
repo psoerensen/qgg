@@ -1123,7 +1123,6 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
           }
         }
 
-                
         // Adjust residuals based on sample marker effects
         for ( int t = 0; t < nt; t++) {
           diff = (mub(0,t)-b[t][i]);
@@ -1161,40 +1160,74 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     // Sample marker variance
     if(updateB) {
       arma::mat Sb(nt,nt, fill::zeros);
+      arma::mat corb(nt,nt, fill::zeros);
+      arma::mat dfB(nt,nt, fill::zeros);
       for (int t1 = 0; t1 < nt; t1++) {
+        ssb = 0.0;
+        dfb = 0.0;
+        for (int i=0; i < m; i++) {
+          if( d[t1][i]==1 ) {
+            ssb = ssb + b[t1][i]*b[t1][i];
+            dfb = dfb + 1.0;
+          }
+        }
+        Sb(t1,t1) = ssb;
+        dfB(t1,t1) = dfb;
         for (int t2 = t1; t2 < nt; t2++) {
           ssb = 0.0;
-          if (t1==t2) {
-            for (int i=0; i < m; i++) {
-              if( d[t1][i]==1 ) {
-                ssb = ssb + b[t1][i]*b[t1][i];
-              }
-            }
-            Sb(t1,t1) = ssb + nub*ssb_prior[t1][t1];
-          }
+          dfb = 0.0;
           if (t1!=t2) {
             for (int i=0; i < m; i++) {
               if( d[t1][i]==1 && d[t2][i]==1 ) {
                 ssb = ssb + b[t1][i]*b[t2][i];
+                dfb = dfb + 1.0;
               }
             }
-            Sb(t1,t2) = ssb + nub*ssb_prior[t1][t2];
-            Sb(t2,t1) = ssb + nub*ssb_prior[t2][t1];
+            dfB(t1,t2) = dfb;
+            dfB(t2,t1) = dfb;
+            Sb(t1,t2) = ssb;
+            Sb(t2,t1) = ssb;
           }
         }
       }
-      dfb = 0.0;
-      for (int i=0; i < m; i++) {
-        double dfb0=0.0;
-        for (int t1 = 0; t1 < nt; t1++) {
-          if( d[t1][i]==1 ) {
-            dfb0=1.0;
+      std::vector<double> stdv(nt);
+      for (int t = 0; t < nt; t++) {
+        stdv[t] = sqrt(Sb(t,t));
+      }
+      for (int t1 = 0; t1 < nt; t1++) {
+        for (int t2 = 0; t2 < nt; t2++) {
+          corb(t1,t2) = Sb(t1,t2)/(stdv[t1] * stdv[t2]);
+        }
+      }
+
+      arma::mat B(nt,nt, fill::zeros);
+      for (int t = 0; t < nt; t++) {
+        std::chi_squared_distribution<double> rchisq(dfB(t,t) + nub);
+        double chi2 = rchisq(gen);
+        B(t,t) = (Sb(t,t) + nub*ssb_prior[t][t])/chi2;
+      }
+      for (int t1 = 0; t1 < nt; t1++) {
+        for (int t2 = 0; t2 < nt; t2++) {
+          if (t1!=t2) {
+            B(t1,t2) = corb(t1,t2)*sqrt(B(t1,t1))*sqrt(B(t2,t2));
           }
         }
-        dfb = dfb + dfb0;
       }
-      int dfSb = dfb + nub;
-      arma::mat B = riwishart(dfSb, Sb);
+      // int dfSb = m + nub;
+      // arma::mat B = riwishart(dfSb, Sb);
+      // for (int t1 = 0; t1 < nt; t1++) {
+      //   for (int t2 = 0; t2 < nt; t2++) {
+      //     B(t1,t2) = B(t1,t2)*Sb(t1,t2);
+      //   }
+      // }
+      // dfb = 0.0;
+      // for (int t=0; t < nt; t++) {
+      //   dfb = dfb + dfB(t,t);
+      //   Sb(t,t) = Sb(t,t) + nub*ssb_prior[t][t];
+      // }
+      // int dfSb = dfb/nt + nub;
+      // //int dfSb = nt + nub;
+      // arma::mat B = riwishart(dfSb, Sb);
       for (int t = 0; t < nt; t++) {
         vbs[t][it] = B(t,t);
       }
