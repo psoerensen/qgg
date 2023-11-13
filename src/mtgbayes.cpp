@@ -1282,6 +1282,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
         B(t,t) = (Sb(t,t) + nub*ssb_prior[t][t])/chi2;
       }
       for (int t1 = 0; t1 < nt; t1++) {
+        B(t1,t1) = B(t1,t1) + 0.0001;
         for (int t2 = 0; t2 < nt; t2++) {
           if (t1!=t2) {
             B(t1,t2) = corb(t1,t2)*sqrt(B(t1,t1))*sqrt(B(t2,t2));
