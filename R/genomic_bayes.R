@@ -1948,7 +1948,7 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
 
 # Multiple trait BLR using summary statistics and sparse LD provided in Glist
 mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
-                  b=NULL,R2=NULL, pi=NULL, models=NULL,
+                  b=NULL,h2=NULL, pi=0.001, models=NULL, pimodels=NULL,
                   vg=NULL, vb=NULL, ve=NULL,
                   ssb_prior=NULL, sse_prior=NULL,
                   updateB=TRUE, updateE=TRUE, updatePi=TRUE,
@@ -1972,24 +1972,24 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
     models <- rep(list(0:1), nt)
     models <- t(do.call(expand.grid, models))
     models <- split(models, rep(1:ncol(models), each = nrow(models)))
-    pi <- c(0.5,rep(0.1,length(models)-1))
-    pi <- pi/sum(pi)
   }
   if(is.character(models)) {
     if(models=="restrictive") {
       models <- list(rep(0,nt),rep(1,nt))
-      pi <- c(0.999,0.001)
     }
   }
+  if(is.null(pimodels)) pimodels <- c(1-pi,rep(pi/(length(models)-1),length(models)-1)) 
   
   vy <- diag(yy/(n-1),nt)
-  if(is.null(R2)) R2 <- 0.5
-  if(is.null(vg)) vg <- diag(diag(vy)*R2)
-  if(is.null(ve)) ve <- diag(diag(vy)*(1-R2))
-  if(method<4 && is.null(vb)) vb <- diag((diag(vy)*R2)/m)
-  if(method>=4 && is.null(vb)) vb <- diag((diag(vy)*R2)/(m*pi[length(models)]))
+  if(is.null(h2)) h2 <- 0.5
+  if(is.null(vg)) vg <- diag(diag(vy)*h2)
+  if(is.null(ve)) ve <- diag(diag(vy)*(1-h2))
+  if(method<4 && is.null(vb)) vb <- diag((diag(vy)*h2)/m)
+  if(method>=4 && is.null(vb)) vb <- diag((diag(vy)*h2)/(m*pi))
+  #if(method>=4 && is.null(vb)) vb <- diag((diag(vy)*h2)/(m*pi[length(models)]))
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/m))
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi[length(models)])))
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi)))
+  #if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi[length(models)])))
   if(is.null(sse_prior)) sse_prior <- diag(((nue-2.0)/nue)*diag(ve))
   
   seed <- sample.int(.Machine$integer.max, 1)
@@ -2006,7 +2006,7 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                ssb_prior=split(ssb_prior, rep(1:ncol(ssb_prior), each = nrow(ssb_prior))),
                sse_prior=split(sse_prior, rep(1:ncol(sse_prior), each = nrow(sse_prior))),
                models=models,
-               pi=pi,
+               pi=pimodels,
                nub=nub,
                nue=nue,
                updateB = updateB,
@@ -2065,7 +2065,7 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
 
 # Multiple trait BLR using summary statistics and sparse LD provided in Glist
 mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
-                   b=NULL,R2=0.5, h2=0.5, pi=0.0001, models=NULL,
+                   b=NULL,h2=0.1, pi=0.001, models=NULL,pimodels=NULL,
                    vg=NULL, vb=NULL, ve=NULL,
                    ssb_prior=NULL, sse_prior=NULL,
                    updateB=TRUE, updateE=TRUE, updatePi=TRUE,
@@ -2110,16 +2110,13 @@ mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
     models <- rep(list(0:1), nt)
     models <- t(do.call(expand.grid, models))
     models <- split(models, rep(1:ncol(models), each = nrow(models)))
-    #pi <- c(0.9,rep(0.1,length(models)-1))
-    #pi <- pi/sum(pi)
-    pi <- c(1-pi,rep(pi/(length(models)-1),length(models)-1)) 
   }
   if(is.character(models)) {
     if(models=="restrictive") {
       models <- list(rep(0,nt),rep(1,nt))
-      pi <- c(1-pi,pi)
     }
   }
+  if(is.null(pimodels)) pimodels <- c(1-pi,rep(pi/(length(models)-1),length(models)-1)) 
   
   seed <- sample.int(.Machine$integer.max, 1)
   
@@ -2135,6 +2132,7 @@ mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
                                 nthin=nthin,
                                 seed=seed,
                                 pi=pi,
+                                pimodels=pimodels,
                                 nue=nue,
                                 nub=nub,
                                 h2=h2,
@@ -2359,7 +2357,7 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
                              LDvalues=NULL,LDindices=NULL, n=NULL,
                              vg=NULL, vb=NULL, ve=NULL, 
                              ssb_prior=NULL, sse_prior=NULL, 
-                             h2=NULL, pi=NULL, updateB=NULL, 
+                             h2=NULL, pi=NULL, pimodels=NULL, updateB=NULL, 
                              updateE=NULL, updatePi=NULL, models=NULL,
                              nub=NULL, nue=NULL, nit=1000, nburn=500, nthin=1, 
                              seed=NULL, method=NULL, verbose=NULL) {
@@ -2383,25 +2381,24 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
     models <- rep(list(0:1), nt)
     models <- t(do.call(expand.grid, models))
     models <- split(models, rep(1:ncol(models), each = nrow(models)))
-    #pi <- c(0.999,rep(0.001,length(models)-1)) 
-    #pi <- pi/sum(pi) 
-    pi <- c(1-pi,rep(pi/(length(models)-1),length(models)-1)) 
-  } 
+  }
   if(is.character(models)) {
     if(models=="restrictive") {
       models <- list(rep(0,nt),rep(1,nt))
-      pi <- c(0.999,0.001)
     }
   }
+  if(is.null(pimodels)) pimodels <- c(1-pi,rep(pi/(length(models)-1),length(models)-1)) 
   
   vy <- diag(yy/(n-1),nt)
   if(is.null(h2)) h2 <- 0.5
   if(is.null(vg)) vg <- diag(diag(vy)*h2)
   if(is.null(ve)) ve <- diag(diag(vy)*(1-h2))
   if(method<4 && is.null(vb)) vb <- diag((diag(vy)*h2)/m)
-  if(method>=4 && is.null(vb)) vb <- diag((diag(vy)*h2)/(m*pi[length(models)]))
+  #if(method>=4 && is.null(vb)) vb <- diag((diag(vy)*h2)/(m*pi[length(models)]))
+  if(method>=4 && is.null(vb)) vb <- diag((diag(vy)*h2)/(m*pi))
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/m))
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi[length(models)])))
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi)))
+  #if(method>=4 && is.null(ssb_prior))  ssb_prior <-  diag(((nub-2.0)/nub)*(diag(vg)/(m*pi[length(models)])))
   if(is.null(sse_prior)) sse_prior <- diag(((nue-2.0)/nue)*diag(ve))
 
   fit <- .Call("_qgg_mtsbayes",
