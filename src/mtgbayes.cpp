@@ -902,9 +902,14 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           }
         }
       }
-      
-      int dfSe = n[0] + nue;
-      arma::mat E = riwishart(dfSe, Se);
+      arma::mat E(nt,nt, fill::zeros);
+      for (int t = 0; t < nt; t++) {
+        std::chi_squared_distribution<double> rchisq(n[t] + nue);
+        double chi2 = rchisq(gen);
+        E(t,t) = (Se(t,t))/chi2;
+      }
+      //int dfSe = n[0] + nue;
+      //arma::mat E = riwishart(dfSe, Se);
       arma::mat Ei = arma::inv(E);
       for (int t = 0; t < nt; t++) {
         ves[t][it] = E(t,t);
@@ -1315,9 +1320,14 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
           }
         }
       }
-      
-      int dfSe = n[0] + nue;
-      arma::mat E = riwishart(dfSe, Se);
+      arma::mat E(nt,nt, fill::zeros);
+      for (int t = 0; t < nt; t++) {
+        std::chi_squared_distribution<double> rchisq(n[t] + nue);
+        double chi2 = rchisq(gen);
+        E(t,t) = (Se(t,t))/chi2;
+      }
+      //int dfSe = n[0] + nue;
+      //arma::mat E = riwishart(dfSe, Se);
       arma::mat Ei = arma::inv(E);
       for (int t = 0; t < nt; t++) {
         ves[t][it] = E(t,t);
