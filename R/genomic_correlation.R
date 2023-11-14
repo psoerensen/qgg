@@ -96,7 +96,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, s
   if(!is.null(stat)) {
     if(is.data.frame(stat)) {
       z <- as.matrix(stat$b/stat$seb)
-      rownames(z) <- stat$rsids
+      rownames(z) <- stat$marker
       if(is.null(n)) {
         if("n"%in%colnames(stat)) n <- mean(stat$n)
         if(!"n"%in%colnames(stat)) n <- neff(seb=stat$seb, af=stat$eaf)
