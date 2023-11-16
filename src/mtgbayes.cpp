@@ -825,6 +825,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           }
           if (t1!=t2 && stdv[t1]!=0.0 && stdv[t2]!=0.0 ) {
             corb(t1,t2) = Sb(t1,t2)/(stdv[t1] * stdv[t2]);
+            corb(t2,t1) = corb(t1,t2);
           }
         }
       }
@@ -841,6 +842,9 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
             B(t1,t2) = corb(t1,t2)*sqrt(B(t1,t1))*sqrt(B(t2,t2));
           }
         }
+      }
+      for (int t1 = 0; t1 < nt; t1++) {
+        B(t1,t1) = B(t1,t1) + 0.0001;
       }
       for (int t = 0; t < nt; t++) {
         vbs[t][it] = B(t,t);
@@ -1074,13 +1078,22 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     }
   }
   
+  // for ( int i = 0; i < m; i++) {
+  //   x2t[i] = 0.0;
+  //   for ( int t = 0; t < nt; t++) {
+  //     x2t[i] = x2t[i] + x2[t][i];
+  //   }
+  // }
+
   for ( int i = 0; i < m; i++) {
     x2t[i] = 0.0;
-    for ( int t = 0; t < nt; t++) {
-      x2t[i] = x2t[i] + x2[t][i];
+    for ( int t = 0; t < nt; t++) { 
+      if(x2[t][i]>x2t[i]) {
+        x2t[i] = x2[t][i];
+      }
     }
   }
-
+  
   std::fill(cmodel.begin(), cmodel.end(), 1.0);
   std::fill(pis.begin(), pis.end(), 0.0);
   
@@ -1276,6 +1289,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
           }
           if (t1!=t2 && stdv[t1]!=0.0 && stdv[t2]!=0.0 ) {
             corb(t1,t2) = Sb(t1,t2)/(stdv[t1] * stdv[t2]);
+            corb(t2,t1) = corb(t1,t2);
           }
         }
       }
@@ -1287,12 +1301,14 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
         B(t,t) = (Sb(t,t) + nub*ssb_prior[t][t])/chi2;
       }
       for (int t1 = 0; t1 < nt; t1++) {
-        B(t1,t1) = B(t1,t1) + 0.0001;
         for (int t2 = 0; t2 < nt; t2++) {
           if (t1!=t2) {
             B(t1,t2) = corb(t1,t2)*sqrt(B(t1,t1))*sqrt(B(t2,t2));
           }
         }
+      }
+      for (int t1 = 0; t1 < nt; t1++) {
+        B(t1,t1) = B(t1,t1) + 0.0001;
       }
       for (int t = 0; t < nt; t++) {
         vbs[t][it] = B(t,t);
