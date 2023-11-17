@@ -602,7 +602,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   arma::mat C(nt,nt, fill::zeros);
   arma::mat Bi = arma::inv(B);
   arma::mat Ei = arma::inv(E);
-
+  arma::mat G(nt,nt, fill::zeros);
+  
   arma::rowvec probs(nmodels, fill::zeros);
   
   // Start Gibbs sampler
@@ -938,9 +939,83 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   
   }
   
+  // // Summarize results
+  // std::vector<std::vector<std::vector<double>>> result;
+  // result.resize(15);
+  // 
+  // result[0].resize(nt);
+  // result[1].resize(nt);
+  // result[2].resize(nt);
+  // result[3].resize(nt);
+  // result[4].resize(nt);
+  // result[5].resize(nt);
+  // result[6].resize(nt);
+  // result[7].resize(nt);
+  // result[8].resize(nt);
+  // result[9].resize(nt);
+  // result[10].resize(nt);
+  // result[11].resize(nt);
+  // result[12].resize(nt);
+  // result[13].resize(nt);
+  // result[14].resize(nt);
+  // 
+  // for (int t=0; t < nt; t++) {
+  //   result[0][t].resize(m);
+  //   result[1][t].resize(m);
+  //   result[2][t].resize(nit+nburn);
+  //   result[3][t].resize(nit+nburn);
+  //   result[4][t].resize(nit+nburn);
+  //   result[5][t].resize(nt);
+  //   result[6][t].resize(nt);
+  //   result[7][t].resize(m);
+  //   result[8][t].resize(m);
+  //   result[9][t].resize(m);
+  //   result[10][t].resize(nt);
+  //   result[11][t].resize(nt);
+  //   result[12][t].resize(nmodels);
+  //   result[13][t].resize(nmodels);
+  //   result[14][t].resize(m);
+  // }
+  // 
+  // for (int t=0; t < nt; t++) {
+  //   for (int i=0; i < m; i++) {
+  //     //result[0][t][i] = bm[t][i]/nit;
+  //     //result[1][t][i] = dm[t][i]/nit;
+  //     result[0][t][i] = bm[t][i]/nsamples;
+  //     result[1][t][i] = dm[t][i]/nsamples;
+  //     result[9][t][i] = b[t][i];
+  //     result[14][t][i] = order[i];
+  //   }
+  //   for (int i=0; i < m; i++) {
+  //     result[7][t][i] = wy[t][i];
+  //     result[8][t][i] = r[t][i];
+  //   }
+  // }
+  // 
+  // for (int t=0; t < nt; t++) {
+  //   for (int i=0; i < nit+nburn; i++) {
+  //     result[2][t][i] = vgs[t][i];
+  //     result[3][t][i] = vbs[t][i];
+  //     result[4][t][i] = ves[t][i];
+  //   }
+  // }
+  // for (int t1=0; t1 < nt; t1++) {
+  //   for (int t2=0; t2 < nt; t2++) {
+  //     result[5][t1][t2] = cvbm[t1][t2]/nit;
+  //     result[6][t1][t2] = cvem[t1][t2]/nit;
+  //     result[10][t1][t2] = cvgm[t1][t2]/nit;
+  //     result[11][t1][t2] = E(t1,t2);
+  //   }
+  // }
+  // for (int t=0; t < nt; t++) {
+  //   for (int i=0; i < nmodels; i++) {
+  //     result[12][t][i] = pi[i];
+  //     result[13][t][i] = pis[i]/nit;
+  //   }
+  // }  
   // Summarize results
   std::vector<std::vector<std::vector<double>>> result;
-  result.resize(15);
+  result.resize(18);
   
   result[0].resize(nt);
   result[1].resize(nt);
@@ -957,61 +1032,66 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   result[12].resize(nt);
   result[13].resize(nt);
   result[14].resize(nt);
+  result[15].resize(nt);
+  result[16].resize(nt);
+  result[17].resize(nt);
   
   for (int t=0; t < nt; t++) {
     result[0][t].resize(m);
     result[1][t].resize(m);
-    result[2][t].resize(nit+nburn);
-    result[3][t].resize(nit+nburn);
-    result[4][t].resize(nit+nburn);
-    result[5][t].resize(nt);
-    result[6][t].resize(nt);
-    result[7][t].resize(m);
-    result[8][t].resize(m);
-    result[9][t].resize(m);
+    result[2][t].resize(m);
+    result[3][t].resize(m);
+    result[4][t].resize(m);
+    result[5][t].resize(m);
+    result[6][t].resize(m);
+    result[7][t].resize(nit+nburn);
+    result[8][t].resize(nit+nburn);
+    result[9][t].resize(nit+nburn);
     result[10][t].resize(nt);
     result[11][t].resize(nt);
-    result[12][t].resize(nmodels);
-    result[13][t].resize(nmodels);
-    result[14][t].resize(m);
+    result[12][t].resize(nt);
+    result[13][t].resize(nt);
+    result[14][t].resize(nt);
+    result[15][t].resize(nt);
+    result[16][t].resize(nmodels);
+    result[17][t].resize(nmodels);
   }
   
   for (int t=0; t < nt; t++) {
     for (int i=0; i < m; i++) {
-      //result[0][t][i] = bm[t][i]/nit;
-      //result[1][t][i] = dm[t][i]/nit;
       result[0][t][i] = bm[t][i]/nsamples;
       result[1][t][i] = dm[t][i]/nsamples;
-      result[9][t][i] = b[t][i];
-      result[14][t][i] = order[i];
-    }
-    for (int i=0; i < m; i++) {
-      result[7][t][i] = wy[t][i];
-      result[8][t][i] = r[t][i];
+      result[2][t][i] = wy[t][i];
+      result[3][t][i] = r[t][i];
+      result[4][t][i] = b[t][i];
+      result[5][t][i] = d[t][i];
+      result[6][t][i] = order[i];
     }
   }
   
   for (int t=0; t < nt; t++) {
     for (int i=0; i < nit+nburn; i++) {
-      result[2][t][i] = vgs[t][i];
-      result[3][t][i] = vbs[t][i];
-      result[4][t][i] = ves[t][i];
+      result[7][t][i] = vbs[t][i];
+      result[8][t][i] = vgs[t][i];
+      result[9][t][i] = ves[t][i];
     }
   }
   for (int t1=0; t1 < nt; t1++) {
     for (int t2=0; t2 < nt; t2++) {
-      result[5][t1][t2] = cvbm[t1][t2]/nit;
-      result[6][t1][t2] = cvem[t1][t2]/nit;
-      result[10][t1][t2] = cvgm[t1][t2]/nit;
-      result[11][t1][t2] = E(t1,t2);
+      result[10][t1][t2] = cvbm[t1][t2]/nit;
+      result[11][t1][t2] = cvgm[t1][t2]/nit;
+      result[12][t1][t2] = cvem[t1][t2]/nit;
+      result[13][t1][t2] = B(t1,t2);
+      result[14][t1][t2] = G(t1,t2);
+      result[15][t1][t2] = E(t1,t2);
     }
   }
   for (int t=0; t < nt; t++) {
     for (int i=0; i < nmodels; i++) {
-      result[12][t][i] = pi[i];
-      result[13][t][i] = pis[i]/nit;
+      result[16][t][i] = pi[i];
+      result[17][t][i] = pis[i]/nit;
     }
-  }  
+  }
   return result;
 }
 
@@ -1121,6 +1201,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   arma::mat C(nt,nt, fill::zeros);
   arma::mat Bi = arma::inv(B);
   arma::mat Ei = arma::inv(E);
+  arma::mat G(nt,nt, fill::zeros);
   
   arma::rowvec probs(nmodels, fill::zeros);
   
@@ -1412,9 +1493,83 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     
   }
   
+  // // Summarize results
+  // std::vector<std::vector<std::vector<double>>> result;
+  // result.resize(15);
+  // 
+  // result[0].resize(nt);
+  // result[1].resize(nt);
+  // result[2].resize(nt);
+  // result[3].resize(nt);
+  // result[4].resize(nt);
+  // result[5].resize(nt);
+  // result[6].resize(nt);
+  // result[7].resize(nt);
+  // result[8].resize(nt);
+  // result[9].resize(nt);
+  // result[10].resize(nt);
+  // result[11].resize(nt);
+  // result[12].resize(nt);
+  // result[13].resize(nt);
+  // result[14].resize(nt);
+  // 
+  // for (int t=0; t < nt; t++) {
+  //   result[0][t].resize(m);
+  //   result[1][t].resize(m);
+  //   result[2][t].resize(nit+nburn);
+  //   result[3][t].resize(nit+nburn);
+  //   result[4][t].resize(nit+nburn);
+  //   result[5][t].resize(nt);
+  //   result[6][t].resize(nt);
+  //   result[7][t].resize(m);
+  //   result[8][t].resize(m);
+  //   result[9][t].resize(m);
+  //   result[10][t].resize(nt);
+  //   result[11][t].resize(nt);
+  //   result[12][t].resize(nmodels);
+  //   result[13][t].resize(nmodels);
+  //   result[14][t].resize(m);
+  // }
+  // 
+  // for (int t=0; t < nt; t++) {
+  //   for (int i=0; i < m; i++) {
+  //     //result[0][t][i] = bm[t][i]/nit;
+  //     //result[1][t][i] = dm[t][i]/nit;
+  //     result[0][t][i] = bm[t][i]/nsamples;
+  //     result[1][t][i] = dm[t][i]/nsamples;
+  //     result[9][t][i] = b[t][i];
+  //     result[14][t][i] = order[i];
+  //   }
+  //   for (int i=0; i < m; i++) {
+  //     result[7][t][i] = wy[t][i];
+  //     result[8][t][i] = r[t][i];
+  //   }
+  // }
+  // 
+  // for (int t=0; t < nt; t++) {
+  //   for (int i=0; i < nit+nburn; i++) {
+  //     result[2][t][i] = mus[t][i];
+  //     result[3][t][i] = vbs[t][i];
+  //     result[4][t][i] = ves[t][i];
+  //   }
+  // }
+  // for (int t1=0; t1 < nt; t1++) {
+  //   for (int t2=0; t2 < nt; t2++) {
+  //     result[5][t1][t2] = cvbm[t1][t2]/nit;
+  //     result[6][t1][t2] = cvem[t1][t2]/nit;
+  //     result[10][t1][t2] = cvgm[t1][t2]/nit;
+  //     result[11][t1][t2] = E(t1,t2);
+  //   }
+  // }
+  // for (int t=0; t < nt; t++) {
+  //   for (int i=0; i < nmodels; i++) {
+  //     result[12][t][i] = pi[i];
+  //     result[13][t][i] = pis[i]/nit;
+  //   }
+  // }
   // Summarize results
   std::vector<std::vector<std::vector<double>>> result;
-  result.resize(15);
+  result.resize(18);
   
   result[0].resize(nt);
   result[1].resize(nt);
@@ -1431,59 +1586,64 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   result[12].resize(nt);
   result[13].resize(nt);
   result[14].resize(nt);
+  result[15].resize(nt);
+  result[16].resize(nt);
+  result[17].resize(nt);
   
   for (int t=0; t < nt; t++) {
     result[0][t].resize(m);
     result[1][t].resize(m);
-    result[2][t].resize(nit+nburn);
-    result[3][t].resize(nit+nburn);
-    result[4][t].resize(nit+nburn);
-    result[5][t].resize(nt);
-    result[6][t].resize(nt);
-    result[7][t].resize(m);
-    result[8][t].resize(m);
-    result[9][t].resize(m);
+    result[2][t].resize(m);
+    result[3][t].resize(m);
+    result[4][t].resize(m);
+    result[5][t].resize(m);
+    result[6][t].resize(m);
+    result[7][t].resize(nit+nburn);
+    result[8][t].resize(nit+nburn);
+    result[9][t].resize(nit+nburn);
     result[10][t].resize(nt);
     result[11][t].resize(nt);
-    result[12][t].resize(nmodels);
-    result[13][t].resize(nmodels);
-    result[14][t].resize(m);
+    result[12][t].resize(nt);
+    result[13][t].resize(nt);
+    result[14][t].resize(nt);
+    result[15][t].resize(nt);
+    result[16][t].resize(nmodels);
+    result[17][t].resize(nmodels);
   }
   
   for (int t=0; t < nt; t++) {
     for (int i=0; i < m; i++) {
-      //result[0][t][i] = bm[t][i]/nit;
-      //result[1][t][i] = dm[t][i]/nit;
       result[0][t][i] = bm[t][i]/nsamples;
       result[1][t][i] = dm[t][i]/nsamples;
-      result[9][t][i] = b[t][i];
-      result[14][t][i] = order[i];
-    }
-    for (int i=0; i < m; i++) {
-      result[7][t][i] = wy[t][i];
-      result[8][t][i] = r[t][i];
+      result[2][t][i] = wy[t][i];
+      result[3][t][i] = r[t][i];
+      result[4][t][i] = b[t][i];
+      result[5][t][i] = d[t][i];
+      result[6][t][i] = order[i];
     }
   }
   
   for (int t=0; t < nt; t++) {
     for (int i=0; i < nit+nburn; i++) {
-      result[2][t][i] = mus[t][i];
-      result[3][t][i] = vbs[t][i];
-      result[4][t][i] = ves[t][i];
+      result[7][t][i] = vbs[t][i];
+      result[8][t][i] = vgs[t][i];
+      result[9][t][i] = ves[t][i];
     }
   }
   for (int t1=0; t1 < nt; t1++) {
     for (int t2=0; t2 < nt; t2++) {
-      result[5][t1][t2] = cvbm[t1][t2]/nit;
-      result[6][t1][t2] = cvem[t1][t2]/nit;
-      result[10][t1][t2] = cvgm[t1][t2]/nit;
-      result[11][t1][t2] = E(t1,t2);
+      result[10][t1][t2] = cvbm[t1][t2]/nit;
+      result[11][t1][t2] = cvgm[t1][t2]/nit;
+      result[12][t1][t2] = cvem[t1][t2]/nit;
+      result[13][t1][t2] = B(t1,t2);
+      result[14][t1][t2] = G(t1,t2);
+      result[15][t1][t2] = E(t1,t2);
     }
   }
   for (int t=0; t < nt; t++) {
     for (int i=0; i < nmodels; i++) {
-      result[12][t][i] = pi[i];
-      result[13][t][i] = pis[i]/nit;
+      result[16][t][i] = pi[i];
+      result[17][t][i] = pis[i]/nit;
     }
   }
   return result;
