@@ -2019,46 +2019,80 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                seed=seed,
                method=as.integer(method))
 
-  fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
-  fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
+  # fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
+  # fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
+  # trait_names <- names(yy)
+  # if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
+  # colnames(fit[[6]]) <- rownames(fit[[6]]) <- trait_names
+  # colnames(fit[[7]]) <- rownames(fit[[7]]) <- trait_names
+  # fit[[11]] <- matrix(unlist(fit[[11]]), ncol = nt, byrow = TRUE)
+  # fit[[12]] <- matrix(unlist(fit[[12]]), ncol = nt, byrow = TRUE)
+  # colnames(fit[[11]]) <- rownames(fit[[11]]) <- trait_names
+  # colnames(fit[[12]]) <- rownames(fit[[12]]) <- trait_names
+  # # add colnames/rownames e, g and gm
+  # # add colnames/rownames rg and covg
+  # fit[[13]] <- fit[[13]][[1]]
+  # fit[[14]] <- fit[[14]][[1]]
+  # fit[[15]] <- fit[[15]][[1]]
+  # fit[[16]] <- fit[[6]]
+  # fit[[17]] <- fit[[7]]
+  # if(sum(diag(fit[[16]]))>0) fit[[16]] <- cov2cor(fit[[16]])
+  # if(sum(diag(fit[[17]]))>0)  fit[[17]] <- cov2cor(fit[[17]])
+  # for(i in 1:nt){
+  #   names(fit[[1]][[i]]) <- names(XXvalues)
+  #   names(fit[[2]][[i]]) <- names(XXvalues)
+  #   names(fit[[10]][[i]]) <- names(XXvalues)
+  # }
+  # names(fit[[1]]) <- trait_names
+  # names(fit[[2]]) <- trait_names
+  # names(fit[[3]]) <- trait_names
+  # names(fit[[4]]) <- trait_names
+  # names(fit[[5]]) <- trait_names
+  # names(fit[[8]]) <- trait_names
+  # names(fit[[9]]) <- trait_names
+  # names(fit[[13]]) <- sapply(models,paste,collapse="_")
+  # names(fit[[14]]) <- sapply(models,paste,collapse="_")
+  # 
+  # names(fit) <- c("bm","dm","coef","vbs","ves","covb","cove",
+  #                 "wy","r","b","covg","ve","pi","pim","order",
+  #                 "rb","re")
+  # fit$bm <- as.matrix(as.data.frame(fit$bm))
+  # fit$dm <- as.matrix(as.data.frame(fit$dm))
+  # fit$b <- as.matrix(as.data.frame(fit$b))
+  names(fit) <- c("bm","dm","wy","r","b","d","o",
+                  "vbs","vgs","ves",
+                  "covb","covg","cove",
+                  "vb","vg","ve",
+                  "pi","pim")
+  
   trait_names <- names(yy)
   if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
-  colnames(fit[[6]]) <- rownames(fit[[6]]) <- trait_names
-  colnames(fit[[7]]) <- rownames(fit[[7]]) <- trait_names
-  fit[[11]] <- matrix(unlist(fit[[11]]), ncol = nt, byrow = TRUE)
-  fit[[12]] <- matrix(unlist(fit[[12]]), ncol = nt, byrow = TRUE)
-  colnames(fit[[11]]) <- rownames(fit[[11]]) <- trait_names
-  colnames(fit[[12]]) <- rownames(fit[[12]]) <- trait_names
-  # add colnames/rownames e, g and gm
-  # add colnames/rownames rg and covg
-  fit[[13]] <- fit[[13]][[1]]
-  fit[[14]] <- fit[[14]][[1]]
-  fit[[15]] <- fit[[15]][[1]]
-  fit[[16]] <- fit[[6]]
-  fit[[17]] <- fit[[7]]
-  if(sum(diag(fit[[16]]))>0) fit[[16]] <- cov2cor(fit[[16]])
-  if(sum(diag(fit[[17]]))>0)  fit[[17]] <- cov2cor(fit[[17]])
-  for(i in 1:nt){
-    names(fit[[1]][[i]]) <- names(XXvalues)
-    names(fit[[2]][[i]]) <- names(XXvalues)
-    names(fit[[10]][[i]]) <- names(XXvalues)
-  }
-  names(fit[[1]]) <- trait_names
-  names(fit[[2]]) <- trait_names
-  names(fit[[3]]) <- trait_names
-  names(fit[[4]]) <- trait_names
-  names(fit[[5]]) <- trait_names
-  names(fit[[8]]) <- trait_names
-  names(fit[[9]]) <- trait_names
-  names(fit[[13]]) <- sapply(models,paste,collapse="_")
-  names(fit[[14]]) <- sapply(models,paste,collapse="_")
+  variable_names <- names(XXvalues[[1]])
+  if(is.null(variable_names)) variable_names <- paste0("V",1:length(XXvalues[[1]]))
   
-  names(fit) <- c("bm","dm","coef","vbs","ves","covb","cove",
-                  "wy","r","b","covg","ve","pi","pim","order",
-                  "rb","re")
-  fit$bm <- as.matrix(as.data.frame(fit$bm))
-  fit$dm <- as.matrix(as.data.frame(fit$dm))
-  fit$b <- as.matrix(as.data.frame(fit$b))
+  for(i in 1:7){
+    fit[[i]] <- as.matrix(as.data.frame(fit[[i]]))
+    rownames(fit[[i]]) <- variable_names
+    colnames(fit[[i]]) <- trait_names 
+  }
+  for(i in 8:10){
+    fit[[i]] <- as.matrix(as.data.frame(fit[[i]]))
+    rownames(fit[[i]]) <- paste0("Iter",1:nrow(fit[[i]]))
+    colnames(fit[[i]]) <- trait_names 
+  }
+  
+  for(i in 11:16){
+    fit[[i]] <- matrix(unlist(fit[[i]]), ncol = nt, byrow = TRUE)
+    colnames(fit[[i]]) <- rownames(fit[[i]]) <- trait_names
+  }
+  fit[[17]] <- fit[[17]][[1]]
+  fit[[18]] <- fit[[18]][[1]]
+  names(fit[[17]]) <- sapply(models,paste,collapse="_")
+  names(fit[[18]]) <- sapply(models,paste,collapse="_")
+  if(sum(diag(fit$covb))>0) fit$rb <- cov2cor(fit$covb)
+  if(sum(diag(fit$covg))>0) fit$rg <- cov2cor(fit$covg)
+  if(sum(diag(fit$cove))>0) fit$re <- cov2cor(fit$cove)
+  
   return(fit)
 }
 
@@ -2426,48 +2460,82 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
                seed=seed,
                method=as.integer(method))
   
-  fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
-  fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
+  # fit[[6]] <- matrix(unlist(fit[[6]]), ncol = nt, byrow = TRUE)
+  # fit[[7]] <- matrix(unlist(fit[[7]]), ncol = nt, byrow = TRUE)
+  # trait_names <- names(yy)
+  # if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
+  # colnames(fit[[6]]) <- rownames(fit[[6]]) <- trait_names
+  # colnames(fit[[7]]) <- rownames(fit[[7]]) <- trait_names
+  # fit[[11]] <- matrix(unlist(fit[[11]]), ncol = nt, byrow = TRUE)
+  # fit[[12]] <- matrix(unlist(fit[[12]]), ncol = nt, byrow = TRUE)
+  # colnames(fit[[11]]) <- rownames(fit[[11]]) <- trait_names
+  # colnames(fit[[12]]) <- rownames(fit[[12]]) <- trait_names
+  # # add colnames/rownames e, g and gm
+  # # add colnames/rownames rg and covg
+  # fit[[13]] <- fit[[13]][[1]]
+  # fit[[14]] <- fit[[14]][[1]]
+  # fit[[15]] <- fit[[15]][[1]]
+  # fit[[16]] <- fit[[6]]
+  # fit[[17]] <- fit[[7]]
+  # fit[[18]] <- fit[[11]]
+  # if(sum(diag(fit[[16]]))>0) fit[[16]] <- cov2cor(fit[[16]])
+  # if(sum(diag(fit[[17]]))>0)  fit[[17]] <- cov2cor(fit[[17]])
+  # if(sum(diag(fit[[18]]))>0)  fit[[18]] <- cov2cor(fit[[18]])
+  # for(i in 1:nt){
+  #   names(fit[[1]][[i]]) <- names(LDvalues)
+  #   names(fit[[2]][[i]]) <- names(LDvalues)
+  #   names(fit[[10]][[i]]) <- names(LDvalues)
+  # }
+  # names(fit[[1]]) <- trait_names
+  # names(fit[[2]]) <- trait_names
+  # names(fit[[3]]) <- trait_names
+  # names(fit[[4]]) <- trait_names
+  # names(fit[[5]]) <- trait_names
+  # names(fit[[8]]) <- trait_names
+  # names(fit[[9]]) <- trait_names
+  # names(fit[[13]]) <- sapply(models,paste,collapse="_")
+  # names(fit[[14]]) <- sapply(models,paste,collapse="_")
+  # 
+  # names(fit) <- c("bm","dm","coef","vbs","ves","covb","cove",
+  #                 "wy","r","b","covg","ve","pi","pim","order",
+  #                 "rb","re","rg")
+  # fit$bm <- as.matrix(as.data.frame(fit$bm))
+  # fit$dm <- as.matrix(as.data.frame(fit$dm))
+  # fit$b <- as.matrix(as.data.frame(fit$b))
+  names(fit) <- c("bm","dm","wy","r","b","d","o",
+                  "vbs","vgs","ves",
+                  "covb","covg","cove",
+                  "vb","vg","ve",
+                  "pi","pim")
+  
   trait_names <- names(yy)
   if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
-  colnames(fit[[6]]) <- rownames(fit[[6]]) <- trait_names
-  colnames(fit[[7]]) <- rownames(fit[[7]]) <- trait_names
-  fit[[11]] <- matrix(unlist(fit[[11]]), ncol = nt, byrow = TRUE)
-  fit[[12]] <- matrix(unlist(fit[[12]]), ncol = nt, byrow = TRUE)
-  colnames(fit[[11]]) <- rownames(fit[[11]]) <- trait_names
-  colnames(fit[[12]]) <- rownames(fit[[12]]) <- trait_names
-  # add colnames/rownames e, g and gm
-  # add colnames/rownames rg and covg
-  fit[[13]] <- fit[[13]][[1]]
-  fit[[14]] <- fit[[14]][[1]]
-  fit[[15]] <- fit[[15]][[1]]
-  fit[[16]] <- fit[[6]]
-  fit[[17]] <- fit[[7]]
-  fit[[18]] <- fit[[11]]
-  if(sum(diag(fit[[16]]))>0) fit[[16]] <- cov2cor(fit[[16]])
-  if(sum(diag(fit[[17]]))>0)  fit[[17]] <- cov2cor(fit[[17]])
-  if(sum(diag(fit[[18]]))>0)  fit[[18]] <- cov2cor(fit[[18]])
-  for(i in 1:nt){
-    names(fit[[1]][[i]]) <- names(LDvalues)
-    names(fit[[2]][[i]]) <- names(LDvalues)
-    names(fit[[10]][[i]]) <- names(LDvalues)
-  }
-  names(fit[[1]]) <- trait_names
-  names(fit[[2]]) <- trait_names
-  names(fit[[3]]) <- trait_names
-  names(fit[[4]]) <- trait_names
-  names(fit[[5]]) <- trait_names
-  names(fit[[8]]) <- trait_names
-  names(fit[[9]]) <- trait_names
-  names(fit[[13]]) <- sapply(models,paste,collapse="_")
-  names(fit[[14]]) <- sapply(models,paste,collapse="_")
+  variable_names <- names(LDvalues)
+  if(is.null(variable_names)) variable_names <- paste0("V",1:length(LDvalues))
   
-  names(fit) <- c("bm","dm","coef","vbs","ves","covb","cove",
-                  "wy","r","b","covg","ve","pi","pim","order",
-                  "rb","re","rg")
-  fit$bm <- as.matrix(as.data.frame(fit$bm))
-  fit$dm <- as.matrix(as.data.frame(fit$dm))
-  fit$b <- as.matrix(as.data.frame(fit$b))
+  for(i in 1:7){
+    fit[[i]] <- as.matrix(as.data.frame(fit[[i]]))
+    rownames(fit[[i]]) <- variable_names
+    colnames(fit[[i]]) <- trait_names 
+  }
+  for(i in 8:10){
+    fit[[i]] <- as.matrix(as.data.frame(fit[[i]]))
+    rownames(fit[[i]]) <- paste0("Iter",1:nrow(fit[[i]]))
+    colnames(fit[[i]]) <- trait_names 
+  }
+  
+  for(i in 11:16){
+    fit[[i]] <- matrix(unlist(fit[[i]]), ncol = nt, byrow = TRUE)
+    colnames(fit[[i]]) <- rownames(fit[[i]]) <- trait_names
+  }
+  fit[[17]] <- fit[[17]][[1]]
+  fit[[18]] <- fit[[18]][[1]]
+  names(fit[[17]]) <- sapply(models,paste,collapse="_")
+  names(fit[[18]]) <- sapply(models,paste,collapse="_")
+  if(sum(diag(fit$covb))>0) fit$rb <- cov2cor(fit$covb)
+  if(sum(diag(fit$covg))>0) fit$rg <- cov2cor(fit$covg)
+  if(sum(diag(fit$cove))>0) fit$re <- cov2cor(fit$cove)
+  
   return(fit)
 }
 
