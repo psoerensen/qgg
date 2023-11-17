@@ -2054,7 +2054,7 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   names(fit[[14]]) <- sapply(models,paste,collapse="_")
   
   names(fit) <- c("bm","dm","coef","vbs","ves","covb","cove",
-                  "wy","r","b","vb","ve","pi","pim","order",
+                  "wy","r","b","covg","ve","pi","pim","order",
                   "rb","re")
   fit$bm <- as.matrix(as.data.frame(fit$bm))
   fit$dm <- as.matrix(as.data.frame(fit$dm))
