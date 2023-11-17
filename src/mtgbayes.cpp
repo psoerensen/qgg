@@ -854,7 +854,17 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
           if(it>nburn) cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2);
         }
       }
-      arma::mat Bi = arma::inv(B);
+      bool issym = B.is_symmetric();
+      if (!issym){
+        B = 0.5* (B + B.t());
+      }
+      arma::mat Bi(nt,nt, fill::zeros);
+      bool success;
+      success = inv_sympd(Bi,B,inv_opts::allow_approx);
+      if(!success) {
+        std::cerr << "Error: Condition is false." << std::endl;
+      }
+      //arma::mat Bi = arma::inv(B);
     }
     
     //Update genetic variance
@@ -1036,7 +1046,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   int nmodels = models.size();
   double nsamples=0.0;
   
-  double ssb, sse, dfb, u, logliksum, detC, diff, cumprobc;
+  double ssb, sse, ssg, dfb, u, logliksum, detC, diff, cumprobc;
   int mselect;
   
   std::vector<std::vector<int>> d(nt, std::vector<int>(m, 0));
@@ -1049,8 +1059,10 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   std::vector<std::vector<double>> dm(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> ves(nt, std::vector<double>(nit+nburn, 0.0));
   std::vector<std::vector<double>> vbs(nt, std::vector<double>(nit+nburn, 0.0));
+  std::vector<std::vector<double>> vgs(nt, std::vector<double>(nit+nburn, 0.0));
   std::vector<std::vector<double>> cvbm(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> cvem(nt, std::vector<double>(nt, 0.0));
+  std::vector<std::vector<double>> cvgm(nt, std::vector<double>(nt, 0.0));
   std::vector<std::vector<double>> mus(nt, std::vector<double>(nit+nburn, 0.0));
   
   std::vector<double> x2t(m);
@@ -1318,8 +1330,50 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
           if(it>nburn) cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2);
         }
       }
-      arma::mat Bi = arma::inv(B);
+      bool issym = B.is_symmetric();
+      if (!issym){
+        B = 0.5* (B + B.t());
+      }
+      arma::mat Bi(nt,nt, fill::zeros);
+      bool success;
+      success = inv_sympd(Bi,B,inv_opts::allow_approx);
+      if(!success) {
+        std::cerr << "Error: Condition is false." << std::endl;
+      }
+      //arma::mat Bi = arma::inv(B);
     }
+    //Update genetic variance
+    arma::mat G(nt,nt, fill::zeros);
+    for ( int t1 = 0; t1 < nt; t1++) {
+      for ( int t2 = t1; t2 < nt; t2++) {
+        if (t1==t2) {
+          ssg = 0.0;
+          for ( int i = 0; i < m; i++) {
+            ssg = ssg + b[t1][i]*(wy[t1][i]-r[t1][i]);
+          }
+          G(t1,t2) = ssg/(std::sqrt((double)n[t1])*std::sqrt((double)n[t2]));
+        }
+        if (t1!=t2) {
+          ssg = 0.0;
+          for ( int i = 0; i < m; i++) {
+            ssg = ssg + b[t1][i]*(wy[t1][i]-r[t1][i]);
+            ssg = ssg + b[t2][i]*(wy[t2][i]-r[t2][i]);
+          }
+          ssg = ssg/2.0;
+          G(t1,t2) = ssg/(std::sqrt((double)n[t1])*std::sqrt((double)n[t2]));
+          G(t2,t1) = G(t1,t2);
+        }
+      }
+    }
+    for (int t = 0; t < nt; t++) {
+      vgs[t][it] = G(t,t);
+    }
+    for (int t1 = 0; t1 < nt; t1++) {
+      for (int t2 = 0; t2 < nt; t2++) {
+        if(it>nburn) cvgm[t1][t2] = cvgm[t1][t2] + G(t1,t2);
+      } 
+    } 
+    
     // Sample residual variance 
     // (current version assume uncorrelated residuals among traits traits)
     if(updateE) {
@@ -1422,7 +1476,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     for (int t2=0; t2 < nt; t2++) {
       result[5][t1][t2] = cvbm[t1][t2]/nit;
       result[6][t1][t2] = cvem[t1][t2]/nit;
-      result[10][t1][t2] = B(t1,t2);
+      result[10][t1][t2] = cvgm[t1][t2]/nit;
       result[11][t1][t2] = E(t1,t2);
     }
   }
