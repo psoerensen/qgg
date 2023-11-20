@@ -353,7 +353,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // mtblr
-std::vector<std::vector<std::vector<double>>> mtblr(std::vector<std::vector<double>> wy, std::vector<std::vector<double>> ww, std::vector<double> yy, std::vector<std::vector<double>> b, std::vector<std::vector<std::vector<double>>> XXvalues, std::vector<std::vector<int>> XXindices, arma::mat B, arma::mat E, std::vector<std::vector<double>> ssb_prior, std::vector<std::vector<double>> sse_prior, std::vector<std::vector<int>> models, std::vector<double> pi, double nub, double nue, bool updateB, bool updateE, bool updatePi, std::vector<int> n, int nit, int nburn, int nthin, int seed, int method);
+std::vector<std::vector<std::vector<double>>> mtblr(std::vector<std::vector<double>> wy, std::vector<std::vector<double>> ww, std::vector<double> yy, std::vector<std::vector<double>> b, const std::vector<std::vector<std::vector<double>>>& XXvalues, const std::vector<std::vector<int>>& XXindices, arma::mat B, arma::mat E, std::vector<std::vector<double>> ssb_prior, std::vector<std::vector<double>> sse_prior, std::vector<std::vector<int>> models, std::vector<double> pi, double nub, double nue, bool updateB, bool updateE, bool updatePi, std::vector<int> n, int nit, int nburn, int nthin, int seed, int method);
 RcppExport SEXP _qgg_mtblr(SEXP wySEXP, SEXP wwSEXP, SEXP yySEXP, SEXP bSEXP, SEXP XXvaluesSEXP, SEXP XXindicesSEXP, SEXP BSEXP, SEXP ESEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP modelsSEXP, SEXP piSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nSEXP, SEXP nitSEXP, SEXP nburnSEXP, SEXP nthinSEXP, SEXP seedSEXP, SEXP methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -362,8 +362,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type ww(wwSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type yy(yySEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type b(bSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<std::vector<double>>> >::type XXvalues(XXvaluesSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<int>> >::type XXindices(XXindicesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<std::vector<double>>>& >::type XXvalues(XXvaluesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<int>>& >::type XXindices(XXindicesSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type E(ESEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type ssb_prior(ssb_priorSEXP);
