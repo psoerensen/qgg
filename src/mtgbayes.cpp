@@ -147,6 +147,9 @@ void sampleB(
       }
     }
   }
+  for (int t1 = 0; t1 < nt; t1++) {
+    corb(t1, t1) += 0.0001;
+  }
   
   //arma::mat B(nt, nt, arma::fill::zeros);
   
@@ -164,9 +167,9 @@ void sampleB(
     }
   }
   
-  for (int t1 = 0; t1 < nt; t1++) {
-    B(t1, t1) += 0.0001;
-  }
+  // for (int t1 = 0; t1 < nt; t1++) {
+  //   B(t1, t1) += 0.0001;
+  // }
   bool issym = B.is_symmetric();
   if (!issym) {
     B = 0.5 * (B + B.t());
