@@ -844,31 +844,34 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
 #' @keywords internal
 #' @export
 #' 
+
 getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=NULL, format="sparse") {
   msize <- Glist$msize
   rsidsChr <- Glist$rsidsLD[[chr]]
   mchr <- length(rsidsChr)
   rsidsLD <- c(rep("start", msize), rsidsChr, rep("end", msize))
+  mapped <- rep(T,length(rsidsLD))
+  if(!is.null(rsids)) mapped <- rsidsLD%in%rsids
   if(onebased) rsids_indices <- c(rep(0, msize), 1:mchr, rep(0, msize))
   if(!onebased) rsids_indices <- c(rep(0, msize), 0:(mchr-1), rep(0, msize))
   ld_indices <- vector(length = mchr, mode = "list")
   ld_values <- vector(length = mchr, mode = "list")
   names(ld_indices) <- names(ld_values) <- rsidsChr
   
-  fnLD <- Glist$ldfiles[chr]
-  bfLD <- file(fnLD, "rb")
-  
-  nld <- as.integer(msize * 2 + 1)
-  for (i in 1:mchr) {
-    ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
-    ld[msize + 1] <- 1
-    cls <- which((ld**2) > r2) + i - 1
-    ld_indices[[i]] <- rsids_indices[cls]
-    ld_values[[i]] <- ld[(ld**2) > r2]
-  }
-  close(bfLD)
-  if(format=="sparse") return(list(indices=ld_indices,values=ld_values))
   if(format=="dense") {
+    fnLD <- Glist$ldfiles[chr]
+    bfLD <- file(fnLD, "rb")
+    
+    nld <- as.integer(msize * 2 + 1)
+    for (i in 1:mchr) {
+      ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
+      ld[msize + 1] <- 1
+      cls <- which((ld**2) > r2) + i - 1
+      ld_indices[[i]] <- rsids_indices[cls]
+      ld_values[[i]] <- ld[(ld**2) > r2]
+    }
+    close(bfLD)
+    #if(format=="sparse") return(list(indices=ld_indices,values=ld_values))
     if(is.null(rsids)) {
       LD <- matrix(0,nrow=length(ld_values),ncol=length(ld_values), 
                    dimnames=list(names(ld_values),names(ld_values) ) )  
@@ -888,7 +891,82 @@ getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=N
     }
     return(LD)
   }
+  if(format=="sparse") {
+    fnLD <- Glist$ldfiles[chr]
+    bfLD <- file(fnLD, "rb")
+    
+    nld <- as.integer(msize * 2 + 1)
+    for (i in 1:mchr) {
+      ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
+      ld[msize + 1] <- 1
+      cls <- 1:length(ld) + i - 1
+      ldok <- (ld**2) > r2
+      mapok <- mapped[cls]
+      cls <- cls[mapok & ldok]
+      #ld_indices[[i]] <- rsids_indices[cls]
+      ld_indices[[i]] <- rsidsLD[cls]
+      ld_values[[i]] <- ld[mapok & ldok]
+    }
+    close(bfLD)
+    names(ld_indices) <- names(ld_values) <- rsidsChr
+    isnull <- sapply(ld_indices,length)==0
+    ld_indices <- ld_indices[!isnull]
+    ld_values <- ld_values[!isnull]
+    if(!is.null(rsids)) ld_indices <- ld_indices[names(ld_indices)%in%rsids]
+    if(!is.null(rsids)) ld_values <- ld_values[names(ld_values)%in%rsids]
+    ld_indices <- qgg::mapSets(sets=ld_indices,rsids=rsids, index=TRUE)
+    ld_indices <- lapply(ld_indices,function(x){x-1})
+    
+    return(list(indices=ld_indices,values=ld_values))
+  }
 }
+
+
+# getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=NULL, rsids=NULL, format="sparse") {
+#   msize <- Glist$msize
+#   rsidsChr <- Glist$rsidsLD[[chr]]
+#   mchr <- length(rsidsChr)
+#   rsidsLD <- c(rep("start", msize), rsidsChr, rep("end", msize))
+#   if(onebased) rsids_indices <- c(rep(0, msize), 1:mchr, rep(0, msize))
+#   if(!onebased) rsids_indices <- c(rep(0, msize), 0:(mchr-1), rep(0, msize))
+#   ld_indices <- vector(length = mchr, mode = "list")
+#   ld_values <- vector(length = mchr, mode = "list")
+#   names(ld_indices) <- names(ld_values) <- rsidsChr
+#   
+#   fnLD <- Glist$ldfiles[chr]
+#   bfLD <- file(fnLD, "rb")
+#   
+#   nld <- as.integer(msize * 2 + 1)
+#   for (i in 1:mchr) {
+#     ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
+#     ld[msize + 1] <- 1
+#     cls <- which((ld**2) > r2) + i - 1
+#     ld_indices[[i]] <- rsids_indices[cls]
+#     ld_values[[i]] <- ld[(ld**2) > r2]
+#   }
+#   close(bfLD)
+#   if(format=="sparse") return(list(indices=ld_indices,values=ld_values))
+#   if(format=="dense") {
+#     if(is.null(rsids)) {
+#       LD <- matrix(0,nrow=length(ld_values),ncol=length(ld_values), 
+#                    dimnames=list(names(ld_values),names(ld_values) ) )  
+#       for(i in 1:length(ld_values)) {
+#         LD[i,ld_indices[[i]]] <- ld_values[[i]]
+#       }
+#     }
+#     if(!is.null(rsids)) {
+#       LD <- matrix(0,nrow=length(rsids),ncol=length(rsids), 
+#                    dimnames=list(rsids,rsids) )
+#       for(i in 1:length(rsids)) {
+#         ldrsids <-rsidsChr[ld_indices[[rsids[i]]]]
+#         ldvals <- ld_values[[rsids[i]]]
+#         inlist <- ldrsids%in%rsids 
+#         LD[rsids[i],ldrsids[inlist]] <- ldvals[inlist]
+#       }
+#     }
+#     return(LD)
+#   }
+# }
 
 
 #' Plot LD Matrix
