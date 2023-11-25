@@ -135,8 +135,6 @@ checkStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.0
                        ea=unlist(Glist$a1), nea=unlist(Glist$a2),
                        eaf=unlist(Glist$af),stringsAsFactors = FALSE)
   
-  rownames(marker) <- marker$rsids
-  
   message("Filtering markers based on information in Glist:")
   message("")
   
@@ -159,6 +157,8 @@ checkStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.0
     message("")
     marker <- marker[marker$rsids%in%rsids,]
   }
+
+  rownames(marker) <- marker$rsids
   
   message("Filtering markers based on information in stat:")
   message("")
