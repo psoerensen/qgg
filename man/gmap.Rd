@@ -190,21 +190,19 @@ of the sets are not provided, they are named as "Set1", "Set2", etc.}
 \item{algorithm}{Specifies the algorithm.}
 }
 \value{
-A list containing:
-\itemize{
-  \item{\code{bm}}{Vector or matrix of posterior means for marker effects.}
-  \item{\code{dm}}{Vector or matrix of posterior means for marker inclusion probabilities.}
-  \item{\code{vb}}{Scalar or vector of posterior means for marker variances.}
-  \item{\code{vg}}{Scalar or vector of posterior means for genomic variances.}
-  \item{\code{ve}}{Scalar or vector of posterior means for residual variances.}
-  \item{\code{rb}}{Matrix of posterior means for marker correlations.}
-  \item{\code{rg}}{Matrix of posterior means for genomic correlations.}
-  \item{\code{re}}{Matrix of posterior means for residual correlations.}
-  \item{\code{pi}}{Vector of posterior probabilities for models.}
-  \item{\code{h2}}{Vector of posterior means for model probability.}
-  \item{\code{param}}{List of current parameters used for restarting the analysis.}
-  \item{\code{stat}}{Matrix of marker information and effects used for genomic risk scoring.}
-}
+Returns a list structure including the following components:
+\item{bm}{Vector or matrix of posterior means for marker effects.}
+\item{dm}{Vector or matrix of posterior means for marker inclusion probabilities.}
+\item{vb}{Scalar or vector of posterior means for marker variances.}
+\item{vg}{Scalar or vector of posterior means for genomic variances.}
+\item{ve}{Scalar or vector of posterior means for residual variances.}
+\item{rb}{Matrix of posterior means for marker correlations.}
+\item{rg}{Matrix of posterior means for genomic correlations.}
+\item{re}{Matrix of posterior means for residual correlations.}
+\item{pi}{Vector of posterior probabilities for models.}
+\item{h2}{Vector of posterior means for model probability.}
+\item{param}{List of current parameters used for restarting the analysis.}
+\item{stat}{Matrix of marker information and effects used for genomic risk scoring.}
 }
 \description{
 In the Bayesian multiple regression model, the posterior density of the model parameters depends
