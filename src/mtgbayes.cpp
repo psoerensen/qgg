@@ -66,41 +66,163 @@ arma::mat riwishart(unsigned int df, const arma::mat& S){
 #include <numeric>
 
 
-// Define the function with necessary parameters
+// Sample pi
+// void samplePi(std::vector<double>& cmodel, 
+//                        std::vector<double>& pi, 
+//                        std::mt19937& gen) {
+//   for (int k = 0; k < cmodel.size(); k++) {
+//     std::gamma_distribution<double> rgamma(cmodel[k], 1.0);
+//     double rg = rgamma(gen);
+//     pi[k] = rg;
+//   }
+//   double psum = std::accumulate(pi.begin(), pi.end(), 0.0);
+//   for (int k = 0; k < cmodel.size(); k++) {
+//     pi[k] = pi[k] / psum;
+//   }
+//   std::fill(cmodel.begin(), cmodel.end(), 1.0);
+// }
 void samplePi(std::vector<double>& cmodel, 
-                       std::vector<double>& pi, 
-                       std::mt19937& gen) {
+              std::vector<double>& pi, 
+              std::mt19937& gen) {
+  // Iterate over elements of cmodel
   for (int k = 0; k < cmodel.size(); k++) {
+    // Create a gamma distribution with shape parameter cmodel[k] and scale parameter 1.0
     std::gamma_distribution<double> rgamma(cmodel[k], 1.0);
+    // Generate a random gamma-distributed value using the provided random number generator gen
     double rg = rgamma(gen);
+    // Store the generated value in the pi vector
     pi[k] = rg;
   }
+  // Calculate the sum of all values in the pi vector
   double psum = std::accumulate(pi.begin(), pi.end(), 0.0);
+  // Normalize the pi vector by dividing each element by the sum
   for (int k = 0; k < cmodel.size(); k++) {
     pi[k] = pi[k] / psum;
   }
+  // Reset all elements in the cmodel vector to 1.0
   std::fill(cmodel.begin(), cmodel.end(), 1.0);
 }
 
-void sampleB(
-    int nt,
-    int m,
-    int nub,
-    arma::mat& B, 
-    const std::vector<std::vector<int>>& d,
-    const std::vector<std::vector<double>>& b,
-    const std::vector<std::vector<double>>& ssb_prior,
-    std::mt19937& gen
-) {
-  arma::mat Sb(nt, nt, arma::fill::zeros);
-  arma::mat corb(nt, nt, arma::fill::zeros);
-  arma::mat dfB(nt, nt, arma::fill::zeros);
-  arma::vec stdv(nt);
+// void sampleB(
+//     int nt,
+//     int m,
+//     int nub,
+//     arma::mat& B, 
+//     const std::vector<std::vector<int>>& d,
+//     const std::vector<std::vector<double>>& b,
+//     const std::vector<std::vector<double>>& ssb_prior,
+//     std::mt19937& gen
+// ) {
+//   arma::mat Sb(nt, nt, arma::fill::zeros);
+//   arma::mat corb(nt, nt, arma::fill::zeros);
+//   arma::mat dfB(nt, nt, arma::fill::zeros);
+//   arma::vec stdv(nt);
+//   
+//   for (int t1 = 0; t1 < nt; t1++) {
+//     double ssb = 0.0;
+//     double dfb = 0.0;
+//     
+//     for (int i = 0; i < m; i++) {
+//       if (d[t1][i] == 1) {
+//         ssb += b[t1][i] * b[t1][i];
+//         dfb += 1.0;
+//       }
+//     }
+//     
+//     Sb(t1, t1) = ssb;
+//     dfB(t1, t1) = dfb;
+//     
+//     for (int t2 = t1; t2 < nt; t2++) {
+//       ssb = 0.0;
+//       dfb = 0.0;
+//       
+//       if (t1 != t2) {
+//         for (int i = 0; i < m; i++) {
+//           if (d[t1][i] == 1 && d[t2][i] == 1) {
+//             ssb += b[t1][i] * b[t2][i];
+//             dfb += 1.0;
+//           }
+//         }
+//         
+//         dfB(t1, t2) = dfb;
+//         dfB(t2, t1) = dfb;
+//         Sb(t1, t2) = ssb;
+//         Sb(t2, t1) = ssb;
+//       }
+//     }
+//   }
+//   
+//   for (int t = 0; t < nt; t++) {
+//     stdv(t) = std::sqrt(Sb(t, t));
+//   }
+//   
+//   for (int t1 = 0; t1 < nt; t1++) {
+//     for (int t2 = 0; t2 < nt; t2++) {
+//       if (t1 == t2) {
+//         corb(t1, t2) = 1.0;
+//       }
+//       
+//       if (t1 != t2 && stdv(t1) != 0.0 && stdv(t2) != 0.0) {
+//         corb(t1, t2) = Sb(t1, t2) / (stdv(t1) * stdv(t2));
+//         corb(t2, t1) = corb(t1, t2);
+//       }
+//     }
+//   }
+//   for (int t1 = 0; t1 < nt; t1++) {
+//     corb(t1, t1) += 0.0001;
+//   }
+//   
+//   //arma::mat B(nt, nt, arma::fill::zeros);
+//   
+//   for (int t = 0; t < nt; t++) {
+//     std::chi_squared_distribution<double> rchisq(dfB(t,t) + nub);
+//     double chi2 = rchisq(gen);
+//     B(t, t) = (Sb(t, t) + nub * ssb_prior[t][t]) / chi2;
+//   }
+//   
+//   for (int t1 = 0; t1 < nt; t1++) {
+//     for (int t2 = 0; t2 < nt; t2++) {
+//       if (t1 != t2) {
+//         B(t1, t2) = corb(t1, t2) * std::sqrt(B(t1, t1)) * std::sqrt(B(t2, t2));
+//       }
+//     }
+//   }
+//   
+//   bool issym = B.is_symmetric();
+//   if (!issym) {
+//     B = 0.5 * (B + B.t());
+//   }
+//   
+//   arma::mat Bi(nt, nt, arma::fill::zeros);
+//   bool success;
+//   success = arma::inv_sympd(Bi, B, arma::inv_opts::allow_approx);
+//   
+//   if (!success) {
+//     std::cerr << "Error: Condition is false." << std::endl;
+//   }
+//   
+// }
+// Sample marker effect covariance matrix B
+void sampleB(int nt,
+             int m,
+             int nub,
+             arma::mat& B,
+             const std::vector<std::vector<int>>& d,
+             const std::vector<std::vector<double>>& b,
+             const std::vector<std::vector<double>>& ssb_prior,
+             std::mt19937& gen) {
+  // Initialize matrices and vectors for intermediate calculations
+  arma::mat Sb(nt, nt, arma::fill::zeros);   // Sum of squared b values
+  arma::mat corb(nt, nt, arma::fill::zeros); // Correlation matrix
+  arma::mat dfB(nt, nt, arma::fill::zeros);  // Degrees of freedom matrix
+  arma::vec stdv(nt);                        // Standard deviation vector
   
+  // Calculate Sb, dfB, and stdv based on input data
   for (int t1 = 0; t1 < nt; t1++) {
-    double ssb = 0.0;
-    double dfb = 0.0;
+    double ssb = 0.0; // Initialize sum of squared b values for t1
+    double dfb = 0.0; // Initialize degrees of freedom for t1
     
+    // Calculate ssb and dfb for t1 based on d and b matrices
     for (int i = 0; i < m; i++) {
       if (d[t1][i] == 1) {
         ssb += b[t1][i] * b[t1][i];
@@ -108,12 +230,14 @@ void sampleB(
       }
     }
     
+    // Store ssb and dfb in the corresponding matrices
     Sb(t1, t1) = ssb;
     dfB(t1, t1) = dfb;
     
+    // Calculate correlations and off-diagonal elements of Sb and dfB
     for (int t2 = t1; t2 < nt; t2++) {
-      ssb = 0.0;
-      dfb = 0.0;
+      ssb = 0.0; // Reset ssb for t2
+      dfb = 0.0; // Reset dfb for t2
       
       if (t1 != t2) {
         for (int i = 0; i < m; i++) {
@@ -123,6 +247,7 @@ void sampleB(
           }
         }
         
+        // Populate the lower and upper triangles of Sb and dfB
         dfB(t1, t2) = dfb;
         dfB(t2, t1) = dfb;
         Sb(t1, t2) = ssb;
@@ -131,34 +256,33 @@ void sampleB(
     }
   }
   
-  for (int t = 0; t < nt; t++) {
-    stdv(t) = std::sqrt(Sb(t, t));
-  }
-  
+  // Calculate standard deviations and correlations (corb)
   for (int t1 = 0; t1 < nt; t1++) {
     for (int t2 = 0; t2 < nt; t2++) {
       if (t1 == t2) {
-        corb(t1, t2) = 1.0;
+        corb(t1, t2) = 1.0; // Diagonal elements of corb are set to 1.0
       }
       
       if (t1 != t2 && stdv(t1) != 0.0 && stdv(t2) != 0.0) {
-        corb(t1, t2) = Sb(t1, t2) / (stdv(t1) * stdv(t2));
-        corb(t2, t1) = corb(t1, t2);
+        corb(t1, t2) = Sb(t1, t2) / (stdv(t1) * stdv(t2)); // Calculate correlations
+        corb(t2, t1) = corb(t1, t2);                      // Correlation matrix is symmetric
       }
     }
   }
+  
+  // Add a small constant to the diagonal elements of corb to ensure PD matrix
   for (int t1 = 0; t1 < nt; t1++) {
     corb(t1, t1) += 0.0001;
   }
   
-  //arma::mat B(nt, nt, arma::fill::zeros);
-  
+  // Calculate diagonal elements of B using chi-squared distribution
   for (int t = 0; t < nt; t++) {
-    std::chi_squared_distribution<double> rchisq(dfB(t,t) + nub);
+    std::chi_squared_distribution<double> rchisq(dfB(t, t) + nub);
     double chi2 = rchisq(gen);
     B(t, t) = (Sb(t, t) + nub * ssb_prior[t][t]) / chi2;
   }
   
+  // Calculate off-diagonal elements of B based on correlations and standard deviations
   for (int t1 = 0; t1 < nt; t1++) {
     for (int t2 = 0; t2 < nt; t2++) {
       if (t1 != t2) {
@@ -167,25 +291,60 @@ void sampleB(
     }
   }
   
-  // for (int t1 = 0; t1 < nt; t1++) {
-  //   B(t1, t1) += 0.0001;
-  // }
+  // Check if B is symmetric; if not, make it symmetric
   bool issym = B.is_symmetric();
   if (!issym) {
     B = 0.5 * (B + B.t());
   }
   
+  // Calculate the inverse of B and check for success
   arma::mat Bi(nt, nt, arma::fill::zeros);
   bool success;
   success = arma::inv_sympd(Bi, B, arma::inv_opts::allow_approx);
   
+  // If the inverse calculation fails, print an error message
   if (!success) {
     std::cerr << "Error: Condition is false." << std::endl;
   }
-  
 }
 
+// Sample residual covariance matrix E
+// void sampleE(
+//     int nt,
+//     int m,
+//     int nue,
+//     arma::mat& E, 
+//     const std::vector<std::vector<double>>& b,
+//     const std::vector<std::vector<double>>& wy,
+//     const std::vector<std::vector<double>>& r,
+//     const std::vector<std::vector<double>>& sse_prior,
+//     const std::vector<double>& yy,
+//     const std::vector<int>& n,
+//     std::mt19937& gen
+// ) {
+//   arma::mat Se(nt, nt, arma::fill::zeros);
+//   
+//   for (int t1 = 0; t1 < nt; t1++) {
+//     double sse = 0.0;
+//     
+//     for (int i = 0; i < m; i++) {
+//       sse += b[t1][i] * (r[t1][i] + wy[t1][i]);
+//     }
+//     
+//     sse = yy[t1] - sse;
+//     Se(t1, t1) = sse + nue * sse_prior[t1][t1];
+//   }
+//   
+//   for (int t = 0; t < nt; t++) {
+//     std::chi_squared_distribution<double> rchisq(n[t] + nue);
+//     double chi2 = rchisq(gen);
+//     E(t, t) = Se(t, t) / chi2;
+//   }
+//   
+//   arma::mat Ei = arma::inv(E);
+// }
 
+// Sample residual covariance matrix E
 void sampleE(
     int nt,
     int m,
@@ -199,29 +358,71 @@ void sampleE(
     const std::vector<int>& n,
     std::mt19937& gen
 ) {
+  // Initialize the Se matrix to store the sum of squared residuals
   arma::mat Se(nt, nt, arma::fill::zeros);
   
+  // Calculate the sum of squared residuals for each time point
   for (int t1 = 0; t1 < nt; t1++) {
-    double sse = 0.0;
+    double sse = 0.0; // Initialize the sum of squared residuals for t1
     
+    // Calculate the sum of squared residuals using b, wy, and r vectors
     for (int i = 0; i < m; i++) {
       sse += b[t1][i] * (r[t1][i] + wy[t1][i]);
     }
     
+    // Calculate the adjusted sum of squared residuals
     sse = yy[t1] - sse;
+    
+    // Store the adjusted sum of squared residuals in the Se matrix
     Se(t1, t1) = sse + nue * sse_prior[t1][t1];
   }
   
+  // Generate chi-squared random variables and update the E matrix
   for (int t = 0; t < nt; t++) {
     std::chi_squared_distribution<double> rchisq(n[t] + nue);
     double chi2 = rchisq(gen);
     E(t, t) = Se(t, t) / chi2;
   }
   
+  // Calculate the inverse of the E matrix
   arma::mat Ei = arma::inv(E);
 }
 
 
+// void computeG(
+//     int nt,
+//     int m,
+//     const std::vector<std::vector<double>>& b,
+//     const std::vector<std::vector<double>>& wy,
+//     const std::vector<std::vector<double>>& r,
+//     const std::vector<int>& n,
+//     arma::mat& G
+// ) {
+//   for (int t1 = 0; t1 < nt; t1++) {
+//     for (int t2 = t1; t2 < nt; t2++) {
+//       double ssg = 0.0;
+//       
+//       if (t1 == t2) {
+//         for (int i = 0; i < m; i++) {
+//           ssg += b[t1][i] * (wy[t1][i] - r[t1][i]);
+//         }
+//         G(t1, t2) = ssg / (std::sqrt(static_cast<double>(n[t1])) * std::sqrt(static_cast<double>(n[t2])));
+//       }
+//       
+//       if (t1 != t2) {
+//         ssg = 0.0;
+//         for (int i = 0; i < m; i++) {
+//           ssg += b[t1][i] * (wy[t1][i] - r[t1][i]);
+//           ssg += b[t2][i] * (wy[t2][i] - r[t2][i]);
+//         }
+//         ssg = ssg / 2.0;
+//         G(t1, t2) = ssg / (std::sqrt(static_cast<double>(n[t1])) * std::sqrt(static_cast<double>(n[t2])));
+//         G(t2, t1) = G(t1, t2);
+//       }
+//     }
+//   }
+// }
+// Compute genetic covariance matrix G
 void computeG(
     int nt,
     int m,
@@ -233,23 +434,32 @@ void computeG(
 ) {
   for (int t1 = 0; t1 < nt; t1++) {
     for (int t2 = t1; t2 < nt; t2++) {
-      double ssg = 0.0;
+      double ssg = 0.0; // Initialize the sum of squared G values
       
       if (t1 == t2) {
+        // Calculate the sum of squared G values for the diagonal elements
         for (int i = 0; i < m; i++) {
           ssg += b[t1][i] * (wy[t1][i] - r[t1][i]);
         }
+        
+        // Store the G value in the matrix, normalized by the square root of n[t1] and n[t2]
         G(t1, t2) = ssg / (std::sqrt(static_cast<double>(n[t1])) * std::sqrt(static_cast<double>(n[t2])));
       }
       
       if (t1 != t2) {
-        ssg = 0.0;
+        ssg = 0.0; // Reset the sum of squared G values
+        
+        // Calculate the sum of squared G values for off-diagonal elements
         for (int i = 0; i < m; i++) {
           ssg += b[t1][i] * (wy[t1][i] - r[t1][i]);
           ssg += b[t2][i] * (wy[t2][i] - r[t2][i]);
         }
+        
+        // Adjust ssg and store the G value in the matrix, normalized by the square root of n[t1] and n[t2]
         ssg = ssg / 2.0;
         G(t1, t2) = ssg / (std::sqrt(static_cast<double>(n[t1])) * std::sqrt(static_cast<double>(n[t2])));
+        
+        // Since G is symmetric, set the corresponding off-diagonal element
         G(t2, t1) = G(t1, t2);
       }
     }
@@ -372,9 +582,6 @@ void sampleBetas(int i,
     b[t][i] = mub(0, t);
   }
 }
-
-
-
 
 
 
