@@ -68,7 +68,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
                  prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
                                       ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose)
                  if (is.null(prs)) prs <- prschr
-                 if (is.null(prs)) prs <- prs + prschr
+                 if (!is.null(prs)) prs <- prs + prschr
                  #if (chr==chromosomes[1]) prs <- prschr
                  #if (!chr==chromosomes[1]) prs <- prs + prschr
                  
