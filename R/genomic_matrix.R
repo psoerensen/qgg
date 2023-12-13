@@ -845,14 +845,15 @@ getLD <- function(Glist = NULL, chr = NULL, rsids=NULL) {
 #' @export
 #' 
 
-getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=NULL, format="sparse") {
+getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=FALSE, rsids=NULL, format="sparse") {
   msize <- Glist$msize
   rsidsLD <- Glist$rsidsLD[[chr]]
   mchr <- length(rsidsLD)
-  if(!is.null(rsids)) rsids <- rsidsLD[rsidsLD%in%rsids]
-  if(is.null(rsids)) rsids <- rsidsLD
-  mapped <- rsidsLD%in%rsids
-  indices <- match(rsidsLD, rsids)
+  #if(!is.null(rsids)) rsids <- rsidsLD[rsidsLD%in%rsids]
+  #if(is.null(rsids)) rsids <- rsidsLD
+  #mapped <- rsidsLD%in%rsids
+  #indices <- match(rsidsLD, rsids)
+  indices <- 1:mchr
   if(!onebased) indices <- indices - 1
   rsids_indices <- c(rep(NA, msize), indices, rep(NA, msize))
   ld_indices <- vector(length = mchr, mode = "list")
@@ -864,19 +865,19 @@ getSparseLD <- function(Glist = NULL, chr = NULL, r2 = 0, onebased=TRUE, rsids=N
   nld <- as.integer(msize * 2 + 1)
   for (i in 1:mchr) {
     ld <- readBin(bfLD, "numeric", n = nld, size = 4, endian = "little")
-    if(mapped[i]) {
+    #if(mapped[i]) {
       ld[msize + 1] <- 1
       cls <- which((ld^2) > r2) + i - 1
       ld_indices[[i]] <- rsids_indices[cls]
       ld_values[[i]] <- ld[(ld^2) > r2]
-      isNA <- is.na(ld_indices[[i]])
-      if(any(isNA)) ld_indices[[i]] <- ld_indices[[i]][!isNA]
-      if(any(isNA)) ld_values[[i]] <- ld_values[[i]][!isNA]
-    }
+      #isNA <- is.na(ld_indices[[i]])
+      #if(any(isNA)) ld_indices[[i]] <- ld_indices[[i]][!isNA]
+      #if(any(isNA)) ld_values[[i]] <- ld_values[[i]][!isNA]
+    #}
   }
   close(bfLD)
-  ld_indices <- ld_indices[mapped]
-  ld_values <- ld_values[mapped]
+  #ld_indices <- ld_indices[mapped]
+  #ld_values <- ld_values[mapped]
   return(list(indices=ld_indices,values=ld_values, rsids=names(ld_indices), onebased=onebased, msize=msize, fnLD=fnLD))
 }
 
