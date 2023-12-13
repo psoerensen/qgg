@@ -79,7 +79,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
           if(ncol(stat)==7) stat <- stat[!stat[,7]==0,]
           
           if(ncol(stat)>7) {
-            keep <- !rowSums(abs(stat[,7:ncol(stat)])==length(7:ncol(stat)))
+            keep <- !rowSums(abs(stat[,7:ncol(stat)])==0)==length(7:ncol(stat))
             stat <- stat[keep,]
           }
           prs <- NULL
