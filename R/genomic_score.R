@@ -55,13 +55,30 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
           if (!is.null(chr)) chromosomes <- chr
           #if (is.null(chr)) chromosomes <- unique(stat$chr)
           if (is.null(chr)) chromosomes <- 1:length(Glist$bedfiles)
-          # Output from gbayes
+
+          format <- "unknown"
+          
+          # Output general 
+          cnames <- c("rsids","chr","pos", "ea","nea", "eaf")
+          if(sum(colnames(stat)%in%cnames) == 6) format <- "general"
+          
+          # Output from gbayes single trait
           cnames <- c("rsids","chr","pos", "ea","nea", "eaf","bm","dm")
-          if(sum(colnames(stat)%in%cnames) == 8) stat <- stat[,1:7]
-          # Output from glma
+          if(sum(colnames(stat)%in%cnames) == 8) format <- "gbayes"
+          
+          # Output from glma single trait
           cnames <- c("rsids", "chr", "pos", "ea", "nea", "eaf", 
                       "b", "seb","stat","p", "n", "ww", "wy")
-          if(sum(colnames(stat)%in%cnames) == 13) stat <- stat[,1:7]
+          if(sum(colnames(stat)%in%cnames) == 13) format <- "glma"
+
+          if(format=="unknown") stop("Format of stat is unknown")
+          
+          if(format=="gbayes") stat <- stat[,1:7]
+          if(format=="glma") stat <- stat[,1:7]
+          
+          if(ncol(stat)==7) stat <- stat[!stat[,7]==0,]
+          if(ncol(stat)>7) stat <- stat[!rowSums(abs(stat[,7:ncol(stat)])==0),]
+          
           prs <- NULL
           for (chr in chromosomes) {
                if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
@@ -86,7 +103,6 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
 
 run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = NULL, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
      
-     #if(sum(is.na(stat))>0) stop("stat object contains NAs")
      if(sum(is.na(stat))>0) {
        warning("stat object contains NAs")
        stat <- na.omit(stat)
@@ -164,7 +180,6 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
           nt <- ncol(S)
           grs <- matrix(0,nrow=nt,ncol=Glist$n)
           sets <- splitWithOverlap(1:length(rsids),msize,0)
-          #rsids <- splitWithOverlap(rsids,msize,0)
           nsets <- length(sets)
           print(paste("Processing chromosome", chr))
           for (set in 1:nsets) {
@@ -188,40 +203,14 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
                Slist[[j]] <- S[,j]
           }
           cls <- match(stat$rsids, Glist$rsids[[chr]])
-          #af <- stat$eaf
           af <- Glist$af[[chr]][cls]
           if(scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=TRUE, Slist=Slist)
           if(!scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=FALSE, Slist=Slist)
           grs <- do.call(cbind, grs)
-          #grs <- as.matrix(as.data.frame(grs))
           rownames(grs) <- Glist$ids
           colnames(grs) <- colnames(S)
      }
 
-          
-     # # multicore     
-     # if(ncores>1) {
-     #      size <- ceiling(length(cls)/ncores)
-     #      af <- 1-Glist$af[cls]
-     #      af <- split(af, ceiling(seq_along(af) / size))
-     #      cls <- split(cls, ceiling(seq_along(cls) / size))
-     #      rwsS <- nrow(S)
-     #      rwsS <- split(rwsS, ceiling(seq_along(rwsS) / size))
-     #      Slist <- vector(length(rwsS),mode="list")
-     #      for (j in 1:length(rwsS)) {
-     #           Slist[[j]] <- lapply(seq_len(ncol(S)), function(i) S[rwsS[[j]],i])
-     #      }
-     #      
-     #      grslist <- mclapply(1:length(cls), function(set) { .Call("_qgg_mtgrsbed", Glist$bedfiles, Glist$n, cls[[set]], af[[set]], scale, Slist[[set]]  ) }, mc.cores = ncores)
-     #      grs <- as.matrix(as.data.frame(grslist[[1]]))
-     #      for (j in 2:length(grslist)) {
-     #           grs <- grs + as.matrix(as.data.frame(grslist[[j]]))      
-     #      }
-     #      rownames(grs) <- Glist$ids
-     #      colnames(grs) <- colnames(S)
-     #      # end multicore
-     # }
-     
      return(grs)
 }
 
