@@ -930,8 +930,8 @@ createLDsets <- function(ldscores=NULL, msize=200, maxsize=2000, nsplit=200, ver
   #     if(length(intersect(sets[[i]],sets[[i-1]]))>0) stop("length(intersect(sets[[i]],sets[[i-1]]))>0")
   #   }
   # }
-  plot(sort(sapply(sets,length)),frame.plot=FALSE, xlab="Block", ylab="Size")
   if(verbose) {
+    plot(sort(sapply(sets,length)),frame.plot=FALSE, xlab="Block", ylab="Size")
     plot(rsum, type = "n", xlab = "Genome Position", ylab = "LD Scores", frame.plot=FALSE)
     points(rsum, col = "grey", cex = 0.25)
     #points(x=psplit, y = 1:length(psplit), col="red", pch=as.character(1:length(psplit)))
