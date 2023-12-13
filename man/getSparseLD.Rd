@@ -8,7 +8,7 @@ getSparseLD(
   Glist = NULL,
   chr = NULL,
   r2 = 0,
-  onebased = TRUE,
+  onebased = FALSE,
   rsids = NULL,
   format = "sparse"
 )
