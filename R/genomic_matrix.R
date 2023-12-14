@@ -352,11 +352,13 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
   if(excludeMHC) {
     if(assembly=="GRCh37"){
         isMHC <-  Glist$pos[[6]] > 28477797 & Glist$pos[[6]] < 33448354
-        rsidsMHC <- names(isMHC)[isMHC]
+        rsidsMHC <- Glist$rsids[[6]]
+        rsidsMHC <- rsidsMHC[isMHC]
     }
     if(assembly=="GRCh38"){
         isMHC <-  Glist$pos[[6]] > 28510120 & Glist$pos[[6]] < 33480577
-        rsidsMHC <- names(isMHC)[isMHC]
+        rsidsMHC <- Glist$rsids[[6]]
+        rsidsMHC <- rsidsMHC[isMHC]
     }
   }
   a1 <- unlist(Glist$a1)
