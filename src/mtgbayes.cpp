@@ -264,7 +264,8 @@ void sampleB(int nt,
       }
       
       if (t1 != t2 && stdv(t1) != 0.0 && stdv(t2) != 0.0) {
-        corb(t1, t2) = Sb(t1, t2) / (stdv(t1) * stdv(t2)); // Calculate correlations
+        corb(t1, t2) = 0.0;
+        //corb(t1, t2) = Sb(t1, t2) / (stdv(t1) * stdv(t2)); // Calculate correlations
         corb(t2, t1) = corb(t1, t2);                      // Correlation matrix is symmetric
       }
     }
