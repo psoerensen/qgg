@@ -1107,12 +1107,21 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     }
   }
   
+  // for ( int i = 0; i < m; i++) {
+  //   x2t[i] = 0.0;
+  //   for ( int t = 0; t < nt; t++) { 
+  //     x2t[i] = x2t[i] + x2[t][i];
+  //   }
+  // }
   for ( int i = 0; i < m; i++) {
     x2t[i] = 0.0;
     for ( int t = 0; t < nt; t++) { 
-      x2t[i] = x2t[i] + x2[t][i];
+      if(x2[t][i]>x2t[i]) {
+        x2t[i] = x2[t][i];
+      }
     }
   }
+  
   
   std::fill(cmodel.begin(), cmodel.end(), 1.0);
   std::fill(pis.begin(), pis.end(), 0.0);
