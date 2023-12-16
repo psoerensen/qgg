@@ -215,7 +215,6 @@ void sampleB(int nt,
   arma::mat Sb(nt, nt, arma::fill::zeros);   // Sum of squared b values
   arma::mat corb(nt, nt, arma::fill::zeros); // Correlation matrix
   arma::mat dfB(nt, nt, arma::fill::zeros);  // Degrees of freedom matrix
-  arma::vec stdv(nt);                        // Standard deviation vector
   
   // Calculate Sb, dfB, and stdv based on input data
   for (int t1 = 0; t1 < nt; t1++) {
@@ -257,15 +256,20 @@ void sampleB(int nt,
   }
   
   // Calculate standard deviations and correlations (corb)
+  std::vector<double> stdv(nt);
+  for (int t = 0; t < nt; t++) {
+    stdv[t] = sqrt(Sb(t,t));
+  }
+  
   for (int t1 = 0; t1 < nt; t1++) {
     for (int t2 = 0; t2 < nt; t2++) {
       if (t1 == t2) {
         corb(t1, t2) = 1.0; // Diagonal elements of corb are set to 1.0
       }
       
-      if (t1 != t2 && stdv(t1) != 0.0 && stdv(t2) != 0.0) {
+      if (t1 != t2 && stdv[t1] != 0.0 &&  stdv[t2] != 0.0) {
         //corb(t1, t2) = 0.0;
-        corb(t1, t2) = Sb(t1, t2) / (stdv(t1) * stdv(t2)); // Calculate correlations
+        corb(t1, t2) = Sb(t1, t2) / (stdv[t1] * stdv[t2]); // Calculate correlations
         corb(t2, t1) = corb(t1, t2);                      // Correlation matrix is symmetric
       }
     }
