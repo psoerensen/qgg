@@ -1956,8 +1956,10 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   XXindices <- lapply(1:m,function(x) { (1:m)-1 } )
 
     
-  if(!method=="bayesC") stop("Only method==bayesC is allowed")
-  method <- 4
+  #if(!method=="bayesC") stop("Only method==bayesC is allowed")
+  #method <- 4
+  if(method=="bayesC") method <- 4
+  if(method=="bayesR") method <- 5
   
   if(is.null(b)) b <- lapply(1:nt,function(x){rep(0,m)})
   if(is.matrix(b)) b <- split(b, rep(1:ncol(b), each = nrow(b)))
@@ -2057,7 +2059,7 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                   "vbs","vgs","ves",
                   "covb","covg","cove",
                   "vb","vg","ve",
-                  "pi","pim")
+                  "pi","pim","pitrait","pimarker")
   
   trait_names <- names(yy)
   if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
@@ -2083,6 +2085,16 @@ mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   fit[[18]] <- fit[[18]][[1]]
   names(fit[[17]]) <- sapply(models,paste,collapse="_")
   names(fit[[18]]) <- sapply(models,paste,collapse="_")
+  if(method==4) {
+    fit <- fit[1:18]
+  }
+  if(method==5) {
+    fit[[19]] <- as.matrix(as.data.frame(fit[[19]]))
+    rownames(fit[[19]]) <- c("0","0.01","0.1","1.0")
+    colnames(fit[[19]]) <- trait_names
+    fit[[20]] <- fit[[20]][[1]]
+    names(fit[[20]]) <- c("0","1")
+  }
   if(sum(diag(fit$covb))>0) fit$rb <- cov2cor(fit$covb)
   if(sum(diag(fit$covg))>0) fit$rg <- cov2cor(fit$covg)
   if(sum(diag(fit$cove))>0) fit$re <- cov2cor(fit$cove)
@@ -2102,6 +2114,9 @@ mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
   method <- match(method, methods) - 1
   if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid")
+  
+  if(method=="bayesC") method <- 4
+  if(method=="bayesR") method <- 5
   
     
   # Prepare summary statistics input
@@ -2496,11 +2511,44 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
   # fit$bm <- as.matrix(as.data.frame(fit$bm))
   # fit$dm <- as.matrix(as.data.frame(fit$dm))
   # fit$b <- as.matrix(as.data.frame(fit$b))
+  # names(fit) <- c("bm","dm","wy","r","b","d","o",
+  #                 "vbs","vgs","ves",
+  #                 "covb","covg","cove",
+  #                 "vb","vg","ve",
+  #                 "pi","pim")
+  # 
+  # trait_names <- names(yy)
+  # if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
+  # variable_names <- names(LDvalues)
+  # if(is.null(variable_names)) variable_names <- paste0("V",1:length(LDvalues))
+  # 
+  # for(i in 1:7){
+  #   fit[[i]] <- as.matrix(as.data.frame(fit[[i]]))
+  #   rownames(fit[[i]]) <- variable_names
+  #   colnames(fit[[i]]) <- trait_names 
+  # }
+  # for(i in 8:10){
+  #   fit[[i]] <- as.matrix(as.data.frame(fit[[i]]))
+  #   rownames(fit[[i]]) <- paste0("Iter",1:nrow(fit[[i]]))
+  #   colnames(fit[[i]]) <- trait_names 
+  # }
+  # 
+  # for(i in 11:16){
+  #   fit[[i]] <- matrix(unlist(fit[[i]]), ncol = nt, byrow = TRUE)
+  #   colnames(fit[[i]]) <- rownames(fit[[i]]) <- trait_names
+  # }
+  # fit[[17]] <- fit[[17]][[1]]
+  # fit[[18]] <- fit[[18]][[1]]
+  # names(fit[[17]]) <- sapply(models,paste,collapse="_")
+  # names(fit[[18]]) <- sapply(models,paste,collapse="_")
+  # if(sum(diag(fit$covb))>0) fit$rb <- cov2cor(fit$covb)
+  # if(sum(diag(fit$covg))>0) fit$rg <- cov2cor(fit$covg)
+  # if(sum(diag(fit$cove))>0) fit$re <- cov2cor(fit$cove)
   names(fit) <- c("bm","dm","wy","r","b","d","o",
                   "vbs","vgs","ves",
                   "covb","covg","cove",
                   "vb","vg","ve",
-                  "pi","pim")
+                  "pi","pim","pitrait","pimarker")
   
   trait_names <- names(yy)
   if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
@@ -2526,6 +2574,16 @@ mt_sbayes_sparse <- function(yy=NULL, ww=NULL, wy=NULL, b=NULL,
   fit[[18]] <- fit[[18]][[1]]
   names(fit[[17]]) <- sapply(models,paste,collapse="_")
   names(fit[[18]]) <- sapply(models,paste,collapse="_")
+  if(method==4) {
+    fit <- fit[1:18]
+  }
+  if(method==5) {
+    fit[[19]] <- as.matrix(as.data.frame(fit[[19]]))
+    rownames(fit[[19]]) <- c("0","0.01","0.1","1.0")
+    colnames(fit[[19]]) <- trait_names
+    fit[[20]] <- fit[[20]][[1]]
+    names(fit[[20]]) <- c("0","1")
+  }
   if(sum(diag(fit$covb))>0) fit$rb <- cov2cor(fit$covb)
   if(sum(diag(fit$covg))>0) fit$rg <- cov2cor(fit$covg)
   if(sum(diag(fit$cove))>0) fit$re <- cov2cor(fit$cove)
