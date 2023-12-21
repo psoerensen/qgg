@@ -67,20 +67,6 @@ arma::mat riwishart(unsigned int df, const arma::mat& S){
 
 
 // Sample pi
-// void samplePi(std::vector<double>& cmodel, 
-//                        std::vector<double>& pi, 
-//                        std::mt19937& gen) {
-//   for (int k = 0; k < cmodel.size(); k++) {
-//     std::gamma_distribution<double> rgamma(cmodel[k], 1.0);
-//     double rg = rgamma(gen);
-//     pi[k] = rg;
-//   }
-//   double psum = std::accumulate(pi.begin(), pi.end(), 0.0);
-//   for (int k = 0; k < cmodel.size(); k++) {
-//     pi[k] = pi[k] / psum;
-//   }
-//   std::fill(cmodel.begin(), cmodel.end(), 1.0);
-// }
 void samplePi(std::vector<double>& cmodel, 
               std::vector<double>& pi, 
               std::mt19937& gen) {
@@ -103,105 +89,6 @@ void samplePi(std::vector<double>& cmodel,
   std::fill(cmodel.begin(), cmodel.end(), 1.0);
 }
 
-// void sampleB(
-//     int nt,
-//     int m,
-//     int nub,
-//     arma::mat& B, 
-//     const std::vector<std::vector<int>>& d,
-//     const std::vector<std::vector<double>>& b,
-//     const std::vector<std::vector<double>>& ssb_prior,
-//     std::mt19937& gen
-// ) {
-//   arma::mat Sb(nt, nt, arma::fill::zeros);
-//   arma::mat corb(nt, nt, arma::fill::zeros);
-//   arma::mat dfB(nt, nt, arma::fill::zeros);
-//   arma::vec stdv(nt);
-//   
-//   for (int t1 = 0; t1 < nt; t1++) {
-//     double ssb = 0.0;
-//     double dfb = 0.0;
-//     
-//     for (int i = 0; i < m; i++) {
-//       if (d[t1][i] == 1) {
-//         ssb += b[t1][i] * b[t1][i];
-//         dfb += 1.0;
-//       }
-//     }
-//     
-//     Sb(t1, t1) = ssb;
-//     dfB(t1, t1) = dfb;
-//     
-//     for (int t2 = t1; t2 < nt; t2++) {
-//       ssb = 0.0;
-//       dfb = 0.0;
-//       
-//       if (t1 != t2) {
-//         for (int i = 0; i < m; i++) {
-//           if (d[t1][i] == 1 && d[t2][i] == 1) {
-//             ssb += b[t1][i] * b[t2][i];
-//             dfb += 1.0;
-//           }
-//         }
-//         
-//         dfB(t1, t2) = dfb;
-//         dfB(t2, t1) = dfb;
-//         Sb(t1, t2) = ssb;
-//         Sb(t2, t1) = ssb;
-//       }
-//     }
-//   }
-//   
-//   for (int t = 0; t < nt; t++) {
-//     stdv(t) = std::sqrt(Sb(t, t));
-//   }
-//   
-//   for (int t1 = 0; t1 < nt; t1++) {
-//     for (int t2 = 0; t2 < nt; t2++) {
-//       if (t1 == t2) {
-//         corb(t1, t2) = 1.0;
-//       }
-//       
-//       if (t1 != t2 && stdv(t1) != 0.0 && stdv(t2) != 0.0) {
-//         corb(t1, t2) = Sb(t1, t2) / (stdv(t1) * stdv(t2));
-//         corb(t2, t1) = corb(t1, t2);
-//       }
-//     }
-//   }
-//   for (int t1 = 0; t1 < nt; t1++) {
-//     corb(t1, t1) += 0.0001;
-//   }
-//   
-//   //arma::mat B(nt, nt, arma::fill::zeros);
-//   
-//   for (int t = 0; t < nt; t++) {
-//     std::chi_squared_distribution<double> rchisq(dfB(t,t) + nub);
-//     double chi2 = rchisq(gen);
-//     B(t, t) = (Sb(t, t) + nub * ssb_prior[t][t]) / chi2;
-//   }
-//   
-//   for (int t1 = 0; t1 < nt; t1++) {
-//     for (int t2 = 0; t2 < nt; t2++) {
-//       if (t1 != t2) {
-//         B(t1, t2) = corb(t1, t2) * std::sqrt(B(t1, t1)) * std::sqrt(B(t2, t2));
-//       }
-//     }
-//   }
-//   
-//   bool issym = B.is_symmetric();
-//   if (!issym) {
-//     B = 0.5 * (B + B.t());
-//   }
-//   
-//   arma::mat Bi(nt, nt, arma::fill::zeros);
-//   bool success;
-//   success = arma::inv_sympd(Bi, B, arma::inv_opts::allow_approx);
-//   
-//   if (!success) {
-//     std::cerr << "Error: Condition is false." << std::endl;
-//   }
-//   
-// }
 // Sample marker effect covariance matrix B
 void sampleB(int nt,
              int m,
@@ -314,42 +201,6 @@ void sampleB(int nt,
 }
 
 // Sample residual covariance matrix E
-// void sampleE(
-//     int nt,
-//     int m,
-//     int nue,
-//     arma::mat& E, 
-//     const std::vector<std::vector<double>>& b,
-//     const std::vector<std::vector<double>>& wy,
-//     const std::vector<std::vector<double>>& r,
-//     const std::vector<std::vector<double>>& sse_prior,
-//     const std::vector<double>& yy,
-//     const std::vector<int>& n,
-//     std::mt19937& gen
-// ) {
-//   arma::mat Se(nt, nt, arma::fill::zeros);
-//   
-//   for (int t1 = 0; t1 < nt; t1++) {
-//     double sse = 0.0;
-//     
-//     for (int i = 0; i < m; i++) {
-//       sse += b[t1][i] * (r[t1][i] + wy[t1][i]);
-//     }
-//     
-//     sse = yy[t1] - sse;
-//     Se(t1, t1) = sse + nue * sse_prior[t1][t1];
-//   }
-//   
-//   for (int t = 0; t < nt; t++) {
-//     std::chi_squared_distribution<double> rchisq(n[t] + nue);
-//     double chi2 = rchisq(gen);
-//     E(t, t) = Se(t, t) / chi2;
-//   }
-//   
-//   arma::mat Ei = arma::inv(E);
-// }
-
-// Sample residual covariance matrix E
 void sampleE(
     int nt,
     int m,
@@ -394,39 +245,6 @@ void sampleE(
 }
 
 
-// void computeG(
-//     int nt,
-//     int m,
-//     const std::vector<std::vector<double>>& b,
-//     const std::vector<std::vector<double>>& wy,
-//     const std::vector<std::vector<double>>& r,
-//     const std::vector<int>& n,
-//     arma::mat& G
-// ) {
-//   for (int t1 = 0; t1 < nt; t1++) {
-//     for (int t2 = t1; t2 < nt; t2++) {
-//       double ssg = 0.0;
-//       
-//       if (t1 == t2) {
-//         for (int i = 0; i < m; i++) {
-//           ssg += b[t1][i] * (wy[t1][i] - r[t1][i]);
-//         }
-//         G(t1, t2) = ssg / (std::sqrt(static_cast<double>(n[t1])) * std::sqrt(static_cast<double>(n[t2])));
-//       }
-//       
-//       if (t1 != t2) {
-//         ssg = 0.0;
-//         for (int i = 0; i < m; i++) {
-//           ssg += b[t1][i] * (wy[t1][i] - r[t1][i]);
-//           ssg += b[t2][i] * (wy[t2][i] - r[t2][i]);
-//         }
-//         ssg = ssg / 2.0;
-//         G(t1, t2) = ssg / (std::sqrt(static_cast<double>(n[t1])) * std::sqrt(static_cast<double>(n[t2])));
-//         G(t2, t1) = G(t1, t2);
-//       }
-//     }
-//   }
-// }
 // Compute genetic covariance matrix G
 void computeG(
     int nt,
@@ -472,7 +290,8 @@ void computeG(
 }
 
 
-void sampleBetas(int i, 
+// Sample marker effects using multiple trait BayesC
+void sampleBetaCMt(int i, 
                  int nt, 
                  int nmodels, 
                  const std::vector<std::vector<int>>& models, 
@@ -550,8 +369,6 @@ void sampleBetas(int i,
     d[t][i] = models[mselect][t];
   }
   
-
-  
   // Sample marker effect conditional on variance class indicator
   arma::mat C = Bi;
   for (int t1 = 0; t1 < nt; t1++) {
@@ -588,6 +405,501 @@ void sampleBetas(int i,
   }
 }
 
+
+// Sample pi across trait
+void samplePiMt(int nt,
+               std::vector<double>& pimarker,
+               const std::vector<int>& dmarker,
+               std::mt19937& gen) {
+  
+  std::vector<double> mc(2);
+  
+  // Sample marker specific pi0
+  std::fill(mc.begin(), mc.end(), 0.0);
+  for (int i = 0; i<dmarker.size() ; i++) {
+    mc[dmarker[i]] = mc[dmarker[i]] + 1.0;
+  }
+  double pisum=0.0;
+  for (int j = 0; j<2 ; j++) {
+    std::gamma_distribution<double> rgamma(mc[j]+1.0,1.0);
+    double rg = rgamma(gen);
+    pimarker[j] = rg/dmarker.size();
+    pisum = pisum + pimarker[j];
+  }
+  for (int j = 0; j<2 ; j++) {
+    pimarker[j] = pimarker[j]/pisum;
+  }
+  
+}
+
+// Sample pi within trait BayesC
+void samplePiC(int nt,
+               std::vector<std::vector<double>>& pitrait, 
+               const std::vector<std::vector<int>>& d,
+               std::mt19937& gen) {
+
+  std::vector<double> mc(2);
+  
+  // Sample trait specific pi
+  for (int t = 0; t < nt; t++) {
+    std::fill(mc.begin(), mc.end(), 0.0);
+    for (int i = 0; i<d[t].size() ; i++) {
+      mc[d[t][i]] = mc[d[t][i]] + 1.0;
+    }
+    double pisum=0.0;
+    for (int j = 0; j<2 ; j++) {
+      std::gamma_distribution<double> rgamma(mc[j]+1.0,1.0);
+      double rg = rgamma(gen);
+      pitrait[t][j] = rg/d[t].size();
+      pisum = pisum + pitrait[t][j];
+    }
+    for (int j = 0; j<2 ; j++) {
+      pitrait[t][j] = pitrait[t][j]/pisum;
+    }
+  }
+}
+
+
+// Sample marker effects based on within and across pi BayesC 
+void sampleBetaCSt(int i, 
+                  int nt, 
+                  std::vector<int>& dmarker,
+                  std::vector<double>& pimarker,
+                  std::vector<std::vector<double>>& pitrait, 
+                  const arma::mat& E, 
+                  const arma::mat& B,
+                  const std::vector<std::vector<double>>& ww,
+                  std::vector<std::vector<double>>& r, 
+                  std::vector<std::vector<double>>& b,
+                  std::vector<std::vector<int>>& d,
+                  const std::vector<std::vector<int>>& XXindices, 
+                  const std::vector<std::vector<std::vector<double>>>& XXvalues,
+                  std::mt19937& gen) {
+  
+  std::vector<double> rhs(nt), loglik0(nt), loglik1(nt), bn(nt);
+  double lik0t, lik1t, v0, v1, p0, p1, rhs1, lhs1, diff;
+  double u;
+
+  // Compute rhs
+  lik0t = 0.0;
+  lik1t = 0.0;
+  for (int t = 0; t < nt; t++) {
+    rhs[t] = r[t][i] + ww[t][i] * b[t][i];
+    v0 = ww[t][i]*E(t,t);
+    v1 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t);
+    loglik0[t] = -0.5*std::log(v0) -0.5*((rhs[t]*rhs[t])/v0) + std::log(pitrait[t][0]);
+    loglik1[t] = -0.5*std::log(v1) -0.5*((rhs[t]*rhs[t])/v1) + std::log(pitrait[t][1]);
+    //lik0t = lik0t + loglik0[t];
+    lik0t = lik0t - 0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0);
+    lik1t = lik1t + std::log(std::exp(loglik0[t])+std::exp(loglik1[t]));
+  }
+  lik0t = lik0t + std::log(pimarker[0]);
+  lik1t = lik1t + std::log(pimarker[1]);
+  p0 = 1.0/(std::exp(lik1t - lik0t) + 1.0);
+  dmarker[i]=0;
+  std::uniform_real_distribution<double> runif(0.0, 1.0);
+  u = runif(gen);
+  if(u>p0) dmarker[i]=1;
+  
+  for (int t = 0; t<nt ; t++) {
+    d[t][i]=0;
+    bn[t]=0.0;
+  }
+  if(dmarker[i]==1) {
+    for (int t = 0; t<nt ; t++) {
+      p0 = 1.0/(std::exp(loglik1[t] - loglik0[t]) + 1.0);
+      d[t][i]=0;
+      std::uniform_real_distribution<double> runif(0.0, 1.0);
+      u = runif(gen);
+      if(u>p0) d[t][i]=1;
+      if(d[t][i]==1) {
+        rhs1 = r[t][i] + ww[t][i]*b[t][i];
+        lhs1 = ww[t][i] + E(t,t)/B(t,t);
+        std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(E(t,t)/lhs1));
+        bn[t] = rnorm(gen);
+      } 
+    }
+  }
+  // Adjust residuals based on sample marker effects
+  for (int t = 0; t < nt; t++) {
+    diff = (bn[t] - b[t][i]);
+    if (diff != 0.0) {
+      for (size_t j = 0; j < XXindices[i].size(); j++) {
+        r[t][XXindices[i][j]] = r[t][XXindices[i][j]] - XXvalues[t][i][j] * diff;
+      }
+    }
+    b[t][i] = bn[t];
+  }
+  
+  // // Adjust residuals based on sampled marker effects
+  // for ( int t = 0; t < nt; t++) {
+  //   diff = (bn[t]-b[t][i]);
+  //   if(diff!=0.0) {
+  //     diff = (bn[t]-b[t][i])*std::sqrt(ww[t][i]);
+  //     for (size_t j = 0; j < LDindices[i].size(); j++) {
+  //       r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff*std::sqrt(ww[t][LDindices[i][j]]);
+  //     }
+  //   }
+  //   b[t][i] = bn[t];
+  // }
+  
+}
+
+// Sample pi within trait BayesR
+void samplePiR(int nt,
+                 std::vector<std::vector<double>>& pitrait, 
+                 const std::vector<std::vector<int>>& d,
+                 std::mt19937& gen) {
+  
+  std::vector<double> mc(4);
+  
+  // Sample trait specific pi
+  for (int t = 0; t < nt; t++) {
+    std::fill(mc.begin(), mc.end(), 0.0);
+    for (int i = 0; i<d[t].size() ; i++) {
+      mc[d[t][i]] = mc[d[t][i]] + 1.0;
+    }
+    double pisum=0.0;
+    for (int j = 0; j<4 ; j++) {
+      std::gamma_distribution<double> rgamma(mc[j]+1.0,1.0);
+      double rg = rgamma(gen);
+      pitrait[t][j] = rg/d[t].size();
+      pisum = pisum + pitrait[t][j];
+    }
+    for (int j = 0; j<4 ; j++) {
+      pitrait[t][j] = pitrait[t][j]/pisum;
+    }
+  }
+}
+
+// Sample marker effects based on within and across pi BayesC
+void sampleBetaR(int i,
+                   int nt,
+                   const std::vector<double>& gamma,
+                   std::vector<int>& dmarker,
+                   const std::vector<double>& pimarker,
+                   const std::vector<std::vector<double>>& pitrait,
+                   const arma::mat& E,
+                   const arma::mat& B,
+                   const std::vector<std::vector<double>>& ww,
+                   std::vector<std::vector<double>>& r,
+                   std::vector<std::vector<double>>& b,
+                   std::vector<std::vector<int>>& d,
+                   const std::vector<std::vector<int>>& XXindices,
+                   const std::vector<std::vector<std::vector<double>>>& XXvalues,
+                   std::mt19937& gen) {
+
+  std::vector<double> rhs(nt), loglik0(nt), loglik1(nt), loglik2(nt), loglik3(nt), bn(nt);
+  double lik0t, lik1t, v0, v1, v2, v3, p0, p1, rhs1, lhs1, diff;
+  double u;
+
+  int nc = gamma.size();
+
+  std::vector<std::vector<double>> probc(nt, std::vector<double>(nc, 0.0));
+  std::vector<std::vector<double>> logLc(nt, std::vector<double>(nc, 0.0));
+
+  double cumprobc, vbc, logLcAdj;
+
+
+  // Compute rhs
+  lik0t = 0.0;
+  lik1t = 0.0;
+  for (int t = 0; t < nt; t++) {
+    rhs[t] = r[t][i] + ww[t][i] * b[t][i];
+    v0 = ww[t][i]*E(t,t);
+    v1 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t)*0.01;
+    v2 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t)*0.1;
+    v3 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t);
+    logLc[t][0] = -0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0) + std::log(pitrait[t][0]);
+    logLc[t][1] = -0.5*std::log(v1) - 0.5*((rhs[t]*rhs[t])/v1) + std::log(pitrait[t][1]);
+    logLc[t][2] = -0.5*std::log(v2) - 0.5*((rhs[t]*rhs[t])/v2) + std::log(pitrait[t][2]);
+    logLc[t][3] = -0.5*std::log(v3) - 0.5*((rhs[t]*rhs[t])/v3) + std::log(pitrait[t][3]);
+    lik0t = lik0t  - 0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0);
+    lik1t = lik1t + std::log( std::exp(logLc[t][0]) 
+                                + std::exp(logLc[t][1]) 
+                                + std::exp(logLc[t][2])
+                                + std::exp(logLc[t][3]));
+  }
+
+  lik0t = lik0t + std::log(pimarker[0]);
+  lik1t = lik1t + std::log(pimarker[1]);
+  p0 = 1.0/(std::exp(lik1t - lik0t) + 1.0);
+  dmarker[i]=0;
+  std::uniform_real_distribution<double> runif(0.0, 1.0);
+  u = runif(gen);
+  if(u>p0) dmarker[i]=1;
+
+  for (int t = 0; t<nt ; t++) {
+    d[t][i]=0;
+    bn[t]=0.0;
+  }
+  if(dmarker[i]==1) {
+    for (int t = 0; t<nt ; t++) {
+      // variance class probability
+      for (int j = 0; j<nc ; j++) {
+        logLcAdj = 0.0;
+        for (int k = 0; k<nc ; k++) {
+          logLcAdj += std::exp(logLc[t][k] - logLc[t][j]);
+        }
+        probc[t][j] = 1.0/logLcAdj;
+      }
+      // sample variance class indicator
+      std::uniform_real_distribution<double> runif(0.0, 1.0);
+      u = runif(gen);
+      d[t][i]=0;
+      cumprobc = 0.0;
+      for (int j = 0; j<nc ; j++) {
+        cumprobc += probc[t][j];
+        if(u < cumprobc){
+          d[t][i] = j;
+          break;
+        }
+      }
+      // sample marker effect
+      bn[t]=0.0;
+      if(d[t][i]>0) {
+        vbc = B(t,t)*gamma[d[t][i]];
+        rhs1 = r[t][i] + ww[t][i]*b[t][i];
+        lhs1 = ww[t][i] + E(t,t)/vbc;
+        std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(E(t,t)/lhs1));
+        bn[t] = rnorm(gen);
+      }
+
+    }
+  }
+  // Adjust residuals based on sample marker effects
+  for (int t = 0; t < nt; t++) {
+    diff = (bn[t] - b[t][i]);
+    if (diff != 0.0) {
+      for (size_t j = 0; j < XXindices[i].size(); j++) {
+        r[t][XXindices[i][j]] = r[t][XXindices[i][j]] - XXvalues[t][i][j] * diff;
+      }
+    }
+    b[t][i] = bn[t];
+  }
+}
+
+// Sample marker effects based on within and across pi BayesC
+void sampleBetaRS(int i,
+                 int nt,
+                 const std::vector<double>& gamma,
+                 std::vector<int>& dmarker,
+                 const std::vector<double>& pimarker,
+                 const std::vector<std::vector<double>>& pitrait,
+                 const arma::mat& E,
+                 const arma::mat& B,
+                 const std::vector<std::vector<double>>& ww,
+                 std::vector<std::vector<double>>& r,
+                 std::vector<std::vector<double>>& b,
+                 std::vector<std::vector<int>>& d,
+                 const std::vector<std::vector<int>>& LDindices,
+                 const std::vector<std::vector<double>>& LDvalues,
+                 std::mt19937& gen) {
+  
+  std::vector<double> rhs(nt), loglik0(nt), loglik1(nt), loglik2(nt), loglik3(nt), bn(nt);
+  double lik0t, lik1t, v0, v1, v2, v3, p0, p1, rhs1, lhs1, diff;
+  double u;
+  
+  int nc = gamma.size();
+  
+  std::vector<std::vector<double>> probc(nt, std::vector<double>(nc, 0.0));
+  std::vector<std::vector<double>> logLc(nt, std::vector<double>(nc, 0.0));
+  
+  double cumprobc, vbc, logLcAdj;
+  
+  
+  // Compute rhs
+  lik0t = 0.0;
+  lik1t = 0.0;
+  for (int t = 0; t < nt; t++) {
+    rhs[t] = r[t][i] + ww[t][i] * b[t][i];
+    v0 = ww[t][i]*E(t,t);
+    v1 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t)*0.01;
+    v2 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t)*0.1;
+    v3 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t);
+    logLc[t][0] = -0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0) + std::log(pitrait[t][0]);
+    logLc[t][1] = -0.5*std::log(v1) - 0.5*((rhs[t]*rhs[t])/v1) + std::log(pitrait[t][1]);
+    logLc[t][2] = -0.5*std::log(v2) - 0.5*((rhs[t]*rhs[t])/v2) + std::log(pitrait[t][2]);
+    logLc[t][3] = -0.5*std::log(v3) - 0.5*((rhs[t]*rhs[t])/v3) + std::log(pitrait[t][3]);
+    lik0t = lik0t  - 0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0);
+    lik1t = lik1t + std::log( std::exp(logLc[t][0]) 
+                                + std::exp(logLc[t][1]) 
+                                + std::exp(logLc[t][2])
+                                + std::exp(logLc[t][3]));
+  }
+  
+  lik0t = lik0t + std::log(pimarker[0]);
+  lik1t = lik1t + std::log(pimarker[1]);
+  p0 = 1.0/(std::exp(lik1t - lik0t) + 1.0);
+  dmarker[i]=0;
+  std::uniform_real_distribution<double> runif(0.0, 1.0);
+  u = runif(gen);
+  if(u>p0) dmarker[i]=1;
+  
+  for (int t = 0; t<nt ; t++) {
+    d[t][i]=0;
+    bn[t]=0.0;
+  }
+  if(dmarker[i]==1) {
+    for (int t = 0; t<nt ; t++) {
+      // variance class probability
+      for (int j = 0; j<nc ; j++) {
+        logLcAdj = 0.0;
+        for (int k = 0; k<nc ; k++) {
+          logLcAdj += std::exp(logLc[t][k] - logLc[t][j]);
+        }
+        probc[t][j] = 1.0/logLcAdj;
+      }
+      // sample variance class indicator
+      std::uniform_real_distribution<double> runif(0.0, 1.0);
+      u = runif(gen);
+      d[t][i]=0;
+      cumprobc = 0.0;
+      for (int j = 0; j<nc ; j++) {
+        cumprobc += probc[t][j];
+        if(u < cumprobc){
+          d[t][i] = j;
+          break;
+        }
+      }
+      // sample marker effect
+      bn[t]=0.0;
+      if(d[t][i]>0) {
+        vbc = B(t,t)*gamma[d[t][i]];
+        rhs1 = r[t][i] + ww[t][i]*b[t][i];
+        lhs1 = ww[t][i] + E(t,t)/vbc;
+        std::normal_distribution<double> rnorm(rhs1/lhs1, sqrt(E(t,t)/lhs1));
+        bn[t] = rnorm(gen);
+      }
+      
+    }
+  }
+  // Adjust residuals based on sampled marker effects
+  for ( int t = 0; t < nt; t++) {
+    diff = (bn[t]-b[t][i]);
+    if(diff!=0.0) {
+      diff = (bn[t]-b[t][i])*std::sqrt(ww[t][i]);
+      for (size_t j = 0; j < LDindices[i].size(); j++) {
+        r[t][LDindices[i][j]] = r[t][LDindices[i][j]] - LDvalues[i][j]*diff*std::sqrt(ww[t][LDindices[i][j]]);
+      }
+    }
+    b[t][i] = bn[t];
+  }
+  
+}
+
+
+// Sample marker effect covariance matrix B
+void sampleBR(int nt,
+             int m,
+             int nub,
+             std::vector<double>& gamma,
+             arma::mat& B,
+             const std::vector<std::vector<int>>& d,
+             const std::vector<std::vector<double>>& b,
+             const std::vector<std::vector<double>>& ssb_prior,
+             std::mt19937& gen) {
+  // Initialize matrices and vectors for intermediate calculations
+  arma::mat Sb(nt, nt, arma::fill::zeros);   // Sum of squared b values
+  arma::mat corb(nt, nt, arma::fill::zeros); // Correlation matrix
+  arma::mat dfB(nt, nt, arma::fill::zeros);  // Degrees of freedom matrix
+  
+  // Calculate Sb, dfB, and stdv based on input data
+  for (int t1 = 0; t1 < nt; t1++) {
+    double ssb = 0.0; // Initialize sum of squared b values for t1
+    double dfb = 0.0; // Initialize degrees of freedom for t1
+    
+    // Calculate ssb and dfb for t1 based on d and b matrices
+    for (int i = 0; i < m; i++) {
+      if (d[t1][i]>0) {
+        ssb += b[t1][i]*b[t1][i]/gamma[d[t1][i]];
+        dfb += 1.0;
+      }
+    }
+    
+    // Store ssb and dfb in the corresponding matrices
+    Sb(t1, t1) = ssb;
+    dfB(t1, t1) = dfb;
+    
+    // Calculate correlations and off-diagonal elements of Sb and dfB
+    for (int t2 = t1; t2 < nt; t2++) {
+      ssb = 0.0; // Reset ssb for t2
+      dfb = 0.0; // Reset dfb for t2
+      
+      if (t1 != t2) {
+        for (int i = 0; i < m; i++) {
+          if (d[t1][i] > 0 && d[t2][i] > 0) {
+            ssb += b[t1][i] * b[t2][i]/(gamma[d[t1][i]]*gamma[d[t2][i]]);
+            dfb += 1.0;
+          }
+        }
+        
+        // Populate the lower and upper triangles of Sb and dfB
+        dfB(t1, t2) = dfb;
+        dfB(t2, t1) = dfb;
+        Sb(t1, t2) = ssb;
+        Sb(t2, t1) = ssb;
+      }
+    }
+  }
+  
+  // Calculate standard deviations and correlations (corb)
+  std::vector<double> stdv(nt);
+  for (int t = 0; t < nt; t++) {
+    stdv[t] = sqrt(Sb(t,t));
+  }
+  
+  for (int t1 = 0; t1 < nt; t1++) {
+    for (int t2 = 0; t2 < nt; t2++) {
+      if (t1 == t2) {
+        corb(t1, t2) = 1.0; // Diagonal elements of corb are set to 1.0
+      }
+      
+      if (t1 != t2 && stdv[t1] != 0.0 &&  stdv[t2] != 0.0) {
+        //corb(t1, t2) = 0.0;
+        corb(t1, t2) = Sb(t1, t2) / (stdv[t1] * stdv[t2]); // Calculate correlations
+        corb(t2, t1) = corb(t1, t2);                      // Correlation matrix is symmetric
+      }
+    }
+  }
+  
+  // Add a small constant to the diagonal elements of corb to ensure PD matrix
+  for (int t1 = 0; t1 < nt; t1++) {
+    corb(t1, t1) += 0.0001;
+  }
+  
+  // Calculate diagonal elements of B using chi-squared distribution
+  for (int t = 0; t < nt; t++) {
+    std::chi_squared_distribution<double> rchisq(dfB(t, t) + nub);
+    double chi2 = rchisq(gen);
+    B(t, t) = (Sb(t, t) + nub * ssb_prior[t][t]) / chi2;
+  }
+  
+  // Calculate off-diagonal elements of B based on correlations and standard deviations
+  for (int t1 = 0; t1 < nt; t1++) {
+    for (int t2 = 0; t2 < nt; t2++) {
+      if (t1 != t2) {
+        B(t1, t2) = corb(t1, t2) * std::sqrt(B(t1, t1)) * std::sqrt(B(t2, t2));
+      }
+    }
+  }
+  
+  // Check if B is symmetric; if not, make it symmetric
+  bool issym = B.is_symmetric();
+  if (!issym) {
+    B = 0.5 * (B + B.t());
+  }
+  
+  // Calculate the inverse of B and check for success
+  arma::mat Bi(nt, nt, arma::fill::zeros);
+  bool success;
+  success = arma::inv_sympd(Bi, B, arma::inv_opts::allow_approx);
+  
+  // If the inverse calculation fails, print an error message
+  if (!success) {
+    std::cerr << "Error: Condition is false." << std::endl;
+  }
+}
 
 
 // [[Rcpp::export]]
@@ -1090,6 +1402,35 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   std::vector<std::vector<double>> r(nt, std::vector<double>(m, 0.0));
   std::vector<int> order(m);
   std::vector<double> vei(m),vadj(m);
+
+  std::vector<double> gamma(4, 0.0);
+  
+  std::vector<std::vector<double>> pitrait(nt, std::vector<double>(4, 0.0)); 
+  std::vector<std::vector<double>> pistrait(nt, std::vector<double>(4, 0.0)); 
+  std::vector<double> pimarker(2, 0.0);
+  std::vector<double> pismarker(2, 0.0);
+  std::vector<int> dmarker(m, 0);
+  
+  gamma[0] = 0.0;
+  gamma[1] = 0.01;
+  gamma[2] = 0.1;
+  gamma[3] = 1.0;
+  
+  for (int t = 0; t < nt; t++) {
+    pitrait[t][0] = 1.0-pi[0];
+    pitrait[t][1] = pi[0];
+  }
+  if(method==5){
+    for (int t = 0; t < nt; t++) {
+      pitrait[t][0] = 0.95;
+      pitrait[t][1] = 0.02;
+      pitrait[t][2] = 0.02;
+      pitrait[t][3] = 0.01;
+    }
+  }
+  
+  pimarker[0] = 1.0-pi[0];
+  pimarker[1] = pi[0];
   
   // Initialize variables
   for (int i = 0; i < m; i++) {
@@ -1258,8 +1599,33 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       }
     }
     
+    // Sample marker effects (BayesR)
+    if (method==5) {
+      for ( int isort = 0; isort < m; isort++) {
+        int i = order[isort];
+        sampleBetaRS(i, nt, gamma,
+                    dmarker, pimarker, pitrait,
+                    E, B,
+                    ww, r, b, d,
+                    LDindices, LDvalues,
+                    gen);
+      }
+      // Store values
+      for (int t = 0; t < nt; t++) {
+        for ( int i = 0; i < m; i++) {
+          if (d[t][i] > 0) {
+            if ((it > nburn) && (it % nthin == 0)) {
+              dm[t][i] = dm[t][i] + 1.0;
+              bm[t][i] = bm[t][i] + b[t][i];
+            }
+          }
+        }
+      }
+      
+    }
+    
     // Sample pi for Bayes C
-    if(updatePi) {
+    if(updatePi && method==4) {
       for (int k = 0; k<nmodels ; k++) {
         std::gamma_distribution<double> rgamma(cmodel[k],1.0);
         double rg = rgamma(gen);
@@ -1271,6 +1637,25 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         if(it>nburn) pis[k] = pis[k] + pi[k];
       }
       std::fill(cmodel.begin(), cmodel.end(), 1.0);
+    }
+    
+    // Sample pi for Bayes R
+    if(updatePi && method==5) {
+      samplePiMt(nt, pimarker, dmarker, gen);
+      //samplePiC(nt, pitrait, d, gen);
+      samplePiR(nt, pitrait, d, gen);
+      //Rcpp::Rcout << "pimarker[0]: " << pimarker[0] << std::endl;
+      //Rcpp::Rcout << "pimarker[1]: " << pimarker[1] << std::endl;
+      if(it>nburn) {
+        for (int t = 0; t<nt ; t++) {
+          for (int k = 0; k<gamma.size() ; k++) {
+            pistrait[t][k] = pistrait[t][k] + pitrait[t][k];
+          }
+        }
+        for (int k = 0; k<2 ; k++) {
+          pismarker[k] = pismarker[k] + pimarker[k];
+        }
+      }
     }
     
     
@@ -1323,7 +1708,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     //   }
     //   arma::mat Bi = arma::inv(B);
     // }
-    if(updateB) {
+    if(updateB && method==4) {
       arma::mat Sb(nt,nt, fill::zeros);
       arma::mat corb(nt,nt, fill::zeros);
       arma::mat dfB(nt,nt, fill::zeros);
@@ -1407,6 +1792,19 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         std::cerr << "Error: Condition is false." << std::endl;
       }
       //arma::mat Bi = arma::inv(B);
+    }
+
+    // Sample marker variance
+    if(updateB && method==5) {
+      sampleBR(nt, m, nub, gamma, B, d, b, ssb_prior, gen);
+      for (int t = 0; t < nt; t++) {
+        vbs[t][it] = B(t,t);
+      }
+      for (int t1 = 0; t1 < nt; t1++) {
+        for (int t2 = 0; t2 < nt; t2++) {
+          if(it>nburn) cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2);
+        }
+      }
     }
     
     //Update genetic variance
@@ -1553,10 +1951,10 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   //     result[12][t][i] = pi[i];
   //     result[13][t][i] = pis[i]/nit;
   //   }
-  // }  
+  // }
   // Summarize results
   std::vector<std::vector<std::vector<double>>> result;
-  result.resize(18);
+  result.resize(20);
   
   result[0].resize(nt);
   result[1].resize(nt);
@@ -1576,6 +1974,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   result[15].resize(nt);
   result[16].resize(nt);
   result[17].resize(nt);
+  result[18].resize(nt);
+  result[19].resize(nt);
   
   for (int t=0; t < nt; t++) {
     result[0][t].resize(m);
@@ -1596,6 +1996,8 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     result[15][t].resize(nt);
     result[16][t].resize(nmodels);
     result[17][t].resize(nmodels);
+    result[18][t].resize(4);
+    result[19][t].resize(2);
   }
   
   for (int t=0; t < nt; t++) {
@@ -1631,6 +2033,14 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     for (int i=0; i < nmodels; i++) {
       result[16][t][i] = pi[i];
       result[17][t][i] = pis[i]/nit;
+    }
+  }
+  for (int t=0; t < nt; t++) {
+    for (int i=0; i < 4; i++) {
+      result[18][t][i] = pistrait[t][i]/nit;
+    }
+    for (int i=0; i < 2; i++) {
+      result[19][t][i] = pismarker[i]/nit;
     }
   }
   return result;
@@ -1690,7 +2100,34 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   std::vector<std::vector<double>> x2(nt, std::vector<double>(m, 0.0));
   std::vector<std::vector<double>> r(nt, std::vector<double>(m, 0.0));
   std::vector<int> order(m);
+  std::vector<double> gamma(4, 0.0);
+
+  std::vector<std::vector<double>> pitrait(nt, std::vector<double>(4, 0.0)); 
+  std::vector<std::vector<double>> pistrait(nt, std::vector<double>(4, 0.0)); 
+  std::vector<double> pimarker(2, 0.0);
+  std::vector<double> pismarker(2, 0.0);
+  std::vector<int> dmarker(m, 0);
+
+  gamma[0] = 0.0;
+  gamma[1] = 0.01;
+  gamma[2] = 0.1;
+  gamma[3] = 1.0;
   
+  for (int t = 0; t < nt; t++) {
+    pitrait[t][0] = 1.0-pi[0];
+    pitrait[t][1] = pi[0];
+  }
+  if(method==5){
+    for (int t = 0; t < nt; t++) {
+      pitrait[t][0] = 0.95;
+      pitrait[t][1] = 0.02;
+      pitrait[t][2] = 0.02;
+      pitrait[t][3] = 0.01;
+    }
+  }
+  
+  pimarker[0] = 1.0-pi[0];
+  pimarker[1] = pi[0];
   
   // Initialize variables
   for (int i = 0; i < m; i++) {
@@ -1747,7 +2184,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     if (method==4) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        sampleBetas(i, nt, 
+        sampleBetaCMt(i, nt, 
                     nmodels, models, cmodel, pi,
                     Ei, Bi,
                     ww, r, b, d, 
@@ -1755,9 +2192,24 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
                     gen); 
       }
     }
+    // Sample marker effects (BayesR)
+    if (method==5) {
+      for ( int isort = 0; isort < m; isort++) {
+        int i = order[isort];
+        sampleBetaR(i, nt, gamma,
+                      dmarker, pimarker, pitrait,
+                      E, B,
+                      ww, r, b, d,
+                      XXindices, XXvalues,
+                      //LDindices, LDvalues,
+                      gen);
+      }
+    }
+    // Store values
     for (int t = 0; t < nt; t++) {
       for ( int i = 0; i < m; i++) {
-        if (d[t][i] == 1) {
+        //if (d[t][i] == 1) {
+        if (d[t][i] > 0) {
           if ((it > nburn) && (it % nthin == 0)) {
             dm[t][i] = dm[t][i] + 1.0;
             bm[t][i] = bm[t][i] + b[t][i];
@@ -1767,16 +2219,47 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     }
     
     // Sample pi for Bayes C
-    if(updatePi) {
+    if(updatePi && method==4) {
       samplePi(cmodel, pi, gen);
       for (int k = 0; k<nmodels ; k++) {
         if(it>nburn) pis[k] = pis[k] + pi[k];
       }
     }
     
+    // Sample pi for Bayes R
+    if(updatePi && method==5) {
+      samplePiMt(nt, pimarker, dmarker, gen);
+      //samplePiC(nt, pitrait, d, gen);
+      samplePiR(nt, pitrait, d, gen);
+      //Rcpp::Rcout << "pimarker[0]: " << pimarker[0] << std::endl;
+      //Rcpp::Rcout << "pimarker[1]: " << pimarker[1] << std::endl;
+      if(it>nburn) {
+        for (int t = 0; t<nt ; t++) {
+          for (int k = 0; k<gamma.size() ; k++) {
+            pistrait[t][k] = pistrait[t][k] + pitrait[t][k];
+          }
+        }
+        for (int k = 0; k<2 ; k++) {
+          pismarker[k] = pismarker[k] + pimarker[k];
+        }
+      }
+    }
+    
     // Sample marker variance
-    if(updateB) {
+    if(updateB && method==4) {
       sampleB(nt, m, nub, B, d, b, ssb_prior, gen);
+      for (int t = 0; t < nt; t++) {
+        vbs[t][it] = B(t,t);
+      }
+      for (int t1 = 0; t1 < nt; t1++) {
+        for (int t2 = 0; t2 < nt; t2++) {
+          if(it>nburn) cvbm[t1][t2] = cvbm[t1][t2] + B(t1,t2);
+        }
+      }
+    }
+    // Sample marker variance
+    if(updateB && method==5) {
+      sampleBR(nt, m, nub, gamma, B, d, b, ssb_prior, gen);
       for (int t = 0; t < nt; t++) {
         vbs[t][it] = B(t,t);
       }
@@ -1791,7 +2274,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     for (int t = 0; t < nt; t++) {
       vgs[t][it] = G(t,t);
     }
-    for (int t1 = 0; t1 < nt; t1++) {
+    for (int t1 = 0; t1 < nt; t1++  ) {
       for (int t2 = 0; t2 < nt; t2++) {
         if(it>nburn) cvgm[t1][t2] = cvgm[t1][t2] + G(t1,t2);
       } 
@@ -1818,7 +2301,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   }
   // Summarize results
   std::vector<std::vector<std::vector<double>>> result;
-  result.resize(18);
+  result.resize(20);
   
   result[0].resize(nt);
   result[1].resize(nt);
@@ -1838,6 +2321,8 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   result[15].resize(nt);
   result[16].resize(nt);
   result[17].resize(nt);
+  result[18].resize(nt);
+  result[19].resize(nt);
   
   for (int t=0; t < nt; t++) {
     result[0][t].resize(m);
@@ -1858,6 +2343,8 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     result[15][t].resize(nt);
     result[16][t].resize(nmodels);
     result[17][t].resize(nmodels);
+    result[18][t].resize(4);
+    result[19][t].resize(2);
   }
   
   for (int t=0; t < nt; t++) {
@@ -1893,6 +2380,14 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     for (int i=0; i < nmodels; i++) {
       result[16][t][i] = pi[i];
       result[17][t][i] = pis[i]/nit;
+    }
+  }
+  for (int t=0; t < nt; t++) {
+    for (int i=0; i < 4; i++) {
+      result[18][t][i] = pistrait[t][i]/nit;
+    }
+    for (int i=0; i < 2; i++) {
+      result[19][t][i] = pismarker[i]/nit;
     }
   }
   return result;
