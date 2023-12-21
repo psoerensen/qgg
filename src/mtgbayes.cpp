@@ -1641,7 +1641,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     
     // Sample pi for Bayes R
     if(updatePi && method==5) {
-      samplePiMt(nt, pimarker, dmarker, gen);
+      //samplePiMt(nt, pimarker, dmarker, gen);
       //samplePiC(nt, pitrait, d, gen);
       samplePiR(nt, pitrait, d, gen);
       //Rcpp::Rcout << "pimarker[0]: " << pimarker[0] << std::endl;
