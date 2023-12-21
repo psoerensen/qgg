@@ -1544,7 +1544,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
         mselect=0;
-        cumprobc = 0.0;-
+        cumprobc = 0.0;
         
         for (int k = 0; k<nmodels ; k++) {
           cumprobc += pmodel[k];
@@ -1642,9 +1642,9 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     // Sample pi for Bayes R
     if(updatePi && method==5) {
       samplePiMt(nt, pimarker, dmarker, gen);
-      if(pimarker[1]>0.1) {
-        pimarker[1] = 0.1;
-        pimarker[0] = 1.0-pimarker[1]; 
+      if(pimarker[0]<0.9) {
+        pimarker[0]=0.9;
+        pimarker[1]=1.0-pimarker[0];
       }
       //samplePiC(nt, pitrait, d, gen);
       samplePiR(nt, pitrait, d, gen);
