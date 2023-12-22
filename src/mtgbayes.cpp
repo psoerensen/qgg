@@ -598,29 +598,46 @@ void sampleBetaR(int i,
   std::vector<std::vector<double>> probc(nt, std::vector<double>(nc, 0.0));
   std::vector<std::vector<double>> logLc(nt, std::vector<double>(nc, 0.0));
 
-  double cumprobc, vbc, logLcAdj;
+  double cumprobc, vbc, logLcAdj, b2;
 
 
   // Compute rhs
   lik0t = 0.0;
   lik1t = 0.0;
+  // for (int t = 0; t < nt; t++) {
+  //   rhs[t] = r[t][i] + ww[t][i] * b[t][i];
+  //   v0 = ww[t][i]*E(t,t);
+  //   v1 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t)*0.01;
+  //   v2 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t)*0.1;
+  //   v3 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t);
+  //   logLc[t][0] = -0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0) + std::log(pitrait[t][0]);
+  //   logLc[t][1] = -0.5*std::log(v1) - 0.5*((rhs[t]*rhs[t])/v1) + std::log(pitrait[t][1]);
+  //   logLc[t][2] = -0.5*std::log(v2) - 0.5*((rhs[t]*rhs[t])/v2) + std::log(pitrait[t][2]);
+  //   logLc[t][3] = -0.5*std::log(v3) - 0.5*((rhs[t]*rhs[t])/v3) + std::log(pitrait[t][3]);
+  //   lik0t = lik0t  - 0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0);
+  //   lik1t = lik1t + std::log( std::exp(logLc[t][0]) 
+  //                               + std::exp(logLc[t][1]) 
+  //                               + std::exp(logLc[t][2])
+  //                               + std::exp(logLc[t][3]));
+  // }
   for (int t = 0; t < nt; t++) {
     rhs[t] = r[t][i] + ww[t][i] * b[t][i];
-    v0 = ww[t][i]*E(t,t);
-    v1 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t)*0.01;
-    v2 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t)*0.1;
-    v3 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t);
-    logLc[t][0] = -0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0) + std::log(pitrait[t][0]);
-    logLc[t][1] = -0.5*std::log(v1) - 0.5*((rhs[t]*rhs[t])/v1) + std::log(pitrait[t][1]);
-    logLc[t][2] = -0.5*std::log(v2) - 0.5*((rhs[t]*rhs[t])/v2) + std::log(pitrait[t][2]);
-    logLc[t][3] = -0.5*std::log(v3) - 0.5*((rhs[t]*rhs[t])/v3) + std::log(pitrait[t][3]);
-    lik0t = lik0t  - 0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0);
+    v0 = E(t,t)/ww[t][i];
+    v1 = E(t,t)/ww[t][i] + B(t,t)*gamma[1];
+    v2 = E(t,t)/ww[t][i] + B(t,t)*gamma[2];
+    v3 = E(t,t)/ww[t][i] + B(t,t)*gamma[3];
+    b2 = (rhs[t]*rhs[t])/(ww[t][i]*ww[t][i]);
+    logLc[t][0] = -0.5*std::log(v0) - 0.5*(b2/v0) + std::log(pitrait[t][0]);
+    logLc[t][1] = -0.5*std::log(v1) - 0.5*(b2/v1) + std::log(pitrait[t][1]);
+    logLc[t][2] = -0.5*std::log(v2) - 0.5*(b2/v2) + std::log(pitrait[t][2]);
+    logLc[t][3] = -0.5*std::log(v3) - 0.5*(b2/v3) + std::log(pitrait[t][3]);
+    lik0t = lik0t  - 0.5*std::log(v0) - 0.5*(b2/v0);
     lik1t = lik1t + std::log( std::exp(logLc[t][0]) 
                                 + std::exp(logLc[t][1]) 
                                 + std::exp(logLc[t][2])
                                 + std::exp(logLc[t][3]));
   }
-
+  
   lik0t = lik0t + std::log(pimarker[0]);
   lik1t = lik1t + std::log(pimarker[1]);
   p0 = 1.0/(std::exp(lik1t - lik0t) + 1.0);
@@ -630,6 +647,16 @@ void sampleBetaR(int i,
   if(u>p0) dmarker[i]=1;
 
   for (int t = 0; t<nt ; t++) {
+    rhs[t] = r[t][i] + ww[t][i] * b[t][i];
+    v0 = E(t,t)/ww[t][i];
+    v1 = E(t,t)/ww[t][i] + B(t,t)*0.01;
+    v2 = E(t,t)/ww[t][i] + B(t,t)*0.1;
+    v3 = E(t,t)/ww[t][i] + B(t,t);
+    b2 = (rhs[t]*rhs[t])/(ww[t][i]*ww[t][i]);
+    logLc[t][0] = -0.5*std::log(v0) - 0.5*(b2/v0) + std::log(pitrait[t][0]);
+    logLc[t][1] = -0.5*std::log(v1) - 0.5*(b2/v1) + std::log(pitrait[t][1]);
+    logLc[t][2] = -0.5*std::log(v2) - 0.5*(b2/v2) + std::log(pitrait[t][2]);
+    logLc[t][3] = -0.5*std::log(v3) - 0.5*(b2/v3) + std::log(pitrait[t][3]);
     d[t][i]=0;
     bn[t]=0.0;
   }
@@ -705,7 +732,7 @@ void sampleBetaRS(int i,
   std::vector<std::vector<double>> probc(nt, std::vector<double>(nc, 0.0));
   std::vector<std::vector<double>> logLc(nt, std::vector<double>(nc, 0.0));
   
-  double cumprobc, vbc, logLcAdj;
+  double cumprobc, vbc, logLcAdj,b2;
   
   
   // Compute rhs
@@ -713,15 +740,16 @@ void sampleBetaRS(int i,
   lik1t = 0.0;
   for (int t = 0; t < nt; t++) {
     rhs[t] = r[t][i] + ww[t][i] * b[t][i];
-    v0 = ww[t][i]*E(t,t);
-    v1 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t)*0.01;
-    v2 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t)*0.1;
-    v3 = ww[t][i]*E(t,t) + ww[t][i]*ww[t][i]*B(t,t);
-    logLc[t][0] = -0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0) + std::log(pitrait[t][0]);
-    logLc[t][1] = -0.5*std::log(v1) - 0.5*((rhs[t]*rhs[t])/v1) + std::log(pitrait[t][1]);
-    logLc[t][2] = -0.5*std::log(v2) - 0.5*((rhs[t]*rhs[t])/v2) + std::log(pitrait[t][2]);
-    logLc[t][3] = -0.5*std::log(v3) - 0.5*((rhs[t]*rhs[t])/v3) + std::log(pitrait[t][3]);
-    lik0t = lik0t  - 0.5*std::log(v0) - 0.5*((rhs[t]*rhs[t])/v0);
+    v0 = E(t,t)/ww[t][i];
+    v1 = E(t,t)/ww[t][i] + B(t,t)*gamma[1];
+    v2 = E(t,t)/ww[t][i] + B(t,t)*gamma[2];
+    v3 = E(t,t)/ww[t][i] + B(t,t)*gamma[3];
+    b2 = (rhs[t]*rhs[t])/(ww[t][i]*ww[t][i]);
+    logLc[t][0] = -0.5*std::log(v0) - 0.5*(b2/v0) + std::log(pitrait[t][0]);
+    logLc[t][1] = -0.5*std::log(v1) - 0.5*(b2/v1) + std::log(pitrait[t][1]);
+    logLc[t][2] = -0.5*std::log(v2) - 0.5*(b2/v2) + std::log(pitrait[t][2]);
+    logLc[t][3] = -0.5*std::log(v3) - 0.5*(b2/v3) + std::log(pitrait[t][3]);
+    lik0t = lik0t  - 0.5*std::log(v0) - 0.5*(b2/v0);
     lik1t = lik1t + std::log( std::exp(logLc[t][0]) 
                                 + std::exp(logLc[t][1]) 
                                 + std::exp(logLc[t][2])
@@ -737,6 +765,16 @@ void sampleBetaRS(int i,
   if(u>p0) dmarker[i]=1;
   
   for (int t = 0; t<nt ; t++) {
+    rhs[t] = r[t][i] + ww[t][i] * b[t][i];
+    v0 = E(t,t)/ww[t][i];
+    v1 = E(t,t)/ww[t][i] + B(t,t)*0.01;
+    v2 = E(t,t)/ww[t][i] + B(t,t)*0.1;
+    v3 = E(t,t)/ww[t][i] + B(t,t);
+    b2 = (rhs[t]*rhs[t])/(ww[t][i]*ww[t][i]);
+    logLc[t][0] = -0.5*std::log(v0) - 0.5*(b2/v0) + std::log(pitrait[t][0]);
+    logLc[t][1] = -0.5*std::log(v1) - 0.5*(b2/v1) + std::log(pitrait[t][1]);
+    logLc[t][2] = -0.5*std::log(v2) - 0.5*(b2/v2) + std::log(pitrait[t][2]);
+    logLc[t][3] = -0.5*std::log(v3) - 0.5*(b2/v3) + std::log(pitrait[t][3]);
     d[t][i]=0;
     bn[t]=0.0;
   }
@@ -1642,10 +1680,10 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     // Sample pi for Bayes R
     if(updatePi && method==5) {
       samplePiMt(nt, pimarker, dmarker, gen);
-      if(pimarker[0]<0.9) {
-        pimarker[0]=0.9;
-        pimarker[1]=1.0-pimarker[0];
-      }
+      //if(pimarker[0]<0.9) {
+      //  pimarker[0]=0.9;
+      //  pimarker[1]=1.0-pimarker[0];
+      //}
       //samplePiC(nt, pitrait, d, gen);
       samplePiR(nt, pitrait, d, gen);
       //Rcpp::Rcout << "pimarker[0]: " << pimarker[0] << std::endl;
