@@ -850,7 +850,8 @@ void sampleBR(int nt,
     // Calculate ssb and dfb for t1 based on d and b matrices
     for (int i = 0; i < m; i++) {
       if (d[t1][i]>0) {
-        ssb += b[t1][i]*b[t1][i]/gamma[d[t1][i]];
+        //ssb += b[t1][i]*b[t1][i]/gamma[d[t1][i]];
+        ssb += b[t1][i]*b[t1][i];
         dfb += 1.0;
       }
     }
@@ -867,7 +868,8 @@ void sampleBR(int nt,
       if (t1 != t2) {
         for (int i = 0; i < m; i++) {
           if (d[t1][i] > 0 && d[t2][i] > 0) {
-            ssb += b[t1][i] * b[t2][i]/(gamma[d[t1][i]]*gamma[d[t2][i]]);
+            //ssb += b[t1][i] * b[t2][i]/(gamma[d[t1][i]]*gamma[d[t2][i]]);
+            ssb += b[t1][i] * b[t2][i];
             dfb += 1.0;
           }
         }
