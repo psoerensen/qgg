@@ -912,7 +912,7 @@ void sampleBR(int nt,
   for (int t = 0; t < nt; t++) {
     std::chi_squared_distribution<double> rchisq(dfB(t, t) + nub);
     double chi2 = rchisq(gen);
-    B(t, t) = (Sb(t, t) + nub * ssb_prior[t][t]) / chi2;
+    B(t, t) = (dfB(t, t)*Sb(t, t) + nub * ssb_prior[t][t]) / chi2;
   }
   
   // Calculate off-diagonal elements of B based on correlations and standard deviations
@@ -1682,10 +1682,10 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
     // Sample pi for Bayes R
     if(updatePi && method==5) {
       samplePiMt(nt, pimarker, dmarker, gen);
-      //if(pimarker[0]<0.9) {
-      //  pimarker[0]=0.9;
-      //  pimarker[1]=1.0-pimarker[0];
-      //}
+      if(pimarker[0]<0.9) {
+        pimarker[0]=0.9;
+        pimarker[1]=1.0-pimarker[0];
+      }
       //samplePiC(nt, pitrait, d, gen);
       samplePiR(nt, pitrait, d, gen);
       //Rcpp::Rcout << "pimarker[0]: " << pimarker[0] << std::endl;
@@ -2273,7 +2273,10 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
     // Sample pi for Bayes R
     if(updatePi && method==5) {
       samplePiMt(nt, pimarker, dmarker, gen);
-      //samplePiC(nt, pitrait, d, gen);
+      if(pimarker[0]<0.9) {
+        pimarker[0]=0.9;
+        pimarker[1]=1.0-pimarker[0];
+      }
       samplePiR(nt, pitrait, d, gen);
       //Rcpp::Rcout << "pimarker[0]: " << pimarker[0] << std::endl;
       //Rcpp::Rcout << "pimarker[1]: " << pimarker[1] << std::endl;
