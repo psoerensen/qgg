@@ -431,53 +431,107 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
 #' @keywords internal
 #' @export
 
-writeBED <- function(bedRead=NULL, bimRead=NULL, famRead=NULL, 
-                     bedWrite=NULL, bimWrite=NULL, famWrite=NULL,
-                     rsids=NULL) {
+writeBED <- function(bedRead = NULL, bimRead = NULL, famRead = NULL,
+                     bedWrite = NULL, bimWrite = NULL, famWrite = NULL,
+                     rsids = NULL, endian=.Platform$endian, useBytes=TRUE) {
   
+  # Input validation
+  if (any(sapply(list(bedRead, bimRead, famRead, bedWrite, bimWrite, famWrite, rsids), is.null))) {
+    stop("All input arguments must be provided.")
+  }
   
   bim <- data.table::fread(input = bimRead, header = FALSE, data.table = FALSE, colClasses = "character")
   fam <- data.table::fread(input = famRead, header = FALSE, data.table = FALSE, colClasses = "character")
   
-  if(is.null(rsids)) stop("Missing rsids argument")
-
+  if (is.null(rsids)) stop("Missing rsids argument")
+  
   n <- nrow(fam)
   m <- nrow(bim)
-
+  
   # Number of bytes for each marker
-  nbytes <- ceiling(n/4)
+  nbytes <- ceiling(n / 4)
   
-  if(!file.size(bedRead)==nbytes*m+3) stop("Size of bedfile does not number of individuals in famfile")
+  # Check file size
+  if (!file.size(bedRead) == nbytes * m + 3) stop("Size of bed file does not match the number of individuals in fam file")
   
-  selected <- bim[,2]%in%rsids
+  selected <- bim[, 2] %in% rsids
   
-  data.table::fwrite(bim[selected,], file=bimWrite, col.names=FALSE, row.names=FALSE)
-  data.table::fwrite(fam, file=famWrite, col.names=FALSE, row.names=FALSE)
-
+  data.table::fwrite(bim[selected, ], file = bimWrite, col.names = FALSE, row.names = FALSE, sep=" ")
+  data.table::fwrite(fam, file = famWrite, col.names = FALSE, row.names = FALSE, sep=" ")
+  
   # Check magic number
   bfbedRead <- file(bedRead, "rb")
-  magic <- readBin(bfbedRead, "raw", n = 3)
+  magic <- readBin(bfbedRead, "raw", n = 3, size=1,
+                   signed=FALSE, endian=endian)
   if (!all(magic[1] == "6c", magic[2] == "1b", magic[3] == "01")) {
     close(bfbedRead)
     stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
   }
   
-  bfbedRead <- file(bedRead, "rb")
   bfbedWrite <- file(bedWrite, "wb")
   
   # Read/write magic number
-  magic <- readBin(bfbedRead, "raw", n = 3)
-  writeBin(magic, bfbedWrite)
+  writeBin(magic, bfbedWrite, size=1, endian=endian, useBytes=useBytes)
   
   # Read/write genotypes for each marker
-  for(i in 1:m) {
-    g <- readBin(bfbedRead, "raw", n = nbytes)
-    if(selected[i]) writeBin(g, bfbedWrite)
+  for (i in 1:m) {
+    g <- readBin(bfbedRead, "raw", n = nbytes, size=1,
+                 signed=FALSE, endian=endian)
+    if (selected[i]) writeBin(g, bfbedWrite, size=1, 
+                              endian=endian, useBytes=useBytes)
   }
+  
   close(bfbedRead)
   close(bfbedWrite)
-  
 }
+
+# writeBED <- function(bedRead=NULL, bimRead=NULL, famRead=NULL, 
+#                      bedWrite=NULL, bimWrite=NULL, famWrite=NULL,
+#                      rsids=NULL) {
+#   
+#   
+#   bim <- data.table::fread(input = bimRead, header = FALSE, data.table = FALSE, colClasses = "character")
+#   fam <- data.table::fread(input = famRead, header = FALSE, data.table = FALSE, colClasses = "character")
+#   
+#   if(is.null(rsids)) stop("Missing rsids argument")
+# 
+#   n <- nrow(fam)
+#   m <- nrow(bim)
+# 
+#   # Number of bytes for each marker
+#   nbytes <- ceiling(n/4)
+#   
+#   if(!file.size(bedRead)==nbytes*m+3) stop("Size of bedfile does not number of individuals in famfile")
+#   
+#   selected <- bim[,2]%in%rsids
+#   
+#   data.table::fwrite(bim[selected,], file=bimWrite, col.names=FALSE, row.names=FALSE)
+#   data.table::fwrite(fam, file=famWrite, col.names=FALSE, row.names=FALSE)
+# 
+#   # Check magic number
+#   bfbedRead <- file(bedRead, "rb")
+#   magic <- readBin(bfbedRead, "raw", n = 3)
+#   if (!all(magic[1] == "6c", magic[2] == "1b", magic[3] == "01")) {
+#     close(bfbedRead)
+#     stop("Wrong magic number for bed file; should be -- 0x6c 0x1b 0x01 --.")
+#   }
+#   
+#   bfbedRead <- file(bedRead, "rb")
+#   bfbedWrite <- file(bedWrite, "wb")
+#   
+#   # Read/write magic number
+#   magic <- readBin(bfbedRead, "raw", n = 3)
+#   writeBin(magic, bfbedWrite)
+#   
+#   # Read/write genotypes for each marker
+#   for(i in 1:m) {
+#     g <- readBin(bfbedRead, "raw", n = nbytes)
+#     if(selected[i]) writeBin(g, bfbedWrite)
+#   }
+#   close(bfbedRead)
+#   close(bfbedWrite)
+#   
+# }
 
 
 # writeBED <- function(bedfiles = NULL, bimfiles = NULL, famfiles = NULL, 
@@ -1222,44 +1276,6 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=N
   
   return(unlist(ldscores2))
 }
-
-#' Adjust B-values
-#'
-#' This function adjusts the B-values based on the LD structure and other parameters.
-#' The adjustment is done in subsets, and a plot of observed vs. predicted values is produced for each subset.
-#'
-#' @param b A numeric vector containing the B-values to be adjusted. If NULL (default), no adjustments are made.
-#' @param LD A matrix representing the linkage disequilibrium (LD) structure.
-#' @param msize An integer specifying the size of the subsets.
-#' @param overlap An integer specifying the overlap size between consecutive subsets.
-#' @param shrink A numeric value used for shrinkage. Default is 0.001.
-#' @param threshold A numeric value specifying the threshold. Default is 1e-8.
-#'
-#' @return A list containing the adjusted B-values.
-#' 
-#' @keywords internal
-#' @export
-
-adjustB <- function(b=NULL, LD = NULL, msize=NULL, overlap=NULL, shrink=0.001, threshold=1e-8) {
-  m <- length(b)
-  badj <- rep(0,m)
-  sets <- splitWithOverlap(1:m,msize,overlap)
-  for( i in 1:length(sets) ) {
-    rws <- sets[[i]]
-    mset <- length(rws)
-    bset <- b[rws]
-    B <- LD[rws,rws]
-    for (j in 1:mset) {
-      #Bi <- solve( B[-j,-j]+diag(shrink,mset-1) )
-      Bi <- chol2inv(chol(B[-j,-j]+diag(shrink,mset-1)))
-      badj[rws[j]] <- sum(B[j,-j]*Bi%*%bset[-j])
-    }
-    plot(y=badj[rws],x=b[rws],ylab="Predicted", xlab="Observed",  frame.plot=FALSE)
-    abline(0,1, lwd=2, col=2, lty=2)
-  }
-  return(b=badj)
-}
-
 
 
 

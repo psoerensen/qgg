@@ -409,7 +409,7 @@ hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 # }
 
 
-magma <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol=1e-7, minsize=2, verbose=FALSE) {
+vegas <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol=1e-7, minsize=2, verbose=FALSE) {
   
   if(is.null(Glist)) stop("Please provide Glist object")
   #if(is.null(stat)) stop("Please provide stat object")

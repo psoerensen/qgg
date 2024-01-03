@@ -1513,10 +1513,17 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
       updateB_reg <- updateB
       updatePi_reg <- updatePi
       pi_reg <- pi
+      r2_reg <- r2
       
       for (trial in 1:ntrial) {
         
         if (!converged) {
+
+          if(pruneLD) {
+            message("Adjust summary statistics using pruning")
+            pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2_reg, thold=1) 
+            mask[pruned,trait] <- TRUE
+          }
           
           attempts[i] <- trial
           
@@ -1575,33 +1582,39 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
             B <- crossprod(scale(W))/(length(ids)-1)
             if(shrinkCor) B <- corpcor::cor.shrink(W)
             if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
-            if(checkLD & trial==1) { 
+            if(checkLD) { 
               message("Adjust summary statistics using imputation")
               badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
-                                    msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
-              z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
-              outliers <- names(z[abs(z)>1.96])
+                              msize=200, overlap=50, shrink=0.001, threshold=1e-8) 
+              # badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
+              #                       msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
+              # z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
+              # outliers <- names(z[abs(z)>1.96])
               #mask[outliers,trait] <- TRUE
-              stat$b[outliers,trait] <- badj[abs(z)>1.96]
-              stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
-              stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
+              #stat$b[outliers,trait] <- badj[abs(z)>1.96]
+              #stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
+              #stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
+              stat$b[rsids,trait] <- badj
+              stat$ww[rsids,trait] <- 1/(stat$seb[rsids,trait]^2 + stat$b[rsids,trait]^2/stat$n[rsids,trait])
+              stat$wy[rsids,trait] <- stat$b[rsids,trait]*stat$ww[rsids,trait]
             }
-            #if(pruneLD & trial==2) {
             if(pruneLD) {
+            #if(pruneLD) {
               message("Adjust summary statistics using pruning")
               pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
               mask[pruned,trait] <- TRUE
             }
-            if(trial==3) {
-              message("Set updateB and updatePi to FALSE")
-              updateB_reg <- FALSE 
-              updatePi_reg <- FALSE 
-            }
-            if(trial>3) {
-              message("Decrease Pi by a factor 10")
-              updateB_reg <- FALSE 
+            # if(trial==3) {
+            #   message("Set updateB and updatePi to FALSE")
+            #   updateB_reg <- FALSE 
+            #   updatePi_reg <- FALSE 
+            # }
+            if(trial>0) {
+              message("Decrease r2 by a factor 10")
+              #updateB_reg <- FALSE 
               updatePi_reg <- FALSE
-              pi_reg <- pi_reg*0.1
+              r2_reg <- r2_reg*0.1
+              #pi_reg <- pi_reg*0.1
             }
           }
         }
@@ -1800,31 +1813,40 @@ gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=N
               B <- crossprod(scale(W))/(length(ids)-1)
               if(shrinkCor) B <- corpcor::cor.shrink(W)
               if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
-              if(checkLD & trial==1) { 
+              if(checkLD) { 
+                # message("Adjust summary statistics using imputation")
+                # badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
+                #                       msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
+                # z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
+                # outliers <- names(z[abs(z)>1.96])
+                #mask[outliers,trait] <- TRUE
                 message("Adjust summary statistics using imputation")
                 badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
-                                      msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
-                z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
-                outliers <- names(z[abs(z)>1.96])
+                                msize=200, overlap=50, shrink=0.001, threshold=1e-8) 
+                #z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
+                #outliers <- names(z[abs(z)>1.96])
                 #mask[outliers,trait] <- TRUE
-                stat$b[outliers,trait] <- badj[abs(z)>1.96]
-                stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
-                stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
+                #stat$b[outliers,trait] <- badj[abs(z)>1.96]
+                #stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
+                #stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
+                stat$b[rsids,trait] <- badj
+                stat$ww[rsids,trait] <- 1/(stat$seb[rsids,trait]^2 + stat$b[rsids,trait]^2/stat$n[rsids,trait])
+                stat$wy[rsids,trait] <- stat$b[rsids,trait]*stat$ww[rsids,trait]
               }
+              #if(pruneLD) {
               if(pruneLD) {
-                #if(pruneLD & trial==2) {
                 message("Adjust summary statistics using pruning")
                 pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
                 mask[pruned,trait] <- TRUE
               }
-              if(trial==3) {
-                message("Set updateB and updatePi to FALSE")
-                updateB_reg <- FALSE 
-                updatePi_reg <- FALSE 
-              }
-              if(trial>3) {
+              # if(trial==3) {
+              #   message("Set updateB and updatePi to FALSE")
+              #   updateB_reg <- FALSE 
+              #   updatePi_reg <- FALSE 
+              # }
+              if(trial>1) {
                 message("Decrease Pi by a factor 10")
-                updateB_reg <- FALSE 
+                #updateB_reg <- FALSE 
                 updatePi_reg <- FALSE
                 pi_reg <- pi_reg*0.1
               }
@@ -2193,22 +2215,68 @@ mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
   return(fit)
 }
 
-adjustB <- function(b=NULL, LD = NULL, msize=NULL, overlap=NULL, shrink=0.001, threshold=1e-8) {
-  m <- length(b)
-  badj <- rep(0,m)
-  sets <- splitWithOverlap(1:m,msize,overlap)
+# adjustB <- function(b=NULL, LD = NULL, msize=NULL, overlap=NULL, shrink=0.001, threshold=1e-8) {
+#   m <- length(b)
+#   badj <- rep(0,m)
+#   sets <- splitWithOverlap(1:m,msize,overlap)
+#   for( i in 1:length(sets) ) {
+#     mset <- length(sets[[i]])
+#     bset <- b[sets[[i]]]
+#     B <- LD[sets[[i]],sets[[i]]]
+#     for (j in 1:mset) {
+#       Bi <- chol2inv(chol(B[-j,-j]+diag(shrink,mset-1)))
+#       badj[sets[[i]][j]] <- sum(B[j,-j]*Bi%*%bset[-j])
+#     }
+#     plot(y=badj[sets[[i]]],x=b[sets[[i]]],ylab="Predicted", xlab="Observed",  frame.plot=FALSE)
+#     abline(0,1, lwd=2, col=2, lty=2)
+#   }
+#   return(b=badj)
+# }
+
+#' Adjust B-values
+#'
+#' This function adjusts the B-values based on the LD structure and other parameters.
+#' The adjustment is done in subsets, and a plot of observed vs. predicted values is produced for each subset.
+#'
+#' @param b A numeric vector containing the B-values to be adjusted. If NULL (default), no adjustments are made.
+#' @param LD A matrix representing the linkage disequilibrium (LD) structure.
+#' @param msize An integer specifying the size of the subsets.
+#' @param overlap An integer specifying the overlap size between consecutive subsets.
+#' @param shrink A numeric value used for shrinkage. Default is 0.001.
+#' @param threshold A numeric value specifying the threshold. Default is 1e-8.
+#'
+#' @return A list containing the adjusted B-values.
+#' 
+#' @keywords internal
+#' @export
+
+adjustB <- function(b=NULL, seb=NULL, LD = NULL, 
+                       msize=100, overlap=50, nrep=20, shrink=0.001, threshold=1) {
+  sets <- lapply(1:nrep,function(x){sample(1:length(b),msize)})
+  #sets <- splitWithOverlap(1:length(b),msize,overlap)
+  nsets <- length(sets)
+  if(length(sets[[nsets]])<10) {
+    sets[[nsets-1]] <- c(sets[[nsets-1]],sets[[nsets]])
+    sets <- sets[1:(nsets-1)]
+    nsets <- length(sets)
+  }
   for( i in 1:length(sets) ) {
+    badj <- b
     mset <- length(sets[[i]])
     bset <- b[sets[[i]]]
     B <- LD[sets[[i]],sets[[i]]]
     for (j in 1:mset) {
       Bi <- chol2inv(chol(B[-j,-j]+diag(shrink,mset-1)))
-      badj[sets[[i]][j]] <- sum(B[j,-j]*Bi%*%bset[-j])
+      bj <- sum(B[j,-j]*Bi%*%bset[-j])
+      bset[j]  <- 0.5*bj+0.5*b[sets[[i]][j]]
+      #bset[j]  <- bj
+      b[sets[[i]][j]] <- bset[j] 
     }
+    print(sum((b-badj)^2))
     plot(y=badj[sets[[i]]],x=b[sets[[i]]],ylab="Predicted", xlab="Observed",  frame.plot=FALSE)
     abline(0,1, lwd=2, col=2, lty=2)
   }
-  return(b=badj)
+  return(b=b)
 }
 
 adjLDregion <- function(LD=NULL, p=NULL, r2=0.5, thold=1) {

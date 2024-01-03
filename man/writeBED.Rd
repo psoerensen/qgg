@@ -11,7 +11,9 @@ writeBED(
   bedWrite = NULL,
   bimWrite = NULL,
   famWrite = NULL,
-  rsids = NULL
+  rsids = NULL,
+  endian = .Platform$endian,
+  useBytes = TRUE
 )
 }
 \arguments{

@@ -13,6 +13,7 @@ IntegerMatrix   readG( const char* file,
   int m = cls.size();
   
   size_t nbytes = ( n + 3 ) / 4;
+  //size_t nbytes = ceil( n / 4);
   size_t nbytes_read;
   
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
@@ -78,6 +79,7 @@ NumericMatrix readW( const char* file,
   int m = cls.size();
   
   size_t nbytes_read;
+  //size_t nbytes = ceil( n / 4);
   size_t nbytes = ( n + 3 ) / 4;
   
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
@@ -142,6 +144,7 @@ std::vector<std::vector<double>> getWlist( const char* file,
   
   size_t nbytes_read;
   size_t nbytes = ( n + 3 ) / 4;
+  //size_t nbytes = ceil( n  / 4);
   
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
   unsigned char buf_k; 
@@ -191,43 +194,49 @@ std::vector<std::vector<double>> getWlist( const char* file,
 
 
 // [[Rcpp::export]]
-IntegerMatrix freqbed( const char* file, 
-                       int n, 
+IntegerMatrix freqbed( const char* file,
+                       int n,
                        std::vector<int> mask,
                        std::vector<int> cls) {
-  
+
   FILE *file_stream = fopen( file, "rb" );
-  
+
   int m = cls.size();
-  
+
   size_t nbytes_read;
   size_t nbytes = ( n + 3 ) / 4;
-  
+  //size_t nbytes = ceil( (double) n / 4);
+
+
   unsigned char buf_k;
   unsigned char *buffer = (unsigned char *) malloc( nbytes );
-  
+
   std::vector<int> map(4);
   map[0] = 0;
   map[1] = 1;
   map[2] = 2;
   map[3] = 3;
-  
+
   ////////////////////////////////////////////////////////////////////////
   //  00 01 10 11         bit level  corresponds to
   //  0  1  2  3          xij level  corresponds to
   //  2  NA  1  0         number of copies of first allele in bim file
   ////////////////////////////////////////////////////////////////////////
-  
+
   IntegerMatrix X(4, m);
-  
+
   for (int i = 0; i < m; i++) {
-    // cls[i] is 1-based
+    //cls[i] is 1-based
     long int offset = (cls[i]-1)*nbytes + 3;
     fseek( file_stream, offset, SEEK_SET );
+    //_fseeki64( file_stream, offset, SEEK_SET );
     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
     if (nbytes_read != nbytes) {
-      Rcerr << "Error reading data: nbytes_read != nbytes" << "\n";
+       Rcerr << "Error reading data: nbytes_read != nbytes" << "\n";
+       Rcout << "The value of nbytes : " << nbytes << "\n";
+       Rcout << "The value of nbytes_read : " << nbytes_read << "\n";
     }
+    
     int j = 0;
     for (size_t k = 0; k < nbytes; k++) {
       buf_k = buffer[k];
@@ -235,16 +244,15 @@ IntegerMatrix freqbed( const char* file,
         if (j < n) {
           if(mask[j]==1) X(map[buf_k & 3], i) +=  1;
           buf_k = buf_k >> 2;
-        } 
+        }
       }
     }
   }
   free( buffer );
   fclose( file_stream );
-  
+
   return X;
 }
-
 
 
 // [[Rcpp::export]]
@@ -258,6 +266,7 @@ std::vector<std::vector<std::vector<double>>> summarybed( const char* file,
   FILE *file_stream = fopen( file, "rb" );
   
   size_t nbytes = ( n + 3 ) / 4;
+  //size_t nbytes = ceil( n / 4);
   size_t nbytes_read;
   
   unsigned char buf_k; 
