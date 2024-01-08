@@ -85,7 +85,7 @@
 #' @export 
 
 ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, stat=NULL, 
-                 n=NULL, intercept=TRUE, what="h2", SE.h2=FALSE, SE.rg=FALSE, blk=200) {
+                 n=NULL, intercept=TRUE, what="h2", maxZ2=NULL, SE.h2=FALSE, SE.rg=FALSE, blk=200) {
   
   if(!is.null(Glist) & is.null(ldscores) ) ldscores <- unlist(Glist$ldscores)
   ldscores <- unlist(ldscores)
@@ -125,7 +125,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, s
       n <- c(n,neff(seb[,t],af[,t]))
     }
   }
-  maxZ2 <- max(0.001 * max(n), 80)
+  if(is.null(maxZ2)) maxZ2 <- max(0.001 * max(n), 80)
   h2 <- NULL
   for ( t in 1:nt) {
     z2 <- z[,t]**2
