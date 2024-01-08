@@ -138,10 +138,12 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, s
     Xy <- crossprod(X,y)
     h2_ldsc <- solve(XtX, Xy)
     if(intercept){
-      if(h2_ldsc[2]<0) h2_ldsc[2] <- NA
+      if(h2_ldsc[2]<0) h2_ldsc[2] <- 0
+      if(h2_ldsc[2]>1) h2_ldsc[2] <- 1
     }
     if(!intercept){
-      if(h2_ldsc[1]<0) h2_ldsc[1] <- NA
+      if(h2_ldsc[1]<0) h2_ldsc[1] <- 0
+      if(h2_ldsc[1]>1) h2_ldsc[1] <- 1
     }
     h2 <- c(h2,h2_ldsc)
   }
@@ -252,6 +254,9 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, s
     }
     diag(rg) <- 1 
     result$rg <- rg
+    result$rg[result$rg > 1] <- 1
+    result$rg[result$rg < -1] <- -1
+    
     
     #---------------------------------#
     # Block Jackknife to estimate rg SE
