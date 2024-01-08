@@ -408,6 +408,53 @@ hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 #   phyperg
 # }
 
+magma <- function(stat = NULL, sets = NULL, 
+                  type = "joint", test = "one-sided") {
+  
+  # Check if stat and sets are provided
+  if (is.null(stat) || is.null(sets)) {
+    stop("Both 'stat' and 'sets' must be provided.")
+  }
+  
+  if(is.vector(stat)) stat <- as.matrix(stat)
+  if(is.null(rownames(stat))) stop("Please provide names or rownames to stat object")
+  y <- scale(stat, center=TRUE, scale=TRUE)
+  
+  # Compute X for feature sets (sparse format)
+  X <- designMatrix(sets = sets, rowids = rownames(y))
+  
+  # Compute summary stat for feature sets
+  stat_summary <- computeStat(X = X, y = y[rownames(X), ], scale = TRUE)
+  
+  bMAGMA <- solve(stat_summary$XX + diag(0.001, nrow(stat_summary$XX))) %*% stat_summary$Xy
+  bMARG <- (1 / diag(stat_summary$XX)) * stat_summary$Xy
+  sebMAGMA <- sqrt(diag(solve(stat_summary$XX + diag(0.001, nrow(stat_summary$XX)))))
+  sebMARG <- sqrt((1 / diag(stat_summary$XX)))
+  zMAGMA <- bMAGMA / sebMAGMA
+  zMARG <- bMARG / sebMARG
+  
+  m <- sapply(sets, length)
+  
+  # Two-sided
+  if(test=="two-sided") {
+    pMAGMA <- pnorm(abs(zMAGMA), mean = 0, sd = 1, lower.tail = FALSE)
+    pMARG <- pnorm(abs(zMARG), mean = 0, sd = 1, lower.tail = FALSE)
+  }
+  
+  # One-sided
+  if(test=="one-sided") {
+    pMAGMA <- pnorm(zMAGMA, mean = 0, sd = 1, lower.tail = FALSE)
+    pMARG <- pnorm(zMARG, mean = 0, sd = 1, lower.tail = FALSE)
+  }
+  if (type == "marginal") df <- data.frame(ID=names(sets), m = m, 
+                                           b = bMARG, seb = sebMARG, z = zMARG, p = pMARG)
+  if (type == "joint") df <- data.frame(ID=names(sets), m = m, 
+                                        b = bMAGMA, seb = sebMAGMA, z = zMAGMA, p = pMAGMA)
+  o <- order(df$p, decreasing=FALSE)
+  df[,3:5] <- round(df[,3:5],4)
+  rownames(df) <- NULL
+  return(df[o,])
+}
 
 vegas <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol=1e-7, minsize=2, verbose=FALSE) {
   
