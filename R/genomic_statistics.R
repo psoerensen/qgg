@@ -73,6 +73,7 @@ checkStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.0
   
   fm_internal <- c("rsids","chr","pos","ea","nea","eaf","b","seb","p","n","info")
   fm_external <- c("marker","chr","pos","ea","nea","eaf","b","seb","p","n","info")
+  fm_gbayes <- c("rsids","chr","pos","ea","nea","eaf","bm","dm","vm")
   
   # external summary statistic column format
   # optimal format:
@@ -90,7 +91,11 @@ checkStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.0
   
   if(all(fm_internal[1:5]%in%colnames(stat))) format <- "internal"
   if(all(fm_external[1:5]%in%colnames(stat))) format <- "external"
-  
+  if(all(fm_gbayes%in%colnames(stat))) {
+    stat <- stat[,1:7]
+    colnames(stat) <- c("rsids","chr","pos","ea","nea","eaf","b")
+    format <- "internal"
+  }
   if(format=="unknown") {
     message("Column headings for stat object not found")
     message("Column headings for stat object should minimal be:")
