@@ -776,7 +776,7 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
     W1 = W2
     W2 = W3
     W3 <- .Call("_qgg_readW", Glist$bedfiles[chr], Glist$n, cls[[j]], af[[j]])
-    W3 <- scale(W3[rws,])
+    #W3 <- scale(W3[rws,])
     #if(j == nsets) W3 <- cbind(W3[rws,],matrix(0, nrow = nr, ncol = msize-nc))     
     if(j == nsets) W3 <- cbind(W3,matrix(0, nrow = nr, ncol = msize-nc))     
     LD <- t(crossprod(cbind(W1, W2, W3), W2))
