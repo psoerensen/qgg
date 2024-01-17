@@ -481,13 +481,15 @@ vegas <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol
     m <- sapply(sets,function(x){length(x)})
     
     pg <- rep(1,length(sets))
-    names(pg) <- names(sets)
+    names(pg) <- names(chr) <- names(m) <- names(sets)
     for(i in 1:length(sets)) {
-      B <- getG(Glist=Glist, chr[i], rsids=sets[[i]], scale=TRUE)
-      ev <- eigen(cor(B))$values
-      ev[ev < tol] <- tol
-      try(pg[i] <- pchisqsum(chistat[i], df = rep(1, length(ev)), a = ev, lower.tail = FALSE))
-      if(verbose) message(paste("Finished processing gene" ,i))
+      if(length(sets[[i]])>1) {
+        B <- getG(Glist=Glist, chr[i], rsids=sets[[i]], scale=TRUE)
+        ev <- eigen(cor(B))$values
+        ev[ev < tol] <- tol
+        try(pg[i] <- pchisqsum(chistat[i], df = rep(1, length(ev)), a = ev, lower.tail = FALSE))
+        if(verbose) message(paste("Finished processing gene" ,i))
+      } 
     }
     zstat <- -qnorm(pg/2,TRUE)
     df <- data.frame(Gene=names(pg),chr=chr,m=m,X=chistat,Z=zstat,p=pg)
