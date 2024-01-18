@@ -492,7 +492,8 @@ vegas <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol
       } 
     }
     zstat <- -qnorm(pg/2,TRUE)
-    df <- data.frame(Gene=names(pg),chr=chr,m=m,X=chistat,Z=zstat,p=pg)
+    df <- data.frame(Gene=names(pg),Chr=chr,m=m,x=chistat,z=zstat,p=pg)
+    colnames(df) <- c("EnsemblID", "Chr", "m", "X2","z","p")
     return(df)
   }
   if(!is.null(p)) {
@@ -547,8 +548,8 @@ vegas <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol
       return(res)
     }
     if(ncol(pg)>1) {
-      res <- list( genes=data.frame(EnsemblID=rownames(pg),chr=chr,m=msets),
-                   X=chistat,Z=zstat,p=pg)
+      res <- list( genes=data.frame(EnsemblID=rownames(pg),Chr=chr,m=msets),
+                   X2=chistat,z=zstat,p=pg)
       return(res)
     }
   }
