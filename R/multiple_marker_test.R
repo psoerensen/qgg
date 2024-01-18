@@ -409,7 +409,8 @@ hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 # }
 
 magma <- function(stat = NULL, sets = NULL, 
-                  type = "joint", test = "one-sided") {
+                  method="lm", type = "joint", test = "one-sided",
+                  pi=0.001, nit=5000, nburn=1000) {
   
   # Check if stat and sets are provided
   if (is.null(stat) || is.null(sets)) {
@@ -422,38 +423,82 @@ magma <- function(stat = NULL, sets = NULL,
   
   # Compute X for feature sets (sparse format)
   X <- designMatrix(sets = sets, rowids = rownames(y))
-  
-  # Compute summary stat for feature sets
-  stat_summary <- computeStat(X = X, y = y[rownames(X), ], scale = TRUE)
-  
-  bMAGMA <- solve(stat_summary$XX + diag(0.001, nrow(stat_summary$XX))) %*% stat_summary$Xy
-  bMARG <- (1 / diag(stat_summary$XX)) * stat_summary$Xy
-  sebMAGMA <- sqrt(diag(solve(stat_summary$XX + diag(0.001, nrow(stat_summary$XX)))))
-  sebMARG <- sqrt((1 / diag(stat_summary$XX)))
-  zMAGMA <- bMAGMA / sebMAGMA
-  zMARG <- bMARG / sebMARG
-  
+
   m <- sapply(sets, length)
   
-  # Two-sided
-  if(test=="two-sided") {
-    pMAGMA <- pnorm(abs(zMAGMA), mean = 0, sd = 1, lower.tail = FALSE)
-    pMARG <- pnorm(abs(zMARG), mean = 0, sd = 1, lower.tail = FALSE)
+  if(method=="lm") {
+    
+    # Compute summary stat for feature sets
+    stat_summary <- computeStat(X = X, y = y[rownames(X), ], scale = TRUE)
+    
+    bMAGMA <- solve(stat_summary$XX + diag(0.001, nrow(stat_summary$XX))) %*% stat_summary$Xy
+    bMARG <- (1 / diag(stat_summary$XX)) * stat_summary$Xy
+    sebMAGMA <- sqrt(diag(solve(stat_summary$XX + diag(0.001, nrow(stat_summary$XX)))))
+    sebMARG <- sqrt((1 / diag(stat_summary$XX)))
+    zMAGMA <- bMAGMA / sebMAGMA
+    zMARG <- bMARG / sebMARG
+    
+    # Two-sided
+    if(test=="two-sided") {
+      pMAGMA <- pnorm(abs(zMAGMA), mean = 0, sd = 1, lower.tail = FALSE)
+      pMARG <- pnorm(abs(zMARG), mean = 0, sd = 1, lower.tail = FALSE)
+    }
+    
+    # One-sided
+    if(test=="one-sided") {
+      pMAGMA <- pnorm(zMAGMA, mean = 0, sd = 1, lower.tail = FALSE)
+      pMARG <- pnorm(zMARG, mean = 0, sd = 1, lower.tail = FALSE)
+    }
+    if (type == "marginal") df <- data.frame(ID=names(sets), m = m, 
+                                             b = bMARG, seb = sebMARG, z = zMARG, p = pMARG)
+    if (type == "joint") df <- data.frame(ID=names(sets), m = m, 
+                                          b = bMAGMA, seb = sebMAGMA, z = zMAGMA, p = pMAGMA)
+    o <- order(df$p, decreasing=FALSE)
+    df[,3:5] <- round(df[,3:5],4)
+    rownames(df) <- NULL
+    return(df[o,])
   }
+  if(method%in%c("blr","bayesC","bayesR")) {
+    
+    if(method=="blr") method <- "bayesC" 
+    # Compute summary stat for feature sets
+    stat <- computeStat(X = X, y = y[rownames(X), ], scale = TRUE)
+    if(ncol(y)>1) stat$XX <- rep(list(stat$XX),ncol(y))
   
-  # One-sided
-  if(test=="one-sided") {
-    pMAGMA <- pnorm(zMAGMA, mean = 0, sd = 1, lower.tail = FALSE)
-    pMARG <- pnorm(zMARG, mean = 0, sd = 1, lower.tail = FALSE)
+    if(ncol(y)==1) {
+      # Fit BLR model
+      fit <- qgg:::blr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
+                       method=method, pi=pi,
+                       nit=nit, nburn=nburn)
+      
+      
+      # Dataframe with BLR results
+      df <- data.frame(ID=names(sets), 
+                       m = m, 
+                       b = fit$bm, 
+                       PIP=fit$dm)
+      o <- order(df$PIP, decreasing=TRUE)
+      df[,3:5] <- round(df[,3:4],4)
+      rownames(df) <- NULL
+      return(df[o,])
+    }  
+    if(ncol(y)>1) {
+      # Fit BLR model
+      fit <- qgg:::mtblr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
+                       method=method, pi=pi,
+                       nit=nit, nburn=nburn)
+      
+      o <- order(rowSums(fit$dm), decreasing=TRUE)
+      
+      # Dataframe with BLR results
+      df <- list( feature=data.frame(ID=names(sets),
+                        m = m)[o,],
+                        b=round(fit$bm[o,], 4),
+                        PIP=round(fit$dm[o,], 4))
+      return(df)
+    }  
+    
   }
-  if (type == "marginal") df <- data.frame(ID=names(sets), m = m, 
-                                           b = bMARG, seb = sebMARG, z = zMARG, p = pMARG)
-  if (type == "joint") df <- data.frame(ID=names(sets), m = m, 
-                                        b = bMAGMA, seb = sebMAGMA, z = zMAGMA, p = pMAGMA)
-  o <- order(df$p, decreasing=FALSE)
-  df[,3:5] <- round(df[,3:5],4)
-  rownames(df) <- NULL
-  return(df[o,])
 }
 
 vegas <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol=1e-7, minsize=2, verbose=FALSE) {
