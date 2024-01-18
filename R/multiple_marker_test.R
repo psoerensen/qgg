@@ -461,10 +461,10 @@ magma <- function(stat = NULL, sets = NULL,
   if(method%in%c("blr","bayesC","bayesR")) {
     
     if(method=="blr") method <- "bayesC" 
+    
     # Compute summary stat for feature sets
     stat <- computeStat(X = X, y = y[rownames(X), ], scale = TRUE)
-    if(ncol(y)>1) stat$XX <- rep(list(stat$XX),ncol(y))
-  
+
     if(ncol(y)==1) {
       # Fit BLR model
       fit <- qgg:::blr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
@@ -478,11 +478,12 @@ magma <- function(stat = NULL, sets = NULL,
                        b = fit$bm, 
                        PIP=fit$dm)
       o <- order(df$PIP, decreasing=TRUE)
-      df[,3:5] <- round(df[,3:4],4)
+      df[,3:4] <- round(df[,3:4],4)
       rownames(df) <- NULL
       return(df[o,])
     }  
     if(ncol(y)>1) {
+      stat$XX <- rep(list(stat$XX),ncol(y))
       # Fit BLR model
       fit <- qgg:::mtblr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
                        method=method, pi=pi,
