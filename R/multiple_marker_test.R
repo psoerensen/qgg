@@ -420,7 +420,10 @@ magma <- function(stat = NULL, sets = NULL,
   if(is.vector(stat)) stat <- as.matrix(stat)
   if(is.null(rownames(stat))) stop("Please provide names or rownames to stat object")
   y <- scale(stat, center=TRUE, scale=TRUE)
+
+  sets <- mapSets(sets=sets,rsids=rownames(stat), index=FALSE)
   
+    
   # Compute X for feature sets (sparse format)
   X <- designMatrix(sets = sets, rowids = rownames(y))
 
