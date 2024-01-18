@@ -409,7 +409,7 @@ hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 # }
 
 magma <- function(stat = NULL, sets = NULL, 
-                  method="lm", type = "joint", test = "one-sided",
+                  method="magma", type = "joint", test = "one-sided",
                   pi=0.001, nit=5000, nburn=1000) {
   
   # Check if stat and sets are provided
@@ -426,7 +426,7 @@ magma <- function(stat = NULL, sets = NULL,
 
   m <- sapply(sets, length)
   
-  if(method=="lm") {
+  if(method=="magma") {
     
     # Compute summary stat for feature sets
     stat_summary <- computeStat(X = X, y = y[rownames(X), ], scale = TRUE)
