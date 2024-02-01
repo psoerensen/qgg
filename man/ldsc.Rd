@@ -15,6 +15,7 @@ ldsc(
   n = NULL,
   intercept = TRUE,
   what = "h2",
+  maxZ2 = NULL,
   SE.h2 = FALSE,
   SE.rg = FALSE,
   blk = 200
