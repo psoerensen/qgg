@@ -49,6 +49,7 @@ gbayes(
   tol = 0.001,
   nit = 100,
   nburn = 0,
+  nthin = 1,
   nit_local = NULL,
   nit_global = NULL,
   method = "mixed",
@@ -143,6 +144,8 @@ gbayes(
 \item{nit}{is the number of iterations}
 
 \item{nburn}{is the number of burnin iterations}
+
+\item{nthin}{is the thinning parameter}
 
 \item{nit_local}{is the number of local iterations}
 
