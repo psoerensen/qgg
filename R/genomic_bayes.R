@@ -50,8 +50,9 @@
 #' @param y is a vector or matrix of phenotypes
 #' @param X is a matrix of covariates
 #' @param W is a matrix of centered and scaled genotypes
-#' @param nburn is the number of burnin iterations
 #' @param nit is the number of iterations
+#' @param nburn is the number of burnin iterations
+#' @param nthin is the thinning parameter
 #' @param nit_global is the number of global iterations
 #' @param nit_local is the number of local iterations
 #' @param pi is the proportion of markers in each marker variance class (e.g. pi=c(0.999,0.001),used if method="ssvs")
@@ -145,7 +146,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
                    nug=4, nub=4, nue=4, verbose=FALSE,msize=100, mask=NULL,
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
-                   nit=100, nburn=0, nit_local=NULL,nit_global=NULL,
+                   nit=100, nburn=0, nthin=1, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="mcmc") {
   
   # mask
@@ -531,7 +532,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     mask=mask[rsidsLD,trait],
                                     method=method, 
                                     nit=nit, 
-                                    nburn=nburn, 
+                                    nburn=nburn,
+                                    nthin=nthin,
                                     n=n[trait],
                                     m=m,
                                     pi=pi,
@@ -567,19 +569,19 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
     fit$method <- methods[method+1]
     
-    #fit$ves <- lapply(fit[chromosomes],function(x){x$ves})
-    #fit$vgs <- lapply(fit[chromosomes],function(x){x$vgs})
-    #fit$vbs <- lapply(fit[chromosomes],function(x){x$vbs})
-    #fit$pis <- lapply(fit[chromosomes],function(x){x$pis})
-    #fit$pim <- lapply(fit[chromosomes],function(x){x$pim})
-    #fit$param <- lapply(fit[chromosomes],function(x){x$param})
+    fit$ves <- lapply(fit[chromosomes],function(x){x$ves})
+    fit$vgs <- lapply(fit[chromosomes],function(x){x$vgs})
+    fit$vbs <- lapply(fit[chromosomes],function(x){x$vbs})
+    fit$pis <- lapply(fit[chromosomes],function(x){x$pis})
+    fit$pim <- lapply(fit[chromosomes],function(x){x$pim})
+    fit$param <- lapply(fit[chromosomes],function(x){x$param})
     
-    fit$ves <- lapply(fit[1:22],function(x){x$ves})
-    fit$vgs <- lapply(fit[1:22],function(x){x$vgs})
-    fit$vbs <- lapply(fit[1:22],function(x){x$vbs})
-    fit$pis <- lapply(fit[1:22],function(x){x$pis})
-    fit$pim <- lapply(fit[1:22],function(x){x$pim})
-    fit$param <- lapply(fit[1:22],function(x){x$param})
+    # fit$ves <- lapply(fit[1:22],function(x){x$ves})
+    # fit$vgs <- lapply(fit[1:22],function(x){x$vgs})
+    # fit$vbs <- lapply(fit[1:22],function(x){x$vbs})
+    # fit$pis <- lapply(fit[1:22],function(x){x$pis})
+    # fit$pim <- lapply(fit[1:22],function(x){x$pim})
+    # fit$param <- lapply(fit[1:22],function(x){x$param})
 
     fit$mask <- mask
     zve <- sapply(fit$ves[chromosomes],function(x){coda::geweke.diag(x[nburn:length(x)])$z})
@@ -594,7 +596,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$post <- data.frame(ve=ve,vg=vg, vb=vb,pi=pi)  
     fit$ve <- mean(ve)
     fit$vg <- sum(vg)
-    fit[1:22] <- NULL
+    #fit[1:22] <- NULL
     
     
     
@@ -3378,3 +3380,51 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
 }
 
 
+# X <- matrix(rnorm(100000),nrow=1000)
+# set <- sample(1:ncol(X),5)
+# g <- rowSums(X[,set])
+# e <- rnorm(nrow(X),mean=0,sd=1)
+# y <- g + e
+# y <- y - mean(y)
+# XX <- crossprod(X)
+# Xy <- crossprod(X,y)
+# 
+# tol <- 0.0001
+# eg <- eigen(XX)                    
+# ev <- eg$values
+# U <- eg$vectors[,ev>tol]            
+# D <- eg$values[ev>tol]              
+# 
+# nit <- 500
+# vbs <- ves <- rep(0,nit)
+# b <- r <- rm <- rep(0,ncol(XX))
+# nt <- 1
+# vb <- vb_prior <- 0.0001
+# vb <- 25
+# nub <- 4
+# ve <- 10000
+# for ( i in 1:nit ) {                   
+#   radj <- Xy-r
+#   rhs <- crossprod(U,radj) 
+#   for (k in 1:nrow(rhs)) {
+#     iC <- solve( diag(1,nt) + (ve/vb)/D[k])      
+#     bhat <- iC%*%rhs[k]
+#     b[k] <- MASS::mvrnorm(n=1,mu=bhat,Sigma=iC%*%ve) 
+#   }
+#   r <- U%*%b 
+#   rm <- rm + r/nit  
+#   
+#   # Sample variance components
+#   df <- length(b) + nub
+#   
+#   # inverse chisquare
+#   scb<- sum((1/D)*b**2) + (vb_prior*(nub+2))/nub	# => S = (mode*(df+2))/df         
+#   vb <- scb/rchisq(n=1, df=df, ncp=0)    
+#   vbs[i] <- vb
+#   ve <- var(r)
+#   ves[i] <- ve
+# }
+# layout(matrix(1:3,ncol=3))
+# plot(rm)
+# plot(vbs)
+# plot(ves)
