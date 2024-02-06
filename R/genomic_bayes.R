@@ -3274,14 +3274,14 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
         rhs <- sum(yadj)
         lhs <- (n+ve[t,t]/100000)
         mu[,t] <- rnorm(1,mean=rhs/lhs,sd=1/sqrt(lhs))
-        if(it>nburn) mus[,t] <- mus[,t] + mu[,t]
+        if(i>nburn) mus[,t] <- mus[,t] + mu[,t]
       }  
     }
     if(!is.null(X)) {
       for (t in 1:nt) {
         yadj <- y[,t]-rowSums(as.matrix(g[[t]])) 
         mu[,t] <- X%*%solve(t(X)%*%X)%*%t(X)%*%yadj
-        if(it>nburn) mus[,t] <- mus[,t] + mu[,t]
+        if(i>nburn) mus[,t] <- mus[,t] + mu[,t]
       }  
     }
     
@@ -3295,7 +3295,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
     ve <- MCMCpack::riwish(dfe,Se)
     ves[i,] <- ve[as.vector(lower.tri(ve, diag=TRUE))]
     
-    if(it>nburn) {
+    if(i>nburn) {
       for ( j in 1:nset ) {
         vgm[[j]] <- vgm[[j]] + vg[[j]]  
       }                   
@@ -3309,7 +3309,7 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
     vgm[[j]] <- vgm[[j]]/(nit-nburn)
     colnames(vgm[[j]]) <- rownames(vgm[[j]]) <- tnames
     for (t in 1:nt) { 
-      if(it>nburn) gm[[t]][,j] <- gm[[t]][,j]/(nit-nburn) 
+      if(i>nburn) gm[[t]][,j] <- gm[[t]][,j]/(nit-nburn) 
     } 
   }
   mus <- mus/(nit-nburn)
