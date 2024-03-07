@@ -36,7 +36,7 @@
 #' and phenotypes (gsolve) or genotypes and summary statistics (gscore).
 #'
 #' @param Glist A list containing information about the genotype matrix stored on disk.
-#' @param task A character string specifying the task to perform. Possible tasks are "prepare" (default), "sparseld", "ldscores", "ldsets", and "geneticmap".
+#' @param task A character string specifying the task to perform. Possible tasks are "prepare" (default), "sparseld", "ldscores", and "geneticmap".
 #' @param study The name of the study.
 #' @param fnBED Path and filename of the .bed binary file used to store genotypes on disk.
 #' @param bedfiles A vector of filenames for the PLINK bed-files.
@@ -192,20 +192,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
       Glist$ldscores[[chr]] <- ldscore( Glist=Glist, chr=chr) 
     }
   }
-  if (task == "ldsets") {
-    if(is.null(r2)) stop("Please specify r2 threshold - can be a vector of values (e.g. r2=c(0.7,0.8,0.9) )")
-    Glist$ldSets <- vector(length=length(r2), mode="list")
-    names(Glist$ldSets) <- r2
-    for (i in 1:length(r2) ) {
-      ldSets <- vector(length=Glist$nchr, mode="list")
-      for (chr in 1:Glist$nchr) {
-        message(paste("Extract LD information for chromosome:", chr))
-        ldSets[[chr]] <- getLDsets(Glist = Glist, r2 = 0.5, chr = chr)
-      }
-      Glist$ldSets[[i]] <- ldSets
-    }
-  }  
-  
+ 
   if (task == "geneticmap") {
     message("Add Genetic map to Glist")
     if(is.null(Glist)) stop("Please provide Glist")
