@@ -28,7 +28,7 @@ gprep(
 \arguments{
 \item{Glist}{A list containing information about the genotype matrix stored on disk.}
 
-\item{task}{A character string specifying the task to perform. Possible tasks are "prepare" (default), "sparseld", "ldscores", "ldsets", and "geneticmap".}
+\item{task}{A character string specifying the task to perform. Possible tasks are "prepare" (default), "sparseld", "ldscores", and "geneticmap".}
 
 \item{study}{The name of the study.}
 
