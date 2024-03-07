@@ -286,6 +286,8 @@ cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, i
   #training <- validation <- NULL
   training <- validation <- vector(mode="list",length=nv)
   #ghatt <- ghatv <- vector(mode="list",length=nv)
+
+  if (is.null(names(G))) names(G) <- paste("G", 1:length(G), sep = "")
   
   for (i in 1:nv) {
     v <- validate[[i]] # index for validation
