@@ -161,7 +161,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, s
   }
   result <- h2
   if(intercept)  result <- h2[,2]
-  isNA <- result<=0 | is.na(result)
+  isNA <- result<=tol | is.na(result)
   result[isNA] <- tol
   
   
@@ -262,7 +262,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, s
     result$rg[result$rg > 1] <- 1
     result$rg[result$rg < -1] <- -1
     
-    isNA <- result$h2<=0 | is.na(result$h2)
+    isNA <- result$h2<=tol | is.na(result$h2)
     result$h2[isNA] <- tol
     result$rg[isNA,] <- 0
     result$rg[,isNA] <- 0
