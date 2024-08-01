@@ -84,7 +84,7 @@
 #'
 #' @export 
 
-ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, stat=NULL, 
+ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, stat=NULL, tol=1e-8,
                  n=NULL, intercept=TRUE, what="h2", maxZ2=NULL, SE.h2=FALSE, SE.rg=FALSE, blk=200) {
   
   if(!is.null(Glist) & is.null(ldscores) ) ldscores <- unlist(Glist$ldscores)
@@ -138,10 +138,12 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, s
     Xy <- crossprod(X,y)
     h2_ldsc <- solve(XtX, Xy)
     if(intercept){
+      if(is.na(h2_ldsc[2])) h2_ldsc[2] <- 0
       if(h2_ldsc[2]<0) h2_ldsc[2] <- 0
       if(h2_ldsc[2]>1) h2_ldsc[2] <- 1
     }
     if(!intercept){
+      if(is.na(h2_ldsc[1])) h2_ldsc[1] <- 0
       if(h2_ldsc[1]<0) h2_ldsc[1] <- 0
       if(h2_ldsc[1]>1) h2_ldsc[1] <- 1
     }
@@ -159,6 +161,9 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, s
   }
   result <- h2
   if(intercept)  result <- h2[,2]
+  isNA <- result<=0 | is.na(result)
+  result[isNA] <- tol
+  
   
   #---------------------------------#
   # Block Jackknife to estimate h2 SE
@@ -256,6 +261,12 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, s
     result$rg <- rg
     result$rg[result$rg > 1] <- 1
     result$rg[result$rg < -1] <- -1
+    
+    isNA <- result$h2<=0 | is.na(result$h2)
+    result$h2[isNA] <- tol
+    result$rg[isNA,] <- 0
+    result$rg[,isNA] <- 0
+    diag(result$rg) <- 1
     
     
     #---------------------------------#
