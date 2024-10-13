@@ -13,6 +13,35 @@ using namespace arma;
 #include <algorithm>
 #include <cmath>
 
+#include <iostream>
+#include <random>
+#include <cmath>
+
+// Function to sample from an inverse Gaussian distribution
+double rinvgauss(double mu_tau, double lambda_tau, std::mt19937 &gen) {
+  // Step 1: Generate a random sample from the normal distribution
+  std::normal_distribution<double> rnorm(0.0, 1.0);
+  double z = rnorm(gen);
+  double z2 = z * z;
+  
+  // Step 2: Calculate xtau using the given formula
+  double xtau = mu_tau + 0.5 * mu_tau * mu_tau * z2 / lambda_tau -
+    0.5 * (mu_tau / lambda_tau) * std::sqrt(4 * mu_tau * lambda_tau * z2 + mu_tau * mu_tau * z2 * z2);
+  
+  // Step 3: Generate a random sample from the uniform distribution
+  std::uniform_real_distribution<double> runif(0.0, 1.0);
+  double u = runif(gen);
+  
+  // Step 4: Calculate tau based on the comparison
+  double tau = mu_tau * mu_tau / xtau;
+  if (u <= mu_tau / (mu_tau + xtau)) {
+    tau = xtau;
+  }
+  
+  return tau;
+}
+
+
 
 // [[Rcpp::export]]
 std::vector<std::vector<double>>  bayes(   std::vector<double> y,
@@ -47,6 +76,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   double ssb, ssg, sse, dfb, dfe, dfg, chi2;
   double ssg_prior, nug;
   double xtau, tau, lambda_tau, mu_tau, z, z2, u;
+  double shape, shape0, rate, rate0, lambda2;
   
   std::vector<int> d(m);
   
@@ -82,6 +112,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   std::fill(pis.begin(), pis.end(), 0.0);
   std::fill(pim.begin(), pim.end(), 0.0);
   
+  lambda2 = m;
   
   // Initialize variables
   for (int i = 0; i < m; i++) {
@@ -190,13 +221,19 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     if ( method==3 ) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        lhs = ww[i] + lambda[i];
+        // version 1
+        //lhs = ww[i] + lambda[i];
+        // version 2
+        lhs = ww[i]/ve + lambda[i];
         rhs = 0.0;
         for ( int j = 0; j < n; j++) {
-          rhs = rhs + W[i][j]*e[j]; 
+          rhs = rhs + W[i][j]*e[j];
         }
         rhs = rhs + ww[i]*b[i];
+        // version 1
         std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
+        // version 2
+        //std::normal_distribution<double> rnorm((rhs/ve)/lhs, sqrt(1/lhs));
         bn = rnorm(gen);
         diff = bn-b[i];
         for (int j = 0; j < n; j++) {
@@ -413,6 +450,16 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       for ( int j = 0; j < n; j++) {
         sse = sse + e[j]*e[j];
       }
+      ssb=0.0;
+      if(method==3) {
+        for ( int i = 0; i < m; i++) {
+          ssb = ssb + b[i]*b[i]*(1.0/lambda[i])/ve;
+          dfb = dfb + 1.0;
+          dm[i] = dm[i] + 1.0;
+        }
+        sse=sse+ssb;
+        dfe=dfe+dfb;
+      }
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
       ve = (sse + sse_prior*nue)/chi2 ;
@@ -421,20 +468,62 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     
     // Sample marker specific tau for Bayes lasso
     if (method==3) { 
-      lambda_tau = 2.0*2.0*0.5*0.5/vb;
-      for ( int i = 0; i < m; i++) { 
-        ssb = b[i]*b[i];
-        mu_tau = sqrt(lambda_tau/ssb);
-        std::normal_distribution<double> rnorm(0.0, 1.0);
-        z = rnorm(gen);
-        z2=z*z;
-        xtau=mu_tau+0.5*mu_tau*mu_tau*z2/lambda_tau - 0.5*(mu_tau/lambda_tau)*sqrt(4*mu_tau*lambda_tau*z2+mu_tau*mu_tau*z2*z2);
-        std::uniform_real_distribution<double> runif(0.0, 1.0);
-        u = runif(gen);
-        tau = mu_tau*mu_tau/xtau;
-        if(u <= mu_tau/(mu_tau+xtau)) tau=xtau;
-        lambda[i] = ve/tau;
+      // lambda_tau = 2.0*2.0*0.5*0.5/vb;
+      // for ( int i = 0; i < m; i++) { 
+      //   ssb = b[i]*b[i];
+      //   mu_tau = sqrt(lambda_tau/ssb);
+      //   std::normal_distribution<double> rnorm(0.0, 1.0);
+      //   z = rnorm(gen);
+      //   z2=z*z;
+      //   xtau=mu_tau+0.5*mu_tau*mu_tau*z2/lambda_tau - 0.5*(mu_tau/lambda_tau)*sqrt(4*mu_tau*lambda_tau*z2+mu_tau*mu_tau*z2*z2);
+      //   std::uniform_real_distribution<double> runif(0.0, 1.0);
+      //   u = runif(gen);
+      //   tau = mu_tau*mu_tau/xtau;
+      //   if(u <= mu_tau/(mu_tau+xtau)) tau=xtau;
+      //   lambda[i] = ve/tau;
+      // }
+      // Hyper parameters for the inverse Gaussian distribution
+      double lrate0 = 0.1;  // lambda0 hyperparameter rate
+      double lshape0 = 1.0; // lambda0 hyperparameter shape
+      
+      // Set a small tolerance value (epsilon)
+      const double epsilon = 1e-10;
+      
+      lambda_tau = 2.0/vb;
+      lambda_tau = lambda2;
+      
+      // Compute mutau for each element in vector b
+      double sum_reciprocals = 0.0;
+      for (size_t i = 0; i < b.size(); ++i) {
+        // If b[i] is too small (close to zero), use epsilon instead
+        double abs_b = std::abs(b[i]) < epsilon ? epsilon : std::abs(b[i]);
+        //double b2 = b[i]*b[i] < epsilon ? epsilon : b[i]*b[i];
+        //double b2 = b[i]*b[i];
+        // Calculate mu_tau with the tolerance for very small b[i]
+        // version 1
+        mu_tau = std::sqrt(lambda_tau*ve) / abs_b;
+        // version 2
+        //mu_tau = std::sqrt(lambda_tau) / abs_b;
+        tau = rinvgauss(mu_tau, lambda_tau, gen);
+        //mu_tau = std::sqrt(lambda2 * ve) / abs_b;
+        //mu_tau =  std::sqrt(lambda2)/abs_b;
+        //mu_tau =  lambda2/abs_b;
+        //mu_tau = lambda2/b2;
+        //tau = rinvgauss(mu_tau, lambda2, gen);
+        lambda[i] = tau;
+        //lambda[i] = tau;
+        sum_reciprocals += 1.0/lambda[i];
+        //sum_reciprocals += tau;
       }
+      
+      // Calculate ratel2 and shl2
+      double shl2 = m + lshape0;    
+      double ratel2 = sum_reciprocals / 2.0 + lrate0;
+      //double ratel2 = sum_reciprocals  + lrate0;
+      std::gamma_distribution<double> rgamma(shl2, 1.0/ratel2);
+      //double scl2 = 2.0/sum_reciprocals; // + lrate0;
+      //std::gamma_distribution<double> rgamma(shl2, scl2);
+      lambda2 = rgamma(gen);
     }
     
     // Update mu and adjust residuals
