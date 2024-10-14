@@ -227,7 +227,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
           rhs = rhs + W[i][j]*e[j];
         }
         rhs = rhs + ww[i]*b[i];
-        std::normal_distribution<double> rnorm((rhs/ve)/lhs, sqrt(1/lhs));
+        std::normal_distribution<double> rnorm((rhs/ve)/lhs, sqrt(1.0/lhs));
         bn = rnorm(gen);
         diff = bn-b[i];
         for (int j = 0; j < n; j++) {
@@ -454,7 +454,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       lambda_tau = lambda2;
       
       // Compute mutau for each element in vector b
-      double sum_reciprocals = 0.0;
+      double sum_tau = 0.0;
       for (size_t i = 0; i < b.size(); ++i) {
         // If b[i] is too small (close to zero), use epsilon instead
         double abs_b = std::abs(b[i]) < epsilon ? epsilon : std::abs(b[i]);
@@ -463,16 +463,19 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
         mu_tau = std::sqrt(lambda_tau) / abs_b;
         // Park & Casella - Campos et al.
         //mu_tau = std::sqrt(lambda_tau*ve) / abs_b;
-        tau = rinvgauss(mu_tau, lambda_tau, gen);
-        lambda[i] = tau;
-        sum_reciprocals += 1.0/lambda[i];
+        double invtau = rinvgauss(mu_tau, lambda_tau, gen);
+        lambda[i] = invtau;
+        sum_tau += 1.0/invtau;
       }
       
       // Calculate ratel2 and shl2
       double shl2 = m + lshape0;    
-      double ratel2 = sum_reciprocals / 2.0 + lrate0;
-      std::gamma_distribution<double> rgamma(shl2, 1.0/ratel2);
+      //double ratel2 = sum_tau / 2.0 + lrate0;
+      //std::gamma_distribution<double> rgamma(shl2, 1.0/ratel2);
+      double scl2 = 2.0/sum_tau;
+      std::gamma_distribution<double> rgamma(shl2, scl2);
       lambda2 = rgamma(gen);
+      lambda2 = std::max(0.0, std::min(lambda2, 1000000.0));
     }
     
     // Update mu and adjust residuals
