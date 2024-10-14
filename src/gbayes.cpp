@@ -61,16 +61,14 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
                                            bool updateE,
                                            bool updatePi,
                                            int nit,
-                                           int method) {
-  
-  
+                                           int method,
+                                           int seed) {
   
   // Define local variables
   int n = y.size();
   int m = W.size();
   int nc = pi.size();
   
-    
   double rhs, lhs, bn, conv, diff, mu;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
   double ssb, ssg, sse, dfb, dfe, dfg, chi2;
@@ -138,9 +136,11 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   
   // Start Gibbs sampler
   std::random_device rd;
-  unsigned int local_seed;
-  local_seed = rd();
-  std::mt19937 gen(local_seed);
+  //unsigned int local_seed;
+  //local_seed = rd();
+  //std::mt19937 gen(local_seed);
+  std::mt19937 gen(seed);
+  
   
   for ( int it = 0; it < nit; it++) {
     conv = 0.0;

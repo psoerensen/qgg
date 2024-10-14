@@ -746,6 +746,8 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=
   if(method==5) pi <- c(0.95,0.02,0.02,0.01)
   if(method==5) gamma <- c(0,0.01,0.1,1.0)
   
+  seed <- sample.int(.Machine$integer.max, 1)
+  
   #print(h2)
   #print(vy)
   #print(vb)
@@ -776,7 +778,8 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=
                  updateE = updateE,
                  updatePi = updatePi,
                  nit=nit,
-                 method=as.integer(method)) 
+                 method=as.integer(method),
+                 seed=seed) 
     ids <- rownames(W)
     names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[10]]) <- colnames(W)
     #fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
