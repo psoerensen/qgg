@@ -449,7 +449,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       double lshape0 = 1.0; // lambda0 hyperparameter shape
       
       // Set a small tolerance value (epsilon)
-      const double epsilon = 1e-20;
+      const double epsilon = 1e-8;
       
       lambda_tau = lambda2;
       
@@ -461,6 +461,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
         // Calculate mu_tau with the tolerance for very small b[i]
         // Legarra et al 2011
         mu_tau = std::sqrt(lambda_tau) / abs_b;
+        lambda_tau = std::max(lambda_tau, 0.0);
         // Park & Casella - Campos et al.
         //mu_tau = std::sqrt(lambda_tau*ve) / abs_b;
         double invtau = rinvgauss(mu_tau, lambda_tau, gen);
@@ -475,7 +476,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       double scl2 = 2.0/sum_tau;
       std::gamma_distribution<double> rgamma(shl2, scl2);
       lambda2 = rgamma(gen);
-      lambda2 = std::max(0.0, std::min(lambda2, 1000000.0));
+      lambda2 = std::max(1.0, std::min(lambda2, 1000000.0));
     }
     
     // Update mu and adjust residuals
