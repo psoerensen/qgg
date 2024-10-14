@@ -112,8 +112,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   std::fill(pis.begin(), pis.end(), 0.0);
   std::fill(pim.begin(), pim.end(), 0.0);
   
-  lambda2 = m;
-  
+
   // Initialize variables
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < n; j++) {
@@ -127,6 +126,8 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   
   nug=nub;
   ssg_prior=((nug-2.0)/nug)*vg;
+  
+  lambda2 = m;
   
   // Establish order of markers as they are entered into the model
   std::iota(order.begin(), order.end(), 0);
@@ -210,10 +211,6 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
           e[j]=e[j] - W[i][j]*(diff);
         }
         b[i] = bn;
-        // ssb = b[i]*b[i];
-        // std::chi_squared_distribution<double> rchisq(dfb);
-        // chi2 = rchisq(gen);
-        // vbi[i] = (ssb + ssb_prior*nub)/chi2 ;
       }
     }
     
@@ -222,9 +219,9 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         // Legarra et al 2011
-        //lhs = ww[i]/ve + lambda[i];
+        lhs = ww[i]/ve + lambda[i];
         // Park & Casella - Campos et al.
-        lhs = ww[i]/ve + lambda[i]/ve;
+        //lhs = ww[i]/ve + lambda[i]/ve;
         rhs = 0.0;
         for ( int j = 0; j < n; j++) {
           rhs = rhs + W[i][j]*e[j];
@@ -296,27 +293,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
           pim[j] = pim[j] + pi[j];
         }
         pis[it] = pi[1];
-        // dfb=0.0;
-        // for (int i = 0; i<m ; i++) {
-        //   if(d[i]==1)   {
-        //     dfb = dfb + 1.0;
-        //   }
-        // }
-        // double count = dfb + 1.0;
-        // std::gamma_distribution<double> rgamma(count,1.0);
-        // double rg = rgamma(gen);
-        // double pisum=0.0;
-        // pi[1] = rg/(double)m;
-        // pi[0] = 1.0 - pi[1];
-        // pisum = pi[0] + pi[1];
-        // pi[0] = pi[0]/pisum;
-        // pi[1] = pi[1]/pisum;
-        // pis[it] = pi[1];
-        // pim[0] = pim[0] + pi[0];
-        // pim[1] = pim[1] + pi[1];
       }  
-      
-            
     }
 
     // Sample marker effects (BayesR)
@@ -324,6 +301,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
         if(!mask[i])   continue;
+        
         // variance class likelihood version 1 
         rhs = 0.0;
         for ( int j = 0; j < n; j++) {
@@ -447,17 +425,17 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       for ( int j = 0; j < n; j++) {
         sse = sse + e[j]*e[j];
       }
-      if(method==3) {
-        // Park & Casella - Campos et al.
-        ssb=0.0;
-        dfb=0.0;
-        for ( int i = 0; i < m; i++) {
-          ssb = ssb + b[i]*(1.0/lambda[i])*b[i]/ve;
-          dfb = dfb + 1.0;
-        }
-        sse=sse+ssb;
-        dfe=dfe+dfb;
-      }
+      // if(method==3) {
+      //   // Park & Casella - Campos et al.
+      //   ssb=0.0;
+      //   dfb=0.0;
+      //   for ( int i = 0; i < m; i++) {
+      //     ssb = ssb + b[i]*(1.0/lambda[i])*b[i]/ve;
+      //     dfb = dfb + 1.0;
+      //   }
+      //   sse=sse+ssb;
+      //   dfe=dfe+dfb;
+      // }
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
       ve = (sse + sse_prior*nue)/chi2 ;
@@ -466,20 +444,6 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     
     // Sample marker specific tau for Bayes lasso
     if (method==3) { 
-      // lambda_tau = 2.0*2.0*0.5*0.5/vb;
-      // for ( int i = 0; i < m; i++) { 
-      //   ssb = b[i]*b[i];
-      //   mu_tau = sqrt(lambda_tau/ssb);
-      //   std::normal_distribution<double> rnorm(0.0, 1.0);
-      //   z = rnorm(gen);
-      //   z2=z*z;
-      //   xtau=mu_tau+0.5*mu_tau*mu_tau*z2/lambda_tau - 0.5*(mu_tau/lambda_tau)*sqrt(4*mu_tau*lambda_tau*z2+mu_tau*mu_tau*z2*z2);
-      //   std::uniform_real_distribution<double> runif(0.0, 1.0);
-      //   u = runif(gen);
-      //   tau = mu_tau*mu_tau/xtau;
-      //   if(u <= mu_tau/(mu_tau+xtau)) tau=xtau;
-      //   lambda[i] = ve/tau;
-      // }
       // Hyper parameters for the inverse Gaussian distribution
       double lrate0 = 0.1;  // lambda0 hyperparameter rate
       double lshape0 = 1.0; // lambda0 hyperparameter shape
@@ -494,32 +458,20 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       for (size_t i = 0; i < b.size(); ++i) {
         // If b[i] is too small (close to zero), use epsilon instead
         double abs_b = std::abs(b[i]) < epsilon ? epsilon : std::abs(b[i]);
-        //double b2 = b[i]*b[i] < epsilon ? epsilon : b[i]*b[i];
-        //double b2 = b[i]*b[i];
         // Calculate mu_tau with the tolerance for very small b[i]
         // Legarra et al 2011
-        //mu_tau = std::sqrt(lambda_tau) / abs_b;
+        mu_tau = std::sqrt(lambda_tau) / abs_b;
         // Park & Casella - Campos et al.
-        mu_tau = std::sqrt(lambda_tau*ve) / abs_b;
+        //mu_tau = std::sqrt(lambda_tau*ve) / abs_b;
         tau = rinvgauss(mu_tau, lambda_tau, gen);
-        //mu_tau = std::sqrt(lambda2 * ve) / abs_b;
-        //mu_tau =  std::sqrt(lambda2)/abs_b;
-        //mu_tau =  lambda2/abs_b;
-        //mu_tau = lambda2/b2;
-        //tau = rinvgauss(mu_tau, lambda2, gen);
         lambda[i] = tau;
-        //lambda[i] = tau;
         sum_reciprocals += 1.0/lambda[i];
-        //sum_reciprocals += tau;
       }
       
       // Calculate ratel2 and shl2
       double shl2 = m + lshape0;    
       double ratel2 = sum_reciprocals / 2.0 + lrate0;
-      //double ratel2 = sum_reciprocals  + lrate0;
       std::gamma_distribution<double> rgamma(shl2, 1.0/ratel2);
-      //double scl2 = 2.0/sum_reciprocals; // + lrate0;
-      //std::gamma_distribution<double> rgamma(shl2, scl2);
       lambda2 = rgamma(gen);
     }
     
