@@ -221,19 +221,16 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     if ( method==3 ) {
       for ( int isort = 0; isort < m; isort++) {
         int i = order[isort];
-        // version 1
-        //lhs = ww[i] + lambda[i];
-        // version 2
-        lhs = ww[i]/ve + lambda[i];
+        // Legarra et al 2011
+        //lhs = ww[i]/ve + lambda[i];
+        // Park & Casella - Campos et al.
+        lhs = ww[i]/ve + lambda[i]/ve;
         rhs = 0.0;
         for ( int j = 0; j < n; j++) {
           rhs = rhs + W[i][j]*e[j];
         }
         rhs = rhs + ww[i]*b[i];
-        // version 1
-        std::normal_distribution<double> rnorm(rhs/lhs, sqrt(ve/lhs));
-        // version 2
-        //std::normal_distribution<double> rnorm((rhs/ve)/lhs, sqrt(1/lhs));
+        std::normal_distribution<double> rnorm((rhs/ve)/lhs, sqrt(1/lhs));
         bn = rnorm(gen);
         diff = bn-b[i];
         for (int j = 0; j < n; j++) {
@@ -450,12 +447,13 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       for ( int j = 0; j < n; j++) {
         sse = sse + e[j]*e[j];
       }
-      ssb=0.0;
       if(method==3) {
+        // Park & Casella - Campos et al.
+        ssb=0.0;
+        dfb=0.0;
         for ( int i = 0; i < m; i++) {
-          ssb = ssb + b[i]*b[i]*(1.0/lambda[i])/ve;
+          ssb = ssb + b[i]*(1.0/lambda[i])*b[i]/ve;
           dfb = dfb + 1.0;
-          dm[i] = dm[i] + 1.0;
         }
         sse=sse+ssb;
         dfe=dfe+dfb;
@@ -487,9 +485,8 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       double lshape0 = 1.0; // lambda0 hyperparameter shape
       
       // Set a small tolerance value (epsilon)
-      const double epsilon = 1e-10;
+      const double epsilon = 1e-20;
       
-      lambda_tau = 2.0/vb;
       lambda_tau = lambda2;
       
       // Compute mutau for each element in vector b
@@ -500,10 +497,10 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
         //double b2 = b[i]*b[i] < epsilon ? epsilon : b[i]*b[i];
         //double b2 = b[i]*b[i];
         // Calculate mu_tau with the tolerance for very small b[i]
-        // version 1
-        mu_tau = std::sqrt(lambda_tau*ve) / abs_b;
-        // version 2
+        // Legarra et al 2011
         //mu_tau = std::sqrt(lambda_tau) / abs_b;
+        // Park & Casella - Campos et al.
+        mu_tau = std::sqrt(lambda_tau*ve) / abs_b;
         tau = rinvgauss(mu_tau, lambda_tau, gen);
         //mu_tau = std::sqrt(lambda2 * ve) / abs_b;
         //mu_tau =  std::sqrt(lambda2)/abs_b;
