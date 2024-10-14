@@ -452,6 +452,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       const double epsilon = 1e-8;
       
       lambda_tau = lambda2;
+      lambda_tau = std::max(lambda_tau, epsilon);
       
       // Compute mutau for each element in vector b
       double sum_tau = 0.0;
@@ -461,9 +462,9 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
         // Calculate mu_tau with the tolerance for very small b[i]
         // Legarra et al 2011
         mu_tau = std::sqrt(lambda_tau) / abs_b;
-        lambda_tau = std::max(lambda_tau, 0.0);
         // Park & Casella - Campos et al.
         //mu_tau = std::sqrt(lambda_tau*ve) / abs_b;
+        mu_tau = std::max(mu_tau, epsilon);
         double invtau = rinvgauss(mu_tau, lambda_tau, gen);
         lambda[i] = invtau;
         sum_tau += 1.0/invtau;
