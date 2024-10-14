@@ -61,6 +61,8 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
                                            bool updateE,
                                            bool updatePi,
                                            int nit,
+                                           int nburn,
+                                           int nthin,
                                            int method,
                                            int seed) {
   
@@ -68,6 +70,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   int n = y.size();
   int m = W.size();
   int nc = pi.size();
+  double nsamples=0.0;
   
   double rhs, lhs, bn, conv, diff, mu;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
@@ -83,8 +86,9 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   std::vector<int> order(m), mask(m);
   
   std::vector<double> dm(m),bm(m),vbi(m),vei(m);
-  std::vector<double> ves(nit),vbs(nit),vgs(nit),pis(nit),mus(nit);
-
+  //std::vector<double> ves(nit),vbs(nit),vgs(nit),pis(nit),mus(nit);
+  std::vector<double> ves(nit+nburn),vbs(nit+nburn),vgs(nit+nburn),pis(nit+nburn),mus(nit+nburn);
+  
   std::vector<double> vbscale(nc), pic(nc), pim(nc), probc(nc), logLc(nc);
   double cumprobc, vbc, v0, v1, logLcAdj;
   
@@ -142,9 +146,14 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   std::mt19937 gen(seed);
   
   
-  for ( int it = 0; it < nit; it++) {
+
+  for ( int it = 0; it < nit+nburn; it++) {
     conv = 0.0;
 
+    if ( (it > nburn) && (it % nthin == 0) ) {
+      nsamples = nsamples + 1.0;
+    }
+    
     // Compute marker effects (BLUP)
     if (method==0) {
       for ( int isort = 0; isort < m; isort++) {
@@ -290,7 +299,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
         }
         for (int j = 0; j<2 ; j++) {
           pi[j] = pi[j]/pisum;
-          pim[j] = pim[j] + pi[j];
+          if(it>nburn) pim[j] = pim[j] + pi[j];
         }
         pis[it] = pi[1];
       }  
@@ -371,7 +380,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
         }
         for (int j = 0; j<nc ; j++) {
           pi[j] = pi[j]/pisum;
-          pim[j] = pim[j] + pi[j];
+          if(it>nburn) pim[j] = pim[j] + pi[j];
         }
       }
     }
@@ -383,29 +392,29 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     dfb = 0.0;
     if (method<4) {
       for ( int i = 0; i < m; i++) {
-        bm[i] = bm[i] + b[i];
+        if(it>nburn && (it % nthin == 0)) bm[i] = bm[i] + b[i];
         ssb = ssb + b[i]*b[i];
         dfb = dfb + 1.0;
-        dm[i] = dm[i] + 1.0;
+        if(it>nburn && (it % nthin == 0)) dm[i] = dm[i] + 1.0;
       }
     }
     if (method==4) {
       for ( int i = 0; i < m; i++) {
-        bm[i] = bm[i] + b[i];
+        if(it>nburn && (it % nthin == 0)) bm[i] = bm[i] + b[i];
         if(d[i]==1)   {
           ssb = ssb + b[i]*b[i];
           dfb = dfb + 1.0;
-          dm[i] = dm[i] + 1.0;
+          if(it>nburn && (it % nthin == 0)) dm[i] = dm[i] + 1.0;
         }
       }
     }
     if (method==5) {
       for ( int i = 0; i < m; i++) {
-        bm[i] = bm[i] + b[i];
+        if(it>nburn && (it % nthin == 0)) bm[i] = bm[i] + b[i];
         if(d[i]>0)   {
           ssb = ssb + (b[i]*b[i])/gamma[d[i]];
           dfb = dfb + 1.0;
-          dm[i] = dm[i] + (double)d[i];
+          if(it>nburn && (it % nthin == 0)) dm[i] = dm[i] + (double)d[i];
         }
       }
     }
@@ -501,50 +510,54 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
 
     
   }
-  
+
+
   // Summarize results
-  std::vector<std::vector<double>> result(11);
+  std::vector<std::vector<double>> result(12);
   result[0].resize(m);
   result[1].resize(m);
-  result[2].resize(nit);
-  result[3].resize(nit);
-  result[4].resize(nit);
-  result[5].resize(nit);
-  result[6].resize(nc);
-  result[7].resize(n);
-  result[8].resize(m);
+  result[2].resize(nit+nburn);
+  result[3].resize(nit+nburn);
+  result[4].resize(nit+nburn);
+  result[5].resize(nit+nburn);
+  result[6].resize(nit+nburn);
+  result[7].resize(nc);
+  result[8].resize(n);
   result[9].resize(m);
-  result[10].resize(3);
+  result[10].resize(m);
+  result[11].resize(3);
   
   for (int i=0; i < m; i++) {
-    result[0][i] = bm[i]/nit;
-    result[1][i] = dm[i]/nit;
+    //result[0][i] = bm[i]/nit;
+    //result[1][i] = dm[i]/nit;
+    result[0][i] = bm[i]/nsamples;
+    result[1][i] = dm[i]/nsamples;
   }
-  for (int i=0; i < nit; i++) {
+  for (int i=0; i < nit+nburn; i++) {
     result[2][i] = mus[i];
     result[3][i] = vbs[i];
     result[4][i] = vgs[i];
     result[5][i] = ves[i];
+    result[6][i] = pis[i];
   }
   for (int j=0; j < nc; j++) {
-    result[6][j] = pim[j]/nit;
+    result[7][j] = pim[j]/nit;
   }  
-  
   for (int i=0; i < n; i++) {
-    result[7][i] = y[i]- mu - e[i];
+    result[8][i] = y[i]- mu - e[i];
   }
   for (int i=0; i < m; i++) {
-    result[8][i] = b[i];
-    result[9][i] = d[i];
+    result[9][i] = b[i];
+    result[10][i] = d[i];
   }
-  result[10][0] = vb;
-  result[10][1] = ve;
-  result[10][2] = pi[0];
-  
+  result[11][0] = vb;
+  result[11][1] = ve;
+  result[11][2] = pi[0];
   return result;
-  
-
 }
+
+
+
 
 
 // [[Rcpp::export]]

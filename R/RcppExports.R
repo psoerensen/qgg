@@ -21,8 +21,8 @@ summarybed <- function(file, n, cls, af, weights, y) {
     .Call(`_qgg_summarybed`, file, n, cls, af, weights, y)
 }
 
-bayes <- function(y, W, b, lambda, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, method, seed) {
-    .Call(`_qgg_bayes`, y, W, b, lambda, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, method, seed)
+bayes <- function(y, W, b, lambda, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, nburn, nthin, method, seed) {
+    .Call(`_qgg_bayes`, y, W, b, lambda, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, nburn, nthin, method, seed)
 }
 
 sbayes <- function(wy, LD, b, lambda, yy, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method) {

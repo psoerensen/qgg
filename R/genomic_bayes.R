@@ -715,7 +715,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=
                   vg=NULL, vb=NULL, ve=NULL, 
                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
                   h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                  nub=NULL, nue=NULL, nit=NULL, method=NULL, formatLD=NULL, algorithm=NULL) {
+                  nub=NULL, nue=NULL, nit=500, nburn=100, nthin=1, method=NULL, formatLD=NULL, algorithm=NULL) {
   ids <- NULL
   if(is.matrix(y)) ids <- rownames(y)
   if(is.vector(y)) ids <- names(y)
@@ -778,16 +778,18 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=
                  updateE = updateE,
                  updatePi = updatePi,
                  nit=nit,
+                 nburn=nburn,
+                 nthin=nthin,
                  method=as.integer(method),
                  seed=seed) 
     ids <- rownames(W)
-    names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[10]]) <- colnames(W)
+    names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[11]]) <- colnames(W)
     #fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
     #names(fit[[7]]) <- names(fit[[8]]) <- ids
-    names(fit[[8]]) <- ids
+    names(fit[[9]]) <- ids
     #names(fit) <- c("bm","dm","coef","vb","ve","pi","g","e","param","b")
     #names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pi","g","param","b")
-    names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pim","g","b","d","param")
+    names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","g","b","d","param")
     
   } 
   return(fit)
