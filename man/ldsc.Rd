@@ -12,6 +12,7 @@ ldsc(
   seb = NULL,
   af = NULL,
   stat = NULL,
+  tol = 1e-08,
   n = NULL,
   intercept = TRUE,
   what = "h2",

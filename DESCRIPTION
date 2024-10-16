@@ -17,6 +17,6 @@ Encoding: UTF-8
 Depends: R (>= 3.3.0)
 Imports: Rcpp (>= 1.0.5), data.table, parallel, statmod, stats, MCMCpack, MASS, coda, corpcor, Matrix
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 URL: https://github.com/psoerensen/qgg
 BugReports: https://github.com/psoerensen/qgg/issues

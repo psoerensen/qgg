@@ -408,6 +408,7 @@ hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 #   phyperg
 # }
 
+#' @export
 magma <- function(stat = NULL, sets = NULL, 
                   method="magma", type = "joint", test = "one-sided",
                   pi=0.001, nit=5000, nburn=1000) {
@@ -657,7 +658,7 @@ saddle <- function(x, lambda) {
   }
 }
 
-
+#' @export
 pops <- function(stat = NULL, sets = NULL, validate=NULL, threshold=NULL,
                  method="bayesC", pi=0.001, nit=5000, nburn=1000) {
   
