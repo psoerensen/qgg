@@ -506,6 +506,7 @@ magma <- function(stat = NULL, sets = NULL,
   }
 }
 
+#' @export
 vegas <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol=1e-7, minsize=2, verbose=FALSE) {
   
   if(is.null(Glist)) stop("Please provide Glist object")
