@@ -659,8 +659,73 @@ saddle <- function(x, lambda) {
   }
 }
 
+
+
 #' @export
 pops <- function(stat = NULL, sets = NULL, validate=NULL, threshold=NULL,
+                 method="bayesC", pi=0.001, nit=5000, nburn=1000,
+                 updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE) {
+  
+  if(!is.null(validate)) {
+    fit <- cvpops
+    return(fit)
+  }
+  # Check if stat and sets are provided
+  if (is.null(stat) || is.null(sets)) {
+    stop("Both 'stat' and 'sets' must be provided.")
+  }
+  
+  if(is.vector(stat)) stat <- as.matrix(stat)
+  if(is.null(rownames(stat))) stop("Please provide names or rownames to stat object")
+  
+  # Map sets to rownames in stat
+  sets <- mapSets(sets=sets,rsids=rownames(stat), index=FALSE)
+  
+  # Center and scale y
+  y <- scale(stat, center=TRUE, scale=TRUE)
+  orig_stat <- stat
+  
+  # Compute X for feature sets (sparse format)
+  X <- designMatrix(sets = sets, rowids = rownames(y))
+  X <- X[rownames(X)%in%rownames(y),]
+  y <- as.matrix(y[rownames(y)%in%rownames(X),])
+  X <- X[rownames(y),]
+  
+  if(!is.null(threshold)) {
+    fit <- qgg:::magma(stat=orig_stat, sets=sets, type = "marginal", test = "one-sided",
+                       method="magma")
+    selected <- fit$p<threshold
+    if(sum(selected)<2) stop("Number of selected features less than 2")
+    cls <- fit$ID[selected]
+    X <- X[,cls]
+  }
+  
+  # Compute summary stat for feature sets
+  stat <- computeStat(X = X, y = y, scale = TRUE)
+  isNA <- is.na(stat$Xy)
+  stat$Xy <- stat$Xy[!isNA]
+  stat$XX <- stat$XX[!isNA,!isNA]
+  
+  if (method=="rr") {
+    b <- solve(stat$XX + diag(0.001, nrow(stat$XX))) %*% stat$Xy
+  }
+  
+  if (method%in%c("bayesC","bayesR")) {
+    # Fit BLR model
+    fit <- qgg:::blr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
+                     method=method, pi=pi,
+                     nit=nit, nburn=nburn,
+                     updateB=updateB, updateE=updateE, updatePi=updatePi)
+    b <- fit$bm
+  }
+  
+  ypred <- as.matrix(X%*%b)
+  colnames(ypred) <- colnames(orig_stat)
+  return(ypred)
+}
+
+
+cvpops <- function(stat = NULL, sets = NULL, validate=NULL, threshold=NULL,
                  method="bayesC", pi=0.001, nit=5000, nburn=1000) {
   
   # Check if stat and sets are provided
