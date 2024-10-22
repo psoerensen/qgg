@@ -720,6 +720,8 @@ pops <- function(stat = NULL, sets = NULL, validate=NULL, threshold=NULL,
   }
   
   ypred <- as.matrix(X%*%b)
+  o <- order(rowSums(ypred),decreasing=TRUE)
+  ypred <- as.matrix(ypred[o,])
   colnames(ypred) <- colnames(orig_stat)
   return(ypred)
 }
