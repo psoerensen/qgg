@@ -2932,7 +2932,12 @@ designMatrix <- function(sets=NULL, values=NULL, rowids=NULL, format="sparse") {
     # Compute design matrix for marker sets in sparse format
     is <- qgg::mapSets(sets=sets, rsids=rowids, index=TRUE)
     js <- rep(1:length(is),times=sapply(is,length))
-    W <- sparseMatrix(unlist(is),as.integer(js),x=rep(1,length(js)))
+    x <- rep(1,length(js))
+    if(!is.null(values)) {
+      if(any(!names(values)==rowids)) stop("Mismatch between names(values) and rowids")
+      x <- values[unlist(is)]
+    }
+    W <- sparseMatrix(unlist(is),as.integer(js),x=x)
     indx <- 1:max(sapply(is,max))
     rowids <- rowids[indx]
     colnames(W) <- names(is)
