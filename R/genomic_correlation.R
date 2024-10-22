@@ -124,6 +124,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", z=NU
       Xmu <- Matrix(1, nrow = nrow(X), ncol = 1, sparse = TRUE)
       X <- cbind2(Xmu, X)
       XX <- crossprod(X)
+      y <- y[rownames(X)]
       Xy <- crossprod(X, y)
       if(method=="regression") h2 <- solve(as.matrix(XX))%*%as.matrix(Xy)
       if(method=="bayesC") {
