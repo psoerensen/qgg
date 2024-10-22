@@ -84,7 +84,7 @@
 #'
 #' @export 
 
-ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, stat=NULL, tol=1e-8,
+ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", z=NULL, b=NULL, seb=NULL, af=NULL, stat=NULL, tol=1e-8,
                  n=NULL, intercept=TRUE, what="h2", maxZ2=NULL, SE.h2=FALSE, SE.rg=FALSE, blk=200) {
   
   if(!is.null(Glist) & is.null(ldscores) ) ldscores <- unlist(Glist$ldscores)
@@ -104,6 +104,42 @@ ldsc <- function(Glist=NULL, ldscores=NULL, z=NULL, b=NULL, seb=NULL, af=NULL, s
       nt <- 1
     }  
   }
+  
+  # Partioned h2 - test version
+  if(!is.null(sets)) {
+    if(is.null(z)) stop("Please provide a vector/matrix of z-statistics") 
+    if(is.null(n)) stop("Please provide a vector/matrix of n")
+    if(is.null(ldscores)) stop("Please provide a vector ldscores")
+    if(!what=="h2") stop("Only h2 is currently only possible for partitioning")
+    h2set <- NULL
+    z <- as.matrix(z[rownames(z)%in%names(ldscores),,drop=FALSE])
+    n <- n[rownames(z),]
+    ldscores <- ldscores[rownames(z)]
+    nt <- ncol(z)
+    sets <- mapSets(sets=sets, rsids=rownames(z), index=FALSE)
+    for (i in 1:nt) {
+      y <- z[,i]**2  
+      X <- designMatrix(sets = sets, rowids = names(y), values=n*ldscores)
+      X <- X%*%Diagonal(x = 1/sapply(sets,length))
+      Xmu <- Matrix(1, nrow = nrow(X), ncol = 1, sparse = TRUE)
+      X <- cbind2(Xmu, X)
+      XX <- crossprod(X)
+      Xy <- crossprod(X, y)
+      if(method=="regression") h2 <- solve(as.matrix(XX))%*%as.matrix(Xy)
+      if(method=="bayesC") {
+        fit <- qgg:::blr(yy=sum(y**2), XX=as.matrix(XX), Xy=as.matrix(Xy), n=length(y),
+                         method=method, pi=0.01,
+                         nit=5000, nburn=1000)
+        h2 <- fit$bm
+      }
+      h2set <- cbind(h2set,h2)
+    }
+    colnames(h2set) <- colnames(z)
+    rownames(h2set) <- c("Intercept",names(sets))
+    return(h2set[-1,])
+  } 
+  
+  
   
   if(!is.null(z)) nt <- ncol(z)
   
