@@ -7,6 +7,8 @@
 ldsc(
   Glist = NULL,
   ldscores = NULL,
+  sets = NULL,
+  method = "regression",
   z = NULL,
   b = NULL,
   seb = NULL,
