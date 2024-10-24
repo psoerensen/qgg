@@ -84,7 +84,7 @@
 #'
 #' @export 
 
-ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", z=NULL, b=NULL, seb=NULL, af=NULL, stat=NULL, tol=1e-8,
+ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", residual=FALSE, z=NULL, b=NULL, seb=NULL, af=NULL, stat=NULL, tol=1e-8,
                  n=NULL, intercept=TRUE, what="h2", maxZ2=NULL, SE.h2=FALSE, SE.rg=FALSE, blk=200) {
   
   if(!is.null(Glist) & is.null(ldscores) ) ldscores <- unlist(Glist$ldscores)
@@ -116,6 +116,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", z=NU
     n <- n[rownames(z),]
     ldscores <- ldscores[rownames(z)]
     nt <- ncol(z)
+    if(residual) sets <- append(sets, list(Residual=rownames(z)[!rownames(z)%in%unique(unlist(sets))]))
     sets <- mapSets(sets=sets, rsids=rownames(z), index=FALSE)
     for (i in 1:nt) {
       y <- z[,i]**2  

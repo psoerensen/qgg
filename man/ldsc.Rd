@@ -9,6 +9,7 @@ ldsc(
   ldscores = NULL,
   sets = NULL,
   method = "regression",
+  residual = TRUE,
   z = NULL,
   b = NULL,
   seb = NULL,
