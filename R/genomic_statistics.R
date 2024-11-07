@@ -210,6 +210,8 @@ checkStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.0
   stat <- stat[!excludeMAFDIFF,]
   marker <- marker[!excludeMAFDIFF,]
   
+  if(colnames(stat)[1]=="marker")  colnames(stat)[1] <- "rsids"
+    
   #colnames(stat) <- fm_internal
   if(is.null(stat$n)) stat$n <- neff(seb=stat$seb,af=stat$eaf)
   
@@ -218,7 +220,11 @@ checkStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.0
     message(paste("Number of markers excluded by low INFO score:", sum(lowINFO)))
     message("")
     stat <- stat[!lowINFO,]
-  }  
+  }
+  
+  clsstat <- c("rsids","chr","pos","ea","nea","eaf","b","seb","p","n","info")%in%colnames(stat)
+  clsstat <- c("rsids","chr","pos","ea","nea","eaf","b","seb","p","n","info")[clsstat]
+  colnames(stat) <- clsstat
   return(stat)
 }
 
