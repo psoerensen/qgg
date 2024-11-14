@@ -1545,8 +1545,8 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         critb1 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat[rws,"b"]
         critb2 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat[rws,"b"]
         critb <- !any(critb1 | critb2)
-        #converged <- critve & critvg & critvb & critpi & critb
-        converged <- critve & critvg & critvb & critpi
+        converged <- critve & critvg & critvb & critpi & critb
+        #converged <- critve & critvg & critvb & critpi
         
         # Make plots to monitor convergence
         if(verbose) {
