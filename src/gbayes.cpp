@@ -1770,3 +1770,538 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double> wy,
   return result;
 }
 
+// [[Rcpp::export]]
+std::vector<std::vector<double>>  sbayes_eigen( std::vector<double> wy,
+                                              std::vector<double> ww, 
+                                              std::vector<std::vector<double>> LDvalues, 
+                                              std::vector<std::vector<int>> LDindices, 
+                                              std::vector<double> b, 
+                                              std::vector<double> lambda,
+                                              std::vector<bool> mask, 
+                                              double yy, 
+                                              std::vector<double> pi, 
+                                              std::vector<double> gamma, 
+                                              double vg, 
+                                              double vb, 
+                                              double ve,
+                                              double ssb_prior,
+                                              double sse_prior,
+                                              double nub,
+                                              double nue,
+                                              bool updateB,
+                                              bool updateE,
+                                              bool updatePi,
+                                              bool updateG,
+                                              bool adjustE,
+                                              int n, 
+                                              int nit,
+                                              int nburn,
+                                              int nthin,
+                                              int method,
+                                              int algo,
+                                              int seed) {
+  
+  
+  
+  // Define local variables
+  int m = b.size();
+  int nc = pi.size();
+  double nsamples=0.0;
+  int q=wy.size();
+  
+  double rhs, lhs, bn, bj, diff;
+  double rhs1, lhs1, like0, like1, p0, v0, v1;
+  double rhs0, lhs0;
+  double ssb, sse, ssg, dfb, dfe, dfg, chi2;
+  double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
+  double shape, shape0, rate, rate0, lambda2;
+  
+  std::vector<double> vbscale(nc), pic(nc), pim(nc), probc(nc), logLc(nc);
+  double cumprobc, vbc, logLcAdj;
+  
+  
+  std::vector<int> d(m);
+  
+  std::vector<double> r(q),vei(m);
+  
+  std::vector<double> dm(m),bm(m);
+  std::vector<double> ves(nit+nburn),vbs(nit+nburn),vgs(nit+nburn),pis(nit+nburn);
+  
+  std::vector<double> x2(q);
+  std::vector<int> order(m);
+  
+  
+  // Initialize variables
+  for ( int i = 0; i < q; i++) {
+    r[i] = wy[i];
+  }
+  
+  for ( int i = 0; i < m; i++) {
+    order[i] = i;
+  }
+  std::fill(bm.begin(), bm.end(), 0.0);
+  std::fill(dm.begin(), dm.end(), 0.0);
+  std::fill(vbs.begin(), vbs.end(), 0.0);
+  std::fill(vgs.begin(), vgs.end(), 0.0);
+  std::fill(ves.begin(), ves.end(), 0.0);
+  std::fill(pis.begin(), pis.end(), 0.0);
+  std::fill(pim.begin(), pim.end(), 0.0);
+  
+  // initialize BayesL parameters
+  //if (method==3) {
+  dfb = (nub - 2.0)/nub;
+
+  // Start Gibbs sampler
+  std::random_device rd;
+  std::mt19937 gen(seed);
+  
+  for ( int it = 0; it < nit+nburn; it++) {
+    
+    if ( (it > nburn) && (it % nthin == 0) ) {
+      nsamples = nsamples + 1.0;
+    }
+    
+    // Sample marker effects (BayesR)
+    if (method==5) {
+      
+      for ( int i = 0; i < m; i++) {
+        if(mask[i])   continue;
+        // variance class likelihood 
+        //rhs = r[i] + ww[i]*b[i];
+        // check r should be Qe=w-Qb-j
+        //rhs = (curQi.dot(wcorr) + oldSample)*vareDn;
+        rhs=0.0;
+        for (size_t j = 0; j < LDvalues[i].size(); j++) {
+          rhs +=r[LDindices[i][j]]*LDvalues[i][LDindices[i][j]];
+        }
+        rhs = (rhs + b[i])*(ww[i]/ve);
+        //v0 = ww[i]*vei[i];
+        logLc[0] = std::log(pi[0]);
+        // curQ = blockLDeig.getQ(idxBlk);
+        // wcorr = blockLDeig.getW(idxBlk);
+        // curQi = curQ.col(idx - baseStart);
+        // vareDn = n[idxBlk] / vare[idxBlk];   
+        
+        // invSigmaSq = wtSigmaSq.array().inverse();
+        // invLhs = 1.0/(vareDn + invSigmaSq.array());
+        // uhat = invLhs.array() * rhs;
+        // logInvLhsMsigma = invLhs.array().log() - logSigmaSq.array();
+        // logDelta = 0.5*(logInvLhsMsigma.array() + uhat.array() * rhs) + logPi.array();
+        //logDelta[0] = logPi(0);
+        // sigmaSq = varg / (m * fgamma.dot(pi));
+        for (int j = 1; j<nc ; j++) {
+          vbc = vg*gamma[j]/(m*pi[j]);
+          vbc = vb*gamma[j];
+          //vbc = vg*gamma[j];
+          lhs = (ww[i] / ve) + (1 / vbc);
+          //logLc[j] = 0.5*std::log(1.0/lhs)-0.5*std::log(1/vbc) + (rhs*rhs)/lhs + std::log(pi[j]); 
+          logLc[j] = 0.5*( (std::log(1.0/lhs)-std::log(vbc)) + (rhs*rhs)/lhs) + std::log(pi[j]); 
+          //logLc[j] = -0.5 * std::log(lhs) - 0.5 * std::log(vbc) + (rhs * rhs) / lhs + std::log(pi[j]);
+        }
+        // variance class probability 
+        std::fill(probc.begin(), probc.end(), 0.0);
+        for (int j = 0; j<nc ; j++) {
+          logLcAdj = 0.0;
+          for (int k = 0; k<nc ; k++) {
+            logLcAdj += std::exp(logLc[k] - logLc[j]);
+          }
+          probc[j] = 1.0/logLcAdj;
+        }
+        // sample variance class indicator
+        std::uniform_real_distribution<double> runif(0.0, 1.0);
+        u = runif(gen);
+        d[i]=0;
+        cumprobc = 0.0;
+        for (int j = 0; j<nc ; j++) {
+          cumprobc += probc[j];
+          if(u < cumprobc){
+            d[i] = j;
+            break;
+          }
+        }
+        // sample marker effect
+        bn=0.0;
+        if(d[i]>0) {
+          vbc = vg*gamma[d[i]]/(m*pi[d[i]]);
+          vbc = vb * gamma[d[i]];
+          //vbc = vg * gamma[d[i]];
+          lhs = (ww[i] / ve) + (1 / vbc);
+          std::normal_distribution<double> rnorm(rhs/lhs, sqrt(1.0/lhs));
+          bn = rnorm(gen);
+        }
+        diff = (bn-b[i]);
+        if(diff!=0.0) {
+          for (size_t j = 0; j < LDindices[i].size(); j++) {
+            r[LDindices[i][j]] += -LDvalues[i][LDindices[i][j]]*diff;
+          }
+        }
+        b[i] = bn;
+      }
+      // Sample pi for Bayes R
+      if(updatePi) {
+        std::vector<double> mc(nc);
+        std::fill(mc.begin(), mc.end(), 0.0);
+        for (int i = 0; i<m ; i++) {
+          mc[d[i]] = mc[d[i]] + 1.0;
+        }
+        double pisum=0.0;
+        for (int j = 0; j<nc ; j++) {
+          std::gamma_distribution<double> rgamma(mc[j]+1.0,1.0);
+          double rg = rgamma(gen);
+          pi[j] = rg/m;
+          pisum = pisum + pi[j];
+        }
+        for (int j = 0; j<nc ; j++) {
+          pi[j] = pi[j]/pisum;
+          if(it>nburn) pim[j] = pim[j] + pi[j];
+        }
+        pis[it] = 1.0 - pi[0];
+      }
+    }
+    
+    
+    // Sample marker variance
+    ssb = 0.0;
+    dfb = 0.0;
+    if (method==5) {
+      for ( int i = 0; i < m; i++) {
+        if(it>nburn && (it % nthin == 0)) bm[i] = bm[i] + b[i];
+        if(d[i]>0)   {
+          ssb = ssb + (b[i]*b[i])/gamma[d[i]];
+          dfb = dfb + 1.0;
+          if(it>nburn && (it % nthin == 0)) dm[i] = dm[i] + 1.0;
+        }
+      }
+    }
+    
+    // marker variance
+    if(updateB) {
+      std::chi_squared_distribution<double> rchisq(dfb+nub);
+      chi2 = rchisq(gen);
+      vb = (ssb + ssb_prior*nub)/chi2 ;
+      vbs[it] = vb;
+    }
+    
+    // // Sample residual variance
+    sse = 0.0;
+    for ( int i = 0; i < q; i++) {
+      sse = sse + r[i]*r[i];
+    }
+    dfe = (double)q + nue;
+    sse= sse*dfe;
+    std::chi_squared_distribution<double> rchisq(dfe);
+    chi2 = rchisq(gen);
+    ves[it] = (sse + sse_prior*nue)/chi2;
+    if(updateE) ve = ves[it];
+
+    // Sample genetic variance
+    ssg = 0.0;
+    for (int i = 0; i < q; i++) {
+      if (mask[i]) continue;
+      if (!std::isfinite(wy[i]) || !std::isfinite(r[i])) continue; // Skip invalid values
+      ssg += (wy[i] - r[i]) * (wy[i] - r[i]);
+    }
+    vgs[it] = ssg;
+    if(updateG) vg = ssg;
+    
+    
+  }
+  
+  // Summarize results
+  std::vector<std::vector<double>> result(11);
+  result[0].resize(m);
+  result[1].resize(m);
+  result[2].resize(nit+nburn);
+  result[3].resize(nit+nburn);
+  result[4].resize(nit+nburn);
+  result[5].resize(nit+nburn);
+  result[6].resize(nit+nburn);
+  result[7].resize(nc);
+  result[8].resize(q);
+  result[9].resize(m);
+  result[10].resize(3);
+  
+  for (int i=0; i < m; i++) {
+    result[0][i] = bm[i]/nsamples;
+    result[1][i] = dm[i]/nsamples;
+  }
+  for (int i=0; i < nit+nburn; i++) {
+    //result[2][i] = mus[i];
+    result[2][i] = 0.0;
+    result[3][i] = vbs[i];
+    result[4][i] = vgs[i];
+    result[5][i] = ves[i];
+    result[6][i] = pis[i];
+  }
+  for (int j=0; j < nc; j++) {
+    result[7][j] = pim[j]/nit;
+  }  
+  
+  for (int i=0; i < q; i++) {
+    result[8][i] = r[i];
+  }
+  for (int i=0; i < m; i++) {
+    result[9][i] = b[i];
+  }
+  result[10][0] = vb;
+  result[10][1] = ve;
+  result[10][2] = pi[0];
+  
+  
+  return result;
+}
+
+
+
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
+                                                    std::vector<double> ww, 
+                                                    std::vector<std::vector<double>> LDvalues, 
+                                                    std::vector<std::vector<int>> LDindices, 
+                                                    std::vector<double> b, 
+                                                    std::vector<double> lambda, 
+                                                    std::vector<bool> mask, 
+                                                    std::vector<double> pi, 
+                                                    std::vector<double> gamma, 
+                                                    double vb, 
+                                                    double vg, 
+                                                    double ve,
+                                                    double ssb_prior,
+                                                    double ssg_prior,
+                                                    double sse_prior,
+                                                    double nub,
+                                                    double nug,
+                                                    double nue,
+                                                    bool updateB,
+                                                    bool updateE,
+                                                    bool updatePi,
+                                                    bool updateG,
+                                                    int n, 
+                                                    int nit,
+                                                    int nburn,
+                                                    int nthin,
+                                                    int method,
+                                                    int algo,
+                                                    int seed) {
+  
+  // Define local variables
+  int m = b.size();
+  int nc = pi.size();
+  double nsamples=0.0;
+  int q=wy.size();
+  
+  double rhs, lhs, bn, diff;
+  double ssb, sse, ssg, dfb, dfe, dfg, chi2;
+  double u;
+  
+  std::vector<double> probc(nc), logLc(nc), pim(nc);
+  double cumprobc, vbc, logLcAdj;
+  
+  std::vector<int> d(m);
+  std::vector<double> r(m);
+  std::vector<double> dm(m),bm(m);
+  
+  std::vector<double> ves(nit+nburn),vbs(nit+nburn),vgs(nit+nburn),pis(nit+nburn);
+  std::vector<std::vector<double>> bs(nit+nburn, std::vector<double>(m, 0.0));  
+  std::vector<std::vector<int>> ds(nit+nburn, std::vector<int>(m, 0));  
+  
+  
+  // Initialize variables
+  
+  std::fill(bm.begin(), bm.end(), 0.0);
+  std::fill(dm.begin(), dm.end(), 0.0);
+  std::fill(vbs.begin(), vbs.end(), 0.0);
+  std::fill(vgs.begin(), vgs.end(), 0.0);
+  std::fill(ves.begin(), ves.end(), 0.0);
+  std::fill(pis.begin(), pis.end(), 0.0);
+  std::fill(pim.begin(), pim.end(), 0.0);
+  
+  for ( int i = 0; i < q; i++) {
+    r[i] = wy[i];
+  }
+  
+  
+  // Start Gibbs sampler
+  std::random_device rd;
+  std::mt19937 gen(seed);
+  
+  
+  for ( int it = 0; it < nit+nburn; it++) {
+    
+    if ( (it > nburn) && (it % nthin == 0) ) {
+      nsamples = nsamples + 1.0;
+    }
+    
+    
+    // Sample marker effects (BayesR)
+    if (method==5) {
+      for ( int i = 0; i < m; i++) {
+        if(mask[i])   continue;
+        
+        // variance class likelihood 
+        rhs=0.0;
+        for (size_t j = 0; j < LDvalues[i].size(); j++) {
+          rhs +=r[LDindices[i][j]]*LDvalues[i][LDindices[i][j]];
+        }
+        rhs = (rhs + b[i])*(ww[i]/ve);
+        logLc[0] = std::log(pi[0]);
+        for (int j = 1; j<nc ; j++) {
+          vbc = vb*gamma[j];
+          lhs = (ww[i] / ve) + (1 / vbc);
+          logLc[j] = 0.5*( (std::log(1.0/lhs)-std::log(vbc)) + (rhs*rhs)/lhs) + std::log(pi[j]); 
+        }
+        // variance class probability 
+        std::fill(probc.begin(), probc.end(), 0.0);
+        for (int j = 0; j<nc ; j++) {
+          logLcAdj = 0.0;
+          for (int k = 0; k<nc ; k++) {
+            logLcAdj += std::exp(logLc[k] - logLc[j]);
+          }
+          probc[j] = 1.0/logLcAdj;
+        }
+        // sample variance class indicator
+        std::uniform_real_distribution<double> runif(0.0, 1.0);
+        u = runif(gen);
+        d[i]=0;
+        cumprobc = 0.0;
+        for (int j = 0; j<nc ; j++) {
+          cumprobc += probc[j];
+          if(u < cumprobc){
+            d[i] = j;
+            break;
+          }
+        }
+        
+        // sample marker effect
+        bn=0.0;
+        if(d[i]>0) {
+          vbc = vb * gamma[d[i]];
+          lhs = (ww[i] / ve) + (1 / vbc);
+          std::normal_distribution<double> rnorm(rhs/lhs, sqrt(1.0/lhs));
+          bn = rnorm(gen);
+        }
+        diff = (bn-b[i]);
+        if(diff!=0.0) {
+          for (size_t j = 0; j < LDindices[i].size(); j++) {
+            r[LDindices[i][j]] += -LDvalues[i][LDindices[i][j]]*diff;
+          }
+        }
+        b[i] = bn;
+      }
+      
+      // Sample pi for Bayes R
+      if(updatePi) {
+        std::vector<double> mc(nc);
+        std::fill(mc.begin(), mc.end(), 0.0);
+        for (int i = 0; i<m ; i++) {
+          mc[d[i]] = mc[d[i]] + 1.0;
+        }
+        double pisum=0.0;
+        for (int j = 0; j<nc ; j++) {
+          std::gamma_distribution<double> rgamma(mc[j]+1.0,1.0);
+          double rg = rgamma(gen);
+          pi[j] = rg/m;
+          pisum = pisum + pi[j];
+        }
+        for (int j = 0; j<nc ; j++) {
+          pi[j] = pi[j]/pisum;
+          if(it>nburn && (it % nthin == 0)) pim[j] = pim[j] + pi[j];
+        }
+        pis[it] = 1.0 - pi[0];
+      }
+    }
+    
+    // Sample marker variance
+    ssb = 0.0;
+    dfb = 0.0;
+    if (method==5) {
+      for ( int i = 0; i < m; i++) {
+        if(it>nburn && (it % nthin == 0)) bm[i] = bm[i] + b[i];
+        if(d[i]>0)   {
+          ssb += (b[i]*b[i])/gamma[d[i]];
+          dfb += 1.0;
+          if(it>nburn && (it % nthin == 0)) dm[i] = dm[i] + 1.0;
+        }
+      }
+    }
+    std::chi_squared_distribution<double> rchisq_vb(dfb+nub);
+    chi2 = rchisq_vb(gen);
+    vbs[it] = (ssb + ssb_prior*nub)/chi2 ;
+    if(updateB) vb = vbs[it];
+    
+    // Sample residual variance
+    sse = 0.0;
+    for ( int i = 0; i < q; i++) {
+      sse += r[i]*r[i];
+    }
+    dfe = (double)q + nue;
+    sse= sse*dfe;
+    std::chi_squared_distribution<double> rchisq_ve(dfe);
+    chi2 = rchisq_ve(gen);
+    ves[it] = (sse + sse_prior*nue)/chi2;
+    if(updateE) ve = ves[it];
+    
+    // Sample genetic variance
+    ssg = 0.0;
+    for (int i = 0; i < q; i++) {
+      ssg += (wy[i] - r[i]) * (wy[i] - r[i]);
+    }
+    vgs[it] = ssg;
+    if(updateG) vg = ssg;
+    
+    for ( int i = 0; i < m; i++) {
+      bs[it][i] = b[i];
+      ds[it][i] = d[i];
+    }
+  }
+  
+  // Summarize results
+  std::vector<std::vector<double>> result(13);
+  
+  result[0].resize(m);
+  result[1].resize(m);
+  result[2].resize(nit+nburn);
+  result[3].resize(nit+nburn);
+  result[4].resize(nit+nburn);
+  result[5].resize(nit+nburn);
+  result[6].resize(nit+nburn);
+  result[7].resize(nc);
+  result[8].resize(q);
+  result[9].resize(m);
+  result[10].resize(3);
+  result[11].resize((nit+nburn)*m);
+  result[12].resize((nit+nburn)*m);
+  for (int i=0; i < m; i++) {
+    result[0][i] = bm[i]/nsamples;
+    result[1][i] = dm[i]/nsamples;
+  }
+  for (int i=0; i < nit+nburn; i++) {
+    result[2][i] = 0.0;
+    result[3][i] = vbs[i];
+    result[4][i] = vgs[i];
+    result[5][i] = ves[i];
+    result[6][i] = pis[i];
+  }
+  for (int j=0; j < nc; j++) {
+    result[7][j] = pim[j]/nsamples;
+  }  
+  
+  for (int i=0; i < q; i++) {
+    result[8][i] = r[i];
+  }
+  for (int i=0; i < m; i++) {
+    result[9][i] = b[i];
+  }
+  result[10][0] = vb;
+  result[10][1] = ve;
+  result[10][2] = pi[0];
+  
+  for ( int it = 0; it < nit+nburn; it++) {
+    for ( int i = 0; i < m; i++) {
+      result[11][it*m + i] = bs[it][i];
+      result[12][it*m + i] = (double)ds[it][i];
+    }
+  }
+  return result;
+}

@@ -1208,6 +1208,7 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   return(fit)
 }
 
+
 ################################################################################
 # Single trait fine-mapping BLR using summary statistics and sparse LD provided in Glist 
 # gmap full version
@@ -1223,68 +1224,39 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
 #' on the likelihood of the data given the parameters and a prior probability for the model parameters.
 #' The choice of the prior for marker effects can influence the type and extent of shrinkage induced in the model.
 #'
-#' @param y A vector or matrix of phenotypes.
-#' @param X A matrix of covariates.
-#' @param W A matrix of centered and scaled genotypes.
-#' @param nburn Number of burnin iterations.
-#' @param nit Number of iterations.
-#' @param nit_global Number of global iterations.
-#' @param nit_local Number of local iterations.
-#' @param pi Proportion of markers in each marker variance class.
-#' @param h2 Trait heritability.
-#' @param method Method used (e.g. "bayesN","bayesA","bayesL","bayesC","bayesR").
-#' @param algorithm Specifies the algorithm.
-#' @param tol Convergence criteria used in gbayes.
-#' @param Glist List of information about genotype matrix stored on disk.
-#' @param stat Dataframe with marker summary statistics.
-#' @param fit List of results from gbayes.
-#' @param trait Integer used for selection traits in covs object.
-#' @param chr Chromosome for which to fit BLR models.
-#' @param rsids Character vector of rsids.
-#' @param b Vector or matrix of marginal marker effects.
-#' @param seb Vector or matrix of standard error of marginal effects.
-#' @param mask Vector or matrix specifying if marker should be ignored.
-#' @param bm Vector or matrix of adjusted marker effects for the BLR model.
-#' @param lambda Vector or matrix of lambda values 
-#' @param LD List with sparse LD matrices.
-#' @param n Scalar or vector of number of observations for each trait.
-#' @param vb Scalar or matrix of marker (co)variances.
-#' @param vg Scalar or matrix of genetic (co)variances.
-#' @param ve Scalar or matrix of residual (co)variances.
-#' @param ssb_prior Scalar or matrix of prior marker (co)variances.
-#' @param ssg_prior Scalar or matrix of prior genetic (co)variances.
-#' @param sse_prior Scalar or matrix of prior residual (co)variances.
-#' @param vg_prior Scalar or matrix of prior genetic (co)variances.
-#' @param ve_prior Scalar or matrix of prior residual (co)variances.
-#' @param nub Scalar or vector of prior degrees of freedom for marker (co)variances.
-#' @param nug Scalar or vector of prior degrees of freedom for genetic (co)variances.
-#' @param nue Scalar or vector of prior degrees of freedom for residual (co)variances.
-#' @param updateB Logical indicating if marker (co)variances should be updated.
-#' @param updateG Logical indicating if genetic (co)variances should be updated.
-#' @param updateE Logical indicating if residual (co)variances should be updated.
-#' @param updatePi Logical indicating if pi should be updated.
-#' @param adjustE Logical indicating if residual variance should be adjusted.
-#' @param models List structure with models evaluated in bayesC.
-#' @param formatLD Character specifying LD format (default is "dense").
-#' @param verbose Logical; if TRUE, it prints more details during iteration.
-#' @param sets A list of character vectors where each vector represents a set of items. If the names
-#'   of the sets are not provided, they are named as "Set1", "Set2", etc.
-#' @param ids vector of individuals used in the study
-#' @param scaleY Logical indicating if y should be scaled.
-#' @param shrinkLD Logical indicating if LD should be shrunk.
-#' @param shrinkCor Logical indicating if cor should be shrunk.
-#' @param pruneLD Logical indicating if LD pruning should be applied.
-#' @param r2 Scalar providing value for r2 threshold used in pruning
-#' @param checkLD Logical indicating if LD matches summary statistics.
-#' @param checkConvergence Logical indicating if convergences should be checked.
-#' @param checkLD Logical indicating if LD matches summary statistics.
-#' @param critVe Scalar providing value for z-score threshold used in checking convergence for Ve
-#' @param critVg Scalar providing value for z-score threshold used in checking convergence for Vg
-#' @param critVb Scalar providing value for z-score threshold used in checking convergence for Vg
-#' @param critPi Scalar providing value for z-score threshold used in checking convergence for Pi
-#' @param ntrial Integer providing number of trials used if convergence is not obtaines
-#' @param msize Integer providing number of markers used in computation of sparseld
-#' @param threshold Scalar providing value for threshold used in adjustment of B
+#' @param Glist A list containing information on genotypic data, including SNPs, chromosomes, positions, and optionally, LD matrices.
+#' @param stat A data frame or list of summary statistics including effect sizes, standard errors, sample sizes, etc.
+#' @param sets Optional list specifying sets of SNPs for mapping.
+#' @param models Optional list of predefined models for Bayesian regression.
+#' @param rsids Vector of SNP identifiers.
+#' @param ids Vector of sample identifiers.
+#' @param mask Logical matrix indicating SNPs to exclude from analysis.
+#' @param lambda Vector of initial values for penalty parameters in the model.
+#' @param vb Initial prior for the marker effect variance (default: NULL).
+#' @param vg Initial prior for the genetic variance (default: NULL).
+#' @param ve Initial prior for the residual variance (default: NULL).
+#' @param pi Initial probability of inclusion (default: 0.001).
+#' @param h2 Heritability estimate (default: 0.5).
+#' @param nub,nug,nue Degrees of freedom parameters for the priors of marker, genetic, and residual variances, respectively.
+#' @param ssb_prior,ssg_prior,sse_prior Priors for the marker, genetic, and residual variances.
+#' @param vb_prior,vg_prior,ve_prior Additional priors for marker, genetic, and residual variances (default: NULL).
+#' @param updateB,updateG,updateE,updatePi Logical values specifying whether to update marker effects, genetic variance, residual variance, and inclusion probabilities, respectively.
+#' @param formatLD Format of LD matrix ("dense" by default).
+#' @param checkLD Logical, whether to check the LD matrix for inconsistencies (default: FALSE).
+#' @param shrinkLD,shrinkCor Logical, whether to apply shrinkage to the LD or correlation matrices (default: FALSE).
+#' @param pruneLD Logical, whether to prune LD matrix (default: FALSE).
+#' @param checkConvergence Logical, whether to check for convergence of the Gibbs sampler (default: FALSE).
+#' @param critVe,critVg,critVb,critPi Convergence criteria for residual, genetic, and marker variances, and inclusion probabilities.
+#' @param ntrial Number of trials to assess convergence (default: 1).
+#' @param verbose Logical, whether to print detailed output for debugging (default: FALSE).
+#' @param eigen_threshold Threshold for eigenvalues in eigen decomposition (default: 0.995).
+#' @param cset_r2,r2 R-squared thresholds for pruning (default: 0.5 and 0.05, respectively).
+#' @param nit Number of iterations in the MCMC sampler (default: 5000).
+#' @param nburn Number of burn-in iterations (default: 500).
+#' @param nthin Thinning interval for MCMC (default: 5).
+#' @param method The regression method to use, options include "blup", "bayesN", "bayesA", "bayesL", "bayesC", "bayesR".
+#' @param algorithm Algorithm for MCMC sampling, options include "mcmc", "em-mcmc", "mcmc-eigen".
+#' @param seed Random seed for reproducibility (default: 10).
 #'
 #' @return Returns a list structure including the following components:
 #' \item{bm}{Vector or matrix of posterior means for marker effects.}
@@ -1327,7 +1299,7 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
 #' 
 #' # Fine map
 #' fit <- gmap(Glist=Glist, stat=stat, sets=sets, verbose=FALSE, 
-#'             method="bayesC", nit=1500, nburn=500, pi=0.001)
+#'             method="bayesR", algorithm="mcmc-eigen",nit=1500, nburn=500, nthin=5)
 #'             
 #' fit$post  # Posterior inference for every fine-mapped region
 #' fit$conv  # Convergence statistics for every fine-mapped region
@@ -1335,16 +1307,353 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
 #' # Posterior inference for marker effect
 #' head(fit$stat)             
 #'
-
-
 #' @author Peter Sørensen
-
-
 #'
 #' @export
 #'
 
-gmap <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
+gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
+                 rsids=NULL, ids=NULL, mask=NULL, lambda=NULL,  
+                 vb=NULL, vg=NULL, ve=NULL, pi=0.001, h2=0.5, 
+                 nub=4, nug=4, nue=4, 
+                 ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL,
+                 vb_prior=NULL, vg_prior=NULL, ve_prior=NULL,
+                 updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
+                 formatLD="dense", checkLD=FALSE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
+                 checkConvergence=FALSE, critVe=3, critVg=3.5, critVb=3.5, critPi=3, ntrial=1,
+                 verbose=FALSE, eigen_threshold=0.995, credible_set_r2=0.5, r2=0.05,
+                 nit=5000, nburn=500, nthin=5,
+                 method="bayesR", algorithm="mcmc-eigen", seed=10) {
+  
+  
+  # Check methods and parameter settings
+  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+  method <- match(method, methods) - 1
+  if( !sum(method%in%c(0:5))== 1 ) stop("method argument specified not valid")
+  algorithms <- c("mcmc","em-mcmc", "mcmc-eigen")
+  algorithm <- match(algorithm, algorithms)
+  if(is.na(algorithm)) stop("algorithm argument specified not valid")
+  if(shrinkLD) {
+    if(is.null(Glist$map)) {
+      warning("No map information in Glist - LD matrix shrinkage turned off")
+      shrinkLD <- FALSE
+    }
+  } 
+  
+  # check this again
+  if(is.data.frame(stat)) {
+    if( any(sapply(stat[,-c(1:5)],function(x){any(!is.finite(x))}))) stop("Some elements in stat not finite")
+    if( any(sapply(stat[,-c(1:5)],function(x){any(is.na(x))}))) stop("Some elements in stat NA")
+    nt <- 1
+    rsids <- stat$rsids
+    m <- sum(rsids%in%unlist(Glist$rsids))
+    if(!is.null(Glist$rsidsLD)) m <- sum(rsids%in%unlist(Glist$rsidsLD))
+    stat$b <- as.matrix(stat$b)
+    stat$seb <- as.matrix(stat$seb)
+    stat$n <- as.matrix(stat$n)
+    stat$p <- as.matrix(stat$p)
+    rownames(stat$b) <- rownames(stat$seb) <- rsids
+    rownames(stat$n) <- rownames(stat$p) <- rsids
+    if(!is.null(stat[["ww"]])) {
+      stat$ww <- as.matrix(stat$ww)
+      rownames(stat$ww) <- rsids
+    }
+    if(!is.null(stat[["wy"]])) {
+      stat$wy <- as.matrix(stat$wy)
+      rownames(stat$wy) <- rsids
+    }
+  }
+  if(!is.data.frame(stat) && is.list(stat)) {
+    nt <- ncol(stat$b)
+    rsids <- rownames(stat$b)
+    m <- sum(rsids%in%unlist(Glist$rsids))
+    if(!is.null(Glist$rsidsLD)) m <- sum(rsids%in%unlist(Glist$rsidsLD))
+  }
+  
+  # Prepare summary statistics
+  if(nt==1) {
+    yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$n)
+    n <- median(stat$n)
+  }
+  if(is.null(stat[["ww"]])) stat$ww <- (yy/n)/(stat$seb^2 + stat$b^2/stat$n)
+  if(is.null(stat[["wy"]])) stat$wy <- stat$b*stat$ww
+  if(nt>1) {
+    yy <- (stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww
+    yy <- apply(yy,2,median)
+    n <- apply(stat$n,2,median)
+  }
+  
+  # Prepare input
+  b <- matrix(0, nrow=length(rsids), ncol=nt)
+  if(is.null(mask)) mask <- matrix(FALSE, nrow=length(rsids), ncol=nt)
+  rownames(b) <- rownames(mask) <- rsids
+  
+  vy <- yy/(n-1)
+  if(is.null(ve)) ve <- vy*(1-h2)
+  if(is.null(vg)) vg <- vy*h2
+  mc <- min(c(5000,m))
+  if(method>=4 && is.null(vb)) vb <- vg/(mc*pi)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <- ((nub-2.0)/nub)*(vg/(mc*pi))
+  
+  if(!is.null(sets) && algorithm==3)  { 
+    
+    sets <- mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
+    if(any(sapply(sets,function(x){any(is.na(x))}))) stop("NAs in sets detected - please remove these")
+    
+    
+    chr <- as.numeric(unlist(Glist$chr))
+    chrSets <- sapply(mapSets(sets = sets, Glist = Glist, index = TRUE), function(x) unique(chr[x]))
+    if (length(Glist$bedfiles) == 1) chrSets <- setNames(rep(1, length(chrSets)), names(chrSets))
+    lsets <- sapply(chrSets,length)
+    sets <- sets[lsets==1]
+    if(any(lsets>1)) stop(paste("Following marker sets mapped to multiple chromosome:",paste(which(lsets>1),collapse=",")))
+    if(any(lsets==0)) stop(paste("Following marker sets not mapped to any chromosome:",paste(which(lsets==0),collapse=",")))
+    
+    
+    # Prepare output
+    bm <- dm <- vector(mode="list",length=length(sets))
+    ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=length(sets))
+    pim <- vector(mode="list",length=length(sets))
+    names(bm) <- names(dm) <- names(ves) <- names(vgs) <- names(pis) <- names(bs)  <- names(ds) <- names(sets)     
+    names(pim) <- names(bs)  <- names(ds) <- names(sets)     
+    attempts <- rep(1, length=length(sets))
+    
+    
+    if(is.null(ids)) ids <- Glist$idsLD
+    if(is.null(ids)) ids <- Glist$ids
+    
+    # Compute phenotypic 
+    vy <- median(2*stat$eaf*(1-stat$eaf)*(stat$n*stat$seb^2 + stat$b^2))
+    
+    # BLR model for each set
+    for (i in 1:length(sets)) {
+      
+      chr <- chrSets[[i]]
+      rsids <- sets[[i]]
+      rws <- match(rsids,stat$rsids)
+      message(paste("Processing region:",i,"on chromosome:",chr))
+      
+      pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
+      message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
+      if(!is.null(Glist$map)) map <- getMap(Glist=Glist, chr=chr, rsids=rsids)
+      if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
+      
+      # Prepare input
+      W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
+      B <- crossprod(scale(W))/(nrow(W)-1)
+      
+      for (j in 1:length(eigen_threshold)) {
+        
+        eig <- eigen(B, symmetric=TRUE)
+        
+        keep <- cumsum(eig$values)/sum(eig$values) < eigen_threshold[j]
+        
+        z <- t(eig$vectors[,keep]) %*% stat[rws, "b"]
+        
+        scaleb <- sqrt(1/(stat[rws, "n"]*stat[rws, "seb"]+stat[rws, "b"]^2))
+        z <- t(eig$vectors[,keep]) %*% (stat[rws, "b"]*scaleb)
+        
+        # Scale each element by the inverse square root of the corresponding eigenvalue
+        w <- z / sqrt(eig$values[keep])
+        
+        Q <- diag(sqrt(eig$values[keep]))%*%t(eig$vectors[,keep])
+        
+        colnames(Q) <- colnames(B)
+        
+        
+        LD <- NULL
+        LDvalues <- as.list(as.data.frame(Q))
+        LDindices <- lapply(1:ncol(Q),function(x) { (1:nrow(Q))-1 } )
+        rsids <- colnames(Q)
+        names(LDvalues) <- rsids
+        names(LDindices) <- rsids
+        
+        n <- mean(stat[rws,"n"])
+        xx <- stat[rws,"n"]
+        m <- ncol(Q)
+        
+        b <- rep(0, m)
+        
+        pi <- c(0.992,0.005,0.003,0.001)
+        gamma <- c(0,0.01,0.1,1)
+        
+        ve <- vy*(1-h2)
+        vg <- vy*h2
+        vb <- vg/(m*sum(pi*gamma))
+        
+        ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*sum(pi*gamma)))
+        ssg_prior <-  ((nug-2.0)/nug)*vg
+        sse_prior <- ((nue-2.0)/nue)*ve
+        
+        
+        lambda <- rep(ve/vb,m)
+        mask <- rep(FALSE, m)
+        
+        fit <- .Call("_qgg_sbayes_reg_eigen",
+                     wy=w,
+                     ww=xx,
+                     LDvalues=LDvalues,
+                     LDindices=LDindices,
+                     b = b,
+                     lambda = lambda,
+                     mask=mask,
+                     pi = pi,
+                     gamma = gamma,
+                     vb = vb,
+                     vg = vg,
+                     ve = ve,
+                     ssb_prior=ssb_prior,
+                     ssg_prior=ssg_prior,
+                     sse_prior=sse_prior,
+                     nub=nub,
+                     nug=nug,
+                     nue=nue,
+                     updateB = updateB,
+                     updateE = updateE,
+                     updatePi = updatePi,
+                     updateG = updateG,
+                     n=n,
+                     nit=nit,
+                     nburn=nburn,
+                     nthin=nthin,
+                     method=as.integer(method),
+                     algo=as.integer(algorithm),
+                     seed=seed)
+        names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param","bs","ds")
+        fit$bm <- fit$bm/scaleb
+        names(fit$bm) <- names(fit$dm) <- names(fit$b) <- names(LDvalues)
+        #fit$bs <- matrix(fit$bs,nrow=length(fit$bm))
+        #fit$ds <- matrix(fit$ds,nrow=length(fit$bm))
+        #rownames(fit$bs) <- rownames(fit$ds) <- names(XXvalues)
+        #colnames(fit$bs) <- colnames(fit$ds) <- 1:(nit+nburn)
+        
+        # Check convergence            
+        critve <- critvg <- critvb <- critpi <- FALSE
+        if(!updateE) critve <- TRUE
+        if(!updateG) critvg <- TRUE
+        if(!updateB) critvb <- TRUE
+        if(!updatePi) critpi <- TRUE
+        zve <- coda::geweke.diag(fit$ves[nburn:length(fit$ves)])$z
+        zvg <- coda::geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
+        zvb <- coda::geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
+        zpi <- coda::geweke.diag(fit$pis[nburn:length(fit$pis)])$z
+        if(!is.na(zve)) critve <- abs(zve)<critVe
+        if(!is.na(zvg)) critvg <- abs(zvg)<critVg
+        if(!is.na(zvb)) critvb <- abs(zvb)<critVb
+        if(!is.na(zpi)) critpi <- abs(zpi)<critPi
+        
+        critb1 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat[rws,"b"]
+        critb2 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat[rws,"b"]
+        critb <- !any(critb1 | critb2)
+        #converged <- critve & critvg & critvb & critpi & critb
+        converged <- critve & critvg & critvb & critpi
+        
+        # Make plots to monitor convergence
+        if(verbose) {
+          layout(matrix(1:4,ncol=2))
+          pipsets <- splitWithOverlap(1:length(rsids),100,99)
+          pip <- fit$dm
+          plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
+          plot(-log10(stat[rws,"p"]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
+          hist(fit$ves, main="Ve", xlab="")
+          plot(y=fit$bm, x=stat[rws,"b"], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
+          abline(h=0,v=0, lwd=2, col=2, lty=2)
+        }
+        attempts[i] <- j      
+        if(verbose && !converged) message(paste("Convergence not reached using eigen_threshold:",eigen_threshold[j]))
+        
+        # Exit outer loop if convergence is reached
+        if (converged) {
+          if(verbose) message(paste("Convergence reached using eigen_threshold:",eigen_threshold[j]))
+          break
+        }
+        
+      }
+      
+      
+      # Save results
+      bm[[i]] <- fit$bm
+      dm[[i]] <- fit$dm
+      pim[[i]] <- fit$pim
+      ves[[i]] <- fit$ves
+      vbs[[i]] <- fit$vbs
+      vgs[[i]] <- fit$vgs
+      pis[[i]] <- fit$pis
+      # selected <- NULL
+      # if(!is.null(threshold)) selected <- fit$dm>=threshold
+      # if(any(selected)) {
+      #   bs[[i]] <- matrix(fit$bs,nrow=length(rsids))
+      #   ds[[i]] <- matrix(fit$ds,nrow=length(rsids))
+      #   rownames(bs[[i]]) <- rownames(ds[[i]]) <- rsids
+      #   colnames(bs[[i]]) <- colnames(ds[[i]]) <- 1:(nit+nburn)
+      #   bs[[i]] <- bs[[i]][selected,]
+      #   ds[[i]] <- ds[[i]][selected,]
+      # }
+      names(bm[[i]]) <- names(dm[[i]]) <- rsids
+    }
+    fit <- NULL
+    fit$bm <- bm
+    fit$dm <- dm
+    fit$pim <- pim
+    fit$ves <- ves
+    fit$vbs <- vbs
+    fit$vgs <- vgs
+    fit$pis <- pis
+    #if(!is.null(threshold)) fit$bs <- bs
+    #if(!is.null(threshold)) fit$ds <- ds
+  }  
+  
+  pip <- sapply(fit$dm,sum)
+  minb <- sapply(fit$bm,min)
+  maxb <- sapply(fit$bm,max)
+  m <- sapply(fit$bm,length)
+  
+  bm <- unlist(unname(fit$bm))
+  dm <- unlist(unname(fit$dm))
+  marker <- data.frame(rsids=unlist(Glist$rsids),
+                       chr=unlist(Glist$chr), pos=unlist(Glist$pos), 
+                       ea=unlist(Glist$a1), nea=unlist(Glist$a2),
+                       eaf=unlist(Glist$af),stringsAsFactors = FALSE)
+  marker <- marker[marker$rsids%in%names(bm),]
+  fit$stat <- data.frame(marker,bm=bm[marker$rsids],
+                         dm=dm[marker$rsids], stringsAsFactors = FALSE)
+  fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
+  fit$method <- methods[method+1]
+  fit$mask <- mask
+  zve <- sapply(fit$ves,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  zvg <- sapply(fit$vgs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  zvb <- sapply(fit$vbs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  zpi <- sapply(fit$pis,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
+  vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
+  vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
+  pi <- sapply(fit$pim,function(x){1-x[1]})
+  
+  if(!is.null(Glist$map)) map <- unlist(Glist$map)
+  pos <- unlist(Glist$pos)
+  sets <- lapply(fit$bm,names)
+  setsindex <- mapSets(sets=sets, rsids=unlist(Glist$rsids))
+  if(!is.null(Glist$map)) cm <- sapply(setsindex, function(x){ max(map[x])-min(map[x]) })
+  mb <- sapply(setsindex, function(x){ (max(pos[x])-min(pos[x]))/1000000 })
+  minmb <- sapply(setsindex, function(x){ min(pos[x]) })
+  maxmb <- sapply(setsindex, function(x){ max(pos[x]) })
+  
+  chr <- unlist(Glist$chr)
+  chr <- sapply(setsindex,function(x){as.numeric(unique(chr[x]))})
+  
+  b <- stat[fit$stat$rsids,"b"]
+  
+  fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi, ntrials=attempts, cutoff=eigen_threshold[attempts])  
+  if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, chr=chr, minmb=minmb, maxmb=maxmb)  
+  if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm, chr=chr, minmb=minmb, maxmb=maxmb)  
+  rownames(fit$conv) <- rownames(fit$post) <- names(sets) 
+  fit$ve <- mean(ve)
+  fit$vg <- sum(vg)
+  fit$b <- b
+  return(fit)
+}
+
+gmap0 <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
                  chr=NULL, rsids=NULL, ids=NULL, b=NULL, bm=NULL, seb=NULL, mask=NULL, LD=NULL, n=NULL,
                  vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL,
                  lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, formatLD="dense", pruneLD=TRUE, 

@@ -37,6 +37,14 @@ sbayes_reg <- function(wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gam
     .Call(`_qgg_sbayes_reg`, wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, nburn, method, algo)
 }
 
+sbayes_eigen <- function(wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, nburn, nthin, method, algo, seed) {
+    .Call(`_qgg_sbayes_eigen`, wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, nburn, nthin, method, algo, seed)
+}
+
+sbayes_reg_eigen <- function(wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateE, updatePi, updateG, n, nit, nburn, nthin, method, algo, seed) {
+    .Call(`_qgg_sbayes_reg_eigen`, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateE, updatePi, updateG, n, nit, nburn, nthin, method, algo, seed)
+}
+
 grsbed <- function(file, n, cls, af, b) {
     .Call(`_qgg_grsbed`, file, n, cls, af, b)
 }
