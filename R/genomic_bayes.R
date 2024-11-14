@@ -1542,9 +1542,11 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         if(!is.na(zvb)) critvb <- abs(zvb)<critVb
         if(!is.na(zpi)) critpi <- abs(zpi)<critPi
         
-        critb1 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat[rws,"b"]
-        critb2 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat[rws,"b"]
-        critb <- !any(critb1 | critb2)
+        critb1 <- fit$dm>0.01 & fit$bm > 0.01 & stat[rws,"b"] < -0.01
+        critb2 <- fit$dm>0.01 & fit$bm < -0.01 & stat[rws,"b"] > 0.01
+        critb3 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat[rws,"b"]
+        critb4 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat[rws,"b"]
+        critb <- !any(critb1 | critb2 | critb3 | critb4)
         converged <- critve & critvg & critvb & critpi & critb
         #converged <- critve & critvg & critvb & critpi
         
