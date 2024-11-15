@@ -1441,10 +1441,11 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       # Prepare input
       W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
       B <- crossprod(scale(W))/(nrow(W)-1)
+      if(shrinkLD) B <- corpcor::cor.shrink(W)
+
+      eig <- eigen(B, symmetric=TRUE)
       
       for (j in 1:length(eigen_threshold)) {
-        
-        eig <- eigen(B, symmetric=TRUE)
         
         keep <- cumsum(eig$values)/sum(eig$values) < eigen_threshold[j]
         
