@@ -2105,7 +2105,7 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
   std::vector<double> ves(nit+nburn),vbs(nit+nburn),vgs(nit+nburn),pis(nit+nburn);
   std::vector<std::vector<double>> bs(nit+nburn, std::vector<double>(m, 0.0));  
   std::vector<std::vector<int>> ds(nit+nburn, std::vector<int>(m, 0));  
-  
+  std::vector<std::vector<double>> prob(nit+nburn, std::vector<double>(m, 0.0));  
   
   // Initialize variables
   
@@ -2160,6 +2160,7 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
           }
           probc[j] = 1.0/logLcAdj;
         }
+        prob[it][i] = probc[0];
         // sample variance class indicator
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
@@ -2257,7 +2258,7 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
   }
   
   // Summarize results
-  std::vector<std::vector<double>> result(13);
+  std::vector<std::vector<double>> result(14);
   
   result[0].resize(m);
   result[1].resize(m);
@@ -2272,6 +2273,7 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
   result[10].resize(3);
   result[11].resize((nit+nburn)*m);
   result[12].resize((nit+nburn)*m);
+  result[13].resize((nit+nburn)*m);
   for (int i=0; i < m; i++) {
     result[0][i] = bm[i]/nsamples;
     result[1][i] = dm[i]/nsamples;
@@ -2301,6 +2303,7 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
     for ( int i = 0; i < m; i++) {
       result[11][it*m + i] = bs[it][i];
       result[12][it*m + i] = (double)ds[it][i];
+      result[13][it*m + i] = prob[it][i];
     }
   }
   return result;

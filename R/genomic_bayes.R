@@ -1319,10 +1319,10 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL,
                  vb_prior=NULL, vg_prior=NULL, ve_prior=NULL,
                  updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
-                 formatLD="dense", checkLD=FALSE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
-                 checkConvergence=FALSE, critVe=3, critVg=3.5, critVb=3.5, critPi=3, ntrial=1,
+                 formatLD="dense", checkLD=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
+                 checkConvergence=FALSE, critVe=3, critVg=3.5, critVb=3.5, critPi=3, critB=3, ntrial=1,
                  verbose=FALSE, eigen_threshold=0.995, credible_set_r2=0.5, r2=0.05,
-                 nit=5000, nburn=500, nthin=5,
+                 nit=1000, nburn=100, nthin=5,
                  method="bayesR", algorithm="mcmc-eigen", seed=10) {
   
   
@@ -1412,10 +1412,15 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     
     # Prepare output
     bm <- dm <- vector(mode="list",length=length(sets))
-    ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=length(sets))
+    ves <- vgs <- vbs <- pis <- vector(mode="list",length=length(sets))
+    bs <- ds <- prob <- vector(mode="list",length=length(sets))
     pim <- vector(mode="list",length=length(sets))
-    names(bm) <- names(dm) <- names(ves) <- names(vgs) <- names(pis) <- names(bs)  <- names(ds) <- names(sets)     
-    names(pim) <- names(bs)  <- names(ds) <- names(sets)     
+    #lcpos <- rep(0, length=length(sets))
+    #fdrs <- vector(mode="list",length=length(sets))
+    names(bm) <- names(dm) <- names(pim) <- names(sets)     
+    names(ves) <- names(vgs) <- names(pis) <- names(vbs) <-  names(sets)     
+    #names(bs)  <- names(ds) <- names(prob) <- names(sets)
+    #names(lcpos) <- names(fdrs)  <- names(sets)
     attempts <- rep(1, length=length(sets))
     
     
@@ -1520,13 +1525,14 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                      method=as.integer(method),
                      algo=as.integer(algorithm),
                      seed=seed)
-        names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param","bs","ds")
+        names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param","bs","ds","prob")
         fit$bm <- fit$bm/scaleb
         names(fit$bm) <- names(fit$dm) <- names(fit$b) <- names(LDvalues)
-        #fit$bs <- matrix(fit$bs,nrow=length(fit$bm))
-        #fit$ds <- matrix(fit$ds,nrow=length(fit$bm))
-        #rownames(fit$bs) <- rownames(fit$ds) <- names(XXvalues)
-        #colnames(fit$bs) <- colnames(fit$ds) <- 1:(nit+nburn)
+        fit$bs <- matrix(fit$bs,nrow=length(fit$bm))
+        fit$ds <- matrix(fit$ds,nrow=length(fit$bm))
+        fit$prob <- matrix(fit$prob,nrow=length(fit$bm))
+        rownames(fit$bs) <- rownames(fit$ds) <- rownames(fit$prob) <- names(LDvalues)
+        colnames(fit$bs) <- colnames(fit$ds) <- colnames(fit$prob) <- 1:(nit+nburn)
         
         # Check convergence            
         critve <- critvg <- critvb <- critpi <- FALSE
@@ -1543,11 +1549,25 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         if(!is.na(zvb)) critvb <- abs(zvb)<critVb
         if(!is.na(zpi)) critpi <- abs(zpi)<critPi
         
-        critb1 <- fit$dm>0.01 & fit$bm > 0.01 & stat[rws,"b"] < -0.01
-        critb2 <- fit$dm>0.01 & fit$bm < -0.01 & stat[rws,"b"] > 0.01
-        critb3 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat[rws,"b"]
-        critb4 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat[rws,"b"]
-        critb <- !any(critb1 | critb2 | critb3 | critb4)
+        #critb1 <- fit$dm>0.01 & fit$bm > 0.01 & stat[rws,"b"] < -0.01
+        #critb2 <- fit$dm>0.01 & fit$bm < -0.01 & stat[rws,"b"] > 0.01
+        #critb3 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat[rws,"b"]
+        #critb4 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat[rws,"b"]
+        #critb <- !any(critb1 | critb2 | critb3 | critb4)
+        #critb <- check_divergence(stat[rws,"b"][fit$dm>0], 
+        #                          fit$bs[fit$dm>0,]/scaleb[fit$dm>0], ci_level = 0.95)
+        #critbs <- as.data.frame(critb)$overall_divergence
+        #critb <- any(critbs)
+        critb <- TRUE
+        brws <- fit$dm>0
+        if(sum(brws)>1 && checkLD && any( !critve|!critvg|!critvb|!critpi)) {
+            bout <- checkb(B=B[brws,brws],
+                         b=stat[rws, "b"][brws],
+                         seb=stat[rws, "seb"][brws],
+                         critB=critB, verbose=verbose) 
+          critb <- !any(bout$outliers)
+        }
+
         converged <- critve & critvg & critvb & critpi & critb
         #converged <- critve & critvg & critvb & critpi
         
@@ -1563,8 +1583,20 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
           abline(h=0,v=0, lwd=2, col=2, lty=2)
         }
         attempts[i] <- j      
-        if(verbose && !converged) message(paste("Convergence not reached using eigen_threshold:",eigen_threshold[j]))
-        
+        if(verbose && !converged) {
+          message(paste("Convergence not reached using eigen_threshold:",eigen_threshold[j]))
+          criteria_names <- c("Variance of errors (critve)", 
+                              "Genetic variance (critvg)", 
+                              "Marker variance (critvb)", 
+                              "Inclusion probability (critpi)", 
+                              "Posterior mean (critb)")
+          criteria_status <- c(critve, critvg, critvb, critpi, critb)
+
+          message("Convergence criteria:")
+          for (k in seq_along(criteria_names)) {
+            message(sprintf("  %s: %s", criteria_names[k], ifelse(criteria_status[k], "Met", "Not Met")))
+          }
+        }
         # Exit outer loop if convergence is reached
         if (converged) {
           if(verbose) message(paste("Convergence reached using eigen_threshold:",eigen_threshold[j]))
@@ -1582,6 +1614,14 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       vbs[[i]] <- fit$vbs
       vgs[[i]] <- fit$vgs
       pis[[i]] <- fit$pis
+      #fdrs[[i]] <- bfdr(pip=fit$dm,prob=fit$prob)
+      #bs[[i]] <- fit$bs
+      #ds[[i]] <- fit$ds
+      #prob[[i]] <- fit$prob
+      #wpred <- Q%*%(fit$bs/scaleb)
+      #lcpos[i] <- lcpo(yobs=w,ypred=wpred)
+
+      
       # selected <- NULL
       # if(!is.null(threshold)) selected <- fit$dm>=threshold
       # if(any(selected)) {
@@ -1602,8 +1642,11 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     fit$vbs <- vbs
     fit$vgs <- vgs
     fit$pis <- pis
-    #if(!is.null(threshold)) fit$bs <- bs
-    #if(!is.null(threshold)) fit$ds <- ds
+    #fit$lcpos <- lcpos
+    #fit$fdrs <- fdrs
+    #fit$bs <- bs
+    #fit$ds <- ds
+    #fit$prob <- prob
   }  
   
   pip <- sapply(fit$dm,sum)
@@ -1630,7 +1673,18 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
   vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
   vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
-  pi <- sapply(fit$pim,function(x){1-x[1]})
+  pi <- sapply(fit$pis,function(x){mean(x[nburn:length(x)])})
+  ve_ci <- t(sapply(fit$ves,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
+  vg_ci <- t(sapply(fit$vgs,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
+  vb_ci <- t(sapply(fit$vbs,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
+  pi_ci <- t(sapply(fit$pis,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
+
+  fit$ci <- list(ve=cbind(mean=ve,ve_ci),
+                 vg=cbind(mean=vg,vg_ci), 
+                 vb=cbind(mean=vb,vb_ci), 
+                 pi=cbind(mean=pi,pi_ci))  
+  
+  #fit$fdrs <- unlist(fit$fdrs)
   
   if(!is.null(Glist$map)) map <- unlist(Glist$map)
   pos <- unlist(Glist$pos)
@@ -1650,11 +1704,80 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, chr=chr, minmb=minmb, maxmb=maxmb)  
   if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm, chr=chr, minmb=minmb, maxmb=maxmb)  
   rownames(fit$conv) <- rownames(fit$post) <- names(sets) 
+
+  #rownames(fit$bfdr) <- names(sets) 
+  #colnames(fit$bfdr) <- c("Mean","0.025","0.975") 
+
   fit$ve <- mean(ve)
   fit$vg <- sum(vg)
   fit$b <- b
   return(fit)
 }
+
+bfdr <- function(pip=NULL, prob=NULL, cutoff=0.1, ql=0.025, qu=0.975) {
+  rws <- pip > cutoff 
+  fdrs <- apply(1-prob[rws,],2,mean)
+  #list(fdr=mean(fdrs), qfdr=quantile(fdrs,c(ql,qu)), fdrs=fdrs)
+  c(mean=mean(fdrs), quantile(fdrs,c(ql,qu)))
+  #fdrs
+}
+
+lcpo <- function(yobs=NULL, ypred=NULL) {
+  psum <- rep(0,nrow(ypred))
+  for (j in 1:ncol(ypred)) {
+    x <- (yobs-ypred[,i])[,1]
+    p <- (1/sqrt(2*base::pi))*exp(-0.5*(x^2))
+    psum <- psum + 1/p
+  }
+  sum(log((nit-nburn)*(1/psum)))
+}
+
+check_divergence <- function(bm, bs, ci_level = 0.95) {
+  # Ensure bm is a vector and bs is a matrix
+  if (!is.vector(bm) || !is.matrix(bs)) {
+    stop("bm must be a vector and bs must be a matrix")
+  }
+  
+  # Check dimensions
+  if (length(bm) != nrow(bs)) {
+    stop("Length of bm must match the number of rows in bs")
+  }
+  
+  # Initialize results
+  n <- length(bm)
+  ci_divergence <- logical(n)
+  condition1 <- logical(n)
+  condition2 <- logical(n)
+  
+  # Loop through each row to compute confidence intervals and conditions
+  for (i in 1:n) {
+    # Calculate confidence interval for row i of bs
+    alpha <- (1 - ci_level) / 2
+    ci_lower <- quantile(bs[i, ], alpha)
+    ci_upper <- quantile(bs[i, ], 1 - alpha)
+    
+    # Check if bm[i] falls within the confidence interval
+    ci_divergence[i] <- !(ci_lower <= bm[i] & bm[i] <= ci_upper)
+    
+    # Conditions based on CI
+    condition1[i] <- bm[i] < 0 & ci_upper > 0    # bm[i] < 0 and upper bound > 0
+    condition2[i] <- bm[i] > 0 & ci_lower < 0    # bm[i] > 0 and lower bound < 0
+  }
+  
+  # Combine all divergence checks
+  overall_divergence <- condition1 | condition2
+  
+  # Return results as a list
+  results <- list(
+    ci_divergence = ci_divergence,
+    condition1 = condition1,
+    condition2 = condition2,
+    overall_divergence = overall_divergence
+  )
+  
+  return(results)
+}
+
 
 gmap0 <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
                  chr=NULL, rsids=NULL, ids=NULL, b=NULL, bm=NULL, seb=NULL, mask=NULL, LD=NULL, n=NULL,
@@ -2532,6 +2655,70 @@ mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
                                 verbose=verbose)
   
   return(fit)
+}
+
+checkb <- function(B = NULL, b = NULL, seb = NULL, critB = 3.0, 
+                   shrink = 0.0001, verbose=TRUE) {
+  # Validate inputs
+  if (is.null(B) || is.null(b) || is.null(seb)) {
+    stop("B, b, and seb must be provided.")
+  }
+  if (ncol(B) != length(b)) {
+    stop("Dimensions of B and b do not match.")
+  }
+  
+  m <- length(b)
+  bpred <- numeric(m)  # Preallocate for efficiency
+  
+  # Precompute diagonal shrinkage for speed
+  shrink_diag <- diag(shrink, m - 1)
+  
+  for (i in seq_len(m)) {
+    # Avoid repeatedly recalculating B[-i, -i]
+    B_sub <- B[-i, -i] + shrink_diag
+    Bi <- chol2inv(chol(B_sub))  # Efficient inversion
+    bpred[i] <- sum(B[i, -i] %*% Bi %*% b[-i])  # Predicted value
+  }
+  
+  # Calculate outliers
+  abs_diff <- abs((bpred - b) / seb)
+  outliers <- abs_diff > critB
+  
+  # Plot outliers
+  if(verbose) {
+    # Set up a 1x2 layout for two side-by-side plots
+    layout(matrix(1:2, ncol = 2))  # Create two panels side by side
+    
+    # Scatter plot of predicted vs observed values
+    plot(
+      bpred, b,
+      xlab = "Predicted Beta Values",  # Add meaningful x-axis label
+      ylab = "Observed Beta Values",      # Add meaningful y-axis label
+      main = "Predicted vs Observed",    # Add a descriptive title
+      pch = 19,                          # Use solid points for better visibility
+      col = "blue",                      # Use a distinct color
+      frame.plot = FALSE                 # Remove the box around the plot
+    )
+    abline(a = 0, b = 1, col = "red", lty = 2)  # Add y = x line for reference
+    
+    # Plot of scaled residuals
+    plot(
+      (bpred - b) / seb,
+      xlab = "Index",                     # Label x-axis as "Index"
+      ylab = "Z statistics",          # Add meaningful y-axis label
+      main = "Outlier Statistics",          # Add a descriptive title
+      pch = 19,                           # Use solid points
+      col = ifelse(abs((bpred - b) / seb) > critB, "red", "black"),  # Highlight outliers
+      frame.plot = FALSE                  # Remove the box around the plot
+    )
+    abline(h = c(-3, 3), col = "red", lty = 2)  # Add horizontal lines at ±3
+  }
+  # Return results
+  return(list(
+    bpred = bpred,          # Predicted values
+    outliers = outliers,    # Logical vector indicating outliers
+    abs_diff = abs_diff     # Scaled differences for diagnostic purposes
+  ))
 }
 
 # adjustB <- function(b=NULL, LD = NULL, msize=NULL, overlap=NULL, shrink=0.001, threshold=1e-8) {
