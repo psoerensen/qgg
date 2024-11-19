@@ -1320,7 +1320,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  vb_prior=NULL, vg_prior=NULL, ve_prior=NULL,
                  updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  formatLD="dense", checkLD=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
-                 checkConvergence=FALSE, critVe=3, critVg=3.5, critVb=3.5, critPi=3, critB=3, ntrial=1,
+                 checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, critB=3, ntrial=1,
                  verbose=FALSE, eigen_threshold=0.995, credible_set_r2=0.5, r2=0.05,
                  nit=1000, nburn=100, nthin=1,
                  method="bayesR", algorithm="mcmc-eigen", seed=10) {
