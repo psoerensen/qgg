@@ -2096,11 +2096,12 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
   double u;
   
   std::vector<double> probc(nc), logLc(nc), pim(nc);
-  double cumprobc, vbc, logLcAdj;
+  double cumprobc, vbc, logLcAdj, logcpo;
   
   std::vector<int> d(m);
   std::vector<double> r(m);
   std::vector<double> dm(m),bm(m);
+  std::vector<double> logsum(q);
   
   std::vector<double> ves(nit+nburn),vbs(nit+nburn),vgs(nit+nburn),pis(nit+nburn);
   std::vector<std::vector<double>> bs(nit+nburn, std::vector<double>(m, 0.0));  
@@ -2116,6 +2117,7 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
   std::fill(ves.begin(), ves.end(), 0.0);
   std::fill(pis.begin(), pis.end(), 0.0);
   std::fill(pim.begin(), pim.end(), 0.0);
+  std::fill(logsum.begin(), logsum.end(), 0.0);
   
   for ( int i = 0; i < q; i++) {
     r[i] = wy[i];
@@ -2160,7 +2162,7 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
           }
           probc[j] = 1.0/logLcAdj;
         }
-        prob[it][i] = probc[0];
+        prob[it][i] = 1.0 - probc[0];
         // sample variance class indicator
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
@@ -2251,11 +2253,26 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
     vgs[it] = ssg;
     if(updateG) vg = ssg;
     
+    // Compute logcpo
+    if(it>nburn && (it % nthin == 0)) {
+      double constant = 1.0 / std::sqrt(2 * M_PI);  
+      for (int i = 0; i < q; i++) {
+        logsum[i] += 1.0/(constant * std::exp(-0.5 * r[i] * r[i]));
+      }
+    }
+
     for ( int i = 0; i < m; i++) {
       bs[it][i] = b[i];
       ds[it][i] = d[i];
     }
   }
+  
+  // Compute logcpo
+  logcpo=0.0;
+  for (int i=0; i < q; i++) {
+    logcpo += std::log(nsamples*(1/logsum[i]));
+  }
+  
   
   // Summarize results
   std::vector<std::vector<double>> result(14);
@@ -2270,7 +2287,7 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
   result[7].resize(nc);
   result[8].resize(q);
   result[9].resize(m);
-  result[10].resize(3);
+  result[10].resize(4);
   result[11].resize((nit+nburn)*m);
   result[12].resize((nit+nburn)*m);
   result[13].resize((nit+nburn)*m);
@@ -2292,12 +2309,14 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
   for (int i=0; i < q; i++) {
     result[8][i] = r[i];
   }
+  
   for (int i=0; i < m; i++) {
     result[9][i] = b[i];
   }
   result[10][0] = vb;
   result[10][1] = ve;
   result[10][2] = pi[0];
+  result[10][3] = logcpo;
   
   for ( int it = 0; it < nit+nburn; it++) {
     for ( int i = 0; i < m; i++) {

@@ -1321,7 +1321,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  formatLD="dense", checkLD=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
                  checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, critB=3, ntrial=1,
-                 verbose=FALSE, eigen_threshold=0.995, credible_set_r2=0.5, r2=0.05,
+                 verbose=FALSE, eigen_threshold=0.995, crs_threshold=0.9, crs_r2=0.5,
                  nit=1000, nburn=100, nthin=1,
                  method="bayesR", algorithm="mcmc-eigen", seed=10) {
   
@@ -1415,12 +1415,13 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     ves <- vgs <- vbs <- pis <- vector(mode="list",length=length(sets))
     bs <- ds <- prob <- vector(mode="list",length=length(sets))
     pim <- vector(mode="list",length=length(sets))
+    logcpo <- rep(0,length(sets))
     #lcpos <- rep(0, length=length(sets))
-    #fdrs <- vector(mode="list",length=length(sets))
+    fdr <- csets <- vector(mode="list",length=length(sets))
     names(bm) <- names(dm) <- names(pim) <- names(sets)     
     names(ves) <- names(vgs) <- names(pis) <- names(vbs) <-  names(sets)     
-    #names(bs)  <- names(ds) <- names(prob) <- names(sets)
-    #names(lcpos) <- names(fdrs)  <- names(sets)
+    names(bs)  <- names(ds) <- names(prob) <- names(sets)
+    names(logcpo) <- names(fdr) <- names(csets) <- names(sets)
     attempts <- rep(1, length=length(sets))
     
     
@@ -1605,6 +1606,20 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         
       }
       
+      ql <- 0.025
+      qu <- 0.975
+      cutoffs <- seq(0.01, 0.99, by = 0.01)  # Generate 1:99 as fractions
+      cutoff_indices <- lapply(cutoffs, function(cutoff) fit$dm > cutoff)
+      bfdrs <- sapply(cutoff_indices, function(rws) {
+        if (any(rws)) {
+          fdrs <- rowMeans(1 - fit$prob[rws, , drop = FALSE], na.rm = TRUE)
+          c(mean = mean(fdrs, na.rm = TRUE), quantile(fdrs, c(ql, qu), na.rm = TRUE))
+        } else {
+          c(NA, NA, NA)
+        }
+      })
+      bfdrs <- t(bfdrs)
+      rownames(bfdrs) <- round(cutoffs, 2)
       
       # Save results
       bm[[i]] <- fit$bm
@@ -1614,10 +1629,12 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       vbs[[i]] <- fit$vbs
       vgs[[i]] <- fit$vgs
       pis[[i]] <- fit$pis
-      #fdrs[[i]] <- bfdr(pip=fit$dm,prob=fit$prob)
-      #bs[[i]] <- fit$bs
-      #ds[[i]] <- fit$ds
-      #prob[[i]] <- fit$prob
+      bs[[i]] <- fit$bs
+      ds[[i]] <- fit$ds
+      prob[[i]] <- fit$prob
+      fdr[[i]] <- bfdrs
+      logcpo[i] <- fit$param[4]
+      csets[[i]] <- crs(prob=fit$dm,B=B,threshold=crs_threshold, r2=crs_r2)
       #wpred <- Q%*%(fit$bs/scaleb)
       #lcpos[i] <- lcpo(yobs=w,ypred=wpred)
 
@@ -1642,11 +1659,12 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     fit$vbs <- vbs
     fit$vgs <- vgs
     fit$pis <- pis
-    #fit$lcpos <- lcpos
-    #fit$fdrs <- fdrs
-    #fit$bs <- bs
-    #fit$ds <- ds
-    #fit$prob <- prob
+    fit$bs <- bs
+    fit$ds <- ds
+    fit$prob <- prob
+    fit$fdr <- fdr
+    fit$logcpo <- logcpo
+    fit$csets <- csets
   }  
   
   pip <- sapply(fit$dm,sum)
@@ -1714,12 +1732,123 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   return(fit)
 }
 
-bfdr <- function(pip=NULL, prob=NULL, cutoff=0.1, ql=0.025, qu=0.975) {
-  rws <- pip > cutoff 
-  fdrs <- apply(1-prob[rws,],2,mean)
-  #list(fdr=mean(fdrs), qfdr=quantile(fdrs,c(ql,qu)), fdrs=fdrs)
-  c(mean=mean(fdrs), quantile(fdrs,c(ql,qu)))
-  #fdrs
+cpo <- function(yobs=NULL, ypred=NULL) {
+  psum <- rep(0,nrow(ypred))
+  for (i in 1:ncol(ypred)) {
+    x <- (yobs-ypred[,i])[,1]
+    p <- (1/sqrt(2*base::pi))*exp(-0.5*(x^2))
+    psum <- psum + 1/p
+  }
+  sum(log((nit-nburn)*(1/psum)))
+}
+
+crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) {
+  # Input validation
+  if (is.null(prob) || is.null(B)) stop("Both 'prob' and 'B' must be provided.")
+  if (!is.vector(prob) || !is.matrix(B)) stop("'prob' must be a vector and 'B' must be a matrix.")
+  if (is.null(names(prob)) || is.null(rownames(B)) || is.null(colnames(B))) {
+    stop("'prob' and 'B' must have names for proper indexing.")
+  }
+  
+  # Step 1: Sort PIPs in descending order
+  dsorted <- sort(prob, decreasing = TRUE)
+  credible_sets <- list()
+  
+  # Step 2: Identify credible sets of size 1
+  high_pip_markers <- names(dsorted)[dsorted > threshold]
+  
+  if (length(high_pip_markers) > 0) {
+    # Add markers with PIP > threshold as credible sets of size 1
+    credible_sets <- as.list(high_pip_markers)
+    names(credible_sets) <- paste0("Set", seq_along(credible_sets))
+    
+    # Remove these markers from further analysis
+    dsorted <- dsorted[!(names(dsorted) %in% high_pip_markers)]
+  }
+  
+  # Step 3: Identify credible sets of size > 1
+  remaining_markers <- names(dsorted)
+  while (length(remaining_markers) > 0) {
+    lead_marker <- remaining_markers[1]
+    
+    # Step 3.1: Identify LD friends of the lead marker
+    ld_friends <- colnames(B)[B[lead_marker, ]^2 > r2]
+    ld_friends <- intersect(ld_friends, remaining_markers[-1])  # Only include unprocessed markers
+    
+    if (length(ld_friends) > 0) {
+      cumulative_pip <- sum(dsorted[c(lead_marker, ld_friends)])
+    } else {
+      cumulative_pip <- dsorted[lead_marker]
+    }
+    
+    # Step 3.2: Check if cumulative PIP exceeds threshold
+    if (cumulative_pip >= threshold) {
+      dset <- dsorted[names(dsorted) %in% c(lead_marker, ld_friends)]
+      crset <- names(dset)[1:which(cumsum(dset) >= threshold)[1]]
+      credible_sets[[length(credible_sets) + 1]] <- crset
+      names(credible_sets)[length(credible_sets)] <- paste0("Set", length(credible_sets))
+      
+      # Remove credible set markers from further analysis
+      if (keep) {
+        remaining_markers <- setdiff(remaining_markers, crset)
+      } else {
+        remaining_markers <- setdiff(remaining_markers, c(lead_marker, ld_friends))
+      }
+    } else {
+      # If cumulative PIP does not exceed threshold, move to the next marker
+      remaining_markers <- remaining_markers[-1]
+    }
+    
+    # Update dsorted dynamically based on remaining markers
+    dsorted <- dsorted[remaining_markers]
+  }
+  
+  # Return results
+  if (length(credible_sets) == 0) return(NULL)
+  return(credible_sets)
+}
+
+bfdr <- function(prob = NULL, probs = NULL, cutoff = 0.1, ql = 0.025, qu = 0.975, verbose = TRUE) {
+  # prob is a vector mx1 of posterior means of inclusion probability for m variables
+  # probs is a mxnit matrix of inclusion probabilities for m variables over nit iterations
+  # cutoff is a chosen cutoff (between 0 and 1) that defines the discovery set
+  # ql and qu is the lower and upper quantiles for fdr
+  # Validate inputs
+  if (is.null(prob) || is.null(probs)) {
+    stop("Both 'prob' and 'probs' must be provided.")
+  }
+  if (!is.numeric(prob) || !is.matrix(probs)) {
+    stop("'prob' must be a numeric vector and 'probs' must be a matrix.")
+  }
+  if (length(prob) != nrow(probs)) {
+    stop("The length of 'prob' must match the number of rows in 'probs'.")
+  }
+  if (cutoff <= 0 || cutoff >= 1) {
+    stop("'cutoff' must be between 0 and 1.")
+  }
+  
+  # Identify discovery set
+  rws <- prob > cutoff
+  if (sum(rws) == 0) {
+    warning("No variables selected with the given cutoff.")
+    return(NULL)
+  }
+  
+  # Compute FDRs
+  fdrs <- apply(1 - probs[rws, , drop = FALSE], 2, mean)
+  
+  # Plot results if requested
+  if (verbose) {
+    layout(matrix(1:2, ncol = 2))
+    matplot(t(probs[rws, , drop = FALSE]), frame.plot = FALSE, 
+            ylab = "Posterior Probability", xlab = "Iteration", type = "l")
+    hist(fdrs, breaks = 30, xlab = "McMC-Bayes FDR", 
+         main = NULL, freq = TRUE, col = "lightblue")
+  }
+  
+  # Return summary statistics
+  list(fdr=c(mean = mean(fdrs, na.rm = TRUE), quantile(fdrs, c(ql, qu), na.rm = TRUE)),
+       set=names(prob)[rws])
 }
 
 lcpo <- function(yobs=NULL, ypred=NULL) {
