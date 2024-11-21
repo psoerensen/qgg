@@ -1321,8 +1321,8 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  formatLD="dense", checkLD=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
                  checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, critB=3, ntrial=1,
-                 verbose=FALSE, eigen_threshold=0.995, crs_threshold=0.9, crs_r2=0.5,
-                 nit=1000, nburn=100, nthin=1,
+                 verbose=FALSE, eigen_threshold=0.995, cs_threshold=0.9, cs_r2=0.5,
+                 nit=1000, nburn=100, nthin=1, output="summary",
                  method="bayesR", algorithm="mcmc-eigen", seed=10) {
   
   
@@ -1416,7 +1416,6 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     bs <- ds <- prob <- vector(mode="list",length=length(sets))
     pim <- vector(mode="list",length=length(sets))
     logcpo <- rep(0,length(sets))
-    #lcpos <- rep(0, length=length(sets))
     fdr <- csets <- vector(mode="list",length=length(sets))
     names(bm) <- names(dm) <- names(pim) <- names(sets)     
     names(ves) <- names(vgs) <- names(pis) <- names(vbs) <-  names(sets)     
@@ -1550,15 +1549,6 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         if(!is.na(zvb)) critvb <- abs(zvb)<critVb
         if(!is.na(zpi)) critpi <- abs(zpi)<critPi
         
-        #critb1 <- fit$dm>0.01 & fit$bm > 0.01 & stat[rws,"b"] < -0.01
-        #critb2 <- fit$dm>0.01 & fit$bm < -0.01 & stat[rws,"b"] > 0.01
-        #critb3 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat[rws,"b"]
-        #critb4 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat[rws,"b"]
-        #critb <- !any(critb1 | critb2 | critb3 | critb4)
-        #critb <- check_divergence(stat[rws,"b"][fit$dm>0], 
-        #                          fit$bs[fit$dm>0,]/scaleb[fit$dm>0], ci_level = 0.95)
-        #critbs <- as.data.frame(critb)$overall_divergence
-        #critb <- any(critbs)
         critb <- TRUE
         brws <- fit$dm>0
         if(sum(brws)>1 && checkLD && any( !critve|!critvg|!critvb|!critpi)) {
@@ -1570,8 +1560,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         }
 
         converged <- critve & critvg & critvb & critpi & critb
-        #converged <- critve & critvg & critvb & critpi
-        
+
         # Make plots to monitor convergence
         if(verbose) {
           layout(matrix(1:4,ncol=2))
@@ -1606,14 +1595,12 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         
       }
       
-      ql <- 0.025
-      qu <- 0.975
       cutoffs <- seq(0.01, 0.99, by = 0.01)  # Generate 1:99 as fractions
       cutoff_indices <- lapply(cutoffs, function(cutoff) fit$dm > cutoff)
       bfdrs <- sapply(cutoff_indices, function(rws) {
         if (any(rws)) {
           fdrs <- rowMeans(1 - fit$prob[rws, , drop = FALSE], na.rm = TRUE)
-          c(mean = mean(fdrs, na.rm = TRUE), quantile(fdrs, c(ql, qu), na.rm = TRUE))
+          c(mean = mean(fdrs, na.rm = TRUE), quantile(fdrs, c(0.025, 0.975), na.rm = TRUE))
         } else {
           c(NA, NA, NA)
         }
@@ -1629,26 +1616,14 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       vbs[[i]] <- fit$vbs
       vgs[[i]] <- fit$vgs
       pis[[i]] <- fit$pis
-      bs[[i]] <- fit$bs
-      ds[[i]] <- fit$ds
-      prob[[i]] <- fit$prob
+      if(output=="full") {
+        bs[[i]] <- fit$bs
+        ds[[i]] <- fit$ds
+        prob[[i]] <- fit$prob
+      }
       fdr[[i]] <- bfdrs
       logcpo[i] <- fit$param[4]
-      csets[[i]] <- crs(prob=fit$dm,B=B,threshold=crs_threshold, r2=crs_r2)
-      #wpred <- Q%*%(fit$bs/scaleb)
-      #lcpos[i] <- lcpo(yobs=w,ypred=wpred)
-
-      
-      # selected <- NULL
-      # if(!is.null(threshold)) selected <- fit$dm>=threshold
-      # if(any(selected)) {
-      #   bs[[i]] <- matrix(fit$bs,nrow=length(rsids))
-      #   ds[[i]] <- matrix(fit$ds,nrow=length(rsids))
-      #   rownames(bs[[i]]) <- rownames(ds[[i]]) <- rsids
-      #   colnames(bs[[i]]) <- colnames(ds[[i]]) <- 1:(nit+nburn)
-      #   bs[[i]] <- bs[[i]][selected,]
-      #   ds[[i]] <- ds[[i]][selected,]
-      # }
+      if(sum(fit$dm)>cs_threshold) csets[[i]] <- crs(prob=fit$dm, B=B, threshold=cs_threshold, r2=cs_r2)
       names(bm[[i]]) <- names(dm[[i]]) <- rsids
     }
     fit <- NULL
@@ -1659,12 +1634,14 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     fit$vbs <- vbs
     fit$vgs <- vgs
     fit$pis <- pis
-    fit$bs <- bs
-    fit$ds <- ds
-    fit$prob <- prob
+    if(output=="full") {
+      fit$bs <- bs
+      fit$ds <- ds
+      fit$prob <- prob
+    }
     fit$fdr <- fdr
     fit$logcpo <- logcpo
-    fit$csets <- csets
+    fit$cs <- csets
   }  
   
   pip <- sapply(fit$dm,sum)
@@ -1701,8 +1678,6 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  vg=cbind(mean=vg,vg_ci), 
                  vb=cbind(mean=vb,vb_ci), 
                  pi=cbind(mean=pi,pi_ci))  
-  
-  #fit$fdrs <- unlist(fit$fdrs)
   
   if(!is.null(Glist$map)) map <- unlist(Glist$map)
   pos <- unlist(Glist$pos)
@@ -1752,7 +1727,7 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) 
   
   # Step 1: Sort PIPs in descending order
   dsorted <- sort(prob, decreasing = TRUE)
-  credible_sets <- list()
+  credible_sets <- NULL
   
   # Step 2: Identify credible sets of size 1
   high_pip_markers <- names(dsorted)[dsorted > threshold]
@@ -1804,7 +1779,7 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) 
   }
   
   # Return results
-  if (length(credible_sets) == 0) return(NULL)
+  if(is.null(credible_sets)) return(list(NULL))
   return(credible_sets)
 }
 
