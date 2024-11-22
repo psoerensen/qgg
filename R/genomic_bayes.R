@@ -1247,7 +1247,6 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
 #' @param pruneLD Logical, whether to prune LD matrix (default: FALSE).
 #' @param checkConvergence Logical, whether to check for convergence of the Gibbs sampler (default: FALSE).
 #' @param critVe,critVg,critVb,critPi Convergence criteria for residual, genetic, and marker variances, and inclusion probabilities.
-#' @param ntrial Number of trials to assess convergence (default: 1).
 #' @param verbose Logical, whether to print detailed output for debugging (default: FALSE).
 #' @param eigen_threshold Threshold for eigenvalues in eigen decomposition (default: 0.995).
 #' @param cset_r2,r2 R-squared thresholds for pruning (default: 0.5 and 0.05, respectively).
@@ -1320,7 +1319,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  vb_prior=NULL, vg_prior=NULL, ve_prior=NULL,
                  updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  formatLD="dense", checkLD=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
-                 checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, critB=3, ntrial=1,
+                 checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, critB1=0.5, critB2=3, 
                  verbose=FALSE, eigen_threshold=0.995, cs_threshold=0.9, cs_r2=0.5,
                  nit=1000, nburn=100, nthin=1, output="summary",
                  method="bayesR", algorithm="mcmc-eigen", seed=10) {
@@ -1533,6 +1532,10 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         fit$prob <- matrix(fit$prob,nrow=length(fit$bm))
         rownames(fit$bs) <- rownames(fit$ds) <- rownames(fit$prob) <- names(LDvalues)
         colnames(fit$bs) <- colnames(fit$ds) <- colnames(fit$prob) <- 1:(nit+nburn)
+        # Re-scale betas
+        for (k in 1:nrow(fit$bs)) {
+          fit$bs[k,] <- fit$bs[k,]/scaleb[k]
+        }
         
         # Check convergence            
         critve <- critvg <- critvb <- critpi <- FALSE
@@ -1549,16 +1552,37 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         if(!is.na(zvb)) critvb <- abs(zvb)<critVb
         if(!is.na(zpi)) critpi <- abs(zpi)<critPi
         
-        critb <- TRUE
+        critb <- critb1 <- critb2 <- TRUE
+        
         brws <- fit$dm>0
-        if(sum(brws)>1 && checkLD && any( !critve|!critvg|!critvb|!critpi)) {
+        
+        # Check divergence        
+        if(sum(brws)>1 && all(c(critve, critvg, critvb, critpi))) {
+          
+          tstat <- fit$bs[brws,]/stat[rws, "b"][brws]
+          pdiv <- apply(tstat, 1, function(x) {
+            sum(x[nburn:length(x)] > -critB1 & x[nburn:length(x)] <= 1+critB1)
+          })
+          pdiv <- pdiv/length(nburn:ncol(tstat))
+          pdiv <- pdiv[is.finite(pdiv)]
+          if(any(pdiv<0.95)) plot(pdiv)
+          critb1 <- !any(pdiv<0.95)    # FALSE if any pdiv is less than 0.95
+          if(critb1) message(paste("Convergence not reached for critB1 "))
+        }
+        
+        # Check mismatch
+        if(sum(brws)>1 && checkLD && !all(c(critve, critvg, critvb, critpi, critb1))) {
+            # Identify mismatch between LD and summary statistics 
             bout <- checkb(B=B[brws,brws],
                          b=stat[rws, "b"][brws],
                          seb=stat[rws, "seb"][brws],
-                         critB=critB, verbose=verbose) 
-          critb <- !any(bout$outliers)
+                         critB=critB2, verbose=verbose)
+            critb2 <- !any(bout$outliers)    # FALSE if there are any outliers
+            if(critb2) message(paste("Convergence not reached for critB2 "))
         }
 
+        critb <- (critb1 && critb2)     # FALSE if either critb1 or critb2 is FALSE
+        
         converged <- critve & critvg & critvb & critpi & critb
 
         # Make plots to monitor convergence
