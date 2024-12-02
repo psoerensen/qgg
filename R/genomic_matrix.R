@@ -94,7 +94,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     if (is.null(famfiles)) Glist$famfiles <- gsub(".bed", ".fam", bedfiles)
 
     # Read fam information
-    fam <- data.table::fread(input = famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+    fam <- fread(input = famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
     Glist$ids <- as.character(fam[, 2])
     #Glist$study_ids <- Glist$ids
     Glist$study_ids <- NULL
@@ -126,10 +126,10 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     Glist$n2 <- vector(mode = "list", length = nfiles)
 
     for (chr in 1:length(bedfiles)) {
-      bim <- data.table::fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
+      bim <- fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
       rsidsBIM <- as.character(bim[, 2])
       if (!is.null(rsids)) bim <- droplevels(bim[rsidsBIM %in% rsids, ])
-      fam <- data.table::fread(input = famfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
+      fam <- fread(input = famfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
       if (any(!Glist$ids %in% as.character(fam[, 2]))) stop(paste("some ids not found in famfiles"))
       message(paste("Finished processing fam file", famfiles[chr]))
       Glist$a1[[chr]] <- as.character(bim[, 5])
@@ -201,7 +201,7 @@ gprep <- function(Glist = NULL, task = "prepare", study = NULL, fnBED = NULL, ld
     for (chr in 1:Glist$nchr) {
       Glist$map[[chr]] <- rep(NA,Glist$mchr[chr])
       names(Glist$map[[chr]]) <- Glist$rsids[[chr]]
-      map <- data.table::fread(mapfiles[chr],data.table=F)
+      map <- fread(mapfiles[chr],data.table=F)
       dups <- map[duplicated(map[,2]),2]
       map <- map[!map[,2]%in%dups,]
       map <- map[map[,2]%in%Glist$rsids[[chr]],]
@@ -334,18 +334,22 @@ gfilter <- function(Glist = NULL, excludeMAF=0.01, excludeMISS=0.05, excludeINFO
   if(!is.null(excludeMISS)) isMISS <- unlist(lapply(Glist$nmiss,function(x) {x/length(Glist$study_ids)>excludeMISS}))
   if(!is.null(excludeHWE)) isHWE <- unlist(hwe(Glist)) < excludeHWE 
   
-  
   isHWE[is.na(isHWE)] <- TRUE
+  
   if(excludeMHC) {
     if(assembly=="GRCh37"){
-        isMHC <-  Glist$pos[[6]] > 28477797 & Glist$pos[[6]] < 33448354
-        rsidsMHC <- Glist$rsids[[6]]
-        rsidsMHC <- rsidsMHC[isMHC]
+      #isMHC <-  Glist$pos[[6]] > 28477797 & Glist$pos[[6]] < 33448354
+      #rsidsMHC <- Glist$rsids[[6]]
+      isMHC <-  unlist(Glist$chr)=="6" & unlist(Glist$pos) > 28477797 & unlist(Glist$pos) < 33448354
+      rsidsMHC <- unlist(Glist$rsids)
+      rsidsMHC <- rsidsMHC[isMHC]
     }
     if(assembly=="GRCh38"){
-        isMHC <-  Glist$pos[[6]] > 28510120 & Glist$pos[[6]] < 33480577
-        rsidsMHC <- Glist$rsids[[6]]
-        rsidsMHC <- rsidsMHC[isMHC]
+      #isMHC <-  Glist$pos[[6]] > 28510120 & Glist$pos[[6]] < 33480577
+      #rsidsMHC <- Glist$rsids[[6]]
+      isMHC <-  unlist(Glist$chr)=="6" & unlist(Glist$pos) > 28510120 & unlist(Glist$pos) < 33480577
+      rsidsMHC <- unlist(Glist$rsids)
+      rsidsMHC <- rsidsMHC[isMHC]
     }
   }
   a1 <- unlist(Glist$a1)
@@ -427,8 +431,8 @@ writeBED <- function(bedRead = NULL, bimRead = NULL, famRead = NULL,
     stop("All input arguments must be provided.")
   }
   
-  bim <- data.table::fread(input = bimRead, header = FALSE, data.table = FALSE, colClasses = "character")
-  fam <- data.table::fread(input = famRead, header = FALSE, data.table = FALSE, colClasses = "character")
+  bim <- fread(input = bimRead, header = FALSE, data.table = FALSE, colClasses = "character")
+  fam <- fread(input = famRead, header = FALSE, data.table = FALSE, colClasses = "character")
   
   if (is.null(rsids)) stop("Missing rsids argument")
   
@@ -443,8 +447,8 @@ writeBED <- function(bedRead = NULL, bimRead = NULL, famRead = NULL,
   
   selected <- bim[, 2] %in% rsids
   
-  data.table::fwrite(bim[selected, ], file = bimWrite, col.names = FALSE, row.names = FALSE, sep=" ")
-  data.table::fwrite(fam, file = famWrite, col.names = FALSE, row.names = FALSE, sep=" ")
+  fwrite(bim[selected, ], file = bimWrite, col.names = FALSE, row.names = FALSE, sep=" ")
+  fwrite(fam, file = famWrite, col.names = FALSE, row.names = FALSE, sep=" ")
   
   # Check magic number
   bfbedRead <- file(bedRead, "rb")
@@ -477,8 +481,8 @@ writeBED <- function(bedRead = NULL, bimRead = NULL, famRead = NULL,
 #                      rsids=NULL) {
 #   
 #   
-#   bim <- data.table::fread(input = bimRead, header = FALSE, data.table = FALSE, colClasses = "character")
-#   fam <- data.table::fread(input = famRead, header = FALSE, data.table = FALSE, colClasses = "character")
+#   bim <- fread(input = bimRead, header = FALSE, data.table = FALSE, colClasses = "character")
+#   fam <- fread(input = famRead, header = FALSE, data.table = FALSE, colClasses = "character")
 #   
 #   if(is.null(rsids)) stop("Missing rsids argument")
 # 
@@ -492,8 +496,8 @@ writeBED <- function(bedRead = NULL, bimRead = NULL, famRead = NULL,
 #   
 #   selected <- bim[,2]%in%rsids
 #   
-#   data.table::fwrite(bim[selected,], file=bimWrite, col.names=FALSE, row.names=FALSE)
-#   data.table::fwrite(fam, file=famWrite, col.names=FALSE, row.names=FALSE)
+#   fwrite(bim[selected,], file=bimWrite, col.names=FALSE, row.names=FALSE)
+#   fwrite(fam, file=famWrite, col.names=FALSE, row.names=FALSE)
 # 
 #   # Check magic number
 #   bfbedRead <- file(bedRead, "rb")
@@ -541,8 +545,8 @@ writeBED <- function(bedRead = NULL, bimRead = NULL, famRead = NULL,
 #      bim_combined <- NULL
 #      for (chr in 1:length(bedfiles)) {
 #           message(paste("Processing bedfile:", bedfiles[chr]))
-#           bim <- data.table::fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
-#           fam <- data.table::fread(input = famfiles[chr], header = FALSE, data.table = FALSE)
+#           bim <- fread(input = bimfiles[chr], header = FALSE, data.table = FALSE, colClasses = "character")
+#           fam <- fread(input = famfiles[chr], header = FALSE, data.table = FALSE)
 #           n <- nrow(fam)
 #           m <- nrow(bim)
 #           rsidsBIM <- as.character(bim[, 2])
@@ -668,11 +672,11 @@ getW <- function(Glist = NULL, chr = NULL, bedfiles = NULL, bimfiles = NULL, fam
   if (!is.null(bedfiles)) {
     if (is.null(bimfiles)) bimfiles <- gsub(".bed", ".bim", bedfiles)
     if (is.null(famfiles)) famfiles <- gsub(".bed", ".fam", bedfiles)
-    bim <- data.table::fread(
+    bim <- fread(
       input = bimfiles, header = FALSE, data.table = FALSE, showProgress = FALSE,
       colClasses = "character"
     )
-    fam <- data.table::fread(
+    fam <- fread(
       input = famfiles, header = FALSE, data.table = FALSE, showProgress = FALSE,
       colClasses = "character"
     )
@@ -722,14 +726,14 @@ sparseLD <- function(Glist = NULL, fnLD = NULL, bedfiles = NULL, bimfiles = NULL
      Glist <- NULL
      Glist$fnBED <- bedfiles
 
-     bim <- data.table::fread(input = bimfiles, header = FALSE, data.table = FALSE, colClasses = "character")
+     bim <- fread(input = bimfiles, header = FALSE, data.table = FALSE, colClasses = "character")
      Glist$a1 <- as.character(bim[, 5])
      Glist$a2 <- as.character(bim[, 6])
      Glist$pos <- as.numeric(bim[, 4])
      Glist$rsids <- as.character(bim[, 2])
      Glist$chr <- as.character(bim[, 1])
 
-     fam <- data.table::fread(input = famfiles, header = FALSE, data.table = FALSE, colClasses = "character")
+     fam <- fread(input = famfiles, header = FALSE, data.table = FALSE, colClasses = "character")
      Glist$n <- nrow(fam)
      Glist$ids <- as.character(fam[, 2])
      if (any(!ids %in% as.character(fam[, 2]))) stop(paste("some ids not found in famfiles"))
@@ -1055,7 +1059,7 @@ createLDsets <- function(ldscores=NULL, msize=200, maxsize=2000, nsplit=200, ver
 #     ld_values <- ld_values[!isnull]
 #     if(!is.null(rsids)) ld_indices <- ld_indices[names(ld_indices)%in%rsids]
 #     if(!is.null(rsids)) ld_values <- ld_values[names(ld_values)%in%rsids]
-#     ld_indices <- qgg::mapSets(sets=ld_indices,rsids=rsids, index=TRUE)
+#     ld_indices <- mapSets(sets=ld_indices,rsids=rsids, index=TRUE)
 #     ld_indices <- lapply(ld_indices,function(x){x-1})
 #     
 #     return(list(indices=ld_indices,values=ld_values))
