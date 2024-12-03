@@ -1405,7 +1405,14 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       # Prepare input
       W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
       B <- crossprod(scale(W))/(nrow(W)-1)
-      if(shrinkLD) B <- corpcor::cor.shrink(W)
+      
+      #if(shrinkLD) B <- corpcor::cor.shrink(W)
+
+      if(shrinkLD) {
+        bobs <- stat[rws, "b"]
+        bpred <- B%*%bobs
+        stat[rws, "b"] <- bpred/(sum((bpred-mean(bpred))*bobs)/sum(bobs^2))
+      }
 
       eig <- eigen(B, symmetric=TRUE)
       
