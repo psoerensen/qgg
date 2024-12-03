@@ -3,11 +3,13 @@
 ####################################################################################################################
 #'
 #' LD score regression
+#' 
 #' @description
 #' The ldsc function is used for LDSC analysis
 #'
 #' @param Glist list of information about genotype matrix stored on disk
 #' @param stat dataframe with marker summary statistics
+#' @param sets Optional list specifying sets of SNPs for mapping.
 #' @param ldscores vector of LD scores (optional as LD scores are stored within Glist)
 #' @param z matrix of z statistics for n traits
 #' @param b matrix of marker effects for n traits if z matrix not is given
@@ -16,11 +18,13 @@
 #' @param n vector of sample sizes for the traits (element i corresponds to column vector i in z matrix)
 #' @param intercept logical if TRUE the LD score regression includes intercept
 #' @param what either computation of heritability (what="h2") or genetic correlation between traits (what="rg")
+#' @param maxZ2 maximum value for squared value of z-statistics
+#' @param tol smallest value for h2
+#' @param method the regression method to use, options include "regression", "bayesC", "bayesR".
+#' @param residual logical if TRUE then add a residual that capture the h2 not explained by the sets
 #' @param SE.h2 logical if TRUE standard errors and significance for the heritability estimates are computed using a block jackknife approach
 #' @param SE.rg logical if TRUE standard errors and significance for the genetic correlations are computed using a block jackknife approach
 #' @param blk numeric size of the blocks used in the jackknife estimation of standard error (default = 200)
-
-
 #'
 #' @return Returns a matrix of heritability estimates when what="h2", and if SE.h2=TRUE standard errors (SE) and significance levels (P) are returned. 
 #'         If what="rg" an n-by-n matrix of correlations is returned where the diagonal elements being h2 estimates. 
@@ -82,8 +86,8 @@
 #'
 #'
 #'
-#' @export 
-
+#' @export
+#'  
 ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", residual=FALSE, z=NULL, b=NULL, seb=NULL, af=NULL, stat=NULL, tol=1e-8,
                  n=NULL, intercept=TRUE, what="h2", maxZ2=NULL, SE.h2=FALSE, SE.rg=FALSE, blk=200) {
   
@@ -129,9 +133,9 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
       Xy <- crossprod(X, y)
       if(method=="regression") h2 <- solve(as.matrix(XX))%*%as.matrix(Xy)
       if(method=="bayesC") {
-        fit <- qgg:::blr(yy=sum(y**2), XX=as.matrix(XX), Xy=as.matrix(Xy), n=length(y),
-                         method=method, pi=0.01,
-                         nit=5000, nburn=1000)
+        fit <- blr(yy=sum(y**2), XX=as.matrix(XX), Xy=as.matrix(Xy), n=length(y),
+                   method=method, pi=0.01,
+                   nit=5000, nburn=1000)
         h2 <- fit$bm
       }
       h2set <- cbind(h2set,h2)
@@ -140,9 +144,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
     rownames(h2set) <- c("Intercept",names(sets))
     return(h2set[-1,])
   } 
-  
-  
-  
+
   if(!is.null(z)) nt <- ncol(z)
   
   if(!is.null(b)) {
@@ -202,8 +204,6 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
   isNA <- result<=tol | is.na(result)
   result[isNA] <- tol
   
-  
-  #---------------------------------#
   # Block Jackknife to estimate h2 SE
   if(SE.h2==TRUE){
     if(intercept==TRUE){
@@ -280,12 +280,10 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
         XtX <- crossprod(X)
         Xy <- crossprod(X,y)
         if(intercept && !any(is.na(h2[c(t1,t2),2]))) rg[t1,t2] <- solve(XtX, Xy)[2]/(sqrt(h2[t1,2])*sqrt(h2[t2,2]))
-        #if(!intercept & !any(is.na(h2[c(t1,t2)]))) rg[t1,t2] <- solve(XtX,Xy)[2]/(sqrt(h2[t1])*sqrt(h2[t2]))
         if(!intercept && !any(is.na(h2[c(t1,t2)]))) rg[t1,t2] <- (Xy[2]/XtX[2,2])/(sqrt(h2[t1])*sqrt(h2[t2]))
       }
       if(intercept) rg[t1,t1] <- h2[t1,2]
       if(!intercept) rg[t1,t1] <- h2[t1]
-      #rg[t2,t1] <- rg[t1,t2]
     }
     rownames(rg) <- colnames(rg) <- colnames(z)
     result <- NULL
@@ -306,8 +304,6 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
     result$rg[,isNA] <- 0
     diag(result$rg) <- 1
     
-    
-    #---------------------------------#
     # Block Jackknife to estimate rg SE
     if(SE.rg==TRUE){
       if(intercept==TRUE){
@@ -437,13 +433,8 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
       }
     }
   }
-  
-  
   return(result)
 }
-
-
-
 
 neff <- function(seb=NULL,af=NULL,Vy=1) {
   seb2 <- seb**2
