@@ -76,8 +76,8 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
   double ssb, ssg, sse, dfb, dfe, dfg, chi2;
   double ssg_prior, nug;
-  double xtau, tau, lambda_tau, mu_tau, z, z2, u;
-  double shape, shape0, rate, rate0, lambda2;
+  double lambda_tau, mu_tau, u, lambda2;
+  //double shape, shape0, rate, rate0, lambda2;
   
   std::vector<int> d(m);
   
@@ -454,7 +454,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     // Sample marker specific tau for Bayes lasso
     if (method==3) { 
       // Hyper parameters for the inverse Gaussian distribution
-      double lrate0 = 0.1;  // lambda0 hyperparameter rate
+      //double lrate0 = 0.1;  // lambda0 hyperparameter rate
       double lshape0 = 1.0; // lambda0 hyperparameter shape
       
       // Set a small tolerance value (epsilon)
@@ -867,7 +867,7 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
   
   double rhs, lhs, bn, bj, diff;
   double rhs1, lhs1, like0, like1, p0, v0, v1;
-  double rhs0, lhs0;
+  //double rhs0, lhs0;
   double ssb, sse, ssg, dfb, dfe, dfg, chi2;
   double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
   double shape, shape0, rate, rate0, lambda2;
@@ -1809,12 +1809,12 @@ std::vector<std::vector<double>>  sbayes_eigen( std::vector<double> wy,
   double nsamples=0.0;
   int q=wy.size();
   
-  double rhs, lhs, bn, bj, diff;
-  double rhs1, lhs1, like0, like1, p0, v0, v1;
-  double rhs0, lhs0;
-  double ssb, sse, ssg, dfb, dfe, dfg, chi2;
-  double x_tau, tau, lambda_tau, mu_tau, z, z2, u, vbin;
-  double shape, shape0, rate, rate0, lambda2;
+  double rhs, lhs, bn, diff;
+  //double rhs1, lhs1, like0, like1, p0, v0, v1;
+  //double rhs0, lhs0;
+  double ssb, sse, ssg, dfb, dfe, chi2;
+  double u;
+  //double shape, shape0, rate, rate0, lambda2;
   
   std::vector<double> vbscale(nc), pic(nc), pim(nc), probc(nc), logLc(nc);
   double cumprobc, vbc, logLcAdj;
@@ -2092,7 +2092,7 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
   int q=wy.size();
   
   double rhs, lhs, bn, diff;
-  double ssb, sse, ssg, dfb, dfe, dfg, chi2;
+  double ssb, sse, ssg, dfb, dfe, chi2;
   double u;
   
   std::vector<double> probc(nc), logLc(nc), pim(nc);
