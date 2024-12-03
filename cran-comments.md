@@ -1,6 +1,13 @@
 ## Submission
 This is a new submission:
 
+* Revised gmap function including an svd based BLR analysis
+* Added function magma for Bayesian MAGMA analysis
+* Added function pops for Bayesian PoPS analysis
+
+## Submission
+This is a new submission:
+
 * Fixed issue with depencies on C11 has been removed
 * Major revision of documentation 
 * Fixed notes related to unused arguments
