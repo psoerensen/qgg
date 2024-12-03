@@ -71,7 +71,7 @@ void samplePi(std::vector<double>& cmodel,
               std::vector<double>& pi, 
               std::mt19937& gen) {
   // Iterate over elements of cmodel
-  for (int k = 0; k < cmodel.size(); k++) {
+  for (size_t k = 0; k < cmodel.size(); k++) {
     // Create a gamma distribution with shape parameter cmodel[k] and scale parameter 1.0
     std::gamma_distribution<double> rgamma(cmodel[k], 1.0);
     // Generate a random gamma-distributed value using the provided random number generator gen
@@ -82,7 +82,7 @@ void samplePi(std::vector<double>& cmodel,
   // Calculate the sum of all values in the pi vector
   double psum = std::accumulate(pi.begin(), pi.end(), 0.0);
   // Normalize the pi vector by dividing each element by the sum
-  for (int k = 0; k < cmodel.size(); k++) {
+  for (size_t k = 0; k < cmodel.size(); k++) {
     pi[k] = pi[k] / psum;
   }
   // Reset all elements in the cmodel vector to 1.0
@@ -191,13 +191,13 @@ void sampleB(int nt,
   
   // Calculate the inverse of B and check for success
   arma::mat Bi(nt, nt, arma::fill::zeros);
-  bool success;
-  success = arma::inv_sympd(Bi, B, arma::inv_opts::allow_approx);
+  //bool success;
+  //success = arma::inv_sympd(Bi, B, arma::inv_opts::allow_approx);
   
   // If the inverse calculation fails, print an error message
-  if (!success) {
-    std::cerr << "Error: Condition is false." << std::endl;
-  }
+  //if (!success) {
+  //  std::cerr << "Error: Condition is false." << std::endl;
+  //}
 }
 
 // Sample residual covariance matrix E
@@ -416,7 +416,7 @@ void samplePiMt(int nt,
   
   // Sample marker specific pi0
   std::fill(mc.begin(), mc.end(), 0.0);
-  for (int i = 0; i<dmarker.size() ; i++) {
+  for (size_t i = 0; i<dmarker.size() ; i++) {
     mc[dmarker[i]] = mc[dmarker[i]] + 1.0;
   }
   double pisum=0.0;
@@ -443,7 +443,7 @@ void samplePiC(int nt,
   // Sample trait specific pi
   for (int t = 0; t < nt; t++) {
     std::fill(mc.begin(), mc.end(), 0.0);
-    for (int i = 0; i<d[t].size() ; i++) {
+    for (size_t i = 0; i<d[t].size() ; i++) {
       mc[d[t][i]] = mc[d[t][i]] + 1.0;
     }
     double pisum=0.0;
@@ -477,7 +477,7 @@ void sampleBetaCSt(int i,
                   std::mt19937& gen) {
   
   std::vector<double> rhs(nt), loglik0(nt), loglik1(nt), bn(nt);
-  double lik0t, lik1t, v0, v1, p0, p1, rhs1, lhs1, diff;
+  double lik0t, lik1t, v0, v1, p0, rhs1, lhs1, diff;
   double u;
 
   // Compute rhs
@@ -556,7 +556,7 @@ void samplePiR(int nt,
   // Sample trait specific pi
   for (int t = 0; t < nt; t++) {
     std::fill(mc.begin(), mc.end(), 0.0);
-    for (int i = 0; i<d[t].size() ; i++) {
+    for (size_t i = 0; i<d[t].size() ; i++) {
       mc[d[t][i]] = mc[d[t][i]] + 1.0;
     }
     double pisum=0.0;
@@ -590,7 +590,7 @@ void sampleBetaR(int i,
                    std::mt19937& gen) {
 
   std::vector<double> rhs(nt), loglik0(nt), loglik1(nt), loglik2(nt), loglik3(nt), bn(nt);
-  double lik0t, lik1t, v0, v1, v2, v3, p0, p1, rhs1, lhs1, diff;
+  double lik0t, lik1t, v0, v1, v2, v3, p0, rhs1, lhs1, diff;
   double u;
 
   int nc = gamma.size();
@@ -598,7 +598,7 @@ void sampleBetaR(int i,
   std::vector<std::vector<double>> probc(nt, std::vector<double>(nc, 0.0));
   std::vector<std::vector<double>> logLc(nt, std::vector<double>(nc, 0.0));
 
-  double cumprobc, vbc, logLcAdj, b2;
+  double cumprobc, vbc, logLcAdj;
 
 
   // Compute rhs
@@ -722,7 +722,7 @@ void sampleBetaRS(int i,
                  std::mt19937& gen) {
   
   std::vector<double> rhs(nt), loglik0(nt), loglik1(nt), loglik2(nt), loglik3(nt), bn(nt);
-  double lik0t, lik1t, v0, v1, v2, v3, p0, p1, rhs1, lhs1, diff;
+  double lik0t, lik1t, v0, v1, v2, v3, p0, rhs1, lhs1, diff;
   double u;
   
   int nc = gamma.size();
@@ -730,7 +730,7 @@ void sampleBetaRS(int i,
   std::vector<std::vector<double>> probc(nt, std::vector<double>(nc, 0.0));
   std::vector<std::vector<double>> logLc(nt, std::vector<double>(nc, 0.0));
   
-  double cumprobc, vbc, logLcAdj,b2;
+  double cumprobc, vbc, logLcAdj;
   
   
   // Compute rhs
@@ -918,13 +918,13 @@ void sampleBR(int nt,
   
   // Calculate the inverse of B and check for success
   arma::mat Bi(nt, nt, arma::fill::zeros);
-  bool success;
-  success = arma::inv_sympd(Bi, B, arma::inv_opts::allow_approx);
+  //bool success;
+  //success = arma::inv_sympd(Bi, B, arma::inv_opts::allow_approx);
   
   // If the inverse calculation fails, print an error message
-  if (!success) {
-    std::cerr << "Error: Condition is false." << std::endl;
-  }
+  //if (!success) {
+  // std::cerr << "Error: Condition is false." << std::endl;
+  //}
 }
 
 
@@ -1404,7 +1404,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
   int nmodels = models.size();
   double nsamples=0.0;
   
-  double ssb, sse,ssg, sse1, sse2, dfb, u, logliksum, detC, diff, cumprobc;
+  double ssb, sse,ssg, dfb, u, logliksum, detC, diff, cumprobc;
   int mselect;
   
   std::vector<std::vector<int>> d(nt, std::vector<int>(m, 0));
@@ -1678,7 +1678,7 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
       //Rcpp::Rcout << "pimarker[1]: " << pimarker[1] << std::endl;
       if(it>nburn) {
         for (int t = 0; t<nt ; t++) {
-          for (int k = 0; k<gamma.size() ; k++) {
+          for (size_t k = 0; k<gamma.size() ; k++) {
             pistrait[t][k] = pistrait[t][k] + pitrait[t][k];
           }
         }
@@ -1816,11 +1816,11 @@ std::vector<std::vector<std::vector<double>>>  mtsbayes(   std::vector<std::vect
         B = 0.5*(B + B.t());
       }
       arma::mat Bi(nt,nt, fill::zeros);
-      bool success;
-      success = inv_sympd(Bi,B,inv_opts::allow_approx);
-      if(!success) {
-        std::cerr << "Error: Condition is false." << std::endl;
-      }
+      //bool success;
+      //success = inv_sympd(Bi,B,inv_opts::allow_approx);
+      //if(!success) {
+      //  std::cerr << "Error: Condition is false." << std::endl;
+      //}
       //arma::mat Bi = arma::inv(B);
     }
 
@@ -2107,8 +2107,8 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
   int nmodels = models.size();
   double nsamples=0.0;
   
-  double ssb, sse, ssg, dfb, u, logliksum, detC, diff, cumprobc;
-  int mselect;
+  //double logliksum, detC, diff, cumprobc;
+  //int mselect;
   
   std::vector<std::vector<int>> d(nt, std::vector<int>(m, 0));
   
@@ -2268,7 +2268,7 @@ std::vector<std::vector<std::vector<double>>>  mtblr(   std::vector<std::vector<
       //Rcpp::Rcout << "pimarker[1]: " << pimarker[1] << std::endl;
       if(it>nburn) {
         for (int t = 0; t<nt ; t++) {
-          for (int k = 0; k<gamma.size() ; k++) {
+          for (size_t k = 0; k<gamma.size() ; k++) {
             pistrait[t][k] = pistrait[t][k] + pitrait[t][k];
           }
         }
