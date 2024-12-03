@@ -51,10 +51,8 @@
 #' \item{stat}{marker set test statistics}
 #' \item{m}{number of markers in the set}
 #' \item{p}{enrichment p-value for marker set}
-
-#' @author Peter Soerensen
-
-
+#' 
+#' 
 #' @examples
 #'
 #'
@@ -101,9 +99,11 @@
 #'  head(mma)
 #'
 #' }
-
-
+#' 
+#' @author Peter Soerensen
+#' 
 #' @export
+#' 
 gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g = NULL, e = NULL, threshold = 0.05, method = "sum", nperm = 1000, ncores = 1) {
   if(is.data.frame(stat)) {
     colstat <- !colnames(stat)%in%c("rsids","chr","pos","ea","nea","eaf")
@@ -112,7 +112,6 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g
     if(!any(colstat)) stat <- as.matrix(stat[,colstat])
   }
   if (method == "sum") {
-    #m <- length(stat)
     if (is.matrix(stat)) sets <- mapSets(sets = sets, rsids = rownames(stat), index = TRUE)
     if (is.vector(stat)) sets <- mapSets(sets = sets, rsids = names(stat), index = TRUE)
     nsets <- length(sets)
@@ -184,7 +183,6 @@ gsea <- function(stat = NULL, sets = NULL, Glist = NULL, W = NULL, fit = NULL, g
   }
 }
 
-
 gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum") {
   m <- length(stat)
   nsets <- length(sets)
@@ -197,12 +195,11 @@ gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum
               stat = stat,
               np = np)
   p <- p/np 
-
   return(p)
 }
 
 
-#' Map Sets to RSIDs
+#' Map Sets to rsids
 #'
 #' This function maps sets to rsids. If a `Glist` is provided, `rsids` are extracted from the `Glist`.
 #' It returns a list of matched RSIDs for each set.
@@ -216,7 +213,9 @@ gsets <- function(stat = NULL, sets = NULL, ncores = 1, np = 1000, method = "sum
 #' @return A list where each element represents a set and contains matched RSIDs or their indices.
 #' 
 #' @keywords internal
+#' 
 #' @export
+#' 
 mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
   if (!is.null(Glist)) rsids <- unlist(Glist$rsids)
   nsets <- sapply(sets, length)
@@ -232,9 +231,6 @@ mapSets <- function(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE) {
   rsSets <- split(rsSets, f = rs)
   return(rsSets)
 }
-
-
-
 
 gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e = NULL, msize = 100, rsids = NULL,
                   impute = TRUE, scale = TRUE, ids = NULL, ncores = 1) {
@@ -273,16 +269,11 @@ gstat <- function(method = NULL, Glist = NULL, g = NULL, Sg = NULL, Py = NULL, e
   return(setstat)
 }
 
-
-
-
 settest <- function(stat = NULL, W = NULL, sets = NULL, nperm = NULL, method = "sum", threshold = 0.05) {
   if (method == "sum") setT <- sumtest(stat = stat, sets = sets, nperm = nperm)
   if (method == "hyperG") setT <- hgtest(p = stat, sets = sets, threshold = threshold)
   return(setT)
 }
-
-
 
 sumtest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
   if (method == "mean") {
@@ -333,11 +324,8 @@ sumtest <- function(stat = NULL, sets = NULL, nperm = NULL, method = "sum") {
     p <- 1 - p / nperm
     setT <- data.frame(setT, nset, p)
   }
-
   return(setT)
 }
-
-
 
 cvat <- function(fit = NULL, s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 100) {
   if (!is.null(fit)) {
@@ -346,8 +334,6 @@ cvat <- function(fit = NULL, s = NULL, g = NULL, W = NULL, sets = NULL, nperm = 
   Ws <- t(t(W) * as.vector(s))
   if (is.null(g)) g <- W %*% s
   cvs <- colSums(as.vector(g) * Ws)
-  # setT <- setTest(stat = cvs, sets = sets, nperm = nperm, method = "sum")$p
-  # names(setT) <- names(sets)
   setT <- settest(stat = cvs, sets = sets, nperm = nperm, method = "sum")
   if (!is.null(names(sets))) rownames(setT) <- names(sets)
   return(setT)
@@ -360,7 +346,6 @@ scoretest <- function(e = NULL, W = NULL, sets = NULL, nperm = 100) {
   setT <- settest(stat = we2, sets = sets, nperm = nperm, method = "sum")$p
   return(setT)
 }
-
 
 hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
   population_size <- length(p)
@@ -376,7 +361,6 @@ hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
                              population_size-n_successes_population,
                              sample_size[i])
   }
-  # Calculate enrichment factor
   ef <- (n_successes_sample/sample_size)/
     (n_successes_population/population_size)
   
@@ -385,10 +369,6 @@ hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
                    nag = n_successes_sample,
                    ef=ef,
                    p = phyperg)
-  #colnames(res) <- c("Feature", "Number of Genes",
-  #                  "Number of Associated Genes",
-  #                  "Enrichment Factor",
-  #                  "p")
   res
 }
 
@@ -408,7 +388,34 @@ hgtest <- function(p = NULL, sets = NULL, threshold = 0.05) {
 #   phyperg
 # }
 
+#' Bayesian Multi-marker Analysis of Genomic Annotation (Bayesian MAGMA)
+#'
+#' This function analyzes feature sets using MAGMA or Bayesian methods for association testing. 
+#' It supports joint or marginal testing, as well as Bayesian linear regression using different 
+#' priors (`bayesC`, `bayesR`).
+#'
+#' @param stat A numeric vector or matrix of summary statistics, where rows represent features and columns represent phenotypes.
+#' @param sets A list of feature sets (e.g., genes, SNPs) to be analyzed.
+#' @param method A string specifying the method to use. Options are `"magma"`, `"blr"`, `"bayesC"`, or `"bayesR"`. Default is `"magma"`.
+#' @param type A string specifying the type of analysis to perform. Options are `"joint"` (default) or `"marginal"`. Only used with `method = "magma"`.
+#' @param test A string specifying the statistical test. Options are `"one-sided"` (default) or `"two-sided"`. Only used with `method = "magma"`.
+#' @param pi A numeric value specifying the proportion of non-zero effects. Used for Bayesian methods. Default is `0.001`.
+#' @param nit An integer specifying the number of iterations for Bayesian methods. Default is `5000`.
+#' @param nburn An integer specifying the number of burn-in iterations for Bayesian methods. Default is `1000`.
+#' 
+#' @return 
+#' A data frame or list with analysis results.
+#'
+#' @details
+#' The function uses either the MAGMA approach for set-based testing or Bayesian linear regression 
+#' to estimate effect sizes and probabilities of association for feature sets. For Bayesian methods, 
+#' a spike-and-slab prior is applied.
+#' 
+#' The `stat` input must have row names corresponding to feature identifiers. The `sets` input must 
+#' be a named list, where each element corresponds to a feature set.
+#'
 #' @export
+#' 
 magma <- function(stat = NULL, sets = NULL, 
                   method="magma", type = "joint", test = "one-sided",
                   pi=0.001, nit=5000, nburn=1000) {
@@ -471,7 +478,7 @@ magma <- function(stat = NULL, sets = NULL,
 
     if(ncol(y)==1) {
       # Fit BLR model
-      fit <- qgg:::blr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
+      fit <- blr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
                        method=method, pi=pi,
                        nit=nit, nburn=nburn)
       
@@ -489,7 +496,7 @@ magma <- function(stat = NULL, sets = NULL,
     if(ncol(y)>1) {
       stat$XX <- rep(list(stat$XX),ncol(y))
       # Fit BLR model
-      fit <- qgg:::mtblr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
+      fit <- mtblr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
                        method=method, pi=pi,
                        nit=nit, nburn=nburn)
       
@@ -506,7 +513,34 @@ magma <- function(stat = NULL, sets = NULL,
   }
 }
 
+#' Perform VEGAS Gene-Based Association Analysis
+#'
+#' This function performs VEGAS (Versatile Gene-based Association Study) to analyze gene-level associations
+#' using marker statistics and linkage disequilibrium (LD) structure from a reference panel.
+#'
+#' @param Glist A list containing genomic information, such as LD matrices or genotype data. Required.
+#' @param sets A list of sets (e.g., genes with their associated markers) to analyze. Required.
+#' @param stat A data frame containing marker-level statistics. Must include `rsids` (marker IDs) and `p` (p-values).
+#' @param p A numeric matrix of p-values for markers across multiple studies. If provided, `stat` should be NULL.
+#' @param threshold A numeric value specifying the lower bound for p-values to avoid numerical issues. Default is `1e-10`.
+#' @param tol A numeric value specifying the tolerance for eigenvalues in LD matrices. Default is `1e-7`.
+#' @param minsize An integer specifying the minimum number of markers required for a set to be analyzed. Default is `2`.
+#' @param verbose A logical value indicating whether to print progress messages. Default is `FALSE`.
+#' 
+#' @return 
+#' A data frame with the results
+#'
+#' @details
+#' The function uses marker-level statistics to compute gene-level association statistics,
+#' accounting for LD structure among markers. The LD structure is retrieved from `Glist`, which
+#' should include precomputed LD matrices or genotype data for the markers.
+#'
+#' Two modes are supported:
+#' - **`stat` Mode**: Uses marker statistics (e.g., p-values) from a single study to compute gene-level statistics.
+#' - **`p` Mode**: Uses marker p-values across multiple studies for meta-analysis of gene-level statistics.
+#'
 #' @export
+#' 
 vegas <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol=1e-7, minsize=2, verbose=FALSE) {
   
   if(is.null(Glist)) stop("Please provide Glist object")
@@ -588,7 +622,7 @@ vegas <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol
       ev <- eigen(cor(B))$values
       ev[ev < tol] <- tol
       for (j in 1:nstudy) {
-        try(pg[i,j] <- qgg:::pchisqsum(chistat[i,j], df = rep(1, length(ev)), a = ev, lower.tail = FALSE))
+        try(pg[i,j] <- pchisqsum(chistat[i,j], df = rep(1, length(ev)), a = ev, lower.tail = FALSE))
       }
       if(verbose) message(paste("Finished processing gene" ,i))
     }
@@ -659,8 +693,28 @@ saddle <- function(x, lambda) {
   }
 }
 
-
-
+#' Bayesian Polygenic Prioritisation Scoring (Bayesian POPS)
+#'
+#' This function performs Polygenic Prioritisation Scoring (POPS) using Bayesian regression (`bayesC` or `bayesR`) or ridge regression (`rr`). 
+#' It maps features to sets, performs optional feature selection based on p-value thresholds, and calculates predictive scores for prioritisation.
+#'
+#' @param stat A numeric vector or matrix of summary statistics (e.g., phenotypic values or effect sizes), where rows represent features (e.g., SNPs) and columns represent traits. Required.
+#' @param sets A list of feature sets (e.g., genes or SNP groups) to map to the rows of `stat`. Required.
+#' @param validate An optional validation set. If provided, cross-validation results are returned instead of fitting the model.
+#' @param threshold A numeric value specifying a p-value threshold for feature selection. If provided, only features with p-values below this threshold are included in the model.
+#' @param method A string specifying the regression method. Options are `"bayesC"` (default), `"bayesR"`, or `"rr"` (ridge regression).
+#' @param pi A numeric value specifying the proportion of non-zero effects for Bayesian methods. Default is `0.001`.
+#' @param nit An integer specifying the number of iterations for Bayesian methods. Default is `5000`.
+#' @param nburn An integer specifying the number of burn-in iterations for Bayesian methods. Default is `1000`.
+#' @param updateB A logical value indicating whether to update marker effects in Bayesian methods. Default is `TRUE`.
+#' @param updateE A logical value indicating whether to update residual variances in Bayesian methods. Default is `TRUE`.
+#' @param updatePi A logical value indicating whether to update the proportion of non-zero effects in Bayesian methods. Default is `TRUE`.
+#' @param updateG A logical value indicating whether to update the genomic variances in Bayesian methods. Default is `TRUE`.
+#'
+#' @return 
+#' A matrix of predicted prioritisation scores (`ypred`) for each feature, ordered by their predictive values. 
+#' If a validation set is provided, cross-validation results are returned instead.
+#'
 #' @export
 pops <- function(stat = NULL, sets = NULL, validate=NULL, threshold=NULL,
                  method="bayesC", pi=0.001, nit=5000, nburn=1000,
@@ -692,7 +746,7 @@ pops <- function(stat = NULL, sets = NULL, validate=NULL, threshold=NULL,
   X <- X[rownames(y),]
   
   if(!is.null(threshold)) {
-    fit <- qgg:::magma(stat=orig_stat, sets=sets, type = "marginal", test = "one-sided",
+    fit <- magma(stat=orig_stat, sets=sets, type = "marginal", test = "one-sided",
                        method="magma")
     selected <- fit$p<threshold
     if(sum(selected)<2) stop("Number of selected features less than 2")
@@ -712,7 +766,7 @@ pops <- function(stat = NULL, sets = NULL, validate=NULL, threshold=NULL,
   
   if (method%in%c("bayesC","bayesR")) {
     # Fit BLR model
-    fit <- qgg:::blr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
+    fit <- blr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
                      method=method, pi=pi,
                      nit=nit, nburn=nburn,
                      updateB=updateB, updateE=updateE, updatePi=updatePi)
@@ -778,7 +832,7 @@ cvpops <- function(stat = NULL, sets = NULL, validate=NULL, threshold=NULL,
     
     
     if(!is.null(threshold)) {
-      fit <- qgg:::magma(stat=orig_stat[train,], sets=sets, type = "marginal", test = "one-sided",
+      fit <- magma(stat=orig_stat[train,], sets=sets, type = "marginal", test = "one-sided",
                          method="magma")
       selected <- fit$p<threshold
       if(sum(selected)<2) stop("Number of selected fetaures less than 2")
@@ -799,7 +853,7 @@ cvpops <- function(stat = NULL, sets = NULL, validate=NULL, threshold=NULL,
     
     if (method%in%c("bayesC","bayesR")) {
       # Fit BLR model
-      fit <- qgg:::blr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
+      fit <- blr(yy=stat$yy, XX=stat$XX, Xy=stat$Xy, n=stat$n,
                        method=method, pi=pi,
                        nit=nit, nburn=nburn)
       b <- fit$bm
