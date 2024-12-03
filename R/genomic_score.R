@@ -125,13 +125,13 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
           if(!file.exists(Glist$bimfiles)) stop(paste("bimfiles does not exists:"),Glist$bimfiles) 
           
           # Read fam information
-          fam <- data.table::fread(input = Glist$famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+          fam <- fread(input = Glist$famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
           Glist$ids <- as.character(fam[, 2])
           if (any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
           message(paste("Finished processing fam file", famfiles[1]))
           
           # Read bim information
-          bim <- data.table::fread(input = Glist$bimfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+          bim <- fread(input = Glist$bimfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
           Glist$rsids <- list(as.character(bim[, 2]))
           Glist$a1 <- list(as.character(bim[, 5]))
           Glist$a2 <- list(as.character(bim[, 6]))
