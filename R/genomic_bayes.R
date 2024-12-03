@@ -1246,65 +1246,24 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
 #' @param shrinkLD,shrinkCor Logical, whether to apply shrinkage to the LD or correlation matrices (default: FALSE).
 #' @param pruneLD Logical, whether to prune LD matrix (default: FALSE).
 #' @param checkConvergence Logical, whether to check for convergence of the Gibbs sampler (default: FALSE).
-#' @param critVe,critVg,critVb,critPi Convergence criteria for residual, genetic, and marker variances, and inclusion probabilities.
+#' @param critVe,critVg,critVb,critPi,critB1,critB2 Convergence criteria for residual, genetic, and marker variances, inclusion probabilities, and marker effects.
+#' @param eigen_threshold Threshold for eigen value decomposition (default: eigen_threshold=0.995, other examples: eigen_threshold=c(0.995,0.99) )
+#' @param cs_threshold,cs_r2 PIP and r2 thresholds credible set construction (default: cs_threshold=0.9, cs_r2=0.5)
 #' @param verbose Logical, whether to print detailed output for debugging (default: FALSE).
 #' @param eigen_threshold Threshold for eigenvalues in eigen decomposition (default: 0.995).
-#' @param cset_r2,r2 R-squared thresholds for pruning (default: 0.5 and 0.05, respectively).
 #' @param nit Number of iterations in the MCMC sampler (default: 5000).
 #' @param nburn Number of burn-in iterations (default: 500).
 #' @param nthin Thinning interval for MCMC (default: 5).
 #' @param method The regression method to use, options include "blup", "bayesN", "bayesA", "bayesL", "bayesC", "bayesR".
 #' @param algorithm Algorithm for MCMC sampling, options include "mcmc", "em-mcmc", "mcmc-eigen".
+#' @param output Level of output, options include "summary", "full".
 #' @param seed Random seed for reproducibility (default: 10).
 #'
 #' @return Returns a list structure including the following components:
-#' \item{bm}{Vector or matrix of posterior means for marker effects.}
-#' \item{dm}{Vector or matrix of posterior means for marker inclusion probabilities.}
-#' \item{vb}{Scalar or vector of posterior means for marker variances.}
-#' \item{vg}{Scalar or vector of posterior means for genomic variances.}
-#' \item{ve}{Scalar or vector of posterior means for residual variances.}
-#' \item{rb}{Matrix of posterior means for marker correlations.}
-#' \item{rg}{Matrix of posterior means for genomic correlations.}
-#' \item{re}{Matrix of posterior means for residual correlations.}
-#' \item{pi}{Vector of posterior probabilities for models.}
-#' \item{h2}{Vector of posterior means for model probability.}
-#' \item{param}{List of current parameters used for restarting the analysis.}
-#' \item{stat}{Matrix of marker information and effects used for genomic risk scoring.}
 #'
 #'
 #' @author Peter Sørensen
 #'
-#' @examples
-#' 
-#' # Plink bed/bim/fam files
-#' bedfiles <- system.file("extdata", paste0("sample_chr",1:2,".bed"), package = "qgg")
-#' bimfiles <- system.file("extdata", paste0("sample_chr",1:2,".bim"), package = "qgg")
-#' famfiles <- system.file("extdata", paste0("sample_chr",1:2,".fam"), package = "qgg")
-#' 
-#' # Prepare Glist
-#' Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles)
-#' 
-#' # Simulate phenotype
-#' sim <- gsim(Glist=Glist, chr=1, nt=1)
-#' 
-#' # Compute single marker summary statistics
-#' stat <- glma(y=sim$y, Glist=Glist, scale=FALSE)
-#' str(stat)
-#' 
-#' # Define fine-mapping regions 
-#' sets <- Glist$rsids
-#' Glist$chr[[1]] <- gsub("21","1",Glist$chr[[1]]) 
-#' Glist$chr[[2]] <- gsub("22","2",Glist$chr[[2]]) 
-#' 
-#' # Fine map
-#' fit <- gmap(Glist=Glist, stat=stat, sets=sets, verbose=FALSE, 
-#'             method="bayesR", algorithm="mcmc-eigen",nit=1500, nburn=500, nthin=5)
-#'             
-#' fit$post  # Posterior inference for every fine-mapped region
-#' fit$conv  # Convergence statistics for every fine-mapped region
-#' 
-#' # Posterior inference for marker effect
-#' head(fit$stat)             
 #'
 #' @author Peter Sørensen
 #'
@@ -1319,7 +1278,8 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  vb_prior=NULL, vg_prior=NULL, ve_prior=NULL,
                  updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  formatLD="dense", checkLD=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
-                 checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, critB1=0.5, critB2=3, 
+                 checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, 
+                 critB1=0.5, critB2=3, 
                  verbose=FALSE, eigen_threshold=0.995, cs_threshold=0.9, cs_r2=0.5,
                  nit=1000, nburn=100, nthin=1, output="summary",
                  method="bayesR", algorithm="mcmc-eigen", seed=10) {
@@ -1486,7 +1446,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         vg <- vy*h2
         vb <- vg/(m*sum(pi*gamma))
         
-        ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*sum(pi*gamma)))
+        if(is.null(ssb_prior)) ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*sum(pi*gamma)))
         ssg_prior <-  ((nug-2.0)/nug)*vg
         sse_prior <- ((nue-2.0)/nue)*ve
         
@@ -1567,7 +1527,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
           pdiv <- pdiv[is.finite(pdiv)]
           if(any(pdiv<0.95)) plot(pdiv)
           critb1 <- !any(pdiv<0.95)    # FALSE if any pdiv is less than 0.95
-          if(critb1) message(paste("Convergence not reached for critB1 "))
+          if(!critb1) message(paste("Convergence not reached for critB1 "))
         }
         
         # Check mismatch
@@ -1731,7 +1691,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   return(fit)
 }
 
-cpo <- function(yobs=NULL, ypred=NULL) {
+cpo <- function(yobs=NULL, ypred=NULL, nit=NULL, nburn=nburn) {
   psum <- rep(0,nrow(ypred))
   for (i in 1:ncol(ypred)) {
     x <- (yobs-ypred[,i])[,1]
@@ -1850,9 +1810,9 @@ bfdr <- function(prob = NULL, probs = NULL, cutoff = 0.1, ql = 0.025, qu = 0.975
        set=names(prob)[rws])
 }
 
-lcpo <- function(yobs=NULL, ypred=NULL) {
+lcpo <- function(yobs=NULL, ypred=NULL, nit=NULL, nburn=NULL) {
   psum <- rep(0,nrow(ypred))
-  for (j in 1:ncol(ypred)) {
+  for (i in 1:ncol(ypred)) {
     x <- (yobs-ypred[,i])[,1]
     p <- (1/sqrt(2*base::pi))*exp(-0.5*(x^2))
     psum <- psum + 1/p
@@ -2755,32 +2715,32 @@ mtsblr <- function(stat=NULL, LD=NULL, n=NULL, vy=NULL, scaled=TRUE,
   
   seed <- sample.int(.Machine$integer.max, 1)
   
-  fit <- qgg:::mt_sbayes_sparse(yy=yy,
-                                ww=ww,
-                                wy=wy,
-                                b=b,
-                                LDvalues=LD$values,
-                                LDindices=LD$indices,
-                                n=n,
-                                nit=nit,
-                                nburn=nburn,
-                                nthin=nthin,
-                                seed=seed,
-                                pi=pi,
-                                pimodels=pimodels,
-                                nue=nue,
-                                nub=nub,
-                                h2=h2,
-                                vb=vb,
-                                ve=ve,
-                                ssb_prior=ssb_prior,
-                                sse_prior=sse_prior,
-                                updateB=updateB,
-                                updateE=updateE,
-                                updatePi=updatePi,
-                                models=models,
-                                method=method,
-                                verbose=verbose)
+  fit <- mt_sbayes_sparse(yy=yy,
+                          ww=ww,
+                          wy=wy,
+                          b=b,
+                          LDvalues=LD$values,
+                          LDindices=LD$indices,
+                          n=n,
+                          nit=nit,
+                          nburn=nburn,
+                          nthin=nthin,
+                          seed=seed,
+                          pi=pi,
+                          pimodels=pimodels,
+                          nue=nue,
+                          nub=nub,
+                          h2=h2,
+                          vb=vb,
+                          ve=ve,
+                          ssb_prior=ssb_prior,
+                          sse_prior=sse_prior,
+                          updateB=updateB,
+                          updateE=updateE,
+                          updatePi=updatePi,
+                          models=models,
+                          method=method,
+                          verbose=verbose)
   
   return(fit)
 }
@@ -3488,7 +3448,7 @@ computeWW <- function(Glist = NULL, chr = NULL, cls = NULL, rws=NULL, scale=TRUE
 
 cvarspm <- function( spm ) {
   stopifnot( methods::is( spm, "dgCMatrix" ) )
-  ans <- sapply( base::seq.int(spm@Dim[2]), function(j) {
+  ans <- sapply( seq.int(spm@Dim[2]), function(j) {
     if( spm@p[j+1] == spm@p[j] ) { return(0) } # all entries are 0: var is 0
     mean <- base::sum( spm@x[ (spm@p[j]+1):spm@p[j+1] ] ) / spm@Dim[1]
     sum( ( spm@x[ (spm@p[j]+1):spm@p[j+1] ] - mean )^2 ) +
@@ -3499,14 +3459,13 @@ cvarspm <- function( spm ) {
 
 cmeanspm <- function( spm ) {
   stopifnot( methods::is( spm, "dgCMatrix" ) )
-  ans <- sapply( base::seq.int(spm@Dim[2]), function(j) {
+  ans <- sapply( seq.int(spm@Dim[2]), function(j) {
     if( spm@p[j+1] == spm@p[j] ) { return(0) } # all entries are 0: var is 0
     base::sum( spm@x[ (spm@p[j]+1):spm@p[j+1] ] ) / spm@Dim[1]} ) 
   names(ans) <- spm@Dimnames[[2]]
   ans
 }
 
-#' @export
 #' @importFrom Matrix sparseMatrix
 computeStat <- function(X=NULL, y=NULL, scale=FALSE) {
 
@@ -3552,7 +3511,6 @@ computeStat <- function(X=NULL, y=NULL, scale=FALSE) {
   list(XX=XX, Xy=Xy, yy=yy, n=n)
 }
 
-#' @export
 #' @importFrom Matrix sparseMatrix
 designMatrix <- function(sets=NULL, values=NULL, rowids=NULL, format="sparse") {
   if(format=="sparse") {
@@ -3571,7 +3529,7 @@ designMatrix <- function(sets=NULL, values=NULL, rowids=NULL, format="sparse") {
     rownames(W) <- rowids
   }
   if(format=="dense") {
-    sets <- qgg:::mapSets(sets=sets,rsids=rowids, index=TRUE)
+    sets <- mapSets(sets=sets,rsids=rowids, index=TRUE)
     W <- matrix(0,nrow=length(rowids), ncol=length(sets))
     for(i in 1:length(sets)) {
       W[sets[[i]],i] <- 1
