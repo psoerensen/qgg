@@ -46,8 +46,9 @@
 #' head(sim$causal)
 #'
 #' @author Peter Soerensen
+#' 
 #' @export
-
+#' 
 gsim <- function(Glist=NULL, chr=1, nt=1,W=NULL, n=1000, m=1000, rsids=NULL) {
   if(!is.null(Glist)) {
     if(is.null(rsids)) rsids <- Glist$rsidsLD[[chr]]
@@ -110,12 +111,13 @@ gsim <- function(Glist=NULL, chr=1, nt=1,W=NULL, n=1000, m=1000, rsids=NULL) {
 #'   \item \code{h2}: Estimated heritability of the simulated phenotype.
 #' }
 #'
-#' @examples
 #' @author Peter Soerensen 
 #' @author Merina Shrestha
+#' 
 #' @keywords internal
+#' 
 #' @export
-
+#' 
 gsimC <- function (Glist = NULL, h2 = NULL, m = NULL, prp.cau = NULL, n = NULL)
 {if(is.null(Glist)){stop("Error:Glist is NULL")}
   y <- g <- e <- NULL
@@ -215,12 +217,12 @@ gsimC <- function (Glist = NULL, h2 = NULL, m = NULL, prp.cau = NULL, n = NULL)
 #'   \item \code{h2}: Estimated heritability of the simulated phenotype.
 #' }
 #' 
-#' @examples
 #' @author Peter Soerensen 
 #' @author Merina Shrestha
+#' 
 #' @keywords internal
 #' @export
-
+#' 
 gsimR <- function (Glist = NULL, h2 = NULL, m = NULL, prp.cau = NULL, n = NULL)  
 {if(is.null(Glist)){stop("Error:Glist is NULL")}
   y <- g <- e <- NULL
