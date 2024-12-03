@@ -32,23 +32,25 @@ gmap(
   updateE = TRUE,
   updatePi = TRUE,
   formatLD = "dense",
-  checkLD = FALSE,
+  checkLD = TRUE,
   shrinkLD = FALSE,
   shrinkCor = FALSE,
   pruneLD = FALSE,
   checkConvergence = FALSE,
   critVe = 3,
-  critVg = 3.5,
-  critVb = 3.5,
+  critVg = 3,
+  critVb = 3,
   critPi = 3,
-  ntrial = 1,
+  critB1 = 0.5,
+  critB2 = 3,
   verbose = FALSE,
   eigen_threshold = 0.995,
-  credible_set_r2 = 0.5,
-  r2 = 0.05,
-  nit = 5000,
-  nburn = 500,
-  nthin = 5,
+  cs_threshold = 0.9,
+  cs_r2 = 0.5,
+  nit = 1000,
+  nburn = 100,
+  nthin = 1,
+  output = "summary",
   method = "bayesR",
   algorithm = "mcmc-eigen",
   seed = 10
@@ -99,13 +101,13 @@ gmap(
 
 \item{checkConvergence}{Logical, whether to check for convergence of the Gibbs sampler (default: FALSE).}
 
-\item{critVe, critVg, critVb, critPi}{Convergence criteria for residual, genetic, and marker variances, and inclusion probabilities.}
-
-\item{ntrial}{Number of trials to assess convergence (default: 1).}
+\item{critVe, critVg, critVb, critPi, critB1, critB2}{Convergence criteria for residual, genetic, and marker variances, inclusion probabilities, and marker effects.}
 
 \item{verbose}{Logical, whether to print detailed output for debugging (default: FALSE).}
 
 \item{eigen_threshold}{Threshold for eigenvalues in eigen decomposition (default: 0.995).}
+
+\item{cs_threshold, cs_r2}{PIP and r2 thresholds credible set construction (default: cs_threshold=0.9, cs_r2=0.5)}
 
 \item{nit}{Number of iterations in the MCMC sampler (default: 5000).}
 
@@ -113,28 +115,16 @@ gmap(
 
 \item{nthin}{Thinning interval for MCMC (default: 5).}
 
+\item{output}{Level of output, options include "summary", "full".}
+
 \item{method}{The regression method to use, options include "blup", "bayesN", "bayesA", "bayesL", "bayesC", "bayesR".}
 
 \item{algorithm}{Algorithm for MCMC sampling, options include "mcmc", "em-mcmc", "mcmc-eigen".}
 
 \item{seed}{Random seed for reproducibility (default: 10).}
-
-\item{cset_r2, r2}{R-squared thresholds for pruning (default: 0.5 and 0.05, respectively).}
 }
 \value{
 Returns a list structure including the following components:
-\item{bm}{Vector or matrix of posterior means for marker effects.}
-\item{dm}{Vector or matrix of posterior means for marker inclusion probabilities.}
-\item{vb}{Scalar or vector of posterior means for marker variances.}
-\item{vg}{Scalar or vector of posterior means for genomic variances.}
-\item{ve}{Scalar or vector of posterior means for residual variances.}
-\item{rb}{Matrix of posterior means for marker correlations.}
-\item{rg}{Matrix of posterior means for genomic correlations.}
-\item{re}{Matrix of posterior means for residual correlations.}
-\item{pi}{Vector of posterior probabilities for models.}
-\item{h2}{Vector of posterior means for model probability.}
-\item{param}{List of current parameters used for restarting the analysis.}
-\item{stat}{Matrix of marker information and effects used for genomic risk scoring.}
 }
 \description{
 In the Bayesian multiple regression model, the posterior density of the model parameters depends
@@ -145,39 +135,6 @@ The choice of the prior for marker effects can influence the type and extent of 
 This function implements Bayesian linear regression models to provide unified mapping of 
 genetic variants, estimate genetic parameters (e.g. heritability), and predict disease risk.
 It is designed to handle various genetic architectures and scale efficiently with large datasets.
-}
-\examples{
-
-# Plink bed/bim/fam files
-bedfiles <- system.file("extdata", paste0("sample_chr",1:2,".bed"), package = "qgg")
-bimfiles <- system.file("extdata", paste0("sample_chr",1:2,".bim"), package = "qgg")
-famfiles <- system.file("extdata", paste0("sample_chr",1:2,".fam"), package = "qgg")
-
-# Prepare Glist
-Glist <- gprep(study="Example", bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles)
-
-# Simulate phenotype
-sim <- gsim(Glist=Glist, chr=1, nt=1)
-
-# Compute single marker summary statistics
-stat <- glma(y=sim$y, Glist=Glist, scale=FALSE)
-str(stat)
-
-# Define fine-mapping regions 
-sets <- Glist$rsids
-Glist$chr[[1]] <- gsub("21","1",Glist$chr[[1]]) 
-Glist$chr[[2]] <- gsub("22","2",Glist$chr[[2]]) 
-
-# Fine map
-fit <- gmap(Glist=Glist, stat=stat, sets=sets, verbose=FALSE, 
-            method="bayesR", algorithm="mcmc-eigen",nit=1500, nburn=500, nthin=5)
-            
-fit$post  # Posterior inference for every fine-mapped region
-fit$conv  # Convergence statistics for every fine-mapped region
-
-# Posterior inference for marker effect
-head(fit$stat)             
-
 }
 \author{
 Peter Sørensen

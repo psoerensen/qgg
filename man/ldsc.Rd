@@ -30,6 +30,12 @@ ldsc(
 
 \item{ldscores}{vector of LD scores (optional as LD scores are stored within Glist)}
 
+\item{sets}{Optional list specifying sets of SNPs for mapping.}
+
+\item{method}{the regression method to use, options include "regression", "bayesC", "bayesR".}
+
+\item{residual}{logical if TRUE then add a residual that capture the h2 not explained by the sets}
+
 \item{z}{matrix of z statistics for n traits}
 
 \item{b}{matrix of marker effects for n traits if z matrix not is given}
@@ -40,11 +46,15 @@ ldsc(
 
 \item{stat}{dataframe with marker summary statistics}
 
+\item{tol}{smallest value for h2}
+
 \item{n}{vector of sample sizes for the traits (element i corresponds to column vector i in z matrix)}
 
 \item{intercept}{logical if TRUE the LD score regression includes intercept}
 
 \item{what}{either computation of heritability (what="h2") or genetic correlation between traits (what="rg")}
+
+\item{maxZ2}{maximum value for squared value of z-statistics}
 
 \item{SE.h2}{logical if TRUE standard errors and significance for the heritability estimates are computed using a block jackknife approach}
 
