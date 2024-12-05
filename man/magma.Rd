@@ -2,7 +2,7 @@
 % Please edit documentation in R/multiple_marker_test.R
 \name{magma}
 \alias{magma}
-\title{Perform MAGMA or Bayesian Linear Regression Analysis}
+\title{Bayesian Multi-marker Analysis of Genomic Annotation (Bayesian MAGMA)}
 \usage{
 magma(
   stat = NULL,

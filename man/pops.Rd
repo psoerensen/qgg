@@ -2,7 +2,7 @@
 % Please edit documentation in R/multiple_marker_test.R
 \name{pops}
 \alias{pops}
-\title{Polygenic Prioritisation Scoring (POPS)}
+\title{Bayesian Polygenic Prioritisation Scoring (Bayesian POPS)}
 \usage{
 pops(
   stat = NULL,

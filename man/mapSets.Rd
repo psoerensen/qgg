@@ -2,7 +2,7 @@
 % Please edit documentation in R/multiple_marker_test.R
 \name{mapSets}
 \alias{mapSets}
-\title{Map Sets to RSIDs}
+\title{Map Sets to rsids}
 \usage{
 mapSets(sets = NULL, rsids = NULL, Glist = NULL, index = TRUE)
 }

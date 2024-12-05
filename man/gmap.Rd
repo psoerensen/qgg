@@ -41,6 +41,7 @@ gmap(
   critVg = 3,
   critVb = 3,
   critPi = 3,
+  critB = 3,
   critB1 = 0.5,
   critB2 = 3,
   verbose = FALSE,

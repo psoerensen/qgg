@@ -124,6 +124,7 @@ a circular permutation approach is used to obtain an empirical distribution of t
  head(mma)
 
 }
+
 }
 \author{
 Peter Soerensen
