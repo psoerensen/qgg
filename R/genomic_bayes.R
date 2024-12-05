@@ -1279,7 +1279,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
                  formatLD="dense", checkLD=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
                  checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, 
-                 critB1=0.5, critB2=3, 
+                 critB=3, critB1=0.5, critB2=3, 
                  verbose=FALSE, eigen_threshold=0.995, cs_threshold=0.9, cs_r2=0.5,
                  nit=1000, nburn=100, nthin=1, output="summary",
                  method="bayesR", algorithm="mcmc-eigen", seed=10) {
@@ -1395,7 +1395,8 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       chr <- chrSets[[i]]
       rsids <- sets[[i]]
       rws <- match(rsids,stat$rsids)
-      message(paste("Processing region:",i,"on chromosome:",chr))
+      #message(paste("Processing region:",i,"on chromosome:",chr))
+      message(paste("Processing region:",i))
       
       pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
       message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
@@ -1505,7 +1506,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         }
         
         # Check convergence            
-        critve <- critvg <- critvb <- critpi <- FALSE
+        critve <- critvg <- critvb <- critpi <- critb <- FALSE
         if(!updateE) critve <- TRUE
         if(!updateG) critvg <- TRUE
         if(!updateB) critvb <- TRUE
@@ -1514,17 +1515,20 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         zvg <- coda::geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
         zvb <- coda::geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
         zpi <- coda::geweke.diag(fit$pis[nburn:length(fit$pis)])$z
+        zb <- coda::geweke.diag(apply(fit$bs,2,var))$z
         if(!is.na(zve)) critve <- abs(zve)<critVe
         if(!is.na(zvg)) critvg <- abs(zvg)<critVg
         if(!is.na(zvb)) critvb <- abs(zvb)<critVb
         if(!is.na(zpi)) critpi <- abs(zpi)<critPi
+        if(!is.na(zb)) critb <- abs(zb)<critB
         
-        critb <- critb1 <- critb2 <- TRUE
+        #critb <- critb1 <- critb2 <- TRUE
+        critb1 <- critb2 <- FALSE
         
         brws <- fit$dm>0
         
         # Check divergence        
-        if(sum(brws)>1 && all(c(critve, critvg, critvb, critpi))) {
+        if(sum(brws)>1 && all(c(critve, critvg, critvb, critpi, critb))) {
           
           tstat <- fit$bs[brws,]/stat[rws, "b"][brws]
           pdiv <- apply(tstat, 1, function(x) {
@@ -1535,10 +1539,11 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
           if(any(pdiv<0.95)) plot(pdiv)
           critb1 <- !any(pdiv<0.95)    # FALSE if any pdiv is less than 0.95
           if(!critb1) message(paste("Convergence not reached for critB1 "))
+          critb <- critb1
         }
         
         # Check mismatch
-        if(sum(brws)>1 && checkLD && !all(c(critve, critvg, critvb, critpi, critb1))) {
+        if(checkLD && sum(brws)>1 && !all(c(critve, critvg, critvb, critpi, critb))) {
             # Identify mismatch between LD and summary statistics 
             bout <- checkb(B=B[brws,brws],
                          b=stat[rws, "b"][brws],
@@ -1546,9 +1551,10 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                          critB=critB2, verbose=verbose)
             critb2 <- !any(bout$outliers)    # FALSE if there are any outliers
             if(critb2) message(paste("Convergence not reached for critB2 "))
+            critb <- critb2
         }
 
-        critb <- (critb1 && critb2)     # FALSE if either critb1 or critb2 is FALSE
+        #critb <- (critb1 && critb2)     # FALSE if either critb1 or critb2 is FALSE
         
         converged <- critve & critvg & critvb & critpi & critb
 
