@@ -1371,13 +1371,13 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     
     # Prepare output
     bm <- dm <- vector(mode="list",length=length(sets))
-    ves <- vgs <- vbs <- pis <- vector(mode="list",length=length(sets))
+    ves <- vgs <- vbs <- pis <- conv <- vector(mode="list",length=length(sets))
     bs <- ds <- prob <- vector(mode="list",length=length(sets))
     pim <- vector(mode="list",length=length(sets))
     logcpo <- rep(0,length(sets))
     fdr <- csets <- vector(mode="list",length=length(sets))
     names(bm) <- names(dm) <- names(pim) <- names(sets)     
-    names(ves) <- names(vgs) <- names(pis) <- names(vbs) <-  names(sets)     
+    names(ves) <- names(vgs) <- names(pis) <- names(vbs) <- names(conv) <- names(sets)     
     names(bs)  <- names(ds) <- names(prob) <- names(sets)
     names(logcpo) <- names(fdr) <- names(csets) <- names(sets)
     attempts <- rep(1, length=length(sets))
@@ -1515,7 +1515,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         zvg <- coda::geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
         zvb <- coda::geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
         zpi <- coda::geweke.diag(fit$pis[nburn:length(fit$pis)])$z
-        zb <- coda::geweke.diag(apply(fit$bs,2,var))$z
+        zb <- coda::geweke.diag(apply(fit$bs[,nburn:length(fit$pis)],2,var))$z
         if(!is.na(zve)) critve <- abs(zve)<critVe
         if(!is.na(zvg)) critvg <- abs(zvg)<critVg
         if(!is.na(zvb)) critvb <- abs(zvb)<critVb
@@ -1570,7 +1570,8 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
           abline(h=0,v=0, lwd=2, col=2, lty=2)
         }
         attempts[i] <- j      
-        if(verbose && !converged) {
+        #if(verbose && !converged) {
+        if(!converged) {
           message(paste("Convergence not reached using eigen_threshold:",eigen_threshold[j]))
           criteria_names <- c("Variance of errors (critve)", 
                               "Genetic variance (critvg)", 
@@ -1613,6 +1614,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       vbs[[i]] <- fit$vbs
       vgs[[i]] <- fit$vgs
       pis[[i]] <- fit$pis
+      conv[[i]] <- c(zve,zvg,zvb,zpi,zb) 
       if(output=="full") {
         bs[[i]] <- fit$bs
         ds[[i]] <- fit$ds
@@ -1658,10 +1660,10 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
   fit$method <- methods[method+1]
   fit$mask <- mask
-  zve <- sapply(fit$ves,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-  zvg <- sapply(fit$vgs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-  zvb <- sapply(fit$vbs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-  zpi <- sapply(fit$pis,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  #zve <- sapply(fit$ves,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  #zvg <- sapply(fit$vgs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  #zvb <- sapply(fit$vbs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+  #zpi <- sapply(fit$pis,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
   ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
   vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
   vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
@@ -1690,7 +1692,10 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   
   b <- stat[fit$stat$rsids,"b"]
   
-  fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi, ntrials=attempts, cutoff=eigen_threshold[attempts])  
+  #fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi, ntrials=attempts, cutoff=eigen_threshold[attempts])  
+  conv <- t(as.data.frame(conv))
+  colnames(conv) <- c("zve","zvg","zvb","zpi","zb")
+  fit$conv <- data.frame(conv,ntrials=attempts, cutoff=eigen_threshold[attempts])
   if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, chr=chr, minmb=minmb, maxmb=maxmb)  
   if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm, chr=chr, minmb=minmb, maxmb=maxmb)  
   rownames(fit$conv) <- rownames(fit$post) <- names(sets) 
