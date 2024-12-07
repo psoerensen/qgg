@@ -2055,10 +2055,10 @@ std::vector<std::vector<double>>  sbayes_eigen( std::vector<double> wy,
 
 
 // [[Rcpp::export]]
-std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double> wy,
-                                                    std::vector<double> ww, 
-                                                    std::vector<std::vector<double>> LDvalues, 
-                                                    std::vector<std::vector<int>> LDindices, 
+std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double>& wy,
+                                                    std::vector<double>& ww, 
+                                                    std::vector<std::vector<double>>& LDvalues, 
+                                                    std::vector<std::vector<int>>& LDindices, 
                                                     std::vector<double> b, 
                                                     std::vector<double> lambda, 
                                                     std::vector<bool> mask, 
