@@ -1395,7 +1395,6 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       chr <- chrSets[[i]]
       rsids <- sets[[i]]
       rws <- match(rsids,stat$rsids)
-      #message(paste("Processing region:",i,"on chromosome:",chr))
       message(paste("Processing region:",i))
       
       pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
@@ -1407,13 +1406,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
       B <- crossprod(scale(W))/(nrow(W)-1)
       
-      #if(shrinkLD) B <- corpcor::cor.shrink(W)
-
-      if(shrinkLD) {
-        bobs <- stat[rws, "b"]
-        bpred <- B%*%bobs
-        stat[rws, "b"] <- bpred/(sum((bpred-mean(bpred))*bobs)/sum(bobs^2))
-      }
+      if(shrinkLD) B <- corpcor::cor.shrink(W)
 
       eig <- eigen(B, symmetric=TRUE)
       
@@ -1511,11 +1504,11 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         if(!updateG) critvg <- TRUE
         if(!updateB) critvb <- TRUE
         if(!updatePi) critpi <- TRUE
-        zve <- coda::geweke.diag(fit$ves[nburn:length(fit$ves)])$z
-        zvg <- coda::geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
-        zvb <- coda::geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
-        zpi <- coda::geweke.diag(fit$pis[nburn:length(fit$pis)])$z
-        zb <- coda::geweke.diag(apply(fit$bs[,nburn:length(fit$pis)],2,var))$z
+        zve <- coda::geweke.diag(fit$ves[nburn:(nburn+nit)])$z
+        zvg <- coda::geweke.diag(fit$vgs[nburn:(nburn+nit)])$z
+        zvb <- coda::geweke.diag(fit$vbs[nburn:(nburn+nit)])$z
+        zpi <- coda::geweke.diag(fit$pis[nburn:(nburn+nit)])$z
+        zb <- coda::geweke.diag(apply(fit$bs[,nburn:(nburn+nit)],2,var))$z
         if(!is.na(zve)) critve <- abs(zve)<critVe
         if(!is.na(zvg)) critvg <- abs(zvg)<critVg
         if(!is.na(zvb)) critvb <- abs(zvb)<critVb
@@ -1660,10 +1653,6 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
   fit$method <- methods[method+1]
   fit$mask <- mask
-  #zve <- sapply(fit$ves,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-  #zvg <- sapply(fit$vgs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-  #zvb <- sapply(fit$vbs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-  #zpi <- sapply(fit$pis,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
   ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
   vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
   vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
@@ -1692,16 +1681,12 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   
   b <- stat[fit$stat$rsids,"b"]
   
-  #fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi, ntrials=attempts, cutoff=eigen_threshold[attempts])  
   conv <- t(as.data.frame(conv))
   colnames(conv) <- c("zve","zvg","zvb","zpi","zb")
   fit$conv <- data.frame(conv,ntrials=attempts, cutoff=eigen_threshold[attempts])
   if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, chr=chr, minmb=minmb, maxmb=maxmb)  
   if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm, chr=chr, minmb=minmb, maxmb=maxmb)  
   rownames(fit$conv) <- rownames(fit$post) <- names(sets) 
-
-  #rownames(fit$bfdr) <- names(sets) 
-  #colnames(fit$bfdr) <- c("Mean","0.025","0.975") 
 
   fit$ve <- mean(ve)
   fit$vg <- sum(vg)
