@@ -28,7 +28,7 @@ The **qgg** package was developed based on the hypothesis that certain regions o
 **qgg** handles large-scale data by taking advantage of:  
   
 * multi-core processing using [openMP](https://www.openmp.org/)  
-* multithreaded matrix operations implemented in BLAS libraries (e.g. [OpenBLAS](https://www.openblas.net/), [ATLAS](http://math-atlas.sourceforge.net/) or [MKL](https://software.intel.com/en-us/mkl))  
+* multithreaded matrix operations implemented in BLAS libraries (e.g. [OpenBLAS](https://www.openblas.net/), [ATLAS](https://math-atlas.sourceforge.net/) or [MKL](https://software.intel.com/en-us/mkl))  
 * fast and memory-efficient batch processing of genotype data stored in binary files (e.g. [PLINK](https://www.cog-genomics.org/plink2) bedfiles)  
   
 The **qgg** package provides a range of genomic feature modeling approaches, including genomic feature best linear unbiased prediction (GFBLUP) models, implemented using likelihood or Bayesian methods. Multiple features and multiple traits can be included in these models and different genetic models (e.g. additive, dominance, gene by gene and gene by environment interactions) can be used. Further extensions include a weighted GFBLUP model using differential weighting of the individual genetic marker relationships. Marker set tests, which are computationally very fast, can be performed. These marker set tests allow the rapid analyses of different layers of genomic feature classes to discover genomic features potentially enriched for causal variants. Marker set tests can thus facilitate more accurate prediction models.
