@@ -25,7 +25,7 @@ large-scale genetic and phenotypic data including core functions for:
 - multithreaded matrix operations implemented in BLAS libraries
   (e.g. [OpenBLAS](https://www.openblas.net/),
   [ATLAS](https://math-atlas.sourceforge.net/) or
-  [MKL](https://software.intel.com/en-us/mkl))  
+  [MKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html))  
 - fast and memory-efficient batch processing of genotype data stored in
   binary files (e.g. [PLINK](https://www.cog-genomics.org/plink2)
   bedfiles)
