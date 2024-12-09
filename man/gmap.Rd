@@ -32,7 +32,7 @@ gmap(
   updateE = TRUE,
   updatePi = TRUE,
   formatLD = "dense",
-  checkLD = TRUE,
+  checkLD = FALSE,
   shrinkLD = FALSE,
   shrinkCor = FALSE,
   pruneLD = FALSE,
@@ -102,7 +102,7 @@ gmap(
 
 \item{checkConvergence}{Logical, whether to check for convergence of the Gibbs sampler (default: FALSE).}
 
-\item{critVe, critVg, critVb, critPi, critB1, critB2}{Convergence criteria for residual, genetic, and marker variances, inclusion probabilities, and marker effects.}
+\item{critVe, critVg, critVb, critPi, critB, critB1, critB2}{Convergence criteria for residual, genetic, and marker variances, inclusion probabilities, and marker effects.}
 
 \item{verbose}{Logical, whether to print detailed output for debugging (default: FALSE).}
 

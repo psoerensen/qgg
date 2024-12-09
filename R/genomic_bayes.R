@@ -1246,7 +1246,7 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
 #' @param shrinkLD,shrinkCor Logical, whether to apply shrinkage to the LD or correlation matrices (default: FALSE).
 #' @param pruneLD Logical, whether to prune LD matrix (default: FALSE).
 #' @param checkConvergence Logical, whether to check for convergence of the Gibbs sampler (default: FALSE).
-#' @param critVe,critVg,critVb,critPi,critB1,critB2 Convergence criteria for residual, genetic, and marker variances, inclusion probabilities, and marker effects.
+#' @param critVe,critVg,critVb,critPi,critB,critB1,critB2 Convergence criteria for residual, genetic, and marker variances, inclusion probabilities, and marker effects.
 #' @param eigen_threshold Threshold for eigen value decomposition (default: eigen_threshold=0.995, other examples: eigen_threshold=c(0.995,0.99) )
 #' @param cs_threshold,cs_r2 PIP and r2 thresholds credible set construction (default: cs_threshold=0.9, cs_r2=0.5)
 #' @param verbose Logical, whether to print detailed output for debugging (default: FALSE).
