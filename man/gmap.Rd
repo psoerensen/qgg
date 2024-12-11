@@ -16,7 +16,10 @@ gmap(
   vb = NULL,
   vg = NULL,
   ve = NULL,
-  pi = 0.001,
+  vy = NULL,
+  pi = NULL,
+  gamma = NULL,
+  mc = 5000,
   h2 = 0.5,
   nub = 4,
   nug = 4,
@@ -74,13 +77,19 @@ gmap(
 
 \item{lambda}{Vector of initial values for penalty parameters in the model.}
 
-\item{vb}{Initial prior for the marker effect variance (default: NULL).}
+\item{vb}{Initial value for the marker effect variance (default: NULL).}
 
-\item{vg}{Initial prior for the genetic variance (default: NULL).}
+\item{vg}{Initial value for the genetic variance (default: NULL).}
 
-\item{ve}{Initial prior for the residual variance (default: NULL).}
+\item{ve}{Initial value for the residual variance (default: NULL).}
 
-\item{pi}{Initial probability of inclusion (default: 0.001).}
+\item{vy}{Initial value for the phenotypic variance (default: NULL).}
+
+\item{pi}{Vector of initial values for pi parameters in the model (default of pi=c(0.999,0.001) for bayesC and pi=c(0.994,0.003,0.002,0.001).}
+
+\item{gamma}{Vector of initial values for gamma parameters in the model (default of gamma=c(0,1) for bayesC and gamma=c(0,0.01,0.1,1).}
+
+\item{mc}{Number of potentiel genome-wide causal markers for the trait analysed - only used for specification of ssb_prior (default: 5000).}
 
 \item{h2}{Heritability estimate (default: 0.5).}
 
@@ -123,6 +132,8 @@ gmap(
 \item{algorithm}{Algorithm for MCMC sampling, options include "mcmc", "em-mcmc", "mcmc-eigen".}
 
 \item{seed}{Random seed for reproducibility (default: 10).}
+
+\item{adjustE}{Adjustment of residual variance used in the standard mcmc algorithm.}
 }
 \value{
 Returns a list structure including the following components:
