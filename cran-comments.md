@@ -1,5 +1,9 @@
 ## Submission
 This is a new submission:
+* Fixed issues with LTO detected on CRAN fedora (https://www.stats.ox.ac.uk/pub/bdr/LTO/qgg.out)
+
+## Submission
+This is a new submission:
 
 * Revised gmap function including an svd based BLR analysis
 * Added function magma for Bayesian MAGMA analysis
