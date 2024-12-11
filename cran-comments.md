@@ -4,6 +4,7 @@ This is a new submission:
 * Revised gmap function including an svd based BLR analysis
 * Added function magma for Bayesian MAGMA analysis
 * Added function pops for Bayesian PoPS analysis
+* Passed checks locally and externally (on windows release/devel and mac release)
 
 ## Submission
 This is a new submission:
