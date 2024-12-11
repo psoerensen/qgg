@@ -182,70 +182,34 @@ BEGIN_RCPP
 END_RCPP
 }
 // sbayes_reg
-std::vector<std::vector<double>> sbayes_reg(std::vector<double> wy, std::vector<double> ww, std::vector<std::vector<double>> LDvalues, std::vector<std::vector<int>> LDindices, std::vector<double> b, std::vector<double> lambda, std::vector<bool> mask, double yy, std::vector<double> pi, std::vector<double> gamma, double vg, double vb, double ve, double ssb_prior, double sse_prior, double nub, double nue, bool updateB, bool updateE, bool updatePi, bool updateG, bool adjustE, int n, int nit, int nburn, int method, int algo);
-RcppExport SEXP _qgg_sbayes_reg(SEXP wySEXP, SEXP wwSEXP, SEXP LDvaluesSEXP, SEXP LDindicesSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP maskSEXP, SEXP yySEXP, SEXP piSEXP, SEXP gammaSEXP, SEXP vgSEXP, SEXP vbSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP updateGSEXP, SEXP adjustESEXP, SEXP nSEXP, SEXP nitSEXP, SEXP nburnSEXP, SEXP methodSEXP, SEXP algoSEXP) {
+std::vector<std::vector<double>> sbayes_reg(std::vector<double>& wy, std::vector<double>& ww, std::vector<std::vector<double>>& LDvalues, std::vector<std::vector<int>>& LDindices, std::vector<double> b, std::vector<double> lambda, std::vector<bool> mask, double yy, std::vector<double> pi, std::vector<double> gamma, double vb, double vg, double ve, double ssb_prior, double ssg_prior, double sse_prior, double nub, double nug, double nue, bool updateB, bool updateE, bool updatePi, bool updateG, int n, int nit, int nburn, int nthin, int method, int algo, int seed);
+RcppExport SEXP _qgg_sbayes_reg(SEXP wySEXP, SEXP wwSEXP, SEXP LDvaluesSEXP, SEXP LDindicesSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP maskSEXP, SEXP yySEXP, SEXP piSEXP, SEXP gammaSEXP, SEXP vbSEXP, SEXP vgSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP ssg_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nugSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP updateGSEXP, SEXP nSEXP, SEXP nitSEXP, SEXP nburnSEXP, SEXP nthinSEXP, SEXP methodSEXP, SEXP algoSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::vector<double> >::type wy(wySEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type ww(wwSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type LDvalues(LDvaluesSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<int>> >::type LDindices(LDindicesSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type wy(wySEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type ww(wwSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>>& >::type LDvalues(LDvaluesSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<int>>& >::type LDindices(LDindicesSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type b(bSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< std::vector<bool> >::type mask(maskSEXP);
     Rcpp::traits::input_parameter< double >::type yy(yySEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type pi(piSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type gamma(gammaSEXP);
-    Rcpp::traits::input_parameter< double >::type vg(vgSEXP);
     Rcpp::traits::input_parameter< double >::type vb(vbSEXP);
+    Rcpp::traits::input_parameter< double >::type vg(vgSEXP);
     Rcpp::traits::input_parameter< double >::type ve(veSEXP);
     Rcpp::traits::input_parameter< double >::type ssb_prior(ssb_priorSEXP);
+    Rcpp::traits::input_parameter< double >::type ssg_prior(ssg_priorSEXP);
     Rcpp::traits::input_parameter< double >::type sse_prior(sse_priorSEXP);
     Rcpp::traits::input_parameter< double >::type nub(nubSEXP);
+    Rcpp::traits::input_parameter< double >::type nug(nugSEXP);
     Rcpp::traits::input_parameter< double >::type nue(nueSEXP);
     Rcpp::traits::input_parameter< bool >::type updateB(updateBSEXP);
     Rcpp::traits::input_parameter< bool >::type updateE(updateESEXP);
     Rcpp::traits::input_parameter< bool >::type updatePi(updatePiSEXP);
     Rcpp::traits::input_parameter< bool >::type updateG(updateGSEXP);
-    Rcpp::traits::input_parameter< bool >::type adjustE(adjustESEXP);
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
-    Rcpp::traits::input_parameter< int >::type nburn(nburnSEXP);
-    Rcpp::traits::input_parameter< int >::type method(methodSEXP);
-    Rcpp::traits::input_parameter< int >::type algo(algoSEXP);
-    rcpp_result_gen = Rcpp::wrap(sbayes_reg(wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, nburn, method, algo));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sbayes_eigen
-std::vector<std::vector<double>> sbayes_eigen(std::vector<double> wy, std::vector<double> ww, std::vector<std::vector<double>> LDvalues, std::vector<std::vector<int>> LDindices, std::vector<double> b, std::vector<double> lambda, std::vector<bool> mask, double yy, std::vector<double> pi, std::vector<double> gamma, double vg, double vb, double ve, double ssb_prior, double sse_prior, double nub, double nue, bool updateB, bool updateE, bool updatePi, bool updateG, bool adjustE, int n, int nit, int nburn, int nthin, int method, int algo, int seed);
-RcppExport SEXP _qgg_sbayes_eigen(SEXP wySEXP, SEXP wwSEXP, SEXP LDvaluesSEXP, SEXP LDindicesSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP maskSEXP, SEXP yySEXP, SEXP piSEXP, SEXP gammaSEXP, SEXP vgSEXP, SEXP vbSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP updateGSEXP, SEXP adjustESEXP, SEXP nSEXP, SEXP nitSEXP, SEXP nburnSEXP, SEXP nthinSEXP, SEXP methodSEXP, SEXP algoSEXP, SEXP seedSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::vector<double> >::type wy(wySEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type ww(wwSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type LDvalues(LDvaluesSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<int>> >::type LDindices(LDindicesSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type b(bSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< std::vector<bool> >::type mask(maskSEXP);
-    Rcpp::traits::input_parameter< double >::type yy(yySEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type pi(piSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type gamma(gammaSEXP);
-    Rcpp::traits::input_parameter< double >::type vg(vgSEXP);
-    Rcpp::traits::input_parameter< double >::type vb(vbSEXP);
-    Rcpp::traits::input_parameter< double >::type ve(veSEXP);
-    Rcpp::traits::input_parameter< double >::type ssb_prior(ssb_priorSEXP);
-    Rcpp::traits::input_parameter< double >::type sse_prior(sse_priorSEXP);
-    Rcpp::traits::input_parameter< double >::type nub(nubSEXP);
-    Rcpp::traits::input_parameter< double >::type nue(nueSEXP);
-    Rcpp::traits::input_parameter< bool >::type updateB(updateBSEXP);
-    Rcpp::traits::input_parameter< bool >::type updateE(updateESEXP);
-    Rcpp::traits::input_parameter< bool >::type updatePi(updatePiSEXP);
-    Rcpp::traits::input_parameter< bool >::type updateG(updateGSEXP);
-    Rcpp::traits::input_parameter< bool >::type adjustE(adjustESEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
     Rcpp::traits::input_parameter< int >::type nburn(nburnSEXP);
@@ -253,7 +217,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
     Rcpp::traits::input_parameter< int >::type algo(algoSEXP);
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(sbayes_eigen(wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, nburn, nthin, method, algo, seed));
+    rcpp_result_gen = Rcpp::wrap(sbayes_reg(wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateE, updatePi, updateG, n, nit, nburn, nthin, method, algo, seed));
     return rcpp_result_gen;
 END_RCPP
 }
