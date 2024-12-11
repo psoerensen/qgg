@@ -132,8 +132,6 @@ gmap(
 \item{algorithm}{Algorithm for MCMC sampling, options include "mcmc", "em-mcmc", "mcmc-eigen".}
 
 \item{seed}{Random seed for reproducibility (default: 10).}
-
-\item{adjustE}{Adjustment of residual variance used in the standard mcmc algorithm.}
 }
 \value{
 Returns a list structure including the following components:

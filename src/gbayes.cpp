@@ -1413,10 +1413,10 @@ std::vector<std::vector<double>>  sbayes_reg( std::vector<double>& wy,
   int nc = pi.size();
   double nsamples=0.0;
   
-  double rhs, lhs, bn, bj, diff, logcpo;
+  double rhs, lhs, bn, diff, logcpo;
   double rhs1, lhs1, like0, like1, p0, v0, v1;
   double ssb, sse, ssg, dfb, dfe, dfg, chi2;
-  double u, lambda2;
+  double u;
   
   std::vector<double> vbscale(nc), probc(nc), logLc(nc), pim(nc);
   double cumprobc, vbc, logLcAdj;

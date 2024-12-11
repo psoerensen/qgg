@@ -1244,7 +1244,6 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
 #' @param ssb_prior,ssg_prior,sse_prior Priors for the marker, genetic, and residual variances.
 #' @param vb_prior,vg_prior,ve_prior Additional priors for marker, genetic, and residual variances (default: NULL).
 #' @param updateB,updateG,updateE,updatePi Logical values specifying whether to update marker effects, genetic variance, residual variance, and inclusion probabilities, respectively.
-#' @param adjustE Adjustment of residual variance used in the standard mcmc algorithm.
 #' @param formatLD Format of LD matrix ("dense" by default).
 #' @param checkLD Logical, whether to check the LD matrix for inconsistencies (default: FALSE).
 #' @param shrinkLD,shrinkCor Logical, whether to apply shrinkage to the LD or correlation matrices (default: FALSE).
@@ -1599,7 +1598,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     }
     fdr[[i]] <- bfdrs
     logcpo[i] <- fit$param[4]
-    if(sum(fit$dm)>cs_threshold) csets[[i]] <- qgg:::crs(prob=fit$dm, B=B, threshold=cs_threshold, r2=cs_r2)
+    if(sum(fit$dm)>cs_threshold) csets[[i]] <- crs(prob=fit$dm, B=B, threshold=cs_threshold, r2=cs_r2)
     names(bm[[i]]) <- names(dm[[i]]) <- rsids
   }
   fit <- NULL
@@ -1618,396 +1617,6 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   fit$fdr <- fdr
   fit$logcpo <- logcpo
   fit$cs <- csets
-  
-  pip <- sapply(fit$dm,sum)
-  minb <- sapply(fit$bm,min)
-  maxb <- sapply(fit$bm,max)
-  m <- sapply(fit$bm,length)
-  
-  bm <- unlist(unname(fit$bm))
-  dm <- unlist(unname(fit$dm))
-  marker <- data.frame(rsids=unlist(Glist$rsids),
-                       chr=unlist(Glist$chr), pos=unlist(Glist$pos), 
-                       ea=unlist(Glist$a1), nea=unlist(Glist$a2),
-                       eaf=unlist(Glist$af),stringsAsFactors = FALSE)
-  marker <- marker[marker$rsids%in%names(bm),]
-  fit$stat <- data.frame(marker,bm=bm[marker$rsids],
-                         dm=dm[marker$rsids], stringsAsFactors = FALSE)
-  fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
-  fit$method <- methods[method+1]
-  fit$mask <- mask
-  ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
-  vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
-  vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
-  pi <- sapply(fit$pis,function(x){mean(x[nburn:length(x)])})
-  ve_ci <- t(sapply(fit$ves,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
-  vg_ci <- t(sapply(fit$vgs,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
-  vb_ci <- t(sapply(fit$vbs,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
-  pi_ci <- t(sapply(fit$pis,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
-  
-  fit$ci <- list(ve=cbind(mean=ve,ve_ci),
-                 vg=cbind(mean=vg,vg_ci), 
-                 vb=cbind(mean=vb,vb_ci), 
-                 pi=cbind(mean=pi,pi_ci))  
-  
-  if(!is.null(Glist$map)) map <- unlist(Glist$map)
-  pos <- unlist(Glist$pos)
-  sets <- lapply(fit$bm,names)
-  setsindex <- mapSets(sets=sets, rsids=unlist(Glist$rsids))
-  if(!is.null(Glist$map)) cm <- sapply(setsindex, function(x){ max(map[x])-min(map[x]) })
-  mb <- sapply(setsindex, function(x){ (max(pos[x])-min(pos[x]))/1000000 })
-  minmb <- sapply(setsindex, function(x){ min(pos[x]) })
-  maxmb <- sapply(setsindex, function(x){ max(pos[x]) })
-  
-  chr <- unlist(Glist$chr)
-  chr <- sapply(setsindex,function(x){as.numeric(unique(chr[x]))})
-  
-  b <- stat[fit$stat$rsids,"b"]
-  
-  conv <- t(as.data.frame(conv))
-  colnames(conv) <- c("zve","zvg","zvb","zpi","zb")
-  fit$conv <- data.frame(conv,ntrials=attempts, cutoff=eigen_threshold[attempts])
-  if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, chr=chr, minmb=minmb, maxmb=maxmb)  
-  if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm, chr=chr, minmb=minmb, maxmb=maxmb)  
-  rownames(fit$conv) <- rownames(fit$post) <- names(sets) 
-  
-  fit$ve <- mean(ve)
-  fit$vg <- sum(vg)
-  fit$b <- b
-  return(fit)
-}
-
-gmap1 <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
-                 rsids=NULL, ids=NULL, mask=NULL, lambda=NULL,  
-                 vb=NULL, vg=NULL, ve=NULL, pi=0.001, h2=0.5, 
-                 nub=4, nug=4, nue=4, 
-                 ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL,
-                 vb_prior=NULL, vg_prior=NULL, ve_prior=NULL,
-                 updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
-                 formatLD="dense", checkLD=FALSE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
-                 checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, 
-                 critB=3, critB1=0.5, critB2=3, 
-                 verbose=FALSE, eigen_threshold=0.995, cs_threshold=0.9, cs_r2=0.5,
-                 nit=1000, nburn=100, nthin=1, output="summary",
-                 method="bayesR", algorithm="mcmc-eigen", seed=10) {
-  
-  
-  # Check methods and parameter settings
-  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
-  method <- match(method, methods) - 1
-  if( !sum(method%in%c(0:5))== 1 ) stop("method argument specified not valid")
-  algorithms <- c("mcmc","em-mcmc", "mcmc-eigen")
-  algorithm <- match(algorithm, algorithms)
-  if(is.na(algorithm)) stop("algorithm argument specified not valid")
-  
-  # check this again
-  if(is.data.frame(stat)) {
-    if( any(sapply(stat[,-c(1:5)],function(x){any(!is.finite(x))}))) stop("Some elements in stat not finite")
-    if( any(sapply(stat[,-c(1:5)],function(x){any(is.na(x))}))) stop("Some elements in stat NA")
-    nt <- 1
-    m <- sum(stat$rsids%in%unlist(Glist$rsids))
-    if(!is.null(Glist$rsidsLD)) m <- sum(stat$rsids%in%unlist(Glist$rsidsLD))
-  }
-  
-  # Prepare summary statistics
-  if(nt==1) {
-    yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$n)
-    n <- median(stat$n)
-  }
-  if(is.null(stat[["ww"]])) stat$ww <- (yy/n)/(stat$seb^2 + stat$b^2/stat$n)
-  if(is.null(stat[["wy"]])) stat$wy <- stat$b*stat$ww
-  if(nt>1) {
-    yy <- (stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww
-    yy <- apply(yy,2,median)
-    n <- apply(stat$n,2,median)
-  }
-  
-  # Prepare input
-  b <- matrix(0, nrow=length(stat$rsids), ncol=nt)
-  if(is.null(mask)) mask <- matrix(FALSE, nrow=length(rsids), ncol=nt)
-  
-  vy <- yy/(n-1)
-  if(is.null(ve)) ve <- vy*(1-h2)
-  if(is.null(vg)) vg <- vy*h2
-  mc <- min(c(5000,m))
-  if(method>=4 && is.null(vb)) vb <- vg/(mc*pi)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <- ((nub-2.0)/nub)*(vg/(mc*pi))
-  
-  if(!is.null(sets) && algorithm==3)  { 
-    
-    sets <- mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
-    if(any(sapply(sets,function(x){any(is.na(x))}))) stop("NAs in sets detected - please remove these")
-    
-    chr <- as.numeric(unlist(Glist$chr))
-    chrSets <- sapply(mapSets(sets = sets, Glist = Glist, index = TRUE), function(x) unique(chr[x]))
-    if (length(Glist$bedfiles) == 1) chrSets <- setNames(rep(1, length(chrSets)), names(chrSets))
-    lsets <- sapply(chrSets,length)
-    sets <- sets[lsets==1]
-    if(any(lsets>1)) stop(paste("Following marker sets mapped to multiple chromosome:",paste(which(lsets>1),collapse=",")))
-    if(any(lsets==0)) stop(paste("Following marker sets not mapped to any chromosome:",paste(which(lsets==0),collapse=",")))
-    
-    # Prepare output
-    bm <- dm <- vector(mode="list",length=length(sets))
-    ves <- vgs <- vbs <- pis <- conv <- vector(mode="list",length=length(sets))
-    bs <- ds <- prob <- vector(mode="list",length=length(sets))
-    pim <- vector(mode="list",length=length(sets))
-    logcpo <- rep(0,length(sets))
-    fdr <- csets <- vector(mode="list",length=length(sets))
-    names(bm) <- names(dm) <- names(pim) <- names(sets)     
-    names(ves) <- names(vgs) <- names(pis) <- names(vbs) <- names(conv) <- names(sets)     
-    names(bs)  <- names(ds) <- names(prob) <- names(sets)
-    names(logcpo) <- names(fdr) <- names(csets) <- names(sets)
-    attempts <- rep(1, length=length(sets))
-    
-    
-    if(is.null(ids)) ids <- Glist$idsLD
-    if(is.null(ids)) ids <- Glist$ids
-    
-    # Compute phenotypic 
-    vy <- median(2*stat$eaf*(1-stat$eaf)*(stat$n*stat$seb^2 + stat$b^2))
-    
-    # BLR model for each set
-    for (i in 1:length(sets)) {
-      
-      chr <- chrSets[[i]]
-      rsids <- sets[[i]]
-      rws <- match(rsids,stat$rsids)
-      message(paste("Processing region:",i))
-      
-      pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
-      message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
-      if(!is.null(Glist$map)) map <- getMap(Glist=Glist, chr=chr, rsids=rsids)
-      if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
-      
-      # Prepare input
-      W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
-      B <- crossprod(scale(W))/(nrow(W)-1)
-      
-      if(shrinkLD) B <- corpcor::cor.shrink(W)
-      
-      eig <- eigen(B, symmetric=TRUE)
-      
-      for (j in 1:length(eigen_threshold)) {
-        
-        keep <- cumsum(eig$values)/sum(eig$values) < eigen_threshold[j]
-        
-        z <- t(eig$vectors[,keep]) %*% stat[rws, "b"]
-        
-        scaleb <- sqrt(1/(stat[rws, "n"]*stat[rws, "seb"]+stat[rws, "b"]^2))
-        z <- t(eig$vectors[,keep]) %*% (stat[rws, "b"]*scaleb)
-        
-        # Scale each element by the inverse square root of the corresponding eigenvalue
-        w <- z / sqrt(eig$values[keep])
-        
-        Q <- diag(sqrt(eig$values[keep]))%*%t(eig$vectors[,keep])
-        
-        colnames(Q) <- colnames(B)
-        
-        
-        LD <- NULL
-        LDvalues <- as.list(as.data.frame(Q))
-        LDindices <- lapply(1:ncol(Q),function(x) { (1:nrow(Q))-1 } )
-        rsids <- colnames(Q)
-        names(LDvalues) <- rsids
-        names(LDindices) <- rsids
-        
-        n <- mean(stat[rws,"n"])
-        xx <- stat[rws,"n"]
-        m <- ncol(Q)
-        
-        b <- rep(0, m)
-        
-        pi <- c(0.992,0.005,0.003,0.001)
-        gamma <- c(0,0.01,0.1,1)
-        
-        ve <- vy*(1-h2)
-        vg <- vy*h2
-        vb <- vg/(m*sum(pi*gamma))
-        
-        if(is.null(ssb_prior)) ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*sum(pi*gamma)))
-        ssg_prior <-  ((nug-2.0)/nug)*vg
-        sse_prior <- ((nue-2.0)/nue)*ve
-        
-        
-        lambda <- rep(ve/vb,m)
-        mask <- rep(FALSE, m)
-        
-        fit <- .Call("_qgg_sbayes_reg_eigen",
-                     wy=w,
-                     ww=xx,
-                     LDvalues=LDvalues,
-                     LDindices=LDindices,
-                     b = b,
-                     lambda = lambda,
-                     mask=mask,
-                     pi = pi,
-                     gamma = gamma,
-                     vb = vb,
-                     vg = vg,
-                     ve = ve,
-                     ssb_prior=ssb_prior,
-                     ssg_prior=ssg_prior,
-                     sse_prior=sse_prior,
-                     nub=nub,
-                     nug=nug,
-                     nue=nue,
-                     updateB = updateB,
-                     updateE = updateE,
-                     updatePi = updatePi,
-                     updateG = updateG,
-                     n=n,
-                     nit=nit,
-                     nburn=nburn,
-                     nthin=nthin,
-                     method=as.integer(method),
-                     algo=as.integer(algorithm),
-                     seed=seed)
-        names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param","bs","ds","prob")
-        fit$bm <- fit$bm/scaleb
-        names(fit$bm) <- names(fit$dm) <- names(fit$b) <- names(LDvalues)
-        fit$bs <- matrix(fit$bs,nrow=length(fit$bm))
-        fit$ds <- matrix(fit$ds,nrow=length(fit$bm))
-        fit$prob <- matrix(fit$prob,nrow=length(fit$bm))
-        rownames(fit$bs) <- rownames(fit$ds) <- rownames(fit$prob) <- names(LDvalues)
-        colnames(fit$bs) <- colnames(fit$ds) <- colnames(fit$prob) <- 1:(nit+nburn)
-        # Re-scale betas
-        for (k in 1:nrow(fit$bs)) {
-          fit$bs[k,] <- fit$bs[k,]/scaleb[k]
-        }
-        
-        # Check convergence            
-        critve <- critvg <- critvb <- critpi <- critb <- FALSE
-        if(!updateE) critve <- TRUE
-        if(!updateG) critvg <- TRUE
-        if(!updateB) critvb <- TRUE
-        if(!updatePi) critpi <- TRUE
-        zve <- coda::geweke.diag(fit$ves[nburn:(nburn+nit)])$z
-        zvg <- coda::geweke.diag(fit$vgs[nburn:(nburn+nit)])$z
-        zvb <- coda::geweke.diag(fit$vbs[nburn:(nburn+nit)])$z
-        zpi <- coda::geweke.diag(fit$pis[nburn:(nburn+nit)])$z
-        zb <- coda::geweke.diag(apply(fit$bs[,nburn:(nburn+nit)],2,var))$z
-        if(!is.na(zve)) critve <- abs(zve)<critVe
-        if(!is.na(zvg)) critvg <- abs(zvg)<critVg
-        if(!is.na(zvb)) critvb <- abs(zvb)<critVb
-        if(!is.na(zpi)) critpi <- abs(zpi)<critPi
-        if(!is.na(zb)) critb <- abs(zb)<critB
-        
-        critb1 <- critb2 <- FALSE
-        
-        brws <- fit$dm>0
-        
-        # Check divergence        
-        if(sum(brws)>1 && all(c(critve, critvg, critvb, critpi, critb))) {
-          
-          tstat <- fit$bs[brws,]/stat[rws, "b"][brws]
-          pdiv <- apply(tstat, 1, function(x) {
-            sum(x[nburn:length(x)] > -critB1 & x[nburn:length(x)] <= 1+critB1)
-          })
-          pdiv <- pdiv/length(nburn:ncol(tstat))
-          pdiv <- pdiv[is.finite(pdiv)]
-          if(any(pdiv<0.95)) plot(pdiv)
-          critb1 <- !any(pdiv<0.95)    # FALSE if any pdiv is less than 0.95
-          if(!critb1) message(paste("Convergence not reached for critB1 "))
-          critb <- critb1
-        }
-        
-        # Check mismatch
-        if(checkLD && sum(brws)>1 && !all(c(critve, critvg, critvb, critpi, critb))) {
-          # Identify mismatch between LD and summary statistics 
-          bout <- checkb(B=B[brws,brws],
-                         b=stat[rws, "b"][brws],
-                         seb=stat[rws, "seb"][brws],
-                         critB=critB2, verbose=verbose)
-          critb2 <- !any(bout$outliers)    # FALSE if there are any outliers
-          if(critb2) message(paste("Convergence not reached for critB2 "))
-          critb <- critb2
-        }
-        
-        converged <- critve & critvg & critvb & critpi & critb
-        
-        # Make plots to monitor convergence
-        if(verbose) {
-          layout(matrix(1:4,ncol=2))
-          pipsets <- splitWithOverlap(1:length(rsids),100,99)
-          pip <- fit$dm
-          plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
-          plot(-log10(stat[rws,"p"]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
-          hist(fit$ves, main="Ve", xlab="")
-          plot(y=fit$bm, x=stat[rws,"b"], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
-          abline(h=0,v=0, lwd=2, col=2, lty=2)
-        }
-        attempts[i] <- j      
-        if(!converged) {
-          message(paste("Convergence not reached using eigen_threshold:",eigen_threshold[j]))
-          criteria_names <- c("Variance of errors (critve)", 
-                              "Genetic variance (critvg)", 
-                              "Marker variance (critvb)", 
-                              "Inclusion probability (critpi)", 
-                              "Posterior mean (critb)")
-          criteria_status <- c(critve, critvg, critvb, critpi, critb)
-          
-          message("Convergence criteria:")
-          for (k in seq_along(criteria_names)) {
-            message(sprintf("  %s: %s", criteria_names[k], ifelse(criteria_status[k], "Met", "Not Met")))
-          }
-        }
-        # Exit outer loop if convergence is reached
-        if (converged) {
-          if(verbose) message(paste("Convergence reached using eigen_threshold:",eigen_threshold[j]))
-          break
-        }
-        
-      }
-      
-      cutoffs <- seq(0.01, 0.99, by = 0.01)  # Generate 1:99 as fractions
-      cutoff_indices <- lapply(cutoffs, function(cutoff) fit$dm > cutoff)
-      bfdrs <- sapply(cutoff_indices, function(rws) {
-        if (any(rws)) {
-          fdrs <- rowMeans(1 - fit$prob[rws, , drop = FALSE], na.rm = TRUE)
-          c(mean = mean(fdrs, na.rm = TRUE), quantile(fdrs, c(0.025, 0.975), na.rm = TRUE))
-        } else {
-          c(NA, NA, NA)
-        }
-      })
-      bfdrs <- t(bfdrs)
-      rownames(bfdrs) <- round(cutoffs, 2)
-      
-      # Save results
-      bm[[i]] <- fit$bm
-      dm[[i]] <- fit$dm
-      pim[[i]] <- fit$pim
-      ves[[i]] <- fit$ves
-      vbs[[i]] <- fit$vbs
-      vgs[[i]] <- fit$vgs
-      pis[[i]] <- fit$pis
-      conv[[i]] <- c(zve,zvg,zvb,zpi,zb) 
-      if(output=="full") {
-        bs[[i]] <- fit$bs
-        ds[[i]] <- fit$ds
-        prob[[i]] <- fit$prob
-      }
-      fdr[[i]] <- bfdrs
-      logcpo[i] <- fit$param[4]
-      if(sum(fit$dm)>cs_threshold) csets[[i]] <- crs(prob=fit$dm, B=B, threshold=cs_threshold, r2=cs_r2)
-      names(bm[[i]]) <- names(dm[[i]]) <- rsids
-    }
-    fit <- NULL
-    fit$bm <- bm
-    fit$dm <- dm
-    fit$pim <- pim
-    fit$ves <- ves
-    fit$vbs <- vbs
-    fit$vgs <- vgs
-    fit$pis <- pis
-    if(output=="full") {
-      fit$bs <- bs
-      fit$ds <- ds
-      fit$prob <- prob
-    }
-    fit$fdr <- fdr
-    fit$logcpo <- logcpo
-    fit$cs <- csets
-  }  
   
   pip <- sapply(fit$dm,sum)
   minb <- sapply(fit$bm,min)
@@ -2242,631 +1851,6 @@ check_divergence <- function(bm, bs, ci_level = 0.95) {
   )
   
   return(results)
-}
-
-
-gmap0 <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
-                 chr=NULL, rsids=NULL, ids=NULL, b=NULL, bm=NULL, seb=NULL, mask=NULL, LD=NULL, n=NULL,
-                 vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL,
-                 lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, formatLD="dense", pruneLD=TRUE, 
-                 r2=0.05, checkLD=TRUE,
-                 h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
-                 adjustE=TRUE, models=NULL,
-                 checkConvergence=FALSE, critVe=3, critVg=5, critVb=5, critPi=3, ntrial=1,
-                 nug=4, nub=4, nue=4, verbose=FALSE,msize=100,threshold=NULL,
-                 ve_prior=NULL, vg_prior=NULL,tol=0.001,
-                 nit=100, nburn=50, nit_local=NULL,nit_global=NULL,
-                 method="bayesC", algorithm="mcmc") {
-
-
-  # Check methods and parameter settings
-  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
-  method <- match(method, methods) - 1
-  if( !sum(method%in%c(0:5))== 1 ) stop("method argument specified not valid")
-  algorithms <- c("mcmc","em-mcmc")
-  algorithm <- match(algorithm, algorithms)
-  if(is.na(algorithm)) stop("algorithm argument specified not valid")
-  if(shrinkLD) {
-    if(is.null(Glist$map)) {
-      warning("No map information in Glist - LD matrix shrinkage turned off")
-      shrinkLD <- FALSE
-    }
-  } 
-  
-  # check this again
-  if(is.data.frame(stat)) {
-    if( any(sapply(stat[,-c(1:5)],function(x){any(!is.finite(x))}))) stop("Some elements in stat not finite")
-    if( any(sapply(stat[,-c(1:5)],function(x){any(is.na(x))}))) stop("Some elements in stat NA")
-    nt <- 1
-    rsids <- stat$rsids
-    m <- sum(rsids%in%unlist(Glist$rsids))
-    if(!is.null(Glist$rsidsLD)) m <- sum(rsids%in%unlist(Glist$rsidsLD))
-    stat$b <- as.matrix(stat$b)
-    stat$seb <- as.matrix(stat$seb)
-    stat$n <- as.matrix(stat$n)
-    stat$p <- as.matrix(stat$p)
-    rownames(stat$b) <- rownames(stat$seb) <- rsids
-    rownames(stat$n) <- rownames(stat$p) <- rsids
-    if(!is.null(stat[["ww"]])) {
-      stat$ww <- as.matrix(stat$ww)
-      rownames(stat$ww) <- rsids
-    }
-    if(!is.null(stat[["wy"]])) {
-      stat$wy <- as.matrix(stat$wy)
-      rownames(stat$wy) <- rsids
-    }
-  }
-  if(!is.data.frame(stat) && is.list(stat)) {
-    nt <- ncol(stat$b)
-    rsids <- rownames(stat$b)
-    m <- sum(rsids%in%unlist(Glist$rsids))
-    if(!is.null(Glist$rsidsLD)) m <- sum(rsids%in%unlist(Glist$rsidsLD))
-  }
-  
-
-  # Prepare summary statistics
-  if(nt==1) {
-    yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$n)
-    n <- median(stat$n)
-  }
-  if(is.null(stat[["ww"]])) stat$ww <- (yy/n)/(stat$seb^2 + stat$b^2/stat$n)
-  #if(is.null(stat[["ww"]])) stat$ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
-  if(is.null(stat[["wy"]])) stat$wy <- stat$b*stat$ww
-  # if(nt==1) {
-  #   yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww)
-  #   n <- median(stat$n)
-  # }
-  if(nt>1) {
-    yy <- (stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww
-    yy <- apply(yy,2,median)
-    n <- apply(stat$n,2,median)
-  }
-
-  # Prepare input
-  b <- matrix(0, nrow=length(rsids), ncol=nt)
-  if(is.null(mask)) mask <- matrix(FALSE, nrow=length(rsids), ncol=nt)
-  rownames(b) <- rownames(mask) <- rsids
-  
-  vy <- yy/(n-1)
-  if(is.null(pi)) pi <- 0.001
-  if(is.null(h2)) h2 <- 0.5
-  if(is.null(ve)) ve <- vy*(1-h2)
-  if(is.null(vg)) vg <- vy*h2
-  mc <- min(c(5000,m))
-  if(method>=4 && is.null(vb)) vb <- vg/(mc*pi)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <- ((nub-2.0)/nub)*(vg/(mc*pi))
-
-  if(is.null(trait)) trait <- 1
-  message(paste("Processing trait:",trait))
-  
-  
-  if(!is.null(sets))  { 
-    
-    sets <- mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
-    if(any(sapply(sets,function(x){any(is.na(x))}))) stop("NAs in sets detected - please remove these")
-
-    chr <- unlist(Glist$chr)
-    chrSets <- mapSets(sets=sets, Glist=Glist, index=TRUE)
-    chrSets <- sapply(chrSets,function(x){as.numeric(unique(chr[x]))})
-    lsets <- sapply(chrSets,length)
-    sets <- sets[lsets==1]
-    if(any(lsets>1)) {
-      warning(paste("Marker sets mapped to multiple chromosome:",paste(which(lsets>1),collapse=",")))
-    }
-    if(any(lsets==0)) {
-      warning(paste("Marker sets mapped to multiple chromosome:",paste(which(lsets==0),collapse=",")))
-    }
-
-    # Prepare output
-    bm <- dm <- vector(mode="list",length=length(sets))
-    ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=length(sets))
-    pim <- vector(mode="list",length=length(sets))
-    names(bm) <- names(dm) <- names(ves) <- names(vgs) <- names(pis) <- names(bs)  <- names(ds) <- names(sets)     
-    names(pim) <- names(bs)  <- names(ds) <- names(sets)     
-    attempts <- rep(0, length=length(sets))
-    
-
-    if(is.null(ids)) ids <- Glist$idsLD
-    if(is.null(ids)) ids <- Glist$ids
-    
-    #message(paste("Processing chromosome:",chr))
-    if(formatLD=="sparse") {
-      sparseLD <- getSparseLD(Glist=Glist,chr=chr)
-    }
-    # BLR model for each set
-    for (i in 1:length(sets)) {
-      
-      chr <- chrSets[[i]]
-      rsids <- sets[[i]]
-      message(paste("Processing region:",i,"on chromosome:",chr))
-      
-      pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
-      message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
-      if(!is.null(Glist$map)) map <- getMap(Glist=Glist, chr=chr, rsids=rsids)
-      if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
-      
-      if(formatLD=="dense") {
-        W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
-        B <- crossprod(scale(W))/(length(ids)-1)
-        if(shrinkCor) B <- corpcor::cor.shrink(W)
-        if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
-        LD <- NULL
-        #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
-        LD$values <- as.list(as.data.frame(B))
-        LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
-        rsids <- colnames(B)
-        names(LD$values) <- rsids
-        names(LD$indices) <- rsids
-        msize_set <- length(rsids)
-      }
-      
-      
-      if(formatLD=="sparse") {
-        B <- regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
-        if(shrinkCor) B <- corpcor::cor.shrink(W)
-        if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
-        LD <- NULL
-        #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
-        LD$values <- as.list(as.data.frame(B))
-        LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
-        rsids <- colnames(B)
-        names(LD$values) <- rsids
-        names(LD$indices) <- rsids
-        msize_set <- length(rsids)
-      }
-      
-      #ntrial <- 5
-      converged <- FALSE
-      
-      updateB_reg <- updateB
-      updatePi_reg <- updatePi
-      pi_reg <- pi
-      r2_reg <- r2
-      
-      for (trial in 1:ntrial) {
-        
-        if (!converged) {
-
-          if(pruneLD) {
-            message("Adjust summary statistics using pruning")
-            pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2_reg, thold=1) 
-            mask[pruned,trait] <- TRUE
-          }
-          
-          attempts[i] <- trial
-          
-          fit <- sbayes_region(yy=yy[trait],
-                                     wy=stat$wy[rsids,trait],
-                                     ww=stat$ww[rsids,trait],
-                                     b=b[rsids,trait],
-                                     mask=mask[rsids,trait],
-                                     LDvalues=LD$values,
-                                     LDindices=LD$indices,
-                                     method=method,
-                                     algorithm=algorithm,
-                                     nit=nit,
-                                     nburn=nburn,
-                                     n=n[trait],
-                                     m=msize_set,
-                                     pi=pi_reg,
-                                     nue=nue,
-                                     nub=nub,
-                                     ssb_prior=ssb_prior,
-                                     updateB=updateB_reg,
-                                     updateE=updateE,
-                                     updatePi=updatePi_reg,
-                                     updateG=updateG,
-                                     adjustE=adjustE)
-          
-          # Check convergence            
-          critve <- critvg <- critvb <- critpi <- FALSE
-          if(!updateE) critve <- TRUE
-          if(!updateG) critvg <- TRUE
-          if(!updateB) critvb <- TRUE
-          if(!updatePi) critpi <- TRUE
-          zve <- coda::geweke.diag(fit$ves[nburn:length(fit$ves)])$z
-          zvg <- coda::geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
-          zvb <- coda::geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
-          zpi <- coda::geweke.diag(fit$pis[nburn:length(fit$pis)])$z
-          if(!is.na(zve)) critve <- abs(zve)<critVe
-          if(!is.na(zvg)) critvg <- abs(zvg)<critVg
-          if(!is.na(zvb)) critvb <- abs(zvb)<critVb
-          if(!is.na(zpi)) critpi <- abs(zpi)<critPi
-          
-          critb1 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat$b[rsids,trait]
-          critb2 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat$b[rsids,trait]
-          critb <- !any(critb1 | critb2)
-          converged <- critve & critvg & critvb & critpi & critb
-          
-          
-          if (!converged & checkConvergence) {
-            message("")
-            message(paste("Region not converged in attempt:",trial))
-            if(!critve) message(paste("Zve:",zve))
-            if(!critvg) message(paste("Zvg:",zvg))
-            if(!critvb) message(paste("Zvb:",zvb))
-            if(!critpi) message(paste("Zpi:",zpi))
-            W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
-            B <- crossprod(scale(W))/(length(ids)-1)
-            if(shrinkCor) B <- corpcor::cor.shrink(W)
-            if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
-            if(checkLD) { 
-              message("Adjust summary statistics using imputation")
-              badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
-                              msize=200, overlap=50, shrink=0.001, threshold=1e-8) 
-              # badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
-              #                       msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
-              # z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
-              # outliers <- names(z[abs(z)>1.96])
-              #mask[outliers,trait] <- TRUE
-              #stat$b[outliers,trait] <- badj[abs(z)>1.96]
-              #stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
-              #stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
-              stat$b[rsids,trait] <- badj
-              stat$ww[rsids,trait] <- 1/(stat$seb[rsids,trait]^2 + stat$b[rsids,trait]^2/stat$n[rsids,trait])
-              stat$wy[rsids,trait] <- stat$b[rsids,trait]*stat$ww[rsids,trait]
-            }
-            if(pruneLD) {
-            #if(pruneLD) {
-              message("Adjust summary statistics using pruning")
-              pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
-              mask[pruned,trait] <- TRUE
-            }
-            # if(trial==3) {
-            #   message("Set updateB and updatePi to FALSE")
-            #   updateB_reg <- FALSE 
-            #   updatePi_reg <- FALSE 
-            # }
-            if(trial>0) {
-              message("Decrease r2 by a factor 10")
-              #updateB_reg <- FALSE 
-              updatePi_reg <- FALSE
-              r2_reg <- r2_reg*0.1
-              #pi_reg <- pi_reg*0.1
-            }
-          }
-        }
-      }
-      
-      # Make plots to monitor convergence
-      if(verbose) {
-        layout(matrix(1:4,ncol=2))
-        pipsets <- splitWithOverlap(1:length(rsids),100,99)
-        pip <- fit$dm
-        plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
-        plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
-        hist(fit$ves, main="Ve", xlab="")
-        plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
-        abline(h=0,v=0, lwd=2, col=2, lty=2)
-      }
-      
-      # Save results
-      bm[[i]] <- fit$bm
-      dm[[i]] <- fit$dm
-      pim[[i]] <- fit$pim
-      ves[[i]] <- fit$ves
-      vbs[[i]] <- fit$vbs
-      vgs[[i]] <- fit$vgs
-      pis[[i]] <- fit$pis
-      selected <- NULL
-      if(!is.null(threshold)) selected <- fit$dm>=threshold
-      if(any(selected)) {
-        bs[[i]] <- matrix(fit$bs,nrow=length(rsids))
-        ds[[i]] <- matrix(fit$ds,nrow=length(rsids))
-        rownames(bs[[i]]) <- rownames(ds[[i]]) <- rsids
-        colnames(bs[[i]]) <- colnames(ds[[i]]) <- 1:(nit+nburn)
-        bs[[i]] <- bs[[i]][selected,]
-        ds[[i]] <- ds[[i]][selected,]
-      }
-      names(bm[[i]]) <- names(dm[[i]]) <- rsids
-    }
-    fit <- NULL
-    fit$bm <- bm
-    fit$dm <- dm
-    fit$pim <- pim
-    fit$ves <- ves
-    fit$vbs <- vbs
-    fit$vgs <- vgs
-    fit$pis <- pis
-    fit$attempts <- attempts
-    if(!is.null(threshold)) fit$bs <- bs
-    if(!is.null(threshold)) fit$ds <- ds
-    
-  }  
-  
-  if(is.null(sets))  { 
-    
-    
-    # Prepare output
-    bm <- dm <- vector(mode="list",length=22)
-    ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=22)
-    pim <- attempts <- vector(mode="list",length=22)
-    
-    chromosomes <- 1:22
-    if(!is.null(chr)) chromosomes <- chr 
-
-    if(is.null(ids)) ids <- Glist$idsLD
-    if(is.null(ids)) ids <- Glist$ids
-    
-    for (chr in chromosomes) {
-      
-      message(paste("Processing chromosome:",chr))
-      rsidsLD <- Glist$rsidsLD[[chr]]
-      rsidsLD <- rsidsLD[rsidsLD%in%rownames(b)]
-      sets <- split(rsidsLD, ceiling(seq_along(rsidsLD) / msize))
-      #if(is.null(ssb_prior)) {
-      #  h2 <- 0.5
-      #  pi <- 0.001
-      #  vy <- 1
-      #  vg <- h2*vy
-      #  nub <- 4
-      #  ww <- 1/(stat$seb^2 + stat$b/stat$n)
-      #  mx <- sum(ww/mean(stat$n))
-      #  ssb_prior <- vy*h2*(nub+2)/mx/pi
-      #}
-      
-      if(formatLD=="sparse") {
-        sparseLD <- getSparseLD(Glist=Glist,chr=chr)
-      }
-      
-      # BLR model for each set
-      for (i in 1:length(sets)) {
-        
-        message(paste("Processing region:",i))
-        rsids <- sets[[i]]
-        pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
-        message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
-        if(!is.null(Glist$map)) map <- getMap(Glist=Glist, chr=chr, rsids=rsids)
-        if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
-        
-        if(formatLD=="dense") {
-          W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
-          B <- crossprod(scale(W))/(length(ids)-1)
-          if(shrinkCor) B <- corpcor::cor.shrink(W)
-          if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
-          LD <- NULL
-          #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
-          LD$values <- as.list(as.data.frame(B))
-          LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
-          rsids <- colnames(B)
-          names(LD$values) <- rsids
-          names(LD$indices) <- rsids
-          msize_set <- length(rsids)
-        }
-        
-        
-        
-        if(formatLD=="sparse") {
-          B <- regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
-          if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
-          LD <- NULL
-          #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
-          LD$values <- as.list(as.data.frame(B))
-          LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
-          rsids <- colnames(B)
-          names(LD$values) <- rsids
-          names(LD$indices) <- rsids
-          msize_set <- length(rsids)
-          #LD <- regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
-          #rsids <- LD$rsids
-          #msize <- length(rsids)
-        }
-        
-        #ntrial <- 5
-        converged <- FALSE
-
-        updateB_reg <- updateB
-        updatePi_reg <- updatePi
-        pi_reg <- pi
-
-        for (trial in 1:ntrial) {
-          
-          if (!converged) {
-            
-            attempts[[chr]][[i]] <- trial
-            
-            
-            fit <- sbayes_region(yy=yy[trait],
-                                       wy=stat$wy[rsids,trait],
-                                       ww=stat$ww[rsids,trait],
-                                       b=b[rsids,trait],
-                                       mask=mask[rsids,trait],
-                                       LDvalues=LD$values,
-                                       LDindices=LD$indices,
-                                       method=method,
-                                       algorithm=algorithm,
-                                       nit=nit,
-                                       nburn=nburn,
-                                       n=n[trait],
-                                       m=msize_set,
-                                       pi=pi,
-                                       nue=nue,
-                                       nub=nub,
-                                       ssb_prior=ssb_prior,
-                                       updateB=updateB_reg,
-                                       updateE=updateE,
-                                       updatePi=updatePi_reg,
-                                       updateG=updateG,
-                                       adjustE=adjustE)
-            #   }
-            
-            # Check convergence            
-            critve <- critvg <- critvb <- critpi <- FALSE
-            if(!updateE) critve <- TRUE
-            if(!updateG) critvg <- TRUE
-            if(!updateB) critvb <- TRUE
-            if(!updatePi) critpi <- TRUE
-            zve <- coda::geweke.diag(fit$ves[nburn:length(fit$ves)])$z
-            zvg <- coda::geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
-            zvb <- coda::geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
-            zpi <- coda::geweke.diag(fit$pis[nburn:length(fit$pis)])$z
-            if(!is.na(zve)) critve <- abs(zve)<critVe
-            if(!is.na(zvg)) critvg <- abs(zvg)<critVg
-            if(!is.na(zvb)) critvb <- abs(zvb)<critVb
-            if(!is.na(zpi)) critpi <- abs(zpi)<critPi
-
-            critb1 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat$b[rsids,trait]
-            critb2 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat$b[rsids,trait]
-            critb <- !any(critb1 | critb2)
-            converged <- critve & critvg & critvb & critpi & critb
-            
-            if (!converged & checkConvergence) {
-              message("")
-              message(paste("Region not converged in attempt:",trial))
-              if(!critve) message(paste("Zve:",zve))
-              if(!critvg) message(paste("Zvg:",zvg))
-              if(!critvb) message(paste("Zvb:",zvb))
-              if(!critpi) message(paste("Zpi:",zpi))
-              W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
-              B <- crossprod(scale(W))/(length(ids)-1)
-              if(shrinkCor) B <- corpcor::cor.shrink(W)
-              if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
-              if(checkLD) { 
-                # message("Adjust summary statistics using imputation")
-                # badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
-                #                       msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
-                # z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
-                # outliers <- names(z[abs(z)>1.96])
-                #mask[outliers,trait] <- TRUE
-                message("Adjust summary statistics using imputation")
-                badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
-                                msize=200, overlap=50, shrink=0.001, threshold=1e-8) 
-                #z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
-                #outliers <- names(z[abs(z)>1.96])
-                #mask[outliers,trait] <- TRUE
-                #stat$b[outliers,trait] <- badj[abs(z)>1.96]
-                #stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
-                #stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
-                stat$b[rsids,trait] <- badj
-                stat$ww[rsids,trait] <- 1/(stat$seb[rsids,trait]^2 + stat$b[rsids,trait]^2/stat$n[rsids,trait])
-                stat$wy[rsids,trait] <- stat$b[rsids,trait]*stat$ww[rsids,trait]
-              }
-              #if(pruneLD) {
-              if(pruneLD) {
-                message("Adjust summary statistics using pruning")
-                pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
-                mask[pruned,trait] <- TRUE
-              }
-              # if(trial==3) {
-              #   message("Set updateB and updatePi to FALSE")
-              #   updateB_reg <- FALSE 
-              #   updatePi_reg <- FALSE 
-              # }
-              if(trial>1) {
-                message("Decrease Pi by a factor 10")
-                #updateB_reg <- FALSE 
-                updatePi_reg <- FALSE
-                pi_reg <- pi_reg*0.1
-              }
-            }
-          }
-        }
-        
-        # Make plots to monitor convergence
-        if(verbose) {
-          layout(matrix(1:4,ncol=2))
-          pipsets <- splitWithOverlap(1:length(rsids),100,99)
-          #pip <- sapply(pipsets,function(x){sum(fit$dm[x])})
-          pip <- fit$dm
-          plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
-          plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
-          hist(fit$ves, main="Ve", xlab="")
-          plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
-          abline(h=0,v=0, lwd=2, col=2, lty=2)
-        }
-
-        # Save results
-        bm[[chr]][[i]] <- fit$bm
-        dm[[chr]][[i]] <- fit$dm
-        pim[[chr]][[i]] <- fit$pim
-        ves[[chr]][[i]] <- fit$ves
-        vbs[[chr]][[i]] <- fit$vbs
-        vgs[[chr]][[i]] <- fit$vgs
-        pis[[chr]][[i]] <- fit$pis
-        #bs[[chr]][[i]] <- matrix(fit$bs,nrow=length(rsids))
-        #ds[[chr]][[i]] <- matrix(fit$ds,nrow=length(rsids))
-        #rownames(bs[[chr]][[i]]) <- rownames(ds[[chr]][[i]]) <- rsids
-        #colnames(bs[[chr]][[i]]) <- colnames(ds[[chr]][[i]]) <- 1:nit
-        selected <- NULL
-        if(!is.null(threshold)) selected <- fit$dm>=threshold
-        if(any(selected)) {
-          bs[[chr]][[i]] <- matrix(fit$bs,nrow=length(rsids))
-          ds[[chr]][[i]] <- matrix(fit$ds,nrow=length(rsids))
-          rownames(bs[[chr]][[i]]) <- rownames(ds[[chr]][[i]]) <- rsids
-          colnames(bs[[chr]][[i]]) <- colnames(ds[[chr]][[i]]) <- 1:(nit+nburn)
-          bs[[chr]][[i]] <- bs[[chr]][[i]][selected,]
-          ds[[chr]][[i]] <- ds[[chr]][[i]][selected,]
-        }
-        names(bm[[chr]][[i]]) <- names(dm[[chr]][[i]]) <- rsids
-      }
-    }
-    
-    fit <- NULL
-    fit$bm <- unlist(bm, recursive=FALSE)
-    fit$dm <- unlist(dm, recursive=FALSE)
-    fit$pim <- unlist(pim, recursive=FALSE)
-    fit$ves <- unlist(ves, recursive=FALSE)
-    fit$vbs <- unlist(vbs, recursive=FALSE)
-    fit$vgs <- unlist(vgs, recursive=FALSE)
-    fit$pis <- unlist(pis, recursive=FALSE)
-    fit$attempts <- unlist(attempts, recursive=TRUE)
-    if(!is.null(threshold)) fit$bs <- unlist(bs, recursive=FALSE)
-    if(!is.null(threshold)) fit$ds <- unlist(ds, recursive=FALSE)
-  }
-
-
-  pip <- sapply(fit$dm,sum)
-  minb <- sapply(fit$bm,min)
-  maxb <- sapply(fit$bm,max)
-  m <- sapply(fit$bm,length)
-  
-  bm <- unlist(unname(fit$bm))
-  dm <- unlist(unname(fit$dm))
-  #selected <- dm>0
-  #bm <- bm[selected]
-  #dm <- dm[selected]
-  marker <- data.frame(rsids=unlist(Glist$rsids),
-                       chr=unlist(Glist$chr), pos=unlist(Glist$pos), 
-                       ea=unlist(Glist$a1), nea=unlist(Glist$a2),
-                       eaf=unlist(Glist$af),stringsAsFactors = FALSE)
-  marker <- marker[marker$rsids%in%names(bm),]
-  fit$stat <- data.frame(marker,bm=bm[marker$rsids],
-                         dm=dm[marker$rsids], stringsAsFactors = FALSE)
-  fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
-  fit$method <- methods[method+1]
-  fit$mask <- mask
-  zve <- sapply(fit$ves,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-  zvg <- sapply(fit$vgs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-  zvb <- sapply(fit$vbs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-  zpi <- sapply(fit$pis,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-  ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
-  vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
-  vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
-  pi <- sapply(fit$pim,function(x){1-x[1]})
-  
-  if(!is.null(Glist$map)) map <- unlist(Glist$map)
-  pos <- unlist(Glist$pos)
-  sets <- lapply(fit$bm,names)
-  setsindex <- mapSets(sets=sets, rsids=unlist(Glist$rsids))
-  if(!is.null(Glist$map)) cm <- sapply(setsindex, function(x){ max(map[x])-min(map[x]) })
-  mb <- sapply(setsindex, function(x){ (max(pos[x])-min(pos[x]))/1000000 })
-  minmb <- sapply(setsindex, function(x){ min(pos[x]) })
-  maxmb <- sapply(setsindex, function(x){ max(pos[x]) })
-  
-  chr <- unlist(Glist$chr)
-  chr <- sapply(setsindex,function(x){as.numeric(unique(chr[x]))})
-  
-  b <- stat[fit$stat$rsids,"b"]
-  
-  #fit$region <-  NULL
-  fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi)  
-  if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, chr=chr, minmb=minmb, maxmb=maxmb)  
-  if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm, chr=chr, minmb=minmb, maxmb=maxmb)  
-  rownames(fit$conv) <- rownames(fit$post) <- names(sets) 
-  fit$ve <- mean(ve)
-  fit$vg <- sum(vg)
-  fit$b <- b
-  return(fit)
 }
 
 
@@ -3273,67 +2257,67 @@ adjLDregion <- function(LD=NULL, p=NULL, r2=0.5, thold=1) {
   return(rsids[!indx2])
 }
 
-# Single trait fine-mapping BLR using summary statistics and sparse LD provided in Glist 
-sbayes_region <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, mask=NULL, seb=NULL, 
-                          LDvalues=NULL,LDindices=NULL, n=NULL, m=NULL,
-                          vg=NULL, vb=NULL, ve=NULL, 
-                          ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
-                          h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, 
-                          updateG=NULL, adjustE=NULL, models=NULL,
-                          nub=NULL, nue=NULL, nit=NULL, nburn=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
-  
-  if(is.null(m)) m <- length(LDvalues)
-  vy <- yy/(n-1)
-  if(is.null(pi)) pi <- 0.001
-  if(is.null(h2)) h2 <- 0.5
-  if(is.null(ve)) ve <- vy*(1-h2)
-  if(is.null(vg)) vg <- vy*h2
-  if(method<4 && is.null(vb)) vb <- vg/m
-  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
-  if(is.null(lambda)) lambda <- rep(ve/vb,m)
-  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
-  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
-  if(is.null(b)) b <- rep(0,m)
-  
-  pi <- c(1-pi,pi)
-  gamma <- c(0,1.0)
-  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
-  if(method==5) gamma <- c(0,0.01,0.1,1.0)
-  if(is.null(algorithm)) algorithm <- 0
-  
-  fit <- .Call("_qgg_sbayes_reg",
-               wy=wy, 
-               ww=ww, 
-               LDvalues=LDvalues, 
-               LDindices=LDindices, 
-               b = b,
-               lambda = lambda,
-               mask = mask,
-               yy = yy,
-               pi = pi,
-               gamma = gamma,
-               vg = vg,
-               vb = vb,
-               ve = ve,
-               ssb_prior=ssb_prior,
-               sse_prior=sse_prior,
-               nub=nub,
-               nue=nue,
-               updateB = updateB,
-               updateE = updateE,
-               updatePi = updatePi,
-               updateG = updateG,
-               adjustE = adjustE,
-               n=n,
-               nit=nit,
-               nburn=nburn,
-               method=as.integer(method),
-               algo=as.integer(algorithm))
-  names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param","bs","ds")
-  return(fit)
-}
+# # Single trait fine-mapping BLR using summary statistics and sparse LD provided in Glist 
+# sbayes_region <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, mask=NULL, seb=NULL, 
+#                           LDvalues=NULL,LDindices=NULL, n=NULL, m=NULL,
+#                           vg=NULL, vb=NULL, ve=NULL, 
+#                           ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
+#                           h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, 
+#                           updateG=NULL, adjustE=NULL, models=NULL,
+#                           nub=NULL, nue=NULL, nit=NULL, nburn=NULL, method=NULL, algorithm=NULL, verbose=NULL) {
+#   
+#   if(is.null(m)) m <- length(LDvalues)
+#   vy <- yy/(n-1)
+#   if(is.null(pi)) pi <- 0.001
+#   if(is.null(h2)) h2 <- 0.5
+#   if(is.null(ve)) ve <- vy*(1-h2)
+#   if(is.null(vg)) vg <- vy*h2
+#   if(method<4 && is.null(vb)) vb <- vg/m
+#   if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
+#   if(is.null(lambda)) lambda <- rep(ve/vb,m)
+#   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+#   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+#   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+#   if(is.null(b)) b <- rep(0,m)
+#   
+#   pi <- c(1-pi,pi)
+#   gamma <- c(0,1.0)
+#   if(method==5) pi <- c(0.95,0.02,0.02,0.01)
+#   if(method==5) gamma <- c(0,0.01,0.1,1.0)
+#   if(is.null(algorithm)) algorithm <- 0
+#   
+#   fit <- .Call("_qgg_sbayes_reg",
+#                wy=wy, 
+#                ww=ww, 
+#                LDvalues=LDvalues, 
+#                LDindices=LDindices, 
+#                b = b,
+#                lambda = lambda,
+#                mask = mask,
+#                yy = yy,
+#                pi = pi,
+#                gamma = gamma,
+#                vg = vg,
+#                vb = vb,
+#                ve = ve,
+#                ssb_prior=ssb_prior,
+#                sse_prior=sse_prior,
+#                nub=nub,
+#                nue=nue,
+#                updateB = updateB,
+#                updateE = updateE,
+#                updatePi = updatePi,
+#                updateG = updateG,
+#                adjustE = adjustE,
+#                n=n,
+#                nit=nit,
+#                nburn=nburn,
+#                method=as.integer(method),
+#                algo=as.integer(algorithm))
+#   names(fit[[1]]) <- names(LDvalues)
+#   names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param","bs","ds")
+#   return(fit)
+# }
 
 
 # Single trait BLR using summary statistics and sparse LD provided in Glist
@@ -4401,3 +3385,1021 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
 # plot(rm)
 # plot(vbs)
 # plot(ves)
+# gmap1 <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
+#                   rsids=NULL, ids=NULL, mask=NULL, lambda=NULL,  
+#                   vb=NULL, vg=NULL, ve=NULL, pi=0.001, h2=0.5, 
+#                   nub=4, nug=4, nue=4, 
+#                   ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL,
+#                   vb_prior=NULL, vg_prior=NULL, ve_prior=NULL,
+#                   updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
+#                   formatLD="dense", checkLD=FALSE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
+#                   checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, 
+#                   critB=3, critB1=0.5, critB2=3, 
+#                   verbose=FALSE, eigen_threshold=0.995, cs_threshold=0.9, cs_r2=0.5,
+#                   nit=1000, nburn=100, nthin=1, output="summary",
+#                   method="bayesR", algorithm="mcmc-eigen", seed=10) {
+#   
+#   
+#   # Check methods and parameter settings
+#   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+#   method <- match(method, methods) - 1
+#   if( !sum(method%in%c(0:5))== 1 ) stop("method argument specified not valid")
+#   algorithms <- c("mcmc","em-mcmc", "mcmc-eigen")
+#   algorithm <- match(algorithm, algorithms)
+#   if(is.na(algorithm)) stop("algorithm argument specified not valid")
+#   
+#   # check this again
+#   if(is.data.frame(stat)) {
+#     if( any(sapply(stat[,-c(1:5)],function(x){any(!is.finite(x))}))) stop("Some elements in stat not finite")
+#     if( any(sapply(stat[,-c(1:5)],function(x){any(is.na(x))}))) stop("Some elements in stat NA")
+#     nt <- 1
+#     m <- sum(stat$rsids%in%unlist(Glist$rsids))
+#     if(!is.null(Glist$rsidsLD)) m <- sum(stat$rsids%in%unlist(Glist$rsidsLD))
+#   }
+#   
+#   # Prepare summary statistics
+#   if(nt==1) {
+#     yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$n)
+#     n <- median(stat$n)
+#   }
+#   if(is.null(stat[["ww"]])) stat$ww <- (yy/n)/(stat$seb^2 + stat$b^2/stat$n)
+#   if(is.null(stat[["wy"]])) stat$wy <- stat$b*stat$ww
+#   if(nt>1) {
+#     yy <- (stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww
+#     yy <- apply(yy,2,median)
+#     n <- apply(stat$n,2,median)
+#   }
+#   
+#   # Prepare input
+#   b <- matrix(0, nrow=length(stat$rsids), ncol=nt)
+#   if(is.null(mask)) mask <- matrix(FALSE, nrow=length(rsids), ncol=nt)
+#   
+#   vy <- yy/(n-1)
+#   if(is.null(ve)) ve <- vy*(1-h2)
+#   if(is.null(vg)) vg <- vy*h2
+#   mc <- min(c(5000,m))
+#   if(method>=4 && is.null(vb)) vb <- vg/(mc*pi)
+#   if(method>=4 && is.null(ssb_prior))  ssb_prior <- ((nub-2.0)/nub)*(vg/(mc*pi))
+#   
+#   if(!is.null(sets) && algorithm==3)  { 
+#     
+#     sets <- mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
+#     if(any(sapply(sets,function(x){any(is.na(x))}))) stop("NAs in sets detected - please remove these")
+#     
+#     chr <- as.numeric(unlist(Glist$chr))
+#     chrSets <- sapply(mapSets(sets = sets, Glist = Glist, index = TRUE), function(x) unique(chr[x]))
+#     if (length(Glist$bedfiles) == 1) chrSets <- setNames(rep(1, length(chrSets)), names(chrSets))
+#     lsets <- sapply(chrSets,length)
+#     sets <- sets[lsets==1]
+#     if(any(lsets>1)) stop(paste("Following marker sets mapped to multiple chromosome:",paste(which(lsets>1),collapse=",")))
+#     if(any(lsets==0)) stop(paste("Following marker sets not mapped to any chromosome:",paste(which(lsets==0),collapse=",")))
+#     
+#     # Prepare output
+#     bm <- dm <- vector(mode="list",length=length(sets))
+#     ves <- vgs <- vbs <- pis <- conv <- vector(mode="list",length=length(sets))
+#     bs <- ds <- prob <- vector(mode="list",length=length(sets))
+#     pim <- vector(mode="list",length=length(sets))
+#     logcpo <- rep(0,length(sets))
+#     fdr <- csets <- vector(mode="list",length=length(sets))
+#     names(bm) <- names(dm) <- names(pim) <- names(sets)     
+#     names(ves) <- names(vgs) <- names(pis) <- names(vbs) <- names(conv) <- names(sets)     
+#     names(bs)  <- names(ds) <- names(prob) <- names(sets)
+#     names(logcpo) <- names(fdr) <- names(csets) <- names(sets)
+#     attempts <- rep(1, length=length(sets))
+#     
+#     
+#     if(is.null(ids)) ids <- Glist$idsLD
+#     if(is.null(ids)) ids <- Glist$ids
+#     
+#     # Compute phenotypic 
+#     vy <- median(2*stat$eaf*(1-stat$eaf)*(stat$n*stat$seb^2 + stat$b^2))
+#     
+#     # BLR model for each set
+#     for (i in 1:length(sets)) {
+#       
+#       chr <- chrSets[[i]]
+#       rsids <- sets[[i]]
+#       rws <- match(rsids,stat$rsids)
+#       message(paste("Processing region:",i))
+#       
+#       pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
+#       message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
+#       if(!is.null(Glist$map)) map <- getMap(Glist=Glist, chr=chr, rsids=rsids)
+#       if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
+#       
+#       # Prepare input
+#       W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
+#       B <- crossprod(scale(W))/(nrow(W)-1)
+#       
+#       if(shrinkLD) B <- corpcor::cor.shrink(W)
+#       
+#       eig <- eigen(B, symmetric=TRUE)
+#       
+#       for (j in 1:length(eigen_threshold)) {
+#         
+#         keep <- cumsum(eig$values)/sum(eig$values) < eigen_threshold[j]
+#         
+#         z <- t(eig$vectors[,keep]) %*% stat[rws, "b"]
+#         
+#         scaleb <- sqrt(1/(stat[rws, "n"]*stat[rws, "seb"]+stat[rws, "b"]^2))
+#         z <- t(eig$vectors[,keep]) %*% (stat[rws, "b"]*scaleb)
+#         
+#         # Scale each element by the inverse square root of the corresponding eigenvalue
+#         w <- z / sqrt(eig$values[keep])
+#         
+#         Q <- diag(sqrt(eig$values[keep]))%*%t(eig$vectors[,keep])
+#         
+#         colnames(Q) <- colnames(B)
+#         
+#         
+#         LD <- NULL
+#         LDvalues <- as.list(as.data.frame(Q))
+#         LDindices <- lapply(1:ncol(Q),function(x) { (1:nrow(Q))-1 } )
+#         rsids <- colnames(Q)
+#         names(LDvalues) <- rsids
+#         names(LDindices) <- rsids
+#         
+#         n <- mean(stat[rws,"n"])
+#         xx <- stat[rws,"n"]
+#         m <- ncol(Q)
+#         
+#         b <- rep(0, m)
+#         
+#         pi <- c(0.992,0.005,0.003,0.001)
+#         gamma <- c(0,0.01,0.1,1)
+#         
+#         ve <- vy*(1-h2)
+#         vg <- vy*h2
+#         vb <- vg/(m*sum(pi*gamma))
+#         
+#         if(is.null(ssb_prior)) ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*sum(pi*gamma)))
+#         ssg_prior <-  ((nug-2.0)/nug)*vg
+#         sse_prior <- ((nue-2.0)/nue)*ve
+#         
+#         
+#         lambda <- rep(ve/vb,m)
+#         mask <- rep(FALSE, m)
+#         
+#         fit <- .Call("_qgg_sbayes_reg_eigen",
+#                      wy=w,
+#                      ww=xx,
+#                      LDvalues=LDvalues,
+#                      LDindices=LDindices,
+#                      b = b,
+#                      lambda = lambda,
+#                      mask=mask,
+#                      pi = pi,
+#                      gamma = gamma,
+#                      vb = vb,
+#                      vg = vg,
+#                      ve = ve,
+#                      ssb_prior=ssb_prior,
+#                      ssg_prior=ssg_prior,
+#                      sse_prior=sse_prior,
+#                      nub=nub,
+#                      nug=nug,
+#                      nue=nue,
+#                      updateB = updateB,
+#                      updateE = updateE,
+#                      updatePi = updatePi,
+#                      updateG = updateG,
+#                      n=n,
+#                      nit=nit,
+#                      nburn=nburn,
+#                      nthin=nthin,
+#                      method=as.integer(method),
+#                      algo=as.integer(algorithm),
+#                      seed=seed)
+#         names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param","bs","ds","prob")
+#         fit$bm <- fit$bm/scaleb
+#         names(fit$bm) <- names(fit$dm) <- names(fit$b) <- names(LDvalues)
+#         fit$bs <- matrix(fit$bs,nrow=length(fit$bm))
+#         fit$ds <- matrix(fit$ds,nrow=length(fit$bm))
+#         fit$prob <- matrix(fit$prob,nrow=length(fit$bm))
+#         rownames(fit$bs) <- rownames(fit$ds) <- rownames(fit$prob) <- names(LDvalues)
+#         colnames(fit$bs) <- colnames(fit$ds) <- colnames(fit$prob) <- 1:(nit+nburn)
+#         # Re-scale betas
+#         for (k in 1:nrow(fit$bs)) {
+#           fit$bs[k,] <- fit$bs[k,]/scaleb[k]
+#         }
+#         
+#         # Check convergence            
+#         critve <- critvg <- critvb <- critpi <- critb <- FALSE
+#         if(!updateE) critve <- TRUE
+#         if(!updateG) critvg <- TRUE
+#         if(!updateB) critvb <- TRUE
+#         if(!updatePi) critpi <- TRUE
+#         zve <- coda::geweke.diag(fit$ves[nburn:(nburn+nit)])$z
+#         zvg <- coda::geweke.diag(fit$vgs[nburn:(nburn+nit)])$z
+#         zvb <- coda::geweke.diag(fit$vbs[nburn:(nburn+nit)])$z
+#         zpi <- coda::geweke.diag(fit$pis[nburn:(nburn+nit)])$z
+#         zb <- coda::geweke.diag(apply(fit$bs[,nburn:(nburn+nit)],2,var))$z
+#         if(!is.na(zve)) critve <- abs(zve)<critVe
+#         if(!is.na(zvg)) critvg <- abs(zvg)<critVg
+#         if(!is.na(zvb)) critvb <- abs(zvb)<critVb
+#         if(!is.na(zpi)) critpi <- abs(zpi)<critPi
+#         if(!is.na(zb)) critb <- abs(zb)<critB
+#         
+#         critb1 <- critb2 <- FALSE
+#         
+#         brws <- fit$dm>0
+#         
+#         # Check divergence        
+#         if(sum(brws)>1 && all(c(critve, critvg, critvb, critpi, critb))) {
+#           
+#           tstat <- fit$bs[brws,]/stat[rws, "b"][brws]
+#           pdiv <- apply(tstat, 1, function(x) {
+#             sum(x[nburn:length(x)] > -critB1 & x[nburn:length(x)] <= 1+critB1)
+#           })
+#           pdiv <- pdiv/length(nburn:ncol(tstat))
+#           pdiv <- pdiv[is.finite(pdiv)]
+#           if(any(pdiv<0.95)) plot(pdiv)
+#           critb1 <- !any(pdiv<0.95)    # FALSE if any pdiv is less than 0.95
+#           if(!critb1) message(paste("Convergence not reached for critB1 "))
+#           critb <- critb1
+#         }
+#         
+#         # Check mismatch
+#         if(checkLD && sum(brws)>1 && !all(c(critve, critvg, critvb, critpi, critb))) {
+#           # Identify mismatch between LD and summary statistics 
+#           bout <- checkb(B=B[brws,brws],
+#                          b=stat[rws, "b"][brws],
+#                          seb=stat[rws, "seb"][brws],
+#                          critB=critB2, verbose=verbose)
+#           critb2 <- !any(bout$outliers)    # FALSE if there are any outliers
+#           if(critb2) message(paste("Convergence not reached for critB2 "))
+#           critb <- critb2
+#         }
+#         
+#         converged <- critve & critvg & critvb & critpi & critb
+#         
+#         # Make plots to monitor convergence
+#         if(verbose) {
+#           layout(matrix(1:4,ncol=2))
+#           pipsets <- splitWithOverlap(1:length(rsids),100,99)
+#           pip <- fit$dm
+#           plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
+#           plot(-log10(stat[rws,"p"]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
+#           hist(fit$ves, main="Ve", xlab="")
+#           plot(y=fit$bm, x=stat[rws,"b"], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
+#           abline(h=0,v=0, lwd=2, col=2, lty=2)
+#         }
+#         attempts[i] <- j      
+#         if(!converged) {
+#           message(paste("Convergence not reached using eigen_threshold:",eigen_threshold[j]))
+#           criteria_names <- c("Variance of errors (critve)", 
+#                               "Genetic variance (critvg)", 
+#                               "Marker variance (critvb)", 
+#                               "Inclusion probability (critpi)", 
+#                               "Posterior mean (critb)")
+#           criteria_status <- c(critve, critvg, critvb, critpi, critb)
+#           
+#           message("Convergence criteria:")
+#           for (k in seq_along(criteria_names)) {
+#             message(sprintf("  %s: %s", criteria_names[k], ifelse(criteria_status[k], "Met", "Not Met")))
+#           }
+#         }
+#         # Exit outer loop if convergence is reached
+#         if (converged) {
+#           if(verbose) message(paste("Convergence reached using eigen_threshold:",eigen_threshold[j]))
+#           break
+#         }
+#         
+#       }
+#       
+#       cutoffs <- seq(0.01, 0.99, by = 0.01)  # Generate 1:99 as fractions
+#       cutoff_indices <- lapply(cutoffs, function(cutoff) fit$dm > cutoff)
+#       bfdrs <- sapply(cutoff_indices, function(rws) {
+#         if (any(rws)) {
+#           fdrs <- rowMeans(1 - fit$prob[rws, , drop = FALSE], na.rm = TRUE)
+#           c(mean = mean(fdrs, na.rm = TRUE), quantile(fdrs, c(0.025, 0.975), na.rm = TRUE))
+#         } else {
+#           c(NA, NA, NA)
+#         }
+#       })
+#       bfdrs <- t(bfdrs)
+#       rownames(bfdrs) <- round(cutoffs, 2)
+#       
+#       # Save results
+#       bm[[i]] <- fit$bm
+#       dm[[i]] <- fit$dm
+#       pim[[i]] <- fit$pim
+#       ves[[i]] <- fit$ves
+#       vbs[[i]] <- fit$vbs
+#       vgs[[i]] <- fit$vgs
+#       pis[[i]] <- fit$pis
+#       conv[[i]] <- c(zve,zvg,zvb,zpi,zb) 
+#       if(output=="full") {
+#         bs[[i]] <- fit$bs
+#         ds[[i]] <- fit$ds
+#         prob[[i]] <- fit$prob
+#       }
+#       fdr[[i]] <- bfdrs
+#       logcpo[i] <- fit$param[4]
+#       if(sum(fit$dm)>cs_threshold) csets[[i]] <- crs(prob=fit$dm, B=B, threshold=cs_threshold, r2=cs_r2)
+#       names(bm[[i]]) <- names(dm[[i]]) <- rsids
+#     }
+#     fit <- NULL
+#     fit$bm <- bm
+#     fit$dm <- dm
+#     fit$pim <- pim
+#     fit$ves <- ves
+#     fit$vbs <- vbs
+#     fit$vgs <- vgs
+#     fit$pis <- pis
+#     if(output=="full") {
+#       fit$bs <- bs
+#       fit$ds <- ds
+#       fit$prob <- prob
+#     }
+#     fit$fdr <- fdr
+#     fit$logcpo <- logcpo
+#     fit$cs <- csets
+#   }  
+#   
+#   pip <- sapply(fit$dm,sum)
+#   minb <- sapply(fit$bm,min)
+#   maxb <- sapply(fit$bm,max)
+#   m <- sapply(fit$bm,length)
+#   
+#   bm <- unlist(unname(fit$bm))
+#   dm <- unlist(unname(fit$dm))
+#   marker <- data.frame(rsids=unlist(Glist$rsids),
+#                        chr=unlist(Glist$chr), pos=unlist(Glist$pos), 
+#                        ea=unlist(Glist$a1), nea=unlist(Glist$a2),
+#                        eaf=unlist(Glist$af),stringsAsFactors = FALSE)
+#   marker <- marker[marker$rsids%in%names(bm),]
+#   fit$stat <- data.frame(marker,bm=bm[marker$rsids],
+#                          dm=dm[marker$rsids], stringsAsFactors = FALSE)
+#   fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
+#   fit$method <- methods[method+1]
+#   fit$mask <- mask
+#   ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
+#   vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
+#   vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
+#   pi <- sapply(fit$pis,function(x){mean(x[nburn:length(x)])})
+#   ve_ci <- t(sapply(fit$ves,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
+#   vg_ci <- t(sapply(fit$vgs,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
+#   vb_ci <- t(sapply(fit$vbs,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
+#   pi_ci <- t(sapply(fit$pis,function(x){quantile(x[nburn:length(x)], c(0.025,0.975))}))
+#   
+#   fit$ci <- list(ve=cbind(mean=ve,ve_ci),
+#                  vg=cbind(mean=vg,vg_ci), 
+#                  vb=cbind(mean=vb,vb_ci), 
+#                  pi=cbind(mean=pi,pi_ci))  
+#   
+#   if(!is.null(Glist$map)) map <- unlist(Glist$map)
+#   pos <- unlist(Glist$pos)
+#   sets <- lapply(fit$bm,names)
+#   setsindex <- mapSets(sets=sets, rsids=unlist(Glist$rsids))
+#   if(!is.null(Glist$map)) cm <- sapply(setsindex, function(x){ max(map[x])-min(map[x]) })
+#   mb <- sapply(setsindex, function(x){ (max(pos[x])-min(pos[x]))/1000000 })
+#   minmb <- sapply(setsindex, function(x){ min(pos[x]) })
+#   maxmb <- sapply(setsindex, function(x){ max(pos[x]) })
+#   
+#   chr <- unlist(Glist$chr)
+#   chr <- sapply(setsindex,function(x){as.numeric(unique(chr[x]))})
+#   
+#   b <- stat[fit$stat$rsids,"b"]
+#   
+#   conv <- t(as.data.frame(conv))
+#   colnames(conv) <- c("zve","zvg","zvb","zpi","zb")
+#   fit$conv <- data.frame(conv,ntrials=attempts, cutoff=eigen_threshold[attempts])
+#   if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, chr=chr, minmb=minmb, maxmb=maxmb)  
+#   if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm, chr=chr, minmb=minmb, maxmb=maxmb)  
+#   rownames(fit$conv) <- rownames(fit$post) <- names(sets) 
+#   
+#   fit$ve <- mean(ve)
+#   fit$vg <- sum(vg)
+#   fit$b <- b
+#   return(fit)
+# }
+# 
+# 
+# 
+# gmap0 <- function(y=NULL, X=NULL, W=NULL, stat=NULL, trait=NULL, sets=NULL, fit=NULL, Glist=NULL,
+#                   chr=NULL, rsids=NULL, ids=NULL, b=NULL, bm=NULL, seb=NULL, mask=NULL, LD=NULL, n=NULL,
+#                   vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL,
+#                   lambda=NULL, scaleY=TRUE, shrinkLD=FALSE, shrinkCor=FALSE, formatLD="dense", pruneLD=TRUE, 
+#                   r2=0.05, checkLD=TRUE,
+#                   h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE,
+#                   adjustE=TRUE, models=NULL,
+#                   checkConvergence=FALSE, critVe=3, critVg=5, critVb=5, critPi=3, ntrial=1,
+#                   nug=4, nub=4, nue=4, verbose=FALSE,msize=100,threshold=NULL,
+#                   ve_prior=NULL, vg_prior=NULL,tol=0.001,
+#                   nit=100, nburn=50, nit_local=NULL,nit_global=NULL,
+#                   method="bayesC", algorithm="mcmc") {
+#   
+#   
+#   # Check methods and parameter settings
+#   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+#   method <- match(method, methods) - 1
+#   if( !sum(method%in%c(0:5))== 1 ) stop("method argument specified not valid")
+#   algorithms <- c("mcmc","em-mcmc")
+#   algorithm <- match(algorithm, algorithms)
+#   if(is.na(algorithm)) stop("algorithm argument specified not valid")
+#   if(shrinkLD) {
+#     if(is.null(Glist$map)) {
+#       warning("No map information in Glist - LD matrix shrinkage turned off")
+#       shrinkLD <- FALSE
+#     }
+#   } 
+#   
+#   # check this again
+#   if(is.data.frame(stat)) {
+#     if( any(sapply(stat[,-c(1:5)],function(x){any(!is.finite(x))}))) stop("Some elements in stat not finite")
+#     if( any(sapply(stat[,-c(1:5)],function(x){any(is.na(x))}))) stop("Some elements in stat NA")
+#     nt <- 1
+#     rsids <- stat$rsids
+#     m <- sum(rsids%in%unlist(Glist$rsids))
+#     if(!is.null(Glist$rsidsLD)) m <- sum(rsids%in%unlist(Glist$rsidsLD))
+#     stat$b <- as.matrix(stat$b)
+#     stat$seb <- as.matrix(stat$seb)
+#     stat$n <- as.matrix(stat$n)
+#     stat$p <- as.matrix(stat$p)
+#     rownames(stat$b) <- rownames(stat$seb) <- rsids
+#     rownames(stat$n) <- rownames(stat$p) <- rsids
+#     if(!is.null(stat[["ww"]])) {
+#       stat$ww <- as.matrix(stat$ww)
+#       rownames(stat$ww) <- rsids
+#     }
+#     if(!is.null(stat[["wy"]])) {
+#       stat$wy <- as.matrix(stat$wy)
+#       rownames(stat$wy) <- rsids
+#     }
+#   }
+#   if(!is.data.frame(stat) && is.list(stat)) {
+#     nt <- ncol(stat$b)
+#     rsids <- rownames(stat$b)
+#     m <- sum(rsids%in%unlist(Glist$rsids))
+#     if(!is.null(Glist$rsidsLD)) m <- sum(rsids%in%unlist(Glist$rsidsLD))
+#   }
+#   
+#   
+#   # Prepare summary statistics
+#   if(nt==1) {
+#     yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$n)
+#     n <- median(stat$n)
+#   }
+#   if(is.null(stat[["ww"]])) stat$ww <- (yy/n)/(stat$seb^2 + stat$b^2/stat$n)
+#   #if(is.null(stat[["ww"]])) stat$ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
+#   if(is.null(stat[["wy"]])) stat$wy <- stat$b*stat$ww
+#   # if(nt==1) {
+#   #   yy <- median((stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww)
+#   #   n <- median(stat$n)
+#   # }
+#   if(nt>1) {
+#     yy <- (stat$b^2 + (stat$n-2)*stat$seb^2)*stat$ww
+#     yy <- apply(yy,2,median)
+#     n <- apply(stat$n,2,median)
+#   }
+#   
+#   # Prepare input
+#   b <- matrix(0, nrow=length(rsids), ncol=nt)
+#   if(is.null(mask)) mask <- matrix(FALSE, nrow=length(rsids), ncol=nt)
+#   rownames(b) <- rownames(mask) <- rsids
+#   
+#   vy <- yy/(n-1)
+#   if(is.null(pi)) pi <- 0.001
+#   if(is.null(h2)) h2 <- 0.5
+#   if(is.null(ve)) ve <- vy*(1-h2)
+#   if(is.null(vg)) vg <- vy*h2
+#   mc <- min(c(5000,m))
+#   if(method>=4 && is.null(vb)) vb <- vg/(mc*pi)
+#   if(method>=4 && is.null(ssb_prior))  ssb_prior <- ((nub-2.0)/nub)*(vg/(mc*pi))
+#   
+#   if(is.null(trait)) trait <- 1
+#   message(paste("Processing trait:",trait))
+#   
+#   
+#   if(!is.null(sets))  { 
+#     
+#     sets <- mapSets(sets=sets, rsids=stat$rsids, index=FALSE)
+#     if(any(sapply(sets,function(x){any(is.na(x))}))) stop("NAs in sets detected - please remove these")
+#     
+#     chr <- unlist(Glist$chr)
+#     chrSets <- mapSets(sets=sets, Glist=Glist, index=TRUE)
+#     chrSets <- sapply(chrSets,function(x){as.numeric(unique(chr[x]))})
+#     lsets <- sapply(chrSets,length)
+#     sets <- sets[lsets==1]
+#     if(any(lsets>1)) {
+#       warning(paste("Marker sets mapped to multiple chromosome:",paste(which(lsets>1),collapse=",")))
+#     }
+#     if(any(lsets==0)) {
+#       warning(paste("Marker sets mapped to multiple chromosome:",paste(which(lsets==0),collapse=",")))
+#     }
+#     
+#     # Prepare output
+#     bm <- dm <- vector(mode="list",length=length(sets))
+#     ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=length(sets))
+#     pim <- vector(mode="list",length=length(sets))
+#     names(bm) <- names(dm) <- names(ves) <- names(vgs) <- names(pis) <- names(bs)  <- names(ds) <- names(sets)     
+#     names(pim) <- names(bs)  <- names(ds) <- names(sets)     
+#     attempts <- rep(0, length=length(sets))
+#     
+#     
+#     if(is.null(ids)) ids <- Glist$idsLD
+#     if(is.null(ids)) ids <- Glist$ids
+#     
+#     #message(paste("Processing chromosome:",chr))
+#     if(formatLD=="sparse") {
+#       sparseLD <- getSparseLD(Glist=Glist,chr=chr)
+#     }
+#     # BLR model for each set
+#     for (i in 1:length(sets)) {
+#       
+#       chr <- chrSets[[i]]
+#       rsids <- sets[[i]]
+#       message(paste("Processing region:",i,"on chromosome:",chr))
+#       
+#       pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
+#       message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
+#       if(!is.null(Glist$map)) map <- getMap(Glist=Glist, chr=chr, rsids=rsids)
+#       if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
+#       
+#       if(formatLD=="dense") {
+#         W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
+#         B <- crossprod(scale(W))/(length(ids)-1)
+#         if(shrinkCor) B <- corpcor::cor.shrink(W)
+#         if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
+#         LD <- NULL
+#         #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+#         LD$values <- as.list(as.data.frame(B))
+#         LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
+#         rsids <- colnames(B)
+#         names(LD$values) <- rsids
+#         names(LD$indices) <- rsids
+#         msize_set <- length(rsids)
+#       }
+#       
+#       
+#       if(formatLD=="sparse") {
+#         B <- regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
+#         if(shrinkCor) B <- corpcor::cor.shrink(W)
+#         if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
+#         LD <- NULL
+#         #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+#         LD$values <- as.list(as.data.frame(B))
+#         LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
+#         rsids <- colnames(B)
+#         names(LD$values) <- rsids
+#         names(LD$indices) <- rsids
+#         msize_set <- length(rsids)
+#       }
+#       
+#       #ntrial <- 5
+#       converged <- FALSE
+#       
+#       updateB_reg <- updateB
+#       updatePi_reg <- updatePi
+#       pi_reg <- pi
+#       r2_reg <- r2
+#       
+#       for (trial in 1:ntrial) {
+#         
+#         if (!converged) {
+#           
+#           if(pruneLD) {
+#             message("Adjust summary statistics using pruning")
+#             pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2_reg, thold=1) 
+#             mask[pruned,trait] <- TRUE
+#           }
+#           
+#           attempts[i] <- trial
+#           
+#           fit <- sbayes_region(yy=yy[trait],
+#                                wy=stat$wy[rsids,trait],
+#                                ww=stat$ww[rsids,trait],
+#                                b=b[rsids,trait],
+#                                mask=mask[rsids,trait],
+#                                LDvalues=LD$values,
+#                                LDindices=LD$indices,
+#                                method=method,
+#                                algorithm=algorithm,
+#                                nit=nit,
+#                                nburn=nburn,
+#                                n=n[trait],
+#                                m=msize_set,
+#                                pi=pi_reg,
+#                                nue=nue,
+#                                nub=nub,
+#                                ssb_prior=ssb_prior,
+#                                updateB=updateB_reg,
+#                                updateE=updateE,
+#                                updatePi=updatePi_reg,
+#                                updateG=updateG,
+#                                adjustE=adjustE)
+#           
+#           # Check convergence            
+#           critve <- critvg <- critvb <- critpi <- FALSE
+#           if(!updateE) critve <- TRUE
+#           if(!updateG) critvg <- TRUE
+#           if(!updateB) critvb <- TRUE
+#           if(!updatePi) critpi <- TRUE
+#           zve <- coda::geweke.diag(fit$ves[nburn:length(fit$ves)])$z
+#           zvg <- coda::geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
+#           zvb <- coda::geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
+#           zpi <- coda::geweke.diag(fit$pis[nburn:length(fit$pis)])$z
+#           if(!is.na(zve)) critve <- abs(zve)<critVe
+#           if(!is.na(zvg)) critvg <- abs(zvg)<critVg
+#           if(!is.na(zvb)) critvb <- abs(zvb)<critVb
+#           if(!is.na(zpi)) critpi <- abs(zpi)<critPi
+#           
+#           critb1 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat$b[rsids,trait]
+#           critb2 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat$b[rsids,trait]
+#           critb <- !any(critb1 | critb2)
+#           converged <- critve & critvg & critvb & critpi & critb
+#           
+#           
+#           if (!converged & checkConvergence) {
+#             message("")
+#             message(paste("Region not converged in attempt:",trial))
+#             if(!critve) message(paste("Zve:",zve))
+#             if(!critvg) message(paste("Zvg:",zvg))
+#             if(!critvb) message(paste("Zvb:",zvb))
+#             if(!critpi) message(paste("Zpi:",zpi))
+#             W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
+#             B <- crossprod(scale(W))/(length(ids)-1)
+#             if(shrinkCor) B <- corpcor::cor.shrink(W)
+#             if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
+#             if(checkLD) { 
+#               message("Adjust summary statistics using imputation")
+#               badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
+#                               msize=200, overlap=50, shrink=0.001, threshold=1e-8) 
+#               # badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
+#               #                       msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
+#               # z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
+#               # outliers <- names(z[abs(z)>1.96])
+#               #mask[outliers,trait] <- TRUE
+#               #stat$b[outliers,trait] <- badj[abs(z)>1.96]
+#               #stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
+#               #stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
+#               stat$b[rsids,trait] <- badj
+#               stat$ww[rsids,trait] <- 1/(stat$seb[rsids,trait]^2 + stat$b[rsids,trait]^2/stat$n[rsids,trait])
+#               stat$wy[rsids,trait] <- stat$b[rsids,trait]*stat$ww[rsids,trait]
+#             }
+#             if(pruneLD) {
+#               #if(pruneLD) {
+#               message("Adjust summary statistics using pruning")
+#               pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
+#               mask[pruned,trait] <- TRUE
+#             }
+#             # if(trial==3) {
+#             #   message("Set updateB and updatePi to FALSE")
+#             #   updateB_reg <- FALSE 
+#             #   updatePi_reg <- FALSE 
+#             # }
+#             if(trial>0) {
+#               message("Decrease r2 by a factor 10")
+#               #updateB_reg <- FALSE 
+#               updatePi_reg <- FALSE
+#               r2_reg <- r2_reg*0.1
+#               #pi_reg <- pi_reg*0.1
+#             }
+#           }
+#         }
+#       }
+#       
+#       # Make plots to monitor convergence
+#       if(verbose) {
+#         layout(matrix(1:4,ncol=2))
+#         pipsets <- splitWithOverlap(1:length(rsids),100,99)
+#         pip <- fit$dm
+#         plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
+#         plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
+#         hist(fit$ves, main="Ve", xlab="")
+#         plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
+#         abline(h=0,v=0, lwd=2, col=2, lty=2)
+#       }
+#       
+#       # Save results
+#       bm[[i]] <- fit$bm
+#       dm[[i]] <- fit$dm
+#       pim[[i]] <- fit$pim
+#       ves[[i]] <- fit$ves
+#       vbs[[i]] <- fit$vbs
+#       vgs[[i]] <- fit$vgs
+#       pis[[i]] <- fit$pis
+#       selected <- NULL
+#       if(!is.null(threshold)) selected <- fit$dm>=threshold
+#       if(any(selected)) {
+#         bs[[i]] <- matrix(fit$bs,nrow=length(rsids))
+#         ds[[i]] <- matrix(fit$ds,nrow=length(rsids))
+#         rownames(bs[[i]]) <- rownames(ds[[i]]) <- rsids
+#         colnames(bs[[i]]) <- colnames(ds[[i]]) <- 1:(nit+nburn)
+#         bs[[i]] <- bs[[i]][selected,]
+#         ds[[i]] <- ds[[i]][selected,]
+#       }
+#       names(bm[[i]]) <- names(dm[[i]]) <- rsids
+#     }
+#     fit <- NULL
+#     fit$bm <- bm
+#     fit$dm <- dm
+#     fit$pim <- pim
+#     fit$ves <- ves
+#     fit$vbs <- vbs
+#     fit$vgs <- vgs
+#     fit$pis <- pis
+#     fit$attempts <- attempts
+#     if(!is.null(threshold)) fit$bs <- bs
+#     if(!is.null(threshold)) fit$ds <- ds
+#     
+#   }  
+#   
+#   if(is.null(sets))  { 
+#     
+#     
+#     # Prepare output
+#     bm <- dm <- vector(mode="list",length=22)
+#     ves <- vgs <- vbs <- pis <- bs <- ds <- vector(mode="list",length=22)
+#     pim <- attempts <- vector(mode="list",length=22)
+#     
+#     chromosomes <- 1:22
+#     if(!is.null(chr)) chromosomes <- chr 
+#     
+#     if(is.null(ids)) ids <- Glist$idsLD
+#     if(is.null(ids)) ids <- Glist$ids
+#     
+#     for (chr in chromosomes) {
+#       
+#       message(paste("Processing chromosome:",chr))
+#       rsidsLD <- Glist$rsidsLD[[chr]]
+#       rsidsLD <- rsidsLD[rsidsLD%in%rownames(b)]
+#       sets <- split(rsidsLD, ceiling(seq_along(rsidsLD) / msize))
+#       #if(is.null(ssb_prior)) {
+#       #  h2 <- 0.5
+#       #  pi <- 0.001
+#       #  vy <- 1
+#       #  vg <- h2*vy
+#       #  nub <- 4
+#       #  ww <- 1/(stat$seb^2 + stat$b/stat$n)
+#       #  mx <- sum(ww/mean(stat$n))
+#       #  ssb_prior <- vy*h2*(nub+2)/mx/pi
+#       #}
+#       
+#       if(formatLD=="sparse") {
+#         sparseLD <- getSparseLD(Glist=Glist,chr=chr)
+#       }
+#       
+#       # BLR model for each set
+#       for (i in 1:length(sets)) {
+#         
+#         message(paste("Processing region:",i))
+#         rsids <- sets[[i]]
+#         pos <- getPos(Glist=Glist, chr=chr, rsids=rsids)
+#         message(paste("Region size in Mb:",round((max(pos)-min(pos))/1000000,2)))
+#         if(!is.null(Glist$map)) map <- getMap(Glist=Glist, chr=chr, rsids=rsids)
+#         if(!is.null(Glist$map)) message(paste("Region size in cM:",round(max(map)-min(map),2)))
+#         
+#         if(formatLD=="dense") {
+#           W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
+#           B <- crossprod(scale(W))/(length(ids)-1)
+#           if(shrinkCor) B <- corpcor::cor.shrink(W)
+#           if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
+#           LD <- NULL
+#           #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+#           LD$values <- as.list(as.data.frame(B))
+#           LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
+#           rsids <- colnames(B)
+#           names(LD$values) <- rsids
+#           names(LD$indices) <- rsids
+#           msize_set <- length(rsids)
+#         }
+#         
+#         
+#         
+#         if(formatLD=="sparse") {
+#           B <- regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="dense")
+#           if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
+#           LD <- NULL
+#           #LD$values <- split(B, rep(1:ncol(B), each = nrow(B)))
+#           LD$values <- as.list(as.data.frame(B))
+#           LD$indices <- lapply(1:ncol(B),function(x) { (1:ncol(B))-1 } )
+#           rsids <- colnames(B)
+#           names(LD$values) <- rsids
+#           names(LD$indices) <- rsids
+#           msize_set <- length(rsids)
+#           #LD <- regionLD(sparseLD = sparseLD, onebased=FALSE, rsids=rsids, format="sparse")
+#           #rsids <- LD$rsids
+#           #msize <- length(rsids)
+#         }
+#         
+#         #ntrial <- 5
+#         converged <- FALSE
+#         
+#         updateB_reg <- updateB
+#         updatePi_reg <- updatePi
+#         pi_reg <- pi
+#         
+#         for (trial in 1:ntrial) {
+#           
+#           if (!converged) {
+#             
+#             attempts[[chr]][[i]] <- trial
+#             
+#             
+#             fit <- sbayes_region(yy=yy[trait],
+#                                  wy=stat$wy[rsids,trait],
+#                                  ww=stat$ww[rsids,trait],
+#                                  b=b[rsids,trait],
+#                                  mask=mask[rsids,trait],
+#                                  LDvalues=LD$values,
+#                                  LDindices=LD$indices,
+#                                  method=method,
+#                                  algorithm=algorithm,
+#                                  nit=nit,
+#                                  nburn=nburn,
+#                                  n=n[trait],
+#                                  m=msize_set,
+#                                  pi=pi,
+#                                  nue=nue,
+#                                  nub=nub,
+#                                  ssb_prior=ssb_prior,
+#                                  updateB=updateB_reg,
+#                                  updateE=updateE,
+#                                  updatePi=updatePi_reg,
+#                                  updateG=updateG,
+#                                  adjustE=adjustE)
+#             #   }
+#             
+#             # Check convergence            
+#             critve <- critvg <- critvb <- critpi <- FALSE
+#             if(!updateE) critve <- TRUE
+#             if(!updateG) critvg <- TRUE
+#             if(!updateB) critvb <- TRUE
+#             if(!updatePi) critpi <- TRUE
+#             zve <- coda::geweke.diag(fit$ves[nburn:length(fit$ves)])$z
+#             zvg <- coda::geweke.diag(fit$vgs[nburn:length(fit$vgs)])$z
+#             zvb <- coda::geweke.diag(fit$vbs[nburn:length(fit$vbs)])$z
+#             zpi <- coda::geweke.diag(fit$pis[nburn:length(fit$pis)])$z
+#             if(!is.na(zve)) critve <- abs(zve)<critVe
+#             if(!is.na(zvg)) critvg <- abs(zvg)<critVg
+#             if(!is.na(zvb)) critvb <- abs(zvb)<critVb
+#             if(!is.na(zpi)) critpi <- abs(zpi)<critPi
+#             
+#             critb1 <- fit$dm>0.01 & fit$bm>0 & fit$bm>stat$b[rsids,trait]
+#             critb2 <- fit$dm>0.01 & fit$bm<0 & fit$bm<stat$b[rsids,trait]
+#             critb <- !any(critb1 | critb2)
+#             converged <- critve & critvg & critvb & critpi & critb
+#             
+#             if (!converged & checkConvergence) {
+#               message("")
+#               message(paste("Region not converged in attempt:",trial))
+#               if(!critve) message(paste("Zve:",zve))
+#               if(!critvg) message(paste("Zvg:",zvg))
+#               if(!critvb) message(paste("Zvb:",zvb))
+#               if(!critpi) message(paste("Zpi:",zpi))
+#               W <- getG(Glist=Glist, chr=chr, rsids=rsids, ids=ids, scale=TRUE)
+#               B <- crossprod(scale(W))/(length(ids)-1)
+#               if(shrinkCor) B <- corpcor::cor.shrink(W)
+#               if(shrinkLD) B <- adjustMapLD(LD = B, map=map)
+#               if(checkLD) { 
+#                 # message("Adjust summary statistics using imputation")
+#                 # badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
+#                 #                       msize=500, overlap=100, shrink=0.001, threshold=1e-8) 
+#                 # z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
+#                 # outliers <- names(z[abs(z)>1.96])
+#                 #mask[outliers,trait] <- TRUE
+#                 message("Adjust summary statistics using imputation")
+#                 badj <- adjustB(b=stat$b[rsids,trait], LD = B, 
+#                                 msize=200, overlap=50, shrink=0.001, threshold=1e-8) 
+#                 #z <- (badj-stat$b[rsids,trait])/stat$seb[rsids,trait]
+#                 #outliers <- names(z[abs(z)>1.96])
+#                 #mask[outliers,trait] <- TRUE
+#                 #stat$b[outliers,trait] <- badj[abs(z)>1.96]
+#                 #stat$ww[outliers,trait] <- 1/(stat$seb[outliers,trait]^2 + stat$b[outliers,trait]^2/stat$n[outliers,trait])
+#                 #stat$wy[outliers,trait] <- stat$b[outliers,trait]*stat$ww[outliers,trait]
+#                 stat$b[rsids,trait] <- badj
+#                 stat$ww[rsids,trait] <- 1/(stat$seb[rsids,trait]^2 + stat$b[rsids,trait]^2/stat$n[rsids,trait])
+#                 stat$wy[rsids,trait] <- stat$b[rsids,trait]*stat$ww[rsids,trait]
+#               }
+#               #if(pruneLD) {
+#               if(pruneLD) {
+#                 message("Adjust summary statistics using pruning")
+#                 pruned <- adjLDregion(LD=B, p=stat$p[rsids,trait], r2=r2, thold=1) 
+#                 mask[pruned,trait] <- TRUE
+#               }
+#               # if(trial==3) {
+#               #   message("Set updateB and updatePi to FALSE")
+#               #   updateB_reg <- FALSE 
+#               #   updatePi_reg <- FALSE 
+#               # }
+#               if(trial>1) {
+#                 message("Decrease Pi by a factor 10")
+#                 #updateB_reg <- FALSE 
+#                 updatePi_reg <- FALSE
+#                 pi_reg <- pi_reg*0.1
+#               }
+#             }
+#           }
+#         }
+#         
+#         # Make plots to monitor convergence
+#         if(verbose) {
+#           layout(matrix(1:4,ncol=2))
+#           pipsets <- splitWithOverlap(1:length(rsids),100,99)
+#           #pip <- sapply(pipsets,function(x){sum(fit$dm[x])})
+#           pip <- fit$dm
+#           plot(pip, ylim=c(0,max(pip)), ylab="PIP",xlab="Position", frame.plot=FALSE)
+#           plot(-log10(stat$p[rsids,trait]), ylab="-log10(P)",xlab="Position", frame.plot=FALSE)
+#           hist(fit$ves, main="Ve", xlab="")
+#           plot(y=fit$bm, x=stat$b[rsids,trait], ylab="Adjusted",xlab="Marginal", frame.plot=FALSE)
+#           abline(h=0,v=0, lwd=2, col=2, lty=2)
+#         }
+#         
+#         # Save results
+#         bm[[chr]][[i]] <- fit$bm
+#         dm[[chr]][[i]] <- fit$dm
+#         pim[[chr]][[i]] <- fit$pim
+#         ves[[chr]][[i]] <- fit$ves
+#         vbs[[chr]][[i]] <- fit$vbs
+#         vgs[[chr]][[i]] <- fit$vgs
+#         pis[[chr]][[i]] <- fit$pis
+#         #bs[[chr]][[i]] <- matrix(fit$bs,nrow=length(rsids))
+#         #ds[[chr]][[i]] <- matrix(fit$ds,nrow=length(rsids))
+#         #rownames(bs[[chr]][[i]]) <- rownames(ds[[chr]][[i]]) <- rsids
+#         #colnames(bs[[chr]][[i]]) <- colnames(ds[[chr]][[i]]) <- 1:nit
+#         selected <- NULL
+#         if(!is.null(threshold)) selected <- fit$dm>=threshold
+#         if(any(selected)) {
+#           bs[[chr]][[i]] <- matrix(fit$bs,nrow=length(rsids))
+#           ds[[chr]][[i]] <- matrix(fit$ds,nrow=length(rsids))
+#           rownames(bs[[chr]][[i]]) <- rownames(ds[[chr]][[i]]) <- rsids
+#           colnames(bs[[chr]][[i]]) <- colnames(ds[[chr]][[i]]) <- 1:(nit+nburn)
+#           bs[[chr]][[i]] <- bs[[chr]][[i]][selected,]
+#           ds[[chr]][[i]] <- ds[[chr]][[i]][selected,]
+#         }
+#         names(bm[[chr]][[i]]) <- names(dm[[chr]][[i]]) <- rsids
+#       }
+#     }
+#     
+#     fit <- NULL
+#     fit$bm <- unlist(bm, recursive=FALSE)
+#     fit$dm <- unlist(dm, recursive=FALSE)
+#     fit$pim <- unlist(pim, recursive=FALSE)
+#     fit$ves <- unlist(ves, recursive=FALSE)
+#     fit$vbs <- unlist(vbs, recursive=FALSE)
+#     fit$vgs <- unlist(vgs, recursive=FALSE)
+#     fit$pis <- unlist(pis, recursive=FALSE)
+#     fit$attempts <- unlist(attempts, recursive=TRUE)
+#     if(!is.null(threshold)) fit$bs <- unlist(bs, recursive=FALSE)
+#     if(!is.null(threshold)) fit$ds <- unlist(ds, recursive=FALSE)
+#   }
+#   
+#   
+#   pip <- sapply(fit$dm,sum)
+#   minb <- sapply(fit$bm,min)
+#   maxb <- sapply(fit$bm,max)
+#   m <- sapply(fit$bm,length)
+#   
+#   bm <- unlist(unname(fit$bm))
+#   dm <- unlist(unname(fit$dm))
+#   #selected <- dm>0
+#   #bm <- bm[selected]
+#   #dm <- dm[selected]
+#   marker <- data.frame(rsids=unlist(Glist$rsids),
+#                        chr=unlist(Glist$chr), pos=unlist(Glist$pos), 
+#                        ea=unlist(Glist$a1), nea=unlist(Glist$a2),
+#                        eaf=unlist(Glist$af),stringsAsFactors = FALSE)
+#   marker <- marker[marker$rsids%in%names(bm),]
+#   fit$stat <- data.frame(marker,bm=bm[marker$rsids],
+#                          dm=dm[marker$rsids], stringsAsFactors = FALSE)
+#   fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
+#   fit$method <- methods[method+1]
+#   fit$mask <- mask
+#   zve <- sapply(fit$ves,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+#   zvg <- sapply(fit$vgs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+#   zvb <- sapply(fit$vbs,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+#   zpi <- sapply(fit$pis,function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+#   ve <- sapply(fit$ves,function(x){mean(x[nburn:length(x)])})
+#   vg <- sapply(fit$vgs,function(x){mean(x[nburn:length(x)])})
+#   vb <- sapply(fit$vbs,function(x){mean(x[nburn:length(x)])})
+#   pi <- sapply(fit$pim,function(x){1-x[1]})
+#   
+#   if(!is.null(Glist$map)) map <- unlist(Glist$map)
+#   pos <- unlist(Glist$pos)
+#   sets <- lapply(fit$bm,names)
+#   setsindex <- mapSets(sets=sets, rsids=unlist(Glist$rsids))
+#   if(!is.null(Glist$map)) cm <- sapply(setsindex, function(x){ max(map[x])-min(map[x]) })
+#   mb <- sapply(setsindex, function(x){ (max(pos[x])-min(pos[x]))/1000000 })
+#   minmb <- sapply(setsindex, function(x){ min(pos[x]) })
+#   maxmb <- sapply(setsindex, function(x){ max(pos[x]) })
+#   
+#   chr <- unlist(Glist$chr)
+#   chr <- sapply(setsindex,function(x){as.numeric(unique(chr[x]))})
+#   
+#   b <- stat[fit$stat$rsids,"b"]
+#   
+#   #fit$region <-  NULL
+#   fit$conv <- data.frame(zve=zve,zvg=zvg, zvb=zvb, zpi=zpi)  
+#   if(is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, chr=chr, minmb=minmb, maxmb=maxmb)  
+#   if(!is.null(Glist$map)) fit$post <- data.frame(ve=ve,vg=vg, vb=vb, pi=pi, pip=pip, minb=minb, maxb=maxb, m=m, mb=mb, cm=cm, chr=chr, minmb=minmb, maxmb=maxmb)  
+#   rownames(fit$conv) <- rownames(fit$post) <- names(sets) 
+#   fit$ve <- mean(ve)
+#   fit$vg <- sum(vg)
+#   fit$b <- b
+#   return(fit)
+# }
+# 
+# 
+# 
