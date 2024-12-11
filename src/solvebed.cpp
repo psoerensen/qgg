@@ -67,7 +67,7 @@ std::vector<std::vector<double>> solvebed( const char* file,
   }
   free( buffer );
   fclose( file_stream );
-  
+  //file_stream = NULL;
   
   //std::cout << "  " << "\n";
   //std::cout << "Starting solver" << "\n";
@@ -99,10 +99,9 @@ std::vector<std::vector<double>> solvebed( const char* file,
     }
     //std::cout << "Finished iteration: " << it + 1 << "\n";
     //std::cout << "Convergence: " << conv << "\n";
-    
   }
-  
-  fclose( file_stream );
+  //fclose(file_stream);
+  //file_stream = NULL;
   
   // Summarize results
   std::vector<std::vector<double>> result(2);
@@ -184,7 +183,7 @@ std::vector<std::vector<std::vector<double>>> mtsolvebed( const char* file,
   }
   free( buffer );
   fclose( file_stream );
-  
+  file_stream = NULL;
   
   //std::cout << "  " << "\n";
   //std::cout << "Starting solver" << "\n";
