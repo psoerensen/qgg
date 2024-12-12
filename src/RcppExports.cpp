@@ -38,20 +38,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// getWlist
-std::vector<std::vector<double>> getWlist(const char* file, int n, std::vector<int> cls, std::vector<double> af);
-RcppExport SEXP _qgg_getWlist(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type af(afSEXP);
-    rcpp_result_gen = Rcpp::wrap(getWlist(file, n, cls, af));
-    return rcpp_result_gen;
-END_RCPP
-}
 // freqbed
 IntegerMatrix freqbed(const char* file, int n, std::vector<int> mask, std::vector<int> cls);
 RcppExport SEXP _qgg_freqbed(SEXP fileSEXP, SEXP nSEXP, SEXP maskSEXP, SEXP clsSEXP) {
@@ -83,8 +69,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // bayes
-std::vector<std::vector<double>> bayes(std::vector<double> y, std::vector<std::vector<double>> W, std::vector<double> b, std::vector<double> lambda, std::vector<double> pi, std::vector<double> gamma, double vg, double vb, double ve, double ssb_prior, double sse_prior, double nub, double nue, bool updateB, bool updateE, bool updatePi, int nit, int nburn, int nthin, int method, int seed);
-RcppExport SEXP _qgg_bayes(SEXP ySEXP, SEXP WSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP piSEXP, SEXP gammaSEXP, SEXP vgSEXP, SEXP vbSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nitSEXP, SEXP nburnSEXP, SEXP nthinSEXP, SEXP methodSEXP, SEXP seedSEXP) {
+std::vector<std::vector<double>> bayes(std::vector<double> y, std::vector<std::vector<double>> W, std::vector<double> b, std::vector<double> lambda, std::vector<double> pi, std::vector<double> gamma, double vb, double vg, double ve, double ssb_prior, double ssg_prior, double sse_prior, double nub, double nug, double nue, bool updateB, bool updateG, bool updateE, bool updatePi, int nit, int nburn, int nthin, int method, int seed);
+RcppExport SEXP _qgg_bayes(SEXP ySEXP, SEXP WSEXP, SEXP bSEXP, SEXP lambdaSEXP, SEXP piSEXP, SEXP gammaSEXP, SEXP vbSEXP, SEXP vgSEXP, SEXP veSEXP, SEXP ssb_priorSEXP, SEXP ssg_priorSEXP, SEXP sse_priorSEXP, SEXP nubSEXP, SEXP nugSEXP, SEXP nueSEXP, SEXP updateBSEXP, SEXP updateGSEXP, SEXP updateESEXP, SEXP updatePiSEXP, SEXP nitSEXP, SEXP nburnSEXP, SEXP nthinSEXP, SEXP methodSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -94,14 +80,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector<double> >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type pi(piSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type gamma(gammaSEXP);
-    Rcpp::traits::input_parameter< double >::type vg(vgSEXP);
     Rcpp::traits::input_parameter< double >::type vb(vbSEXP);
+    Rcpp::traits::input_parameter< double >::type vg(vgSEXP);
     Rcpp::traits::input_parameter< double >::type ve(veSEXP);
     Rcpp::traits::input_parameter< double >::type ssb_prior(ssb_priorSEXP);
+    Rcpp::traits::input_parameter< double >::type ssg_prior(ssg_priorSEXP);
     Rcpp::traits::input_parameter< double >::type sse_prior(sse_priorSEXP);
     Rcpp::traits::input_parameter< double >::type nub(nubSEXP);
+    Rcpp::traits::input_parameter< double >::type nug(nugSEXP);
     Rcpp::traits::input_parameter< double >::type nue(nueSEXP);
     Rcpp::traits::input_parameter< bool >::type updateB(updateBSEXP);
+    Rcpp::traits::input_parameter< bool >::type updateG(updateGSEXP);
     Rcpp::traits::input_parameter< bool >::type updateE(updateESEXP);
     Rcpp::traits::input_parameter< bool >::type updatePi(updatePiSEXP);
     Rcpp::traits::input_parameter< int >::type nit(nitSEXP);
@@ -109,7 +98,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type nthin(nthinSEXP);
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(bayes(y, W, b, lambda, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, nburn, nthin, method, seed));
+    rcpp_result_gen = Rcpp::wrap(bayes(y, W, b, lambda, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, nit, nburn, nthin, method, seed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -291,18 +280,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// mmult
-arma::mat mmult(arma::mat A, arma::mat B);
-RcppExport SEXP _qgg_mmult(SEXP ASEXP, SEXP BSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
-    rcpp_result_gen = Rcpp::wrap(mmult(A, B));
-    return rcpp_result_gen;
-END_RCPP
-}
 // mvrnormARMA
 arma::mat mvrnormARMA(arma::mat sigma);
 RcppExport SEXP _qgg_mvrnormARMA(SEXP sigmaSEXP) {
@@ -463,48 +440,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(mtsolvebed(file, n, cls, nit, af, b, lambda, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// pruneld
-std::vector<int> pruneld(const char* file, int ldsize, std::vector<int> cls, std::vector<float> p, float threshold, float r2);
-RcppExport SEXP _qgg_pruneld(SEXP fileSEXP, SEXP ldsizeSEXP, SEXP clsSEXP, SEXP pSEXP, SEXP thresholdSEXP, SEXP r2SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
-    Rcpp::traits::input_parameter< int >::type ldsize(ldsizeSEXP);
-    Rcpp::traits::input_parameter< std::vector<int> >::type cls(clsSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type p(pSEXP);
-    Rcpp::traits::input_parameter< float >::type threshold(thresholdSEXP);
-    Rcpp::traits::input_parameter< float >::type r2(r2SEXP);
-    rcpp_result_gen = Rcpp::wrap(pruneld(file, ldsize, cls, p, threshold, r2));
-    return rcpp_result_gen;
-END_RCPP
-}
-// pruneldmat
-std::vector<std::vector<std::vector<int>>> pruneldmat(const char* file, int ldsize, std::vector<std::vector<float>> p, std::vector<float> threshold, float r2);
-RcppExport SEXP _qgg_pruneldmat(SEXP fileSEXP, SEXP ldsizeSEXP, SEXP pSEXP, SEXP thresholdSEXP, SEXP r2SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
-    Rcpp::traits::input_parameter< int >::type ldsize(ldsizeSEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<float>> >::type p(pSEXP);
-    Rcpp::traits::input_parameter< std::vector<float> >::type threshold(thresholdSEXP);
-    Rcpp::traits::input_parameter< float >::type r2(r2SEXP);
-    rcpp_result_gen = Rcpp::wrap(pruneldmat(file, ldsize, p, threshold, r2));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cp
-arma::mat cp(arma::mat& W);
-RcppExport SEXP _qgg_cp(SEXP WSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type W(WSEXP);
-    rcpp_result_gen = Rcpp::wrap(cp(W));
     return rcpp_result_gen;
 END_RCPP
 }
