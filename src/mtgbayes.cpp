@@ -11,7 +11,6 @@ using namespace arma;
 #include <numeric>
 #include <random>
 
-// [[Rcpp::export]]
 arma::mat mmult(arma::mat A, arma::mat B) {
   return A * B;
 }
