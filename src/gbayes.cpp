@@ -50,14 +50,17 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
                                            std::vector<double> lambda, 
                                            std::vector<double> pi, 
                                            std::vector<double> gamma, 
-                                           double vg, 
                                            double vb, 
+                                           double vg, 
                                            double ve,
                                            double ssb_prior,
+                                           double ssg_prior,
                                            double sse_prior,
                                            double nub,
+                                           double nug,
                                            double nue,
                                            bool updateB,
+                                           bool updateG,
                                            bool updateE,
                                            bool updatePi,
                                            int nit,
@@ -72,10 +75,10 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   int nc = pi.size();
   double nsamples=0.0;
   
-  double rhs, lhs, bn, conv, diff, mu;
+  double rhs, lhs, bn, diff, mu;
   double rhs0, rhs1, lhs0, lhs1, like0, like1, p0;
   double ssb, ssg, sse, dfb, dfe, dfg, chi2;
-  double ssg_prior, nug;
+  //double ssg_prior, nug;
   double lambda_tau, mu_tau, u, lambda2;
   //double shape, shape0, rate, rate0, lambda2;
   
@@ -126,9 +129,6 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     vbi[i]=vb;
   }
   
-  nug=nub;
-  ssg_prior=((nug-2.0)/nug)*vg;
-  
   lambda2 = m;
   
   // Establish order of markers as they are entered into the model
@@ -143,8 +143,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   std::mt19937 gen(seed);
 
   for ( int it = 0; it < nit+nburn; it++) {
-    conv = 0.0;
-
+    
     if ( (it > nburn) && (it % nthin == 0) ) {
       nsamples = nsamples + 1.0;
     }
@@ -237,7 +236,6 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
         for (int j = 0; j < n; j++) {
           e[j]=e[j] - W[i][j]*(diff);
         }
-        conv = conv + diff*diff;
         b[i] = bn;
       }
     }
@@ -274,7 +272,6 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
             e[j]=e[j] - W[i][j]*(diff);
           }
         }
-        conv = conv + diff*diff;
         b[i] = bn;
       }
 
@@ -356,7 +353,6 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
             e[j]=e[j] - W[i][j]*(diff);
           }
         }
-        conv = conv + diff*diff;
         b[i] = bn;
       }
       // Sample pi for Bayes R
@@ -428,17 +424,6 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
       for ( int j = 0; j < n; j++) {
         sse = sse + e[j]*e[j];
       }
-      // if(method==3) {
-      //   // Park & Casella - Campos et al.
-      //   ssb=0.0;
-      //   dfb=0.0;
-      //   for ( int i = 0; i < m; i++) {
-      //     ssb = ssb + b[i]*(1.0/lambda[i])*b[i]/ve;
-      //     dfb = dfb + 1.0;
-      //   }
-      //   sse=sse+ssb;
-      //   dfe=dfe+dfb;
-      // }
       std::chi_squared_distribution<double> rchisq(dfe);
       chi2 = rchisq(gen);
       ve = (sse + sse_prior*nue)/chi2 ;
