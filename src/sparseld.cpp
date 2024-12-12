@@ -3,7 +3,6 @@
 using namespace Rcpp;
 
 
-// [[Rcpp::export]]
 std::vector<int> pruneld( const char* file,
                           int ldsize,
                           std::vector<int> cls,
@@ -55,7 +54,6 @@ std::vector<int> pruneld( const char* file,
   return mask2;
 }
 
-// [[Rcpp::export]]
 std::vector<std::vector<std::vector<int>>> pruneldmat( const char* file,
                                                        int ldsize,
                                                        std::vector<std::vector<float>> p,
