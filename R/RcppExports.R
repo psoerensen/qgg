@@ -9,10 +9,6 @@ readW <- function(file, n, cls, af) {
     .Call(`_qgg_readW`, file, n, cls, af)
 }
 
-getWlist <- function(file, n, cls, af) {
-    .Call(`_qgg_getWlist`, file, n, cls, af)
-}
-
 freqbed <- function(file, n, mask, cls) {
     .Call(`_qgg_freqbed`, file, n, mask, cls)
 }
@@ -21,8 +17,8 @@ summarybed <- function(file, n, cls, af, weights, y) {
     .Call(`_qgg_summarybed`, file, n, cls, af, weights, y)
 }
 
-bayes <- function(y, W, b, lambda, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, nburn, nthin, method, seed) {
-    .Call(`_qgg_bayes`, y, W, b, lambda, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, nit, nburn, nthin, method, seed)
+bayes <- function(y, W, b, lambda, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, nit, nburn, nthin, method, seed) {
+    .Call(`_qgg_bayes`, y, W, b, lambda, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, nit, nburn, nthin, method, seed)
 }
 
 sbayes <- function(wy, LD, b, lambda, yy, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method) {
@@ -47,10 +43,6 @@ grsbed <- function(file, n, cls, af, b) {
 
 mtgrsbed <- function(file, n, cls, af, scale, b) {
     .Call(`_qgg_mtgrsbed`, file, n, cls, af, scale, b)
-}
-
-mmult <- function(A, B) {
-    .Call(`_qgg_mmult`, A, B)
 }
 
 mvrnormARMA <- function(sigma) {
@@ -83,18 +75,6 @@ solvebed <- function(file, n, cls, nit, af, b, lambda, y) {
 
 mtsolvebed <- function(file, n, cls, nit, af, b, lambda, y) {
     .Call(`_qgg_mtsolvebed`, file, n, cls, nit, af, b, lambda, y)
-}
-
-pruneld <- function(file, ldsize, cls, p, threshold, r2) {
-    .Call(`_qgg_pruneld`, file, ldsize, cls, p, threshold, r2)
-}
-
-pruneldmat <- function(file, ldsize, p, threshold, r2) {
-    .Call(`_qgg_pruneldmat`, file, ldsize, p, threshold, r2)
-}
-
-cp <- function(W) {
-    .Call(`_qgg_cp`, W)
 }
 
 psets <- function(msets, setstat, stat, np) {
