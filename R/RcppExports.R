@@ -21,20 +21,16 @@ bayes <- function(y, W, b, lambda, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, 
     .Call(`_qgg_bayes`, y, W, b, lambda, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, nit, nburn, nthin, method, seed)
 }
 
-sbayes <- function(wy, LD, b, lambda, yy, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method) {
-    .Call(`_qgg_sbayes`, wy, LD, b, lambda, yy, pi, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, n, nit, method)
+sbayes <- function(yy, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vg, vb, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, adjustE, n, nit, nburn, nthin, method, algo, seed) {
+    .Call(`_qgg_sbayes`, yy, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vg, vb, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, adjustE, n, nit, nburn, nthin, method, algo, seed)
 }
 
-sbayes_spa <- function(wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, nburn, nthin, method, algo, seed) {
-    .Call(`_qgg_sbayes_spa`, wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vg, vb, ve, ssb_prior, sse_prior, nub, nue, updateB, updateE, updatePi, updateG, adjustE, n, nit, nburn, nthin, method, algo, seed)
+sbayes_reg <- function(yy, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, n, nit, nburn, nthin, method, algo, seed) {
+    .Call(`_qgg_sbayes_reg`, yy, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, n, nit, nburn, nthin, method, algo, seed)
 }
 
-sbayes_reg <- function(wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateE, updatePi, updateG, n, nit, nburn, nthin, method, algo, seed) {
-    .Call(`_qgg_sbayes_reg`, wy, ww, LDvalues, LDindices, b, lambda, mask, yy, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateE, updatePi, updateG, n, nit, nburn, nthin, method, algo, seed)
-}
-
-sbayes_reg_eigen <- function(wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateE, updatePi, updateG, n, nit, nburn, nthin, method, algo, seed) {
-    .Call(`_qgg_sbayes_reg_eigen`, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateE, updatePi, updateG, n, nit, nburn, nthin, method, algo, seed)
+sbayes_reg_eigen <- function(wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, n, nit, nburn, nthin, method, algo, seed) {
+    .Call(`_qgg_sbayes_reg_eigen`, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, n, nit, nburn, nthin, method, algo, seed)
 }
 
 grsbed <- function(file, n, cls, af, b) {

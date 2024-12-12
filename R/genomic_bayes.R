@@ -577,7 +577,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL,
                           n=NULL, m=NULL, 
                           h2=NULL, pi=NULL, lambda=NULL, mask=NULL,
                           vb=NULL, vg=NULL, ve=NULL, 
-                          nub=NULL, nug=NULL, nue=NULL, 
+                          nub=4, nug=4, nue=4, 
                           ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL, 
                           updateB=NULL, updateG=NULL, updateE=NULL, updatePi=NULL, adjustE=NULL, 
                           nit=NULL, nburn=NULL, nthin=1, 
@@ -605,7 +605,8 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL,
 
   seed <- sample.int(.Machine$integer.max, 1)
   
-  fit <- .Call("_qgg_sbayes_spa",
+  fit <- .Call("_qgg_sbayes",
+               yy=yy,
                wy=wy, 
                ww=ww, 
                LDvalues=LDvalues, 
@@ -613,20 +614,21 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL,
                b = b,
                lambda = lambda,
                mask=mask,
-               yy = yy,
                pi = pi,
                gamma = gamma,
-               vg = vg,
                vb = vb,
+               vg = vg,
                ve = ve,
                ssb_prior=ssb_prior,
+               ssg_prior=ssg_prior,
                sse_prior=sse_prior,
                nub=nub,
+               nug=nug,
                nue=nue,
                updateB = updateB,
+               updateG = updateG,
                updateE = updateE,
                updatePi = updatePi,
-               updateG = updateG,
                adjustE = adjustE,
                n=n,
                nit=nit,
@@ -635,6 +637,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL,
                method=as.integer(method),
                algo=as.integer(algorithm),
                seed=seed)
+  
   names(fit[[1]]) <- names(LDvalues)
   names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
   return(fit)
@@ -646,8 +649,8 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL,
 blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                      mask=NULL, lambda=NULL,
                      vg=NULL, vb=NULL, ve=NULL, h2=NULL, pi=NULL,
-                     ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
-                     updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
+                     ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL, nub=4, nug=4, nue=4,
+                     updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, 
                      adjustE=TRUE, models=NULL,
                      nit=500, nburn=100, nthin=1, method="bayesC", algorithm="mcmc", verbose=FALSE) {
   
@@ -685,6 +688,7 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   if(is.null(lambda)) lambda <- rep(ve/vb,m)
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(is.null(ssg_prior)) ssg_prior <- ((nug-2.0)/nug)*vg
   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
   if(is.null(b)) b <- rep(0,m)
   
@@ -695,28 +699,30 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
   
   seed <- sample.int(.Machine$integer.max, 1)
   
-  fit <- .Call("_qgg_sbayes_spa",
-               wy=Xy,
-               ww=xx,
-               LDvalues=XXvalues,
-               LDindices=XXindices,
+  fit <- .Call("_qgg_sbayes",
+               yy=yy,
+               wy=Xy, 
+               ww=xx, 
+               LDvalues=XXvalues, 
+               LDindices=XXindices, 
                b = b,
                lambda = lambda,
                mask=mask,
-               yy = yy,
                pi = pi,
                gamma = gamma,
-               vg = vg,
                vb = vb,
+               vg = vg,
                ve = ve,
                ssb_prior=ssb_prior,
+               ssg_prior=ssg_prior,
                sse_prior=sse_prior,
                nub=nub,
+               nug=nug,
                nue=nue,
                updateB = updateB,
+               updateG = updateG,
                updateE = updateE,
                updatePi = updatePi,
-               updateG = updateG,
                adjustE = adjustE,
                n=n,
                nit=nit,
@@ -923,6 +929,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       
       if(algorithm==1) {
         fit <- .Call("_qgg_sbayes_reg",
+                     yy=yy,
                      wy=stat$wy[rws],
                      ww=stat$ww[rws],
                      LDvalues=LDvalues,
@@ -930,7 +937,6 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                      b = b,
                      lambda = lambda,
                      mask=mask,
-                     yy = yy,
                      pi = pi,
                      gamma = gamma,
                      vb = vb,
@@ -943,9 +949,9 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                      nug=nug,
                      nue=nue,
                      updateB = updateB,
+                     updateG = updateG,
                      updateE = updateE,
                      updatePi = updatePi,
-                     updateG = updateG,
                      n=n,
                      nit=nit,
                      nburn=nburn,
@@ -975,9 +981,9 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                      nug=nug,
                      nue=nue,
                      updateB = updateB,
+                     updateG = updateG,
                      updateE = updateE,
                      updatePi = updatePi,
-                     updateG = updateG,
                      n=n,
                      nit=nit,
                      nburn=nburn,
@@ -1783,7 +1789,7 @@ sblr <- function(stat=NULL, b=NULL, seb=NULL, n=NULL, vy=1,
                  LD=NULL, LDvalues=NULL,LDindices=NULL,
                  mask=NULL, lambda=NULL,
                  vg=NULL, vb=NULL, ve=NULL, h2=NULL, pi=NULL,
-                 ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
+                 ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL, nub=4,  nug=4, nue=4,
                  updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
                  adjustE=TRUE, models=NULL,
                  nit=500, nburn=100, nthin=1, method="bayesC", algorithm=1, verbose=FALSE) {
@@ -1832,6 +1838,7 @@ sblr <- function(stat=NULL, b=NULL, seb=NULL, n=NULL, vy=1,
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+  if(is.null(ssg_prior)) ssg_prior <- ((nug-2.0)/nug)*vg
   if(is.null(b)) b <- rep(0,m)
   
   pi <- c(1-pi,pi)
@@ -1841,7 +1848,8 @@ sblr <- function(stat=NULL, b=NULL, seb=NULL, n=NULL, vy=1,
   
   seed <- sample.int(.Machine$integer.max, 1)
   
-  fit <- .Call("_qgg_sbayes_spa",
+  fit <- .Call("_qgg_sbayes",
+               yy=yy,
                wy=wy,
                ww=ww,
                LDvalues=LD$values,
@@ -1849,20 +1857,21 @@ sblr <- function(stat=NULL, b=NULL, seb=NULL, n=NULL, vy=1,
                b = b,
                lambda = lambda,
                mask=mask,
-               yy = yy,
                pi = pi,
                gamma = gamma,
-               vg = vg,
                vb = vb,
+               vg = vg,
                ve = ve,
                ssb_prior=ssb_prior,
+               ssg_prior=ssg_prior,
                sse_prior=sse_prior,
                nub=nub,
+               nug=nug,
                nue=nue,
                updateB = updateB,
+               updateG = updateG,
                updateE = updateE,
                updatePi = updatePi,
-               updateG = updateG,
                adjustE = adjustE,
                n=n, 
                nit=nit,
@@ -2203,68 +2212,6 @@ mtbayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, 
 }
 
 
-computeB <- function(wy=NULL, yy=NULL, b=NULL, WW=NULL, n=NULL,
-                     vb=NULL, vg=NULL, ve=NULL, lambda=NULL, 
-                     ssb_prior=NULL, sse_prior=NULL, 
-                     nub=NULL, nue=NULL, 
-                     h2=NULL, pi=NULL, 
-                     updateB=NULL, updateE=NULL, updatePi=NULL,
-                     nit=NULL, nburn=NULL, method=NULL) {
-  
-  m <- ncol(WW)
-  
-  if(is.null(pi)) pi <- 0.001
-  if(is.null(h2)) h2 <- 0.5
-  
-  if(is.null(ve)) ve <- 1
-  if(method<4 && is.null(vb)) vb <- (ve*h2)/m
-  if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
-  if(is.null(lambda)) lambda <- rep(ve/vb,m)
-  if(is.null(vg)) vg <- ve*h2
-  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
-  if(is.null(sse_prior)) sse_prior <- nue*ve
-  if(is.null(b)) b <- rep(0,m)
-  
-  fit <- .Call("_qgg_sbayes",
-               wy=wy, 
-               LD=split(WW, rep(1:ncol(WW), each = nrow(WW))), 
-               b = b,
-               lambda = lambda,
-               yy = yy,
-               pi = pi,
-               vg = vg,
-               vb = vb,
-               ve = ve,
-               ssb_prior=ssb_prior,
-               sse_prior=sse_prior,
-               nub=nub,
-               nue=nue,
-               updateB = updateB,
-               updateE = updateE,
-               updatePi = updatePi,
-               n=n,
-               nit=nit,
-               method=as.integer(method))
-  
-  names(fit[[1]]) <- rownames(WW)
-  stop("Check names of fit again")
-  names(fit) <- c("bm","dm","mus","vbs","ves","pis","wy","r","param","b")
-  
-  return(fit)
-  
-}
-
-computeWy <- function(y=NULL, Glist = NULL, chr = NULL, cls = NULL) {
-  wy <- cvs(y=y,Glist=Glist,chr=chr,cls=cls)$wy
-  return(wy)
-}
-
-computeWW <- function(Glist = NULL, chr = NULL, cls = NULL, rws=NULL, scale=TRUE) { 
-  W <- getG(Glist=Glist, chr=chr, cls=cls, scale=scale)
-  WW <- crossprod(W[rws,])
-  return(WW)
-}
 
 cvarspm <- function( spm ) {
   stopifnot( methods::is( spm, "dgCMatrix" ) )
@@ -4352,3 +4299,65 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
 #   return(fit)
 # }
 
+# computeB <- function(wy=NULL, yy=NULL, b=NULL, WW=NULL, n=NULL,
+#                      vb=NULL, vg=NULL, ve=NULL, lambda=NULL, 
+#                      ssb_prior=NULL, sse_prior=NULL, 
+#                      nub=NULL, nue=NULL, 
+#                      h2=NULL, pi=NULL, 
+#                      updateB=NULL, updateE=NULL, updatePi=NULL,
+#                      nit=NULL, nburn=NULL, method=NULL) {
+#   
+#   m <- ncol(WW)
+#   
+#   if(is.null(pi)) pi <- 0.001
+#   if(is.null(h2)) h2 <- 0.5
+#   
+#   if(is.null(ve)) ve <- 1
+#   if(method<4 && is.null(vb)) vb <- (ve*h2)/m
+#   if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+#   if(is.null(lambda)) lambda <- rep(ve/vb,m)
+#   if(is.null(vg)) vg <- ve*h2
+#   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+#   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
+#   if(is.null(sse_prior)) sse_prior <- nue*ve
+#   if(is.null(b)) b <- rep(0,m)
+#   
+#   fit <- .Call("_qgg_sbayes",
+#                wy=wy, 
+#                LD=split(WW, rep(1:ncol(WW), each = nrow(WW))), 
+#                b = b,
+#                lambda = lambda,
+#                yy = yy,
+#                pi = pi,
+#                vg = vg,
+#                vb = vb,
+#                ve = ve,
+#                ssb_prior=ssb_prior,
+#                sse_prior=sse_prior,
+#                nub=nub,
+#                nue=nue,
+#                updateB = updateB,
+#                updateE = updateE,
+#                updatePi = updatePi,
+#                n=n,
+#                nit=nit,
+#                method=as.integer(method))
+#   
+#   names(fit[[1]]) <- rownames(WW)
+#   stop("Check names of fit again")
+#   names(fit) <- c("bm","dm","mus","vbs","ves","pis","wy","r","param","b")
+#   
+#   return(fit)
+#   
+# }
+# 
+# computeWy <- function(y=NULL, Glist = NULL, chr = NULL, cls = NULL) {
+#   wy <- cvs(y=y,Glist=Glist,chr=chr,cls=cls)$wy
+#   return(wy)
+# }
+# 
+# computeWW <- function(Glist = NULL, chr = NULL, cls = NULL, rws=NULL, scale=TRUE) { 
+#   W <- getG(Glist=Glist, chr=chr, cls=cls, scale=scale)
+#   WW <- crossprod(W[rws,])
+#   return(WW)
+# }
