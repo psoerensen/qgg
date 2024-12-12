@@ -211,65 +211,65 @@ NumericMatrix readW( const char* file,
 }
 
 
-// [[Rcpp::export]]
-std::vector<std::vector<double>> getWlist( const char* file, 
-                                          int n, 
-                                          std::vector<int> cls, 
-                                          std::vector<double> af) {
-  
-  
-  FILE *file_stream = fopen( file, "rb" );
-  
-  int m = cls.size();
-  
-  size_t nbytes_read;
-  size_t nbytes = ( n + 3 ) / 4;
-  //size_t nbytes = ceil( n  / 4);
-  
-  unsigned char *buffer = (unsigned char *) malloc( nbytes );
-  unsigned char buf_k; 
-  
-  std::vector<std::vector<double>> g(m, std::vector<double>(n, 0.0));
-  std::vector<double> map(4);
-  
-  
-  ////////////////////////////////////////////////////////////////////////
-  //  00 01 10 11         bit level  corresponds to
-  //  0  1  2  3          xij level  corresponds to
-  //  2  NA  1  0         number of copies of first allele in bim file
-  ////////////////////////////////////////////////////////////////////////
-  
-  //std::cout << "  " << "\n";
-  //std::cout << "Reading genotypes" << "\n";
-  //std::cout << "  " << "\n";
-  
-  for (int i = 0; i < m; i++) {
-    // cls[i] is 1-based
-    long int offset = (cls[i]-1)*nbytes + 3;
-    fseek( file_stream, offset, SEEK_SET );
-    nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
-    if (nbytes_read != nbytes) {
-      Rcerr << "Error reading data: nbytes_read != nbytes" << "\n";
-    }
-    int j = 0; 
-    map[0] = 2.0 - 2.0*af[i];
-    map[1] = 0.0;
-    map[2] = 1.0 - 2.0*af[i];
-    map[3] = -2.0*af[i];
-    for (size_t k = 0; k < nbytes; k++) {
-      buf_k = buffer[k];
-      for (int pos = 0; pos < 4; pos++, j++) {
-        if (j < n) {
-          g[i][j] = map[buf_k & 3];
-          buf_k = buf_k >> 2;
-        } 
-      }
-    }
-  }
-  free( buffer );
-  fclose( file_stream );
-  return g;
-}
+// // [[Rcpp::export]]
+// std::vector<std::vector<double>> getWlist( const char* file, 
+//                                           int n, 
+//                                           std::vector<int> cls, 
+//                                           std::vector<double> af) {
+//   
+//   
+//   FILE *file_stream = fopen( file, "rb" );
+//   
+//   int m = cls.size();
+//   
+//   size_t nbytes_read;
+//   size_t nbytes = ( n + 3 ) / 4;
+//   //size_t nbytes = ceil( n  / 4);
+//   
+//   unsigned char *buffer = (unsigned char *) malloc( nbytes );
+//   unsigned char buf_k; 
+//   
+//   std::vector<std::vector<double>> g(m, std::vector<double>(n, 0.0));
+//   std::vector<double> map(4);
+//   
+//   
+//   ////////////////////////////////////////////////////////////////////////
+//   //  00 01 10 11         bit level  corresponds to
+//   //  0  1  2  3          xij level  corresponds to
+//   //  2  NA  1  0         number of copies of first allele in bim file
+//   ////////////////////////////////////////////////////////////////////////
+//   
+//   //std::cout << "  " << "\n";
+//   //std::cout << "Reading genotypes" << "\n";
+//   //std::cout << "  " << "\n";
+//   
+//   for (int i = 0; i < m; i++) {
+//     // cls[i] is 1-based
+//     long int offset = (cls[i]-1)*nbytes + 3;
+//     fseek( file_stream, offset, SEEK_SET );
+//     nbytes_read = fread( buffer, sizeof(unsigned char), nbytes, file_stream );
+//     if (nbytes_read != nbytes) {
+//       Rcerr << "Error reading data: nbytes_read != nbytes" << "\n";
+//     }
+//     int j = 0; 
+//     map[0] = 2.0 - 2.0*af[i];
+//     map[1] = 0.0;
+//     map[2] = 1.0 - 2.0*af[i];
+//     map[3] = -2.0*af[i];
+//     for (size_t k = 0; k < nbytes; k++) {
+//       buf_k = buffer[k];
+//       for (int pos = 0; pos < 4; pos++, j++) {
+//         if (j < n) {
+//           g[i][j] = map[buf_k & 3];
+//           buf_k = buf_k >> 2;
+//         } 
+//       }
+//     }
+//   }
+//   free( buffer );
+//   fclose( file_stream );
+//   return g;
+// }
 
 
 
