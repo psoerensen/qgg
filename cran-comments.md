@@ -1,6 +1,7 @@
 ## Submission
 This is a new submission:
 * Fixed issues with LTO detected on CRAN fedora (https://www.stats.ox.ac.uk/pub/bdr/LTO/qgg.out)
+* Reduced binary package size to account for note on MAC-OS
 
 ## Submission
 This is a new submission:
