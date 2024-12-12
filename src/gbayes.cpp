@@ -140,12 +140,7 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
   
   // Start Gibbs sampler
   std::random_device rd;
-  //unsigned int local_seed;
-  //local_seed = rd();
-  //std::mt19937 gen(local_seed);
   std::mt19937 gen(seed);
-  
-  
 
   for ( int it = 0; it < nit+nburn; it++) {
     conv = 0.0;
@@ -386,7 +381,6 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
     }
     
     
-
     // Sample marker variance
     ssb = 0.0;
     dfb = 0.0;
@@ -827,10 +821,10 @@ std::vector<std::vector<double>>  sbayes( std::vector<double> wy,
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
-                                              std::vector<double> ww, 
-                                              std::vector<std::vector<double>> LDvalues, 
-                                              std::vector<std::vector<int>> LDindices, 
+std::vector<std::vector<double>>  sbayes_spa( std::vector<double>& wy,
+                                              std::vector<double>& ww, 
+                                              std::vector<std::vector<double>>& LDvalues, 
+                                              std::vector<std::vector<int>>& LDindices, 
                                               std::vector<double> b, 
                                               std::vector<double> lambda,
                                               std::vector<bool> mask, 
@@ -952,9 +946,6 @@ std::vector<std::vector<double>>  sbayes_spa( std::vector<double> wy,
 
   // Start Gibbs sampler
   std::random_device rd;
-  //unsigned int local_seed;
-  //local_seed = rd();
-  //std::mt19937 gen(local_seed);
   std::mt19937 gen(seed);
   
   for ( int it = 0; it < nit+nburn; it++) {
