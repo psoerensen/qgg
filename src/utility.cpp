@@ -23,14 +23,6 @@ using namespace arma;
 //
 // [[Rcpp::depends(RcppArmadillo)]]
 
-// simple example of creating two matrices and
-// returning the result of an operatioon on them
-//
-// via the exports attribute we tell Rcpp to make this function
-// available from R
-//
-
-// [[Rcpp::export]]
 arma::mat cp(arma::mat & W) {
   arma::mat WW = W.t()*W;
   return WW;
