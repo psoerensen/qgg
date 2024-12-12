@@ -148,7 +148,8 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nthin=1, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="mcmc") {
-  
+
+    
   # mask
   mask.rsids <- NULL
   if(!is.null(mask)) mask.rsids <- unique(as.vector(apply(mask,2,function(x){as.vector(rownames(mask)[x])})))
@@ -169,7 +170,6 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     updateE=FALSE;
   }
   
-    
   # Determine number of traits
   nt <- 1
   if(!is.null(y)) {
@@ -185,19 +185,15 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   # Define type of analysis
   if(!is.null(GRMlist)) analysis <- "mtmc-mixed"
   
-  #if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="default") 
   if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="dense") 
     analysis <- "st-blr-individual-level-default"
   
-  #if(nt==1 && !is.null(y) && !is.null(W) && algorithm=="sbayes") 
   if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="sparse") 
     analysis <- "st-blr-individual-level-sbayes"
   
-  #if(nt==1 && !is.null(y) && algorithm=="sparse")
   if(nt==1 && !is.null(y) && formatLD=="sparse") 
     analysis <- "st-blr-individual-level-sparse-ld"
   
-  #if( nt==1 && !is.null(y) &&  algorithm=="dense") 
   if( nt==1 && !is.null(y) &&  formatLD=="dense") 
     analysis <- "st-blr-individual-level-dense-ld"
   
@@ -207,19 +203,11 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   if(nt>1 && !is.null(y) && !is.null(W))
     analysis <- "mt-blr-individual-level-dense-ld"
 
-  #if(nt>1 && !is.null(y) && algorithm=="sparse") 
   if(nt>1 && !is.null(y) && formatLD=="sparse") 
     analysis <- "mt-blr-individual-level-sparse-ld"
   
-  #if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="default") 
-  #if( nt>1 && !is.null(stat) && !is.null(Glist) && formatLD=="sparse") 
   if( nt>1 && !is.null(stat) && !is.null(Glist)) 
     analysis <- "mt-blr-sumstat-sparse-ld"
-  
-  # fix this  
-  #if( nt>1 && !is.null(stat) && !is.null(Glist) && algorithm=="serial") 
-  #  analysis <- "st-blr-sumstat-sparse-ld"
-  # end fix this
   
   message(paste("Type of analysis performed:",analysis))  
   
@@ -241,25 +229,15 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   # Single trait BLR using y and W   
   if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="dense") {
     
-    fit <- bayes(y=y, X=X, W=W, b=b, 
-                 bm=bm, seb=seb, LD=LD, n=n,
+    fit <- bayes(y=y, X=X, W=W, b=b, scaled=TRUE,
+                 h2=h2, pi=pi, lambda=lambda, 
                  vg=vg, vb=vb, ve=ve, 
-                 ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-                 h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                 nub=nub, nue=nue, nit=nit, method=method, formatLD=formatLD, algorithm=algorithm)  
+                 nub=nub, nug=nug, nue=nue, 
+                 ssb_prior=ssb_prior, ssg_prior=ssg_prior, sse_prior=sse_prior, 
+                 updateB=updateB, updateG=updateG, updateE=updateE, updatePi=updatePi, 
+                 nit=nit, nburn=nburn, nthin=nthin, method=method)  
   }
-  
-  
-  # Single trait BLR using y and W and sbayes method 
-  if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="sparse") {
-    
-    fit <- sbayes_wy(y=y, X=X, W=W, b=b, bm=bm, seb=seb, LD=LD, n=n,
-                  vg=vg, vb=vb, ve=ve, 
-                  ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
-                  h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
-                  nub=nub, nue=nue, nit=nit, method=method, formatLD=formatLD, algorithm=algorithm)  
-  }
-  
+
   # Multiple trait BLR using y and W
   if(nt>1 && !is.null(y) && !is.null(W)) {
     fit <- mtbayes(y=y, X=X, W=W, b=b, bm=bm, seb=seb, LD=LD, n=n,
@@ -270,90 +248,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   }
   
   
-  # Single trait BLR using y and sparse LD provided Glist
-  if( nt==1 && !is.null(y) && formatLD=="sparse") {
-    
-    if(is.null(Glist)) stop("Please provide Glist")
-    fit <- NULL
-    if(is.matrix(y)) ids <- rownames(y)
-    if(is.vector(y)) ids <- names(y)
-    rws <- match(ids,Glist$ids)
-    if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
-    n <- length(y)
-    
-    if(is.null(chr)) chromosomes <- 1:Glist$nchr
-    if(!is.null(chr)) chromosomes <- chr
-    
-    bm <- dm <- fit <- stat <- vector(length=Glist$nchr,mode="list")
-    names(bm) <- names(dm) <- names(fit) <- names(stat) <- 1:Glist$nchr
-    
-    yy <- sum((y-mean(y))**2)
-    
-    if(is.null(covs)) {
-      covs <- vector(length=Glist$nchr,mode="list")
-      names(covs) <- 1:Glist$nchr
-      for (chr in chromosomes){
-        print(paste("Computing summary statistics for chromosome:",chr))
-        covs[[chr]] <- cvs(y=y,Glist=Glist,chr=chr)
-      }
-    } 
-    
-    if(is.null(nit_local)) nit_local <- nit
-    if(is.null(nit_global)) nit_global <- 1
-    
-    for (it in 1:nit_global) {
-      for (chr in chromosomes){
-        if(verbose) print(paste("Extract sparse LD matrix for chromosome:",chr))
-        LD <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
-        LD$values <- lapply(LD$values,function(x){x*n})
-        rsidsLD <- names(LD$values)
-        clsLD <- match(rsidsLD,Glist$rsids[[chr]])
-        wy <- covs[[chr]][rsidsLD,"wy"]
-        b <- rep(0,length(wy))
-        if(it>1) {
-          b <- fit[[chr]]$b
-          if(updateB) vb <- fit[[chr]]$param[1]
-          if(updateE) ve <- fit[[chr]]$param[2]
-          if(updatePi) pi <- fit[[chr]]$param[3]
-        }
-        stop("Need to add ww and mask to sbayes_sparse - use cvs function to get it")
-        if(verbose) print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
-        fit[[chr]] <- sbayes_sparse(yy=yy, 
-                                    wy=wy,
-                                    b=b, 
-                                    LDvalues=LD$values, 
-                                    LDindices=LD$indices, 
-                                    method=method, 
-                                    nit=nit_local, 
-                                    nburn=nburn, 
-                                    n=n, 
-                                    pi=pi,
-                                    nue=nue, 
-                                    nub=nub, 
-                                    h2=h2, 
-                                    lambda=lambda, 
-                                    vb=vb, 
-                                    ve=ve, 
-                                    updateB=updateB, 
-                                    updateE=updateE, 
-                                    updatePi=updatePi,
-                                    algorithm=algorithm)
-        stat[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
-                                  pos=Glist$pos[[chr]][clsLD], ea=Glist$a1[[chr]][clsLD],
-                                  nea=Glist$a2[[chr]][clsLD], eaf=Glist$af[[chr]][clsLD],
-                                  bm=fit[[chr]]$bm,dm=fit[[chr]]$dm,stringsAsFactors = FALSE)
-        rownames(stat[[chr]]) <- rsidsLD
-      }
-    }
-    stat <- do.call(rbind, stat)
-    rownames(stat) <- stat$rsids
-    fit$stat <- stat
-    fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
-    fit$method <- methods[method+1]
-    fit$covs <- covs
-  }
-  
-  
+
 
   # Single trait BLR using summary statistics and sparse LD provided in Glist
   if(analysis=="st-blr-sumstat-sparse-ld") {
@@ -602,36 +497,36 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
 # Core functions used in work flows
 ##############################################################################
 
-
 # Single trait BLR based on individual level data 
-bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
-                  vg=NULL, vb=NULL, ve=NULL, 
-                  ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
-                  h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                  nub=NULL, nue=NULL, nit=500, nburn=100, nthin=1, method=NULL, formatLD=NULL, algorithm=NULL) {
+bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, scaled=TRUE,
+                  h2=0.5, pi=0.001, lambda=NULL, 
+                  vb=NULL, vg=NULL, ve=NULL, 
+                  nub=4, nug=4, nue=4, 
+                  ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL, 
+                  updateB=NULL, updateG=NULL, updateE=NULL, updatePi=NULL, 
+                  nit=500, nburn=100, nthin=1, method=NULL) {
   ids <- NULL
   if(is.matrix(y)) ids <- rownames(y)
   if(is.vector(y)) ids <- names(y)
-  if(scaleY) y <- as.vector(scale(y)) 
+  if(scaled) y <- as.vector(scale(y)) 
   n <- nrow(W)
   m <- ncol(W)
   
-  #if(is.null(ids)) warning("No names/rownames provided for y")
-  #if(is.null(rownames(W))) warning("No names/rownames provided for W")
   if(!is.null(ids) & !is.null(rownames(W))) {
     if(any(is.na(match(ids,rownames(W))))) stop("Names/rownames for y does match rownames for W")
   }
   vy <- var(y)
   if(is.null(pi)) pi <- 0.001
   if(is.null(h2)) h2 <- 0.5
-  if(is.null(ve)) ve <- vy*(1-h2)
   if(is.null(vg)) vg <- vy*h2
+  if(is.null(ve)) ve <- vy*(1-h2)
   if(method<4 && is.null(vb)) vb <- vg/m
   if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
   if(is.null(lambda)) lambda <- rep(ve/vb,m)
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+  if(is.null(ssg_prior)) ssg_prior=((nug-2.0)/nug)*vg;
   if(is.null(b)) b <- rep(0,m)
 
   pi <- c(1-pi,pi)
@@ -641,115 +536,52 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=
   
   seed <- sample.int(.Machine$integer.max, 1)
   
-  if(formatLD=="dense") {
-    fit <- .Call("_qgg_bayes",
-                 y=y, 
-                 W=as.list(as.data.frame(W)), 
-                 b=b,
-                 lambda = lambda,
-                 pi = pi,
-                 gamma = gamma,
-                 vg = vg,
-                 vb = vb,
-                 ve = ve,
-                 ssb_prior=ssb_prior,
-                 sse_prior=sse_prior,
-                 nub=nub,
-                 nue=nue,
-                 updateB = updateB,
-                 updateE = updateE,
-                 updatePi = updatePi,
-                 nit=nit,
-                 nburn=nburn,
-                 nthin=nthin,
-                 method=as.integer(method),
-                 seed=seed) 
-    ids <- rownames(W)
-    names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[11]]) <- colnames(W)
-    names(fit[[9]]) <- ids
-    names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","g","b","d","param")
-    
-  } 
+  fit <- .Call("_qgg_bayes",
+               y=y, 
+               W=as.list(as.data.frame(W)), 
+               b=b,
+               lambda = lambda,
+               pi = pi,
+               gamma = gamma,
+               vb = vb,
+               vg = vg,
+               ve = ve,
+               ssb_prior=ssb_prior,
+               ssg_prior=ssg_prior,
+               sse_prior=sse_prior,
+               nub=nub,
+               nug=nug,
+               nue=nue,
+               updateB = updateB,
+               updateG = updateG,
+               updateE = updateE,
+               updatePi = updatePi,
+               nit=nit,
+               nburn=nburn,
+               nthin=nthin,
+               method=as.integer(method),
+               seed=seed) 
+  ids <- rownames(W)
+  names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[11]]) <- colnames(W)
+  names(fit[[9]]) <- ids
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","g","b","d","param")
+  
   return(fit)
 }
 
-# Single trait BLR based on individual level data based on fast algorithm  
-sbayes_wy <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
-                   vg=NULL, vb=NULL, ve=NULL, 
-                   ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
-                   h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
-                   nub=NULL, nue=NULL, nit=NULL, method=NULL, formatLD=NULL, algorithm=NULL) {
-  
-  ids <- NULL
-  if(is.matrix(y)) ids <- rownames(y)
-  if(is.vector(y)) ids <- names(y)
-  
-  if(scaleY) y <- as.vector(scale(y)) 
-  
-  wy <- as.vector(crossprod(W,y))           
-  yy <- sum((y-mean(y))**2)
-  
-  n <-nrow(W)       
-  
-  if(!is.null(W) && is.null(LD)) {
-    n <- nrow(W)
-    LD <- crossprod(W)
-  }    
-  m <- ncol(LD)
-  
-  if(is.null(pi)) pi <- 0.001
-  if(is.null(h2)) h2 <- 0.5
-  
-  if(is.null(ve)) ve <- 1
-  if(method<4 && is.null(vb)) vb <- (ve*h2)/m
-  if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
-  if(is.null(lambda)) lambda <- rep(ve/vb,m)
-  if(is.null(vg)) vg <- ve*h2
-  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
-  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
-  if(is.null(b)) b <- rep(0,m)
-  
-  fit <- .Call("_qgg_sbayes",
-               wy=wy, 
-               #LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
-               LD=as.list(as.data.frame(LD)), 
-               b = b,
-               lambda = lambda,
-               yy = yy,
-               pi = pi,
-               vg = vg,
-               vb = vb,
-               ve = ve,
-               ssb_prior=ssb_prior,
-               sse_prior=sse_prior,
-               nub=nub,
-               nue=nue,
-               updateB = updateB,
-               updateE = updateE,
-               updatePi = updatePi,
-               n=n,
-               nit=nit,
-               method=as.integer(method))
-  names(fit[[1]]) <- rownames(LD)
-  if(!is.null(W)) fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
-  names(fit[[7]]) <- ids
-  stop("check fit names")
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pi","r","param","b")
-  
-  return(fit)
-  
-}
 
 
 # Single trait BLR using summary statistics and sparse LD provided in Glist 
-sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL, 
-                          LDvalues=NULL,LDindices=NULL, n=NULL, m=NULL, mask=NULL,
-                          vg=NULL, vb=NULL, ve=NULL, 
-                          ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
-                          h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, 
-                          updateG=NULL, adjustE=NULL, models=NULL,
-                          nub=NULL, nue=NULL, nit=NULL, nburn=NULL, nthin=1, method=NULL, algorithm=NULL, verbose=NULL) {
+sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, 
+                          LDvalues=NULL,LDindices=NULL, b=NULL,  
+                          n=NULL, m=NULL, 
+                          h2=NULL, pi=NULL, lambda=NULL, mask=NULL,
+                          vb=NULL, vg=NULL, ve=NULL, 
+                          nub=NULL, nug=NULL, nue=NULL, 
+                          ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL, 
+                          updateB=NULL, updateG=NULL, updateE=NULL, updatePi=NULL, adjustE=NULL, 
+                          nit=NULL, nburn=NULL, nthin=1, 
+                          method=NULL, algorithm=NULL) {
 
   if(is.null(m)) m <- length(LDvalues)
   vy <- yy/(n-1)
@@ -762,6 +594,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
   if(is.null(lambda)) lambda <- rep(ve/vb,m)
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(is.null(ssg_prior)) ssg_prior <- ((nug-2.0)/nug)*vg
   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
   if(is.null(b)) b <- rep(0,m)
   
@@ -807,192 +640,6 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, b=NULL, bm=NULL, seb=NULL,
   return(fit)
 }
 
-# Single trait BLR using summary statistics and sparse LD provided in Glist
-sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
-                   LD=NULL, LDvalues=NULL,LDindices=NULL,
-                   mask=NULL, lambda=NULL,
-                   vg=NULL, vb=NULL, ve=NULL, h2=NULL, pi=NULL,
-                   ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
-                   updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
-                   adjustE=TRUE, models=NULL,
-                   nit=500, nburn=100, nthin=1, method="bayesC", algorithm=1, verbose=FALSE) {
-  
-  # Check method
-  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
-  method <- match(method, methods) - 1
-  if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid")
-  
-  # Prepare summary statistics input
-  if( is.null(stat) ) stop("Please provide summary statistics")
-  m <- nrow(stat)
-  if(is.null(mask)) mask <- rep(FALSE, m)
-  if(is.null(stat$n)) stat$n <- stat$dfe
-  if( is.null(stat$n) ) stop("Please provide summary statistics that include n")
-  
-  n <- as.integer(median(stat$n))
-  ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
-  wy <- stat$b*ww
-  if(!is.null(stat$ww)) ww <- stat$ww
-  if(!is.null(stat$wy)) wy <- stat$wy
-  
-  b2 <- stat$b^2
-  seb2 <- stat$seb^2
-  yy <- (b2 + (stat$n-2)*seb2)*ww
-  yy <- median(yy)
-  
-  # Prepare sparse LD matrix
-  if( is.null(LD) ) stop("Please provide LD matrix")
-  #LDvalues <- split(LD, rep(1:ncol(LD), each = nrow(LD)))
-  LDvalues=as.list(as.data.frame(LD)) 
-  LDindices <- lapply(1:ncol(LD),function(x) { (1:ncol(LD))-1 } )
-  
-  # Prepare starting parameters
-  vy <- yy/(n-1)
-  if(is.null(pi)) pi <- 0.001
-  if(is.null(h2)) h2 <- 0.5
-  if(is.null(ve)) ve <- vy*(1-h2)
-  if(is.null(vg)) vg <- vy*h2
-  if(method<4 && is.null(vb)) vb <- vg/m
-  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
-  if(is.null(lambda)) lambda <- rep(ve/vb,m)
-  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
-  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
-  if(is.null(b)) b <- rep(0,m)
-  
-  pi <- c(1-pi,pi)
-  gamma <- c(0,1.0)
-  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
-  if(method==5) gamma <- c(0,0.01,0.1,1.0)
-  
-  seed <- sample.int(.Machine$integer.max, 1)
-  
-  fit <- .Call("_qgg_sbayes_spa",
-               wy=wy,
-               ww=ww,
-               LDvalues=LDvalues,
-               LDindices=LDindices,
-               b = b,
-               lambda = lambda,
-               mask=mask,
-               yy = yy,
-               pi = pi,
-               gamma = gamma,
-               vg = vg,
-               vb = vb,
-               ve = ve,
-               ssb_prior=ssb_prior,
-               sse_prior=sse_prior,
-               nub=nub,
-               nue=nue,
-               updateB = updateB,
-               updateE = updateE,
-               updatePi = updatePi,
-               updateG = updateG,
-               adjustE = adjustE,
-               n=n,
-               nit=nit,
-               nburn=nburn,
-               nthin=nthin,
-               method=as.integer(method),
-               algo=as.integer(algorithm),
-               seed=seed)
-  names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
-  return(fit)
-}
-
-# Single trait BLR using summary statistics and sparse LD provided in Glist
-sbayesXy <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
-                     mask=NULL, lambda=NULL,
-                     vg=NULL, vb=NULL, ve=NULL, h2=NULL, pi=NULL,
-                     ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
-                     updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
-                     adjustE=TRUE, models=NULL,
-                     nit=500, nburn=100, nthin=1, method="bayesC", algorithm="mcmc", verbose=FALSE) {
-  
-  # Check methods and parameter settings
-  methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
-  method <- match(method, methods) - 1
-  if( !sum(method%in%c(0:5))== 1 ) stop("method argument specified not valid")
-  algorithms <- c("mcmc","em-mcmc")
-  algorithm <- match(algorithm, algorithms)
-  if(is.na(algorithm)) stop("algorithm argument specified not valid")
-  
-  if( is.null(n) ) stop("Please provide n")
-  if( is.null(yy) ) stop("Please provide yy")
-  if( is.null(Xy) ) stop("Please provide Xy matrix")
-  if( is.null(XX) ) stop("Please provide XX matrix")
-  
-  xx <- diag(XX)  
-  m <- length(xx)
-  
-  XX <- cov2cor(XX)  
-  #XXvalues <- split(XX, rep(1:ncol(XX), each = nrow(XX)))
-  XXvalues <- as.list(as.data.frame(XX)) 
-  
-  XXindices <- lapply(1:ncol(XX),function(x) { (1:ncol(XX))-1 } )
-  
-  b <- rep(0, m)
-  mask <- rep(FALSE, m)
-  
-  
-  
-  # Prepare starting parameters
-  vy <- yy/(n-1)
-  if(is.null(pi)) pi <- 0.001
-  if(is.null(h2)) h2 <- 0.5
-  if(is.null(ve)) ve <- vy*(1-h2)
-  if(is.null(vg)) vg <- vy*h2
-  if(method<4 && is.null(vb)) vb <- vg/m
-  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
-  if(is.null(lambda)) lambda <- rep(ve/vb,m)
-  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
-  if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
-  if(is.null(b)) b <- rep(0,m)
-  
-  pi <- c(1-pi,pi)
-  gamma <- c(0,1.0)
-  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
-  if(method==5) gamma <- c(0,0.01,0.1,1.0)
-  
-  seed <- sample.int(.Machine$integer.max, 1)
-  
-  fit <- .Call("_qgg_sbayes_spa",
-               wy=Xy,
-               ww=xx,
-               LDvalues=XXvalues,
-               LDindices=XXindices,
-               b = b,
-               lambda = lambda,
-               mask=mask,
-               yy = yy,
-               pi = pi,
-               gamma = gamma,
-               vg = vg,
-               vb = vb,
-               ve = ve,
-               ssb_prior=ssb_prior,
-               sse_prior=sse_prior,
-               nub=nub,
-               nue=nue,
-               updateB = updateB,
-               updateE = updateE,
-               updatePi = updatePi,
-               updateG = updateG,
-               adjustE = adjustE,
-               n=n,
-               nit=nit,
-               nburn=nburn,
-               nthin=nthin,
-               method=as.integer(method),
-               algo=as.integer(algorithm),
-               seed=seed)
-  names(fit[[1]]) <- names(XXvalues)
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
-  return(fit)
-}
 
 
 # Single trait BLR using summary statistics and sparse LD provided in Glist
@@ -1550,8 +1197,6 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   fit$b <- b
   return(fit)
 }
-
-
 
 cpo <- function(yobs=NULL, ypred=NULL, nit=NULL, nburn=nburn) {
   psum <- rep(0,nrow(ypred))
@@ -4357,5 +4002,353 @@ bmm <- function(y=NULL, X=NULL, W=NULL, GRMlist=NULL,
 #   fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
 #   fit$method <- methods[method+1]
 #   
+# }
+
+# # Single trait BLR using y and W and sbayes method 
+# if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="sparse") {
+#   
+#   fit <- sbayes_wy(y=y, X=X, W=W, b=b, bm=bm, seb=seb, LD=LD, n=n,
+#                 vg=vg, vb=vb, ve=ve, 
+#                 ssb_prior=ssb_prior, sse_prior=sse_prior, lambda=lambda, scaleY=scaleY,
+#                 h2=h2, pi=pi, updateB=updateB, updateE=updateE, updatePi=updatePi, models=models,
+#                 nub=nub, nue=nue, nit=nit, method=method, formatLD=formatLD, algorithm=algorithm)  
+# }
+
+# # Single trait BLR using y and sparse LD provided Glist
+# if( nt==1 && !is.null(y) && formatLD=="sparse") {
+#   
+#   if(is.null(Glist)) stop("Please provide Glist")
+#   fit <- NULL
+#   if(is.matrix(y)) ids <- rownames(y)
+#   if(is.vector(y)) ids <- names(y)
+#   rws <- match(ids,Glist$ids)
+#   if(any(is.na(rws))) stop("some elements in names(y) does not match elements in Glist$ids ")       
+#   n <- length(y)
+#   
+#   if(is.null(chr)) chromosomes <- 1:Glist$nchr
+#   if(!is.null(chr)) chromosomes <- chr
+#   
+#   bm <- dm <- fit <- stat <- vector(length=Glist$nchr,mode="list")
+#   names(bm) <- names(dm) <- names(fit) <- names(stat) <- 1:Glist$nchr
+#   
+#   yy <- sum((y-mean(y))**2)
+#   
+#   if(is.null(covs)) {
+#     covs <- vector(length=Glist$nchr,mode="list")
+#     names(covs) <- 1:Glist$nchr
+#     for (chr in chromosomes){
+#       print(paste("Computing summary statistics for chromosome:",chr))
+#       covs[[chr]] <- cvs(y=y,Glist=Glist,chr=chr)
+#     }
+#   } 
+#   
+#   if(is.null(nit_local)) nit_local <- nit
+#   if(is.null(nit_global)) nit_global <- 1
+#   
+#   for (it in 1:nit_global) {
+#     for (chr in chromosomes){
+#       if(verbose) print(paste("Extract sparse LD matrix for chromosome:",chr))
+#       LD <- getSparseLD(Glist = Glist, chr = chr, onebased=FALSE)
+#       LD$values <- lapply(LD$values,function(x){x*n})
+#       rsidsLD <- names(LD$values)
+#       clsLD <- match(rsidsLD,Glist$rsids[[chr]])
+#       wy <- covs[[chr]][rsidsLD,"wy"]
+#       b <- rep(0,length(wy))
+#       if(it>1) {
+#         b <- fit[[chr]]$b
+#         if(updateB) vb <- fit[[chr]]$param[1]
+#         if(updateE) ve <- fit[[chr]]$param[2]
+#         if(updatePi) pi <- fit[[chr]]$param[3]
+#       }
+#       stop("Need to add ww and mask to sbayes_sparse - use cvs function to get it")
+#       if(verbose) print( paste("Fit",methods[method+1] ,"on chromosome:",chr))
+#       fit[[chr]] <- sbayes_sparse(yy=yy, 
+#                                   wy=wy,
+#                                   b=b, 
+#                                   LDvalues=LD$values, 
+#                                   LDindices=LD$indices, 
+#                                   method=method, 
+#                                   nit=nit_local, 
+#                                   nburn=nburn, 
+#                                   n=n, 
+#                                   pi=pi,
+#                                   nue=nue, 
+#                                   nub=nub, 
+#                                   h2=h2, 
+#                                   lambda=lambda, 
+#                                   vb=vb, 
+#                                   ve=ve, 
+#                                   updateB=updateB, 
+#                                   updateE=updateE, 
+#                                   updatePi=updatePi,
+#                                   algorithm=algorithm)
+#       stat[[chr]] <- data.frame(rsids=rsidsLD,chr=rep(chr,length(rsidsLD)),
+#                                 pos=Glist$pos[[chr]][clsLD], ea=Glist$a1[[chr]][clsLD],
+#                                 nea=Glist$a2[[chr]][clsLD], eaf=Glist$af[[chr]][clsLD],
+#                                 bm=fit[[chr]]$bm,dm=fit[[chr]]$dm,stringsAsFactors = FALSE)
+#       rownames(stat[[chr]]) <- rsidsLD
+#     }
+#   }
+#   stat <- do.call(rbind, stat)
+#   rownames(stat) <- stat$rsids
+#   fit$stat <- stat
+#   fit$stat$vm <- 2*(1-fit$stat$eaf)*fit$stat$eaf*fit$stat$bm^2
+#   fit$method <- methods[method+1]
+#   fit$covs <- covs
+# }
+
+# # Single trait BLR based on individual level data based on fast algorithm  
+# sbayes_wy <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,
+#                    vg=NULL, vb=NULL, ve=NULL, 
+#                    ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=NULL,
+#                    h2=NULL, pi=NULL, updateB=NULL, updateE=NULL, updatePi=NULL, models=NULL,
+#                    nub=NULL, nue=NULL, nit=NULL, method=NULL, formatLD=NULL, algorithm=NULL) {
+#   
+#   ids <- NULL
+#   if(is.matrix(y)) ids <- rownames(y)
+#   if(is.vector(y)) ids <- names(y)
+#   
+#   if(scaleY) y <- as.vector(scale(y)) 
+#   
+#   wy <- as.vector(crossprod(W,y))           
+#   yy <- sum((y-mean(y))**2)
+#   
+#   n <-nrow(W)       
+#   
+#   if(!is.null(W) && is.null(LD)) {
+#     n <- nrow(W)
+#     LD <- crossprod(W)
+#   }    
+#   m <- ncol(LD)
+#   
+#   if(is.null(pi)) pi <- 0.001
+#   if(is.null(h2)) h2 <- 0.5
+#   
+#   if(is.null(ve)) ve <- 1
+#   if(method<4 && is.null(vb)) vb <- (ve*h2)/m
+#   if(method>=4 && is.null(vb)) vb <- (ve*h2)/(m*pi)
+#   if(is.null(lambda)) lambda <- rep(ve/vb,m)
+#   if(is.null(vg)) vg <- ve*h2
+#   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+#   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m*pi)
+#   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+#   if(is.null(b)) b <- rep(0,m)
+#   
+#   fit <- .Call("_qgg_sbayes",
+#                wy=wy, 
+#                #LD=split(LD, rep(1:ncol(LD), each = nrow(LD))), 
+#                LD=as.list(as.data.frame(LD)), 
+#                b = b,
+#                lambda = lambda,
+#                yy = yy,
+#                pi = pi,
+#                vg = vg,
+#                vb = vb,
+#                ve = ve,
+#                ssb_prior=ssb_prior,
+#                sse_prior=sse_prior,
+#                nub=nub,
+#                nue=nue,
+#                updateB = updateB,
+#                updateE = updateE,
+#                updatePi = updatePi,
+#                n=n,
+#                nit=nit,
+#                method=as.integer(method))
+#   names(fit[[1]]) <- rownames(LD)
+#   if(!is.null(W)) fit[[7]] <- crossprod(t(W),fit[[10]])[,1]
+#   names(fit[[7]]) <- ids
+#   stop("check fit names")
+#   names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pi","r","param","b")
+#   
+#   return(fit)
+#   
+# }
+
+# # Single trait BLR using summary statistics and sparse LD provided in Glist
+# sbayes <- function(stat=NULL, b=NULL, seb=NULL, n=NULL,
+#                    LD=NULL, LDvalues=NULL,LDindices=NULL,
+#                    mask=NULL, lambda=NULL,
+#                    vg=NULL, vb=NULL, ve=NULL, h2=NULL, pi=NULL,
+#                    ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
+#                    updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
+#                    adjustE=TRUE, models=NULL,
+#                    nit=500, nburn=100, nthin=1, method="bayesC", algorithm=1, verbose=FALSE) {
+#   
+#   # Check method
+#   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+#   method <- match(method, methods) - 1
+#   if( !sum(method%in%c(0:5))== 1 ) stop("Method specified not valid")
+#   
+#   # Prepare summary statistics input
+#   if( is.null(stat) ) stop("Please provide summary statistics")
+#   m <- nrow(stat)
+#   if(is.null(mask)) mask <- rep(FALSE, m)
+#   if(is.null(stat$n)) stat$n <- stat$dfe
+#   if( is.null(stat$n) ) stop("Please provide summary statistics that include n")
+#   
+#   n <- as.integer(median(stat$n))
+#   ww <- 1/(stat$seb^2 + stat$b^2/stat$n)
+#   wy <- stat$b*ww
+#   if(!is.null(stat$ww)) ww <- stat$ww
+#   if(!is.null(stat$wy)) wy <- stat$wy
+#   
+#   b2 <- stat$b^2
+#   seb2 <- stat$seb^2
+#   yy <- (b2 + (stat$n-2)*seb2)*ww
+#   yy <- median(yy)
+#   
+#   # Prepare sparse LD matrix
+#   if( is.null(LD) ) stop("Please provide LD matrix")
+#   #LDvalues <- split(LD, rep(1:ncol(LD), each = nrow(LD)))
+#   LDvalues=as.list(as.data.frame(LD)) 
+#   LDindices <- lapply(1:ncol(LD),function(x) { (1:ncol(LD))-1 } )
+#   
+#   # Prepare starting parameters
+#   vy <- yy/(n-1)
+#   if(is.null(pi)) pi <- 0.001
+#   if(is.null(h2)) h2 <- 0.5
+#   if(is.null(ve)) ve <- vy*(1-h2)
+#   if(is.null(vg)) vg <- vy*h2
+#   if(method<4 && is.null(vb)) vb <- vg/m
+#   if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
+#   if(is.null(lambda)) lambda <- rep(ve/vb,m)
+#   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+#   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+#   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+#   if(is.null(b)) b <- rep(0,m)
+#   
+#   pi <- c(1-pi,pi)
+#   gamma <- c(0,1.0)
+#   if(method==5) pi <- c(0.95,0.02,0.02,0.01)
+#   if(method==5) gamma <- c(0,0.01,0.1,1.0)
+#   
+#   seed <- sample.int(.Machine$integer.max, 1)
+#   
+#   fit <- .Call("_qgg_sbayes_spa",
+#                wy=wy,
+#                ww=ww,
+#                LDvalues=LDvalues,
+#                LDindices=LDindices,
+#                b = b,
+#                lambda = lambda,
+#                mask=mask,
+#                yy = yy,
+#                pi = pi,
+#                gamma = gamma,
+#                vg = vg,
+#                vb = vb,
+#                ve = ve,
+#                ssb_prior=ssb_prior,
+#                sse_prior=sse_prior,
+#                nub=nub,
+#                nue=nue,
+#                updateB = updateB,
+#                updateE = updateE,
+#                updatePi = updatePi,
+#                updateG = updateG,
+#                adjustE = adjustE,
+#                n=n,
+#                nit=nit,
+#                nburn=nburn,
+#                nthin=nthin,
+#                method=as.integer(method),
+#                algo=as.integer(algorithm),
+#                seed=seed)
+#   names(fit[[1]]) <- names(LDvalues)
+#   names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
+#   return(fit)
+# }
+# 
+# # Single trait BLR using summary statistics and sparse LD provided in Glist
+# sbayesXy <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
+#                      mask=NULL, lambda=NULL,
+#                      vg=NULL, vb=NULL, ve=NULL, h2=NULL, pi=NULL,
+#                      ssb_prior=NULL, sse_prior=NULL, nub=4, nue=4,
+#                      updateB=TRUE, updateE=TRUE, updatePi=TRUE, updateG=TRUE,
+#                      adjustE=TRUE, models=NULL,
+#                      nit=500, nburn=100, nthin=1, method="bayesC", algorithm="mcmc", verbose=FALSE) {
+#   
+#   # Check methods and parameter settings
+#   methods <- c("blup","bayesN","bayesA","bayesL","bayesC","bayesR")
+#   method <- match(method, methods) - 1
+#   if( !sum(method%in%c(0:5))== 1 ) stop("method argument specified not valid")
+#   algorithms <- c("mcmc","em-mcmc")
+#   algorithm <- match(algorithm, algorithms)
+#   if(is.na(algorithm)) stop("algorithm argument specified not valid")
+#   
+#   if( is.null(n) ) stop("Please provide n")
+#   if( is.null(yy) ) stop("Please provide yy")
+#   if( is.null(Xy) ) stop("Please provide Xy matrix")
+#   if( is.null(XX) ) stop("Please provide XX matrix")
+#   
+#   xx <- diag(XX)  
+#   m <- length(xx)
+#   
+#   XX <- cov2cor(XX)  
+#   #XXvalues <- split(XX, rep(1:ncol(XX), each = nrow(XX)))
+#   XXvalues <- as.list(as.data.frame(XX)) 
+#   
+#   XXindices <- lapply(1:ncol(XX),function(x) { (1:ncol(XX))-1 } )
+#   
+#   b <- rep(0, m)
+#   mask <- rep(FALSE, m)
+#   
+#   
+#   
+#   # Prepare starting parameters
+#   vy <- yy/(n-1)
+#   if(is.null(pi)) pi <- 0.001
+#   if(is.null(h2)) h2 <- 0.5
+#   if(is.null(ve)) ve <- vy*(1-h2)
+#   if(is.null(vg)) vg <- vy*h2
+#   if(method<4 && is.null(vb)) vb <- vg/m
+#   if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
+#   if(is.null(lambda)) lambda <- rep(ve/vb,m)
+#   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
+#   if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+#   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
+#   if(is.null(b)) b <- rep(0,m)
+#   
+#   pi <- c(1-pi,pi)
+#   gamma <- c(0,1.0)
+#   if(method==5) pi <- c(0.95,0.02,0.02,0.01)
+#   if(method==5) gamma <- c(0,0.01,0.1,1.0)
+#   
+#   seed <- sample.int(.Machine$integer.max, 1)
+#   
+#   fit <- .Call("_qgg_sbayes_spa",
+#                wy=Xy,
+#                ww=xx,
+#                LDvalues=XXvalues,
+#                LDindices=XXindices,
+#                b = b,
+#                lambda = lambda,
+#                mask=mask,
+#                yy = yy,
+#                pi = pi,
+#                gamma = gamma,
+#                vg = vg,
+#                vb = vb,
+#                ve = ve,
+#                ssb_prior=ssb_prior,
+#                sse_prior=sse_prior,
+#                nub=nub,
+#                nue=nue,
+#                updateB = updateB,
+#                updateE = updateE,
+#                updatePi = updatePi,
+#                updateG = updateG,
+#                adjustE = adjustE,
+#                n=n,
+#                nit=nit,
+#                nburn=nburn,
+#                nthin=nthin,
+#                method=as.integer(method),
+#                algo=as.integer(algorithm),
+#                seed=seed)
+#   names(fit[[1]]) <- names(XXvalues)
+#   names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
+#   return(fit)
 # }
 
