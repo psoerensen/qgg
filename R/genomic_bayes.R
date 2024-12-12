@@ -644,7 +644,6 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=
   if(formatLD=="dense") {
     fit <- .Call("_qgg_bayes",
                  y=y, 
-                 #W=split(W, rep(1:ncol(W), each = nrow(W))), 
                  W=as.list(as.data.frame(W)), 
                  b=b,
                  lambda = lambda,
