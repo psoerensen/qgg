@@ -5,6 +5,7 @@ This is a new submission:
 * There is a note on MAC that size of our installed package is larger than 5Mb (~6.1Mb). 
 * I have reduced binary package size to account for note on MAC-OS (size on Windows is 1.3Mb)
 * However our package contain c++ code and depends on the Rcpp package. According to the maintainer of Rcpp package this is a common Note among packages that depends on c++.
+* Check passed on Windows: https://win-builder.r-project.org/wO3DscRkexOO/00check.log
 * Check passed MACOS (R-devel) on rhub: https://github.com/psoerensen/qgg/actions/runs/12313874556/job/34368844166
 * Check passed Windows (R-devel) on rhub: https://github.com/psoerensen/qgg/actions/runs/12313874556/job/34368844908
 * Check passed Linux on rhub: https://github.com/psoerensen/qgg/actions/runs/12313370363/job/34367250530
