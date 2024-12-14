@@ -41,7 +41,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_qgg_mtbayes",               (DL_FUNC) &_qgg_mtbayes,               16},
     {"_qgg_mtsbayes",              (DL_FUNC) &_qgg_mtsbayes,              23},
     {"_qgg_mtblr",                 (DL_FUNC) &_qgg_mtblr,                 23},
-    {"_qgg_sbayes",                (DL_FUNC) &_qgg_sbayes,                32},
+    {"_qgg_sbayes",                (DL_FUNC) &_qgg_sbayes,                31},
     {"_qgg_sbayes_reg",            (DL_FUNC) &_qgg_sbayes_reg,            30},
     {"_qgg_sbayes_reg_eigen",      (DL_FUNC) &_qgg_sbayes_reg_eigen,      29},
     {"_qgg_rwishart",              (DL_FUNC) &_qgg_rwishart,               2},
