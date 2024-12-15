@@ -1,18 +1,9 @@
 ## Resubmission
-This is a new submission:
-* Checked that issues with LTO detected on CRAN fedora (https://www.stats.ox.ac.uk/pub/bdr/LTO/qgg.out) is fixed.
-* Notes about "checkRd: (-1) gmap.Rd:195: Lost braces in \itemize; \value handles \item{}{} directly" has been fixed
+This is a resubmission:
+* Checked that issues with LTO detected on CRAN fedora (https://www.stats.ox.ac.uk/pub/bdr/LTO/qgg.out) is fixed (tested using -Wlto-type-mismatch here: https://win-builder.r-project.org/P3O4upH027ty/). 
+* Notes about "checkRd: (-1) gmap.Rd:195: Lost braces in \itemize; \value handles \item{}{} directly" in qgg 1.1.2 has been fixed
 * There is a note on MAC that size of our installed package is larger than 5Mb (~6.1Mb). 
-* I have reduced binary package size to account for note on MAC-OS (size on Windows is 1.3Mb)
-* However our package contain c++ code and depends on the Rcpp package. According to the maintainer of Rcpp package this is a common Note among packages that depends on c++.
-* Check passed on Windows: https://win-builder.r-project.org/wO3DscRkexOO/00check.log
-* Check passed MACOS (R-devel) on rhub: https://github.com/psoerensen/qgg/actions/runs/12313874556/job/34368844166
-* Check passed Windows (R-devel) on rhub: https://github.com/psoerensen/qgg/actions/runs/12313874556/job/34368844908
-* Check passed Linux on rhub: https://github.com/psoerensen/qgg/actions/runs/12313370363/job/34367250530
-* Check passed Linux - Fedora GCC13 on rhub: https://github.com/psoerensen/qgg/actions/runs/12313623411/job/34368051302
-* Check passed Linux - Fedora GCC14 on rhub: https://github.com/psoerensen/qgg/actions/runs/12313623411/job/34368051595
-
-
+* I have reduced binary package size to account for note on MAC-OS (size on Windows is 1.3Mb), However our package contain c++ code and depends on the Rcpp package. According to the maintainer of Rcpp package this is a common Note among packages that depends on c++.
 
 ## Resubmission
 This is a new submission:
