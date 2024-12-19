@@ -192,7 +192,7 @@ checkStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.0
   effect_allele <- stat[,"ea"]
   non_effect_allele <- stat[,"nea"]
   if(!is.null(stat$eaf)) effect_allele_freq <- stat[,"eaf"]
-  
+
   # aligned
   stat[!aligned,"b"] <- -effect[!aligned]
   stat[!aligned,"ea"] <- non_effect_allele[!aligned]
@@ -229,8 +229,9 @@ checkStat <- function(Glist=NULL, stat=NULL, excludeMAF=0.01, excludeMAFDIFF=0.0
   
   clsstat <- c("rsids","chr","pos","ea","nea","eaf","b","seb","p","n","info")%in%colnames(stat)
   clsstat <- c("rsids","chr","pos","ea","nea","eaf","b","seb","p","n","info")[clsstat]
-  colnames(stat) <- clsstat
-  return(stat)
+  #colnames(stat) <- clsstat
+  #return(stat)
+  return(stat[,clsstat])
 }
 
 
