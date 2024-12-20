@@ -856,7 +856,8 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   
   chr <- as.numeric(unlist(Glist$chr))
   chrSets <- sapply(mapSets(sets = sets, Glist = Glist, index = TRUE), function(x) unique(chr[x]))
-  if (length(Glist$bedfiles) == 1) chrSets <- setNames(rep(1, length(chrSets)), names(chrSets))
+  #if (length(Glist$bedfiles) == 1) chrSets <- setNames(rep(1, length(chrSets)), names(chrSets))
+  if (length(Glist$bedfiles) == 1) chrSets <- setNames(rep(1, length(sets)), names(sets))
   lsets <- sapply(chrSets,length)
   sets <- sets[lsets==1]
   if(any(lsets>1)) stop(paste("Following marker sets mapped to multiple chromosome:",paste(which(lsets>1),collapse=",")))
@@ -1187,7 +1188,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   maxmb <- sapply(setsindex, function(x){ max(pos[x]) })
   
   chr <- unlist(Glist$chr)
-  chr <- sapply(setsindex,function(x){as.numeric(unique(chr[x]))})
+  chr <- sapply(setsindex,function(x){as.numeric(unique(chr[x]))[1]})
   
   b <- stat[fit$stat$rsids,"b"]
   
