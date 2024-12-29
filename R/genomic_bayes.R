@@ -1058,7 +1058,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       }
       
       converged <- critve & critvg & critvb & critpi & critb
-      
+      if(!checkConvergence) convergence <- TRUE
       # Make plots to monitor convergence
       if(verbose) {
         layout(matrix(1:4,ncol=2))
@@ -1083,7 +1083,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         for (k in seq_along(criteria_names)) {
           message(sprintf("  %s: %s", criteria_names[k], ifelse(criteria_status[k], "Met", "Not Met")))
         }
-        if (algorithm == 1) {
+        if (checkConvergence & algorithm == 1) {
           message("Serious convergence issues detected. Please check your summary statistics and LD reference data.")
           message("If using in-sample LD and summary statistics, consider increasing the default values for the following parameters: critVe=3, critVg=3, critVb=3, critPi=3, critB=3.")
           message('If using external LD and summary statistics, consider using algorithm="mcmc-eigen" as a more robust method.')
