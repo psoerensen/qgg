@@ -1198,6 +1198,64 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=N
 
 
 
+#' Create Marker Sets
+#'
+#' This function creates sets of markers surrounding a list of SNPs (rsids) from the given Glist.
+#'
+#' @param Glist A list containing 'pos', 'map', 'chr', and 'rsids'.
+#' @param rsids A character vector of SNP identifiers (e.g., rsIDs).
+#' @param upstream Integer specifying the number of markers upstream of each rsid.
+#' @param downstream Integer specifying the number of markers downstream of each rsid.
+#' @param kb (Optional) Not currently implemented.
+#' @param cm (Optional) Not currently implemented.
+#' @return A named list where each element contains markers surrounding the corresponding rsid.
+#' 
+createMarkerSets <- function(Glist=NULL, rsids=NULL,
+                             upstream=1000, downstream=1000,
+                             kb=NULL, cm=NULL) {
+  # Validate inputs
+  if (is.null(Glist) || !all(c("pos", "map", "chr", "rsids") %in% names(Glist))) {
+    stop("Glist must be a list containing 'pos', 'map', 'chr', and 'rsids'.")
+  }
+  if (is.null(rsids)) {
+    stop("rsids cannot be NULL.")
+  }
+  # Extract data from Glist
+  pos <- unlist(Glist$pos)
+  map <- unlist(Glist$map)
+  chr <- unlist(Glist$chr)
+  rsidsG <- unlist(Glist$rsids)
+  
+  # Validate rsids
+  if (!all(rsids %in% rsidsG)) {
+    missing <- setdiff(rsids, rsidsG)
+    warning(paste("The following rsids are not present in the Glist and will be skipped:", 
+                  paste(missing, collapse=", ")))
+    rsids <- intersect(rsids, rsidsG)  # Retain only valid SNPs
+  }
+  
+  # Handle case where no valid rsids remain
+  if (length(rsids) == 0) {
+    warning("No valid rsids found in the Glist. Returning an empty list.")
+    return(list())
+  }
+  
+  # Create marker sets
+  sets <- lapply(rsids, function(x) {
+    idx <- match(x, rsidsG)
+    if (is.na(idx)) return(NULL)  # Handle unmatched SNPs
+    chridx <- chr[idx]
+    
+    # Define indices for upstream and downstream
+    indices <- seq(idx - downstream, idx + upstream)
+    indices <- indices[indices > 0 & indices <= length(rsidsG)]  # Bounds check
+    indices <- indices[chr[indices] == chridx]  # Ensure chromosome consistency
+    rsidsG[indices]
+  })
+  
+  names(sets) <- rsids
+  return(sets)
+}
 
 
 #' Retrieve marker rsids in a specified genome region.
