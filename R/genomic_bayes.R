@@ -1381,6 +1381,75 @@ check_divergence <- function(bm, bs, ci_level = 0.95) {
 }
 
 
+
+#' Get Credible Sets
+#'
+#' This function calculates credible sets for a list of marker sets using probabilistic measures.
+#'
+#' @param Glist A list containing genomic data (e.g., `chr` and `bedfiles`).
+#' @param fit A model object containing SNP statistics (`stat` with `rsids` and `dm` columns).
+#' @param sets A list of marker sets (SNP identifiers).
+#' @return A list of credible sets for each marker set.
+#' @examples
+#' # Example usage
+#' Glist <- list(chr = list("chr1", "chr2"), bedfiles = list("file1", "file2"))
+#' fit <- list(stat = data.frame(rsids = c("rs1", "rs2"), dm = c(0.8, 0.2)))
+#' sets <- list(c("rs1"), c("rs2"))
+#' getCredibleSets(Glist, fit, sets)
+getCredibleSets <- function(Glist=NULL, fit=NULL, sets=NULL) {
+  # Validate inputs
+  if (is.null(Glist) || is.null(fit) || is.null(sets)) {
+    stop("All inputs (Glist, fit, sets) must be provided.")
+  }
+  
+  if (!all(c("rsids", "dm") %in% colnames(fit$stat))) {
+    stop("fit$stat must contain 'rsids' and 'dm' columns.")
+  }
+  
+  sets <- mapSets(sets = sets, rsids = fit$stat$rsids, index = FALSE)
+  rownames(fit$stat) <- fit$stat$rsids
+  if (any(sapply(sets, function(x) { any(is.na(x)) }))) {
+    stop("NAs detected in sets - please remove these.")
+  }
+  
+  # Chromosome mapping
+  chr <- as.character(unlist(Glist$chr))
+  chrSets <- sapply(mapSets(sets = sets, Glist = Glist, index = TRUE), 
+                    function(x) unique(chr[x]))
+  if (length(Glist$bedfiles) == 1) {
+    chrSets <- setNames(rep(1, length(sets)), names(sets))
+  }
+  
+  # Validate chromosome mapping
+  lsets <- sapply(chrSets, length)
+  if (any(lsets > 1)) {
+    stop(paste("The following marker sets map to multiple chromosomes:", 
+               paste(which(lsets > 1), collapse = ", ")))
+  }
+  if (any(lsets == 0)) {
+    stop(paste("The following marker sets do not map to any chromosome:", 
+               paste(which(lsets == 0), collapse = ", ")))
+  }
+  
+  if (length(sets) == 0) {
+    warning("No valid marker sets provided. Returning an empty list.")
+    return(list())
+  }
+  
+  # Compute credible sets
+  cs <- lapply(seq_along(sets), function(i) {
+    rsids <- sets[[i]]
+    prob <- fit$stat[rsids, "dm"]
+    names(prob) <- rsids
+    W <- getG(Glist = Glist, chr = chrSets[i], rsids = rsids, scale = TRUE)
+    B <- crossprod(scale(W)) / (nrow(W) - 1)
+    qgg:::crs(prob = prob, B = B, threshold = 0.8)
+  })
+  names(cs) <- names(sets)
+  return(cs)
+}
+
+
 # Multiple trait BLR using summary statistics and sparse LD provided in Glist
 mtblr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                   b=NULL,h2=NULL, pi=0.001, models=NULL, pimodels=NULL,
