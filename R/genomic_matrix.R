@@ -1210,6 +1210,11 @@ ldscore <- function(Glist=NULL, chr=NULL, onebased=TRUE, nbytes=4, cm=NULL, kb=N
 #' @param cm (Optional) Not currently implemented.
 #' @return A named list where each element contains markers surrounding the corresponding rsid.
 #' 
+#'
+#' @keywords internal
+#' 
+#' @export
+#' 
 createMarkerSets <- function(Glist=NULL, rsids=NULL,
                              upstream=1000, downstream=1000,
                              kb=NULL, cm=NULL) {

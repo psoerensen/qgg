@@ -1390,12 +1390,9 @@ check_divergence <- function(bm, bs, ci_level = 0.95) {
 #' @param fit A model object containing SNP statistics (`stat` with `rsids` and `dm` columns).
 #' @param sets A list of marker sets (SNP identifiers).
 #' @return A list of credible sets for each marker set.
-#' @examples
-#' # Example usage
-#' Glist <- list(chr = list("chr1", "chr2"), bedfiles = list("file1", "file2"))
-#' fit <- list(stat = data.frame(rsids = c("rs1", "rs2"), dm = c(0.8, 0.2)))
-#' sets <- list(c("rs1"), c("rs2"))
-#' getCredibleSets(Glist, fit, sets)
+#' 
+#' @export
+#'
 getCredibleSets <- function(Glist=NULL, fit=NULL, sets=NULL) {
   # Validate inputs
   if (is.null(Glist) || is.null(fit) || is.null(sets)) {
