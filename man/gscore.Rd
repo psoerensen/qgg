@@ -11,7 +11,8 @@ gscore(
   bimfiles = NULL,
   famfiles = NULL,
   stat = NULL,
-  fit = NULL,
+  sets = NULL,
+  sets.weights = NULL,
   ids = NULL,
   scaleMarker = TRUE,
   scaleGRS = TRUE,
@@ -34,7 +35,9 @@ gscore(
 
 \item{stat}{Matrix of single marker effects. Default is NULL.}
 
-\item{fit}{Fit object output from gbayes. Default is NULL.}
+\item{sets}{A list of marker sets (SNP identifiers).}
+
+\item{sets.weights}{A vector of marker sets weights.}
 
 \item{ids}{Vector of individuals used in the analysis. Default is NULL.}
 

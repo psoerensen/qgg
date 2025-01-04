@@ -12,7 +12,8 @@
 #' @param bimfiles Names of the PLINK bim-files. Default is NULL.
 #' @param famfiles Names of the PLINK fam-files. Default is NULL.
 #' @param stat Matrix of single marker effects. Default is NULL.
-#' @param fit Fit object output from gbayes. Default is NULL.
+#' @param sets A list of marker sets (SNP identifiers).
+#' @param sets.weights A vector of marker sets weights.
 #' @param ids Vector of individuals used in the analysis. Default is NULL.
 #' @param scaleMarker Logical; if TRUE the genotype markers are scaled to mean zero and variance one. Default is TRUE.
 #' @param scaleGRS Logical; if TRUE the GRS are scaled to mean zero and variance one. Default is TRUE.
@@ -49,7 +50,8 @@
 #' @export
 #'
 
-gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, fit = NULL, ids = NULL, scaleMarker = TRUE, scaleGRS=TRUE, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
+gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, 
+                   sets = NULL, sets.weights = NULL, ids = NULL, scaleMarker = TRUE, scaleGRS=TRUE, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
      
      if ( !is.null(Glist))  {
           if (!is.null(chr)) chromosomes <- chr
@@ -82,19 +84,55 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
             keep <- !rowSums(abs(stat[,7:ncol(stat)])==0)==length(7:ncol(stat))
             stat <- stat[keep,]
           }
-          prs <- NULL
-          for (chr in chromosomes) {
-               if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
-                 prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
-                                      ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose)
-                 if (is.null(prs)) prs <- prschr
-                 if (!is.null(prs)) prs <- prs + prschr
-                 #if (chr==chromosomes[1]) prs <- prschr
-                 #if (!chr==chromosomes[1]) prs <- prs + prschr
-                 
-               }
+          
+          # prs <- NULL
+          # for (chr in chromosomes) {
+          #      if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
+          #        prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
+          #                             ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose)
+          #        if (is.null(prs)) prs <- prschr
+          #        if (!is.null(prs)) prs <- prs + prschr
+          #        #if (chr==chromosomes[1]) prs <- prschr
+          #        #if (!chr==chromosomes[1]) prs <- prs + prschr
+          #        
+          #      }
+          # }
+          # if(scaleGRS) prs <- scale(prs[,1:ncol(prs),drop=FALSE])
+          
+          if(is.null(sets)) {
+            prs <- NULL
+            for (chr in chromosomes) {
+              if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
+                prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
+                                     ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose)
+                if (is.null(prs)) prs <- prschr
+                if (!is.null(prs)) prs <- prs + prschr
+              }
+            }
+            if(scaleGRS) prs <- scale(prs[,1:ncol(prs),drop=FALSE])
           }
-          if(scaleGRS) prs <- scale(prs[,1:ncol(prs),drop=FALSE])
+          if(!is.null(sets)) {
+            sets <- mapSets(sets=sets,rsids=stat$rsids, index=TRUE)
+            prssets <- sapply(sets, function(x) {
+              prs <- NULL
+              for (chr in chromosomes) {
+                if( any(stat$rsids[x] %in% Glist$rsids[[chr]]) ) {
+                  prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat[x,], 
+                                       ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose)
+                  if (is.null(prs)) prs <- prschr
+                  if (!is.null(prs)) prs <- prs + prschr
+                }
+              }
+              if(scaleGRS) prs <- scale(prs[,1:ncol(prs),drop=FALSE])
+            })
+            # Apply weights if sets.weights is not NULL
+            if (!is.null(sets.weights)) {
+              for (i in seq_along(sets.weights)) {
+                prssets[, i] <- prssets[, i] * sets.weights[i]
+              }
+            }
+            return(prssets)
+          }
      }
      if ( !is.null(bedfiles))  {
           prs <- run_gscore(bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, stat = stat, 
