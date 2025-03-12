@@ -1131,7 +1131,9 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     }
     fdr[[i]] <- bfdrs
     logcpo[i] <- fit$param[4]
+    if(verbose) message("Compute credible sets")
     if(sum(fit$dm)>cs_threshold) csets[[i]] <- crs(prob=fit$dm, B=B, threshold=cs_threshold, r2=cs_r2)
+    if(verbose) message("Compute credible sets")
     names(bm[[i]]) <- names(dm[[i]]) <- rsids
   }
   fit <- NULL
