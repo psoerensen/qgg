@@ -1098,6 +1098,8 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         break
       }
     }
+    if(verbose) message("Computing FDR")
+
     cutoffs <- seq(0.01, 0.99, by = 0.01)  # Generate 1:99 as fractions
     cutoff_indices <- lapply(cutoffs, function(cutoff) fit$dm > cutoff)
     bfdrs <- sapply(cutoff_indices, function(rws) {
@@ -1111,7 +1113,9 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     bfdrs <- t(bfdrs)
     rownames(bfdrs) <- round(cutoffs, 2)
     
+
     # Save results
+    if(verbose) message("Saving results")
     bm[[i]] <- fit$bm
     dm[[i]] <- fit$dm
     pim[[i]] <- fit$pim
