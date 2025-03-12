@@ -1133,7 +1133,6 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     logcpo[i] <- fit$param[4]
     if(verbose) message("Compute credible sets")
     if(sum(fit$dm)>cs_threshold) csets[[i]] <- crs(prob=fit$dm, B=B, threshold=cs_threshold, r2=cs_r2)
-    if(verbose) message("Compute credible sets")
     names(bm[[i]]) <- names(dm[[i]]) <- rsids
   }
   fit <- NULL
@@ -1248,7 +1247,7 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) 
   # Step 3: Identify credible sets of size > 1
   remaining_markers <- names(dsorted)
   k <- 1
-  while (length(remaining_markers) > 0) {
+  while (sum(dsorted)>= threshold) {
     #lead_marker <- remaining_markers[1]
     lead_marker <- remaining_markers[1:min(length(remaining_markers), k)]
     
@@ -1282,7 +1281,7 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) 
       } else {
         crset <- names(dset)  # Default to full set if no threshold is met
       }
-      
+      print(crset)
       credible_sets[[length(credible_sets) + 1]] <- crset
       names(credible_sets)[length(credible_sets)] <- paste0("Set", length(credible_sets))
 
