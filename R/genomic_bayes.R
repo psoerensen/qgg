@@ -1281,7 +1281,6 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) 
       } else {
         crset <- names(dset)  # Default to full set if no threshold is met
       }
-      print(crset)
       credible_sets[[length(credible_sets) + 1]] <- crset
       names(credible_sets)[length(credible_sets)] <- paste0("Set", length(credible_sets))
 
