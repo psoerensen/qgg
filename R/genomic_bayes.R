@@ -1241,35 +1241,56 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) 
   
   # Step 3: Identify credible sets of size > 1
   remaining_markers <- names(dsorted)
+  k <- 1
   while (length(remaining_markers) > 0) {
-    lead_marker <- remaining_markers[1]
+    #lead_marker <- remaining_markers[1]
+    lead_marker <- remaining_markers[1:min(length(remaining_markers), k)]
     
     # Step 3.1: Identify LD friends of the lead marker
-    ld_friends <- colnames(B)[B[lead_marker, ]^2 > r2]
-    ld_friends <- intersect(ld_friends, remaining_markers[-1])  # Only include unprocessed markers
+    #ld_friends <- colnames(B)[B[lead_marker, ]^2 > r2]
+    #ld_friends <- intersect(ld_friends, remaining_markers[-1])  # Only include unprocessed markers
+    ld_friends <- sapply(lead_marker, function(x) {
+      colnames(B)[B[x, ]^2 > r2]
+    })
+    ld_friends <- unique(unlist(ld_friends))
+    # Only include unprocessed markers
+    ld_friends <- intersect(ld_friends, remaining_markers[-c(1:k)])  
     
-    if (length(ld_friends) > 0) {
-      cumulative_pip <- sum(dsorted[c(lead_marker, ld_friends)])
-    } else {
-      cumulative_pip <- dsorted[lead_marker]
-    }
+    #if (length(ld_friends) > 0) {
+    #  cumulative_pip <- sum(dsorted[c(lead_marker, ld_friends)])
+    #} else {
+    #  cumulative_pip <- dsorted[lead_marker]
+    #}
+    # Compute cumulative PIP for the lead marker and LD friends
+    relevant_markers <- intersect(names(dsorted), c(lead_marker, ld_friends))
+    cumulative_pip <- sum(dsorted[relevant_markers])
     
     # Step 3.2: Check if cumulative PIP exceeds threshold
     if (cumulative_pip >= threshold) {
-      dset <- dsorted[names(dsorted) %in% c(lead_marker, ld_friends)]
-      crset <- names(dset)[1:which(cumsum(dset) >= threshold)[1]]
+      #dset <- dsorted[names(dsorted) %in% c(lead_marker, ld_friends)]
+      #crset <- names(dset)[1:which(cumsum(dset) >= threshold)[1]]
+      dset <- dsorted[names(dsorted) %in% relevant_markers]
+      # Ensure a valid credible set index before indexing
+      if (any(cumsum(dset) >= threshold)) {
+        crset <- names(dset)[1:which(cumsum(dset) >= threshold)[1]]
+      } else {
+        crset <- names(dset)  # Default to full set if no threshold is met
+      }
+      
       credible_sets[[length(credible_sets) + 1]] <- crset
       names(credible_sets)[length(credible_sets)] <- paste0("Set", length(credible_sets))
-      
+
       # Remove credible set markers from further analysis
       if (keep) {
         remaining_markers <- setdiff(remaining_markers, crset)
       } else {
         remaining_markers <- setdiff(remaining_markers, c(lead_marker, ld_friends))
       }
+      k <- 1  # Reset k after finding a set
     } else {
       # If cumulative PIP does not exceed threshold, move to the next marker
-      remaining_markers <- remaining_markers[-1]
+      #remaining_markers <- remaining_markers[-1]
+      k <- k + 1
     }
     
     # Update dsorted dynamically based on remaining markers
