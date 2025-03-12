@@ -1058,7 +1058,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       }
       
       converged <- critve & critvg & critvb & critpi & critb
-      if(!checkConvergence) convergence <- TRUE
+      if(!checkConvergence) converged <- TRUE
       # Make plots to monitor convergence
       if(verbose) {
         layout(matrix(1:4,ncol=2))
