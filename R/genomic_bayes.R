@@ -1221,6 +1221,7 @@ cpo <- function(yobs=NULL, ypred=NULL, nit=NULL, nburn=nburn) {
 }
 
 crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) {
+  
   # Input validation
   if (is.null(prob) || is.null(B)) stop("Both 'prob' and 'B' must be provided.")
   if (!is.vector(prob) || !is.matrix(B)) stop("'prob' must be a vector and 'B' must be a matrix.")
@@ -1232,49 +1233,19 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) 
   dsorted <- sort(prob, decreasing = TRUE)
   credible_sets <- NULL
   
-  # Step 2: Identify credible sets of size 1
-  high_pip_markers <- names(dsorted)[dsorted > threshold]
+  # Identify LD sets an dmap to sorted pips
+  sets <- sapply(names(dsorted), function(x) {
+    colnames(B)[B[x, ]^2 > r2]
+  })
+  sets <- mapSets(sets=sets, rsids=names(dsorted),index=TRUE)
   
-  if (length(high_pip_markers) > 0) {
-    # Add markers with PIP > threshold as credible sets of size 1
-    credible_sets <- as.list(high_pip_markers)
-    names(credible_sets) <- paste0("Set", seq_along(credible_sets))
-    
-    # Remove these markers from further analysis
-    dsorted <- dsorted[!(names(dsorted) %in% high_pip_markers)]
-  }
-  
-  # Step 3: Identify credible sets of size > 1
-  remaining_markers <- names(dsorted)
-  k <- 1
-  while (sum(dsorted)>= threshold) {
-    #lead_marker <- remaining_markers[1]
-    lead_marker <- remaining_markers[1:min(length(remaining_markers), k)]
-    
-    # Step 3.1: Identify LD friends of the lead marker
-    #ld_friends <- colnames(B)[B[lead_marker, ]^2 > r2]
-    #ld_friends <- intersect(ld_friends, remaining_markers[-1])  # Only include unprocessed markers
-    ld_friends <- sapply(lead_marker, function(x) {
-      colnames(B)[B[x, ]^2 > r2]
-    })
-    ld_friends <- unique(unlist(ld_friends))
-    # Only include unprocessed markers
-    ld_friends <- intersect(ld_friends, remaining_markers[-c(1:k)])  
-    
-    #if (length(ld_friends) > 0) {
-    #  cumulative_pip <- sum(dsorted[c(lead_marker, ld_friends)])
-    #} else {
-    #  cumulative_pip <- dsorted[lead_marker]
-    #}
-    # Compute cumulative PIP for the lead marker and LD friends
-    relevant_markers <- intersect(names(dsorted), c(lead_marker, ld_friends))
-    cumulative_pip <- sum(dsorted[relevant_markers])
-    
-    # Step 3.2: Check if cumulative PIP exceeds threshold
+  # Step 2: Identify credible sets of size > 1
+  credible_sets <- NULL
+  for (j in 1:length(sets)) {
+    cumulative_pip <- sum(dsorted[sets[[j]]])
     if (cumulative_pip >= threshold) {
-      #dset <- dsorted[names(dsorted) %in% c(lead_marker, ld_friends)]
-      #crset <- names(dset)[1:which(cumsum(dset) >= threshold)[1]]
-      dset <- dsorted[names(dsorted) %in% relevant_markers]
+      dset <- dsorted[sets[[j]]]
+      dset <- dset[dset>0]
       # Ensure a valid credible set index before indexing
       if (any(cumsum(dset) >= threshold)) {
         crset <- names(dset)[1:which(cumsum(dset) >= threshold)[1]]
@@ -1283,28 +1254,99 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) 
       }
       credible_sets[[length(credible_sets) + 1]] <- crset
       names(credible_sets)[length(credible_sets)] <- paste0("Set", length(credible_sets))
-
-      # Remove credible set markers from further analysis
-      if (keep) {
-        remaining_markers <- setdiff(remaining_markers, crset)
-      } else {
-        remaining_markers <- setdiff(remaining_markers, c(lead_marker, ld_friends))
-      }
-      k <- 1  # Reset k after finding a set
-    } else {
-      # If cumulative PIP does not exceed threshold, move to the next marker
-      #remaining_markers <- remaining_markers[-1]
-      k <- k + 1
+      dsorted[sets[[j]]] <- 0
     }
-    
-    # Update dsorted dynamically based on remaining markers
-    dsorted <- dsorted[remaining_markers]
   }
-  
   # Return results
   if(is.null(credible_sets)) return(list(NULL))
   return(credible_sets)
 }
+
+# crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) {
+#   # Input validation
+#   if (is.null(prob) || is.null(B)) stop("Both 'prob' and 'B' must be provided.")
+#   if (!is.vector(prob) || !is.matrix(B)) stop("'prob' must be a vector and 'B' must be a matrix.")
+#   if (is.null(names(prob)) || is.null(rownames(B)) || is.null(colnames(B))) {
+#     stop("'prob' and 'B' must have names for proper indexing.")
+#   }
+#   
+#   # Step 1: Sort PIPs in descending order
+#   dsorted <- sort(prob, decreasing = TRUE)
+#   credible_sets <- NULL
+#   
+#   # Step 2: Identify credible sets of size 1
+#   high_pip_markers <- names(dsorted)[dsorted > threshold]
+#   
+#   if (length(high_pip_markers) > 0) {
+#     # Add markers with PIP > threshold as credible sets of size 1
+#     credible_sets <- as.list(high_pip_markers)
+#     names(credible_sets) <- paste0("Set", seq_along(credible_sets))
+#     
+#     # Remove these markers from further analysis
+#     dsorted <- dsorted[!(names(dsorted) %in% high_pip_markers)]
+#   }
+#   
+#   # Step 3: Identify credible sets of size > 1
+#   remaining_markers <- names(dsorted)
+#   k <- 1
+#   while (sum(dsorted)>= threshold) {
+#     #lead_marker <- remaining_markers[1]
+#     lead_marker <- remaining_markers[1:min(length(remaining_markers), k)]
+#     
+#     # Step 3.1: Identify LD friends of the lead marker
+#     #ld_friends <- colnames(B)[B[lead_marker, ]^2 > r2]
+#     #ld_friends <- intersect(ld_friends, remaining_markers[-1])  # Only include unprocessed markers
+#     ld_friends <- sapply(lead_marker, function(x) {
+#       colnames(B)[B[x, ]^2 > r2]
+#     })
+#     ld_friends <- unique(unlist(ld_friends))
+#     # Only include unprocessed markers
+#     ld_friends <- intersect(ld_friends, remaining_markers[-c(1:k)])  
+#     
+#     #if (length(ld_friends) > 0) {
+#     #  cumulative_pip <- sum(dsorted[c(lead_marker, ld_friends)])
+#     #} else {
+#     #  cumulative_pip <- dsorted[lead_marker]
+#     #}
+#     # Compute cumulative PIP for the lead marker and LD friends
+#     relevant_markers <- intersect(names(dsorted), c(lead_marker, ld_friends))
+#     cumulative_pip <- sum(dsorted[relevant_markers])
+#     
+#     # Step 3.2: Check if cumulative PIP exceeds threshold
+#     if (cumulative_pip >= threshold) {
+#       #dset <- dsorted[names(dsorted) %in% c(lead_marker, ld_friends)]
+#       #crset <- names(dset)[1:which(cumsum(dset) >= threshold)[1]]
+#       dset <- dsorted[names(dsorted) %in% relevant_markers]
+#       # Ensure a valid credible set index before indexing
+#       if (any(cumsum(dset) >= threshold)) {
+#         crset <- names(dset)[1:which(cumsum(dset) >= threshold)[1]]
+#       } else {
+#         crset <- names(dset)  # Default to full set if no threshold is met
+#       }
+#       credible_sets[[length(credible_sets) + 1]] <- crset
+#       names(credible_sets)[length(credible_sets)] <- paste0("Set", length(credible_sets))
+# 
+#       # Remove credible set markers from further analysis
+#       if (keep) {
+#         remaining_markers <- setdiff(remaining_markers, crset)
+#       } else {
+#         remaining_markers <- setdiff(remaining_markers, c(lead_marker, ld_friends))
+#       }
+#       k <- 1  # Reset k after finding a set
+#     } else {
+#       # If cumulative PIP does not exceed threshold, move to the next marker
+#       #remaining_markers <- remaining_markers[-1]
+#       k <- k + 1
+#     }
+#     
+#     # Update dsorted dynamically based on remaining markers
+#     dsorted <- dsorted[remaining_markers]
+#   }
+#   
+#   # Return results
+#   if(is.null(credible_sets)) return(list(NULL))
+#   return(credible_sets)
+# }
 
 bfdr <- function(prob = NULL, probs = NULL, cutoff = 0.1, ql = 0.025, qu = 0.975, verbose = TRUE) {
   # prob is a vector mx1 of posterior means of inclusion probability for m variables
