@@ -1220,7 +1220,8 @@ cpo <- function(yobs=NULL, ypred=NULL, nit=NULL, nburn=nburn) {
   sum(log((nit-nburn)*(1/psum)))
 }
 
-crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) {
+
+crs <- function(prob = NULL, B = NULL, threshold = 0.9, r2 = 0.5, keep = FALSE) {
   
   # Input validation
   if (is.null(prob) || is.null(B)) stop("Both 'prob' and 'B' must be provided.")
@@ -1230,37 +1231,45 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) 
   }
   
   # Step 1: Sort PIPs in descending order
+  prob[prob<0.001] <- 0 
   dsorted <- sort(prob, decreasing = TRUE)
-  credible_sets <- NULL
+  credible_sets <- list()  # Initialize as an empty list
   
-  # Identify LD sets an dmap to sorted pips
+  # Identify LD sets and map to sorted PIPs
   sets <- sapply(names(dsorted), function(x) {
-    colnames(B)[B[x, ]^2 > r2]
-  })
-  sets <- mapSets(sets=sets, rsids=names(dsorted),index=TRUE)
+    colnames(B)[B[x, ]^2 > r2]  # Identify SNPs in LD
+  }, simplify = FALSE)  
   
-  # Step 2: Identify credible sets of size > 1
-  credible_sets <- NULL
-  for (j in 1:length(sets)) {
-    cumulative_pip <- sum(dsorted[sets[[j]]])
+  sets <- mapSets(sets = sets, rsids = names(dsorted), index = TRUE)  # Ensure mapSets is properly defined
+  
+  # Step 2: Identify credible sets
+  for (j in seq_along(sets)) {
+    if (length(sets[[j]]) == 0) next  # Skip empty sets
+    cumulative_pip <- sum(dsorted[sets[[j]]], na.rm = TRUE)  # Avoid NA issues
+    
     if (cumulative_pip >= threshold) {
       dset <- dsorted[sets[[j]]]
-      dset <- dset[dset>0]
-      # Ensure a valid credible set index before indexing
-      if (any(cumsum(dset) >= threshold)) {
+      dset <- dset[dset > 0]  # Keep only non-zero PIPs
+      
+      if (length(dset) > 0 && any(cumsum(dset) >= threshold)) {
         crset <- names(dset)[1:which(cumsum(dset) >= threshold)[1]]
       } else {
-        crset <- names(dset)  # Default to full set if no threshold is met
+        crset <- names(dset)  # Default to full set if threshold isn't met
       }
+      
       credible_sets[[length(credible_sets) + 1]] <- crset
       names(credible_sets)[length(credible_sets)] <- paste0("Set", length(credible_sets))
+      
+      # Avoid modifying dsorted directly; use a logical mask
       dsorted[sets[[j]]] <- 0
     }
   }
+  
   # Return results
-  if(is.null(credible_sets)) return(list(NULL))
+  if (length(credible_sets) == 0) return(list(NULL))
   return(credible_sets)
 }
+
 
 # crs <- function(prob = NULL, B = NULL, threshold = 0.8, r2 = 0.5, keep = FALSE) {
 #   # Input validation
