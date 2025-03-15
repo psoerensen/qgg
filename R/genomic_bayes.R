@@ -1221,7 +1221,7 @@ cpo <- function(yobs=NULL, ypred=NULL, nit=NULL, nburn=nburn) {
 }
 
 
-crs <- function(prob = NULL, B = NULL, threshold = 0.9, r2 = 0.5, keep = FALSE) {
+crs <- function(prob = NULL, B = NULL, threshold = 0.9, r2 = 0.5, keep = FALSE, cutoff=0.001) {
   
   # Input validation
   if (is.null(prob) || is.null(B)) stop("Both 'prob' and 'B' must be provided.")
@@ -1231,7 +1231,7 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.9, r2 = 0.5, keep = FALSE) 
   }
   
   # Step 1: Sort PIPs in descending order
-  prob[prob<0.001] <- 0 
+  prob[prob<cutoff] <- 0 
   dsorted <- sort(prob, decreasing = TRUE)
   credible_sets <- list()  # Initialize as an empty list
   
@@ -1240,15 +1240,15 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.9, r2 = 0.5, keep = FALSE) 
     colnames(B)[B[x, ]^2 > r2]  # Identify SNPs in LD
   }, simplify = FALSE)  
   
-  sets <- mapSets(sets = sets, rsids = names(dsorted), index = TRUE)  # Ensure mapSets is properly defined
+  sets <- mapSets(sets = sets, rsids = names(dsorted), index = FALSE)  # Ensure mapSets is properly defined
   
   # Step 2: Identify credible sets
   for (j in seq_along(sets)) {
     if (length(sets[[j]]) == 0) next  # Skip empty sets
-    cumulative_pip <- sum(dsorted[sets[[j]]], na.rm = TRUE)  # Avoid NA issues
+    cumulative_pip <- sum(dsorted[names(dsorted)%in%sets[[j]]], na.rm = TRUE)  # Avoid NA issues
     
     if (cumulative_pip >= threshold) {
-      dset <- dsorted[sets[[j]]]
+      dset <- dsorted[names(dsorted)%in%sets[[j]]]
       dset <- dset[dset > 0]  # Keep only non-zero PIPs
       
       if (length(dset) > 0 && any(cumsum(dset) >= threshold)) {
