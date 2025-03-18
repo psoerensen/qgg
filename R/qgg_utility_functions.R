@@ -45,6 +45,9 @@ acc <- function(yobs = NULL, ypred = NULL, typeoftrait = "quantitative") {
   if (is.null(rownames(ypred))) stop(paste("rownames/names missing for ypred"))
   if (is.null(names(yobs))) stop(paste("rownames/names missing for yobs"))
   if (sum(names(yobs)%in%rownames(ypred))==0) stop(paste("No id overlap between yobs and ypred"))
+  if (any(duplicated(names(yobs)))) stop(paste("Duplicated names in yobs"))
+  if (any(duplicated(rownames(ypred)))) stop(paste("Duplicated rownames in ypred"))
+  
   yobs <- yobs[names(yobs)%in%rownames(ypred)]
   ypred <- ypred[names(yobs),,drop=FALSE]
   result <- NULL
