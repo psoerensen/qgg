@@ -807,7 +807,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  formatLD="dense", checkLD=FALSE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
                  checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, 
                  critB=3, critB1=0.5, critB2=3, 
-                 verbose=FALSE, eigen_threshold=0.995, cs_threshold=0.9, cs_r2=0.5,
+                 verbose=FALSE, eigen_threshold=0.995, cs_threshold=0.9, cs_r2=0.5, cs_method="CS2",
                  nit=1000, nburn=100, nthin=1, output="summary",
                  method="bayesR", algorithm="mcmc-eigen", seed=10) {
   
@@ -837,7 +837,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   # Prepare starting parameters
   
   if(method==4 && is.null(pi)) pi <- c(1-0.001,0.001)
-  if(method==5 && is.null(pi)) pi <- c(0.992,0.005,0.003,0.001)
+  if(method==5 && is.null(pi)) pi <- c(0.991,0.005,0.003,0.001)
   if(method==4 && is.null(gamma)) gamma <- c(0,1.0)
   if(method==5 && is.null(gamma)) gamma <- c(0,0.01,0.1,1.0)
   
@@ -1132,7 +1132,10 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     fdr[[i]] <- bfdrs
     logcpo[i] <- fit$param[4]
     if(verbose) message("Compute credible sets")
-    if(sum(fit$dm)>cs_threshold) csets[[i]] <- crs(prob=fit$dm, B=B, threshold=cs_threshold, r2=cs_r2)
+    if(sum(fit$dm)>cs_threshold) csets[[i]] <- crs(prob=fit$dm, B=B, 
+                                                   threshold=cs_threshold, 
+                                                   r2=cs_r2, 
+                                                   method=cs_method="CS2")
     names(bm[[i]]) <- names(dm[[i]]) <- rsids
   }
   fit <- NULL
@@ -1221,7 +1224,7 @@ cpo <- function(yobs=NULL, ypred=NULL, nit=NULL, nburn=nburn) {
 }
 
 
-crs <- function(prob = NULL, B = NULL, threshold = 0.9, r2 = 0.5, keep = FALSE, cutoff=0.001) {
+crs <- function(prob = NULL, B = NULL, threshold = 0.9, r2 = 0.5, keep = FALSE, cutoff=0.001, method="CS2") {
   
   # Input validation
   if (is.null(prob) || is.null(B)) stop("Both 'prob' and 'B' must be provided.")
@@ -1230,9 +1233,17 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.9, r2 = 0.5, keep = FALSE, 
     stop("'prob' and 'B' must have names for proper indexing.")
   }
   
+  
   # Step 1: Sort PIPs in descending order
   prob[prob<cutoff] <- 0 
   dsorted <- sort(prob, decreasing = TRUE)
+  
+  if(method=="CS3") {
+    bprob <- B^2%*%prob
+    o <- order(bprob, decreasing=TRUE)
+    dsorted <- prob[o]
+  }
+  
   credible_sets <- list()  # Initialize as an empty list
   
   # Identify LD sets and map to sorted PIPs
@@ -1260,7 +1271,7 @@ crs <- function(prob = NULL, B = NULL, threshold = 0.9, r2 = 0.5, keep = FALSE, 
       credible_sets[[length(credible_sets) + 1]] <- crset
       names(credible_sets)[length(credible_sets)] <- paste0("Set", length(credible_sets))
       
-      # Avoid modifying dsorted directly; use a logical mask
+      # Set prob values to zero for markers in the credible set
       dsorted[sets[[j]]] <- 0
     }
   }
