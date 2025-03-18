@@ -1135,7 +1135,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
     if(sum(fit$dm)>cs_threshold) csets[[i]] <- crs(prob=fit$dm, B=B, 
                                                    threshold=cs_threshold, 
                                                    r2=cs_r2, 
-                                                   method=cs_method="CS2")
+                                                   method=cs_method)
     names(bm[[i]]) <- names(dm[[i]]) <- rsids
   }
   fit <- NULL
