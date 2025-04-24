@@ -20,8 +20,8 @@ extern SEXP _qgg_mtbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, S
 extern SEXP _qgg_mtsbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_mtblr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_sbayes(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _qgg_sbayes_reg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _qgg_sbayes_reg_eigen(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _qgg_sbayes_reg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _qgg_sbayes_reg_eigen(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_rwishart(SEXP, SEXP);
 extern SEXP _qgg_riwishart(SEXP, SEXP);
 extern SEXP _qgg_mvrnormARMA(SEXP);
@@ -42,8 +42,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_qgg_mtsbayes",              (DL_FUNC) &_qgg_mtsbayes,              23},
     {"_qgg_mtblr",                 (DL_FUNC) &_qgg_mtblr,                 23},
     {"_qgg_sbayes",                (DL_FUNC) &_qgg_sbayes,                31},
-    {"_qgg_sbayes_reg",            (DL_FUNC) &_qgg_sbayes_reg,            30},
-    {"_qgg_sbayes_reg_eigen",      (DL_FUNC) &_qgg_sbayes_reg_eigen,      29},
+    {"_qgg_sbayes_reg",            (DL_FUNC) &_qgg_sbayes_reg,            33},
+    {"_qgg_sbayes_reg_eigen",      (DL_FUNC) &_qgg_sbayes_reg_eigen,      32},
     {"_qgg_rwishart",              (DL_FUNC) &_qgg_rwishart,               2},
     {"_qgg_riwishart",             (DL_FUNC) &_qgg_riwishart,              2},
     {"_qgg_mvrnormARMA",           (DL_FUNC) &_qgg_mvrnormARMA,            1},

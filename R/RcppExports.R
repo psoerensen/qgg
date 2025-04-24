@@ -25,12 +25,12 @@ sbayes <- function(yy, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, 
     .Call(`_qgg_sbayes`, yy, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vg, vb, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, adjustE, n, nit, nburn, nthin, method, algo, seed)
 }
 
-sbayes_reg <- function(yy, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, n, nit, nburn, nthin, method, algo, seed) {
-    .Call(`_qgg_sbayes_reg`, yy, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, n, nit, nburn, nthin, method, algo, seed)
+sbayes_reg <- function(yy, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, mh_p, mh_r2, updateB, updateG, updateE, updatePi, updateMH, n, nit, nburn, nthin, method, algo, seed) {
+    .Call(`_qgg_sbayes_reg`, yy, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, mh_p, mh_r2, updateB, updateG, updateE, updatePi, updateMH, n, nit, nburn, nthin, method, algo, seed)
 }
 
-sbayes_reg_eigen <- function(wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, n, nit, nburn, nthin, method, algo, seed) {
-    .Call(`_qgg_sbayes_reg_eigen`, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, updateB, updateG, updateE, updatePi, n, nit, nburn, nthin, method, algo, seed)
+sbayes_reg_eigen <- function(wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, mh_p, mh_r2, updateB, updateG, updateE, updatePi, updateMH, n, nit, nburn, nthin, method, algo, seed) {
+    .Call(`_qgg_sbayes_reg_eigen`, wy, ww, LDvalues, LDindices, b, lambda, mask, pi, gamma, vb, vg, ve, ssb_prior, ssg_prior, sse_prior, nub, nug, nue, mh_p, mh_r2, updateB, updateG, updateE, updatePi, updateMH, n, nit, nburn, nthin, method, algo, seed)
 }
 
 grsbed <- function(file, n, cls, af, b) {

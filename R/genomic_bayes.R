@@ -772,6 +772,7 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
 #' @param ssb_prior,ssg_prior,sse_prior Priors for the marker, genetic, and residual variances.
 #' @param vb_prior,vg_prior,ve_prior Additional priors for marker, genetic, and residual variances (default: NULL).
 #' @param updateB,updateG,updateE,updatePi Logical values specifying whether to update marker effects, genetic variance, residual variance, and inclusion probabilities, respectively.
+#' @param updateMH Logical values specifying whether to update marker effects using a Metropolis-Hasting algorithm.
 #' @param formatLD Format of LD matrix ("dense" by default).
 #' @param checkLD Logical, whether to check the LD matrix for inconsistencies (default: FALSE).
 #' @param shrinkLD,shrinkCor Logical, whether to apply shrinkage to the LD or correlation matrices (default: FALSE).
@@ -780,11 +781,13 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
 #' @param critVe,critVg,critVb,critPi,critB,critB1,critB2 Convergence criteria for residual, genetic, and marker variances, inclusion probabilities, and marker effects.
 #' @param eigen_threshold Threshold for eigen value decomposition (default: eigen_threshold=0.995, other examples: eigen_threshold=c(0.995,0.99) )
 #' @param cs_threshold,cs_r2 PIP and r2 thresholds credible set construction (default: cs_threshold=0.9, cs_r2=0.5)
+#' @param mh_p,mh_r2 Probability and r2 thresholds used in MH step (default: mh_p=0.05, mh_r2=0.95)
 #' @param verbose Logical, whether to print detailed output for debugging (default: FALSE).
 #' @param eigen_threshold Threshold for eigenvalues in eigen decomposition (default: 0.995).
 #' @param nit Number of iterations in the MCMC sampler (default: 5000).
 #' @param nburn Number of burn-in iterations (default: 500).
 #' @param nthin Thinning interval for MCMC (default: 5).
+#' @param nrun Number of parallel runs MCMC (default: 1).
 #' @param method The regression method to use, options include "blup", "bayesN", "bayesA", "bayesL", "bayesC", "bayesR".
 #' @param algorithm Algorithm for MCMC sampling, options include "mcmc", "em-mcmc", "mcmc-eigen".
 #' @param output Level of output, options include "summary", "full".
@@ -803,12 +806,14 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  nub=4, nug=4, nue=4, 
                  ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL,
                  vb_prior=NULL, vg_prior=NULL, ve_prior=NULL,
-                 updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, 
+                 updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, updateMH=FALSE,
                  formatLD="dense", checkLD=FALSE, shrinkLD=FALSE, shrinkCor=FALSE, pruneLD=FALSE, 
                  checkConvergence=FALSE, critVe=3, critVg=3, critVb=3, critPi=3, 
                  critB=3, critB1=0.5, critB2=3, 
-                 verbose=FALSE, eigen_threshold=0.995, cs_threshold=0.9, cs_r2=0.5, cs_method="CS2",
-                 nit=1000, nburn=100, nthin=1, output="summary",
+                 verbose=FALSE, eigen_threshold=0.995, 
+                 cs_threshold=0.9, cs_r2=0.5, cs_method="CS2",
+                 mh_p=0.05, mh_r2=0.95,
+                 nit=1000, nburn=100, nthin=1, nrun=1, output="summary",
                  method="bayesR", algorithm="mcmc-eigen", seed=10) {
   
   
@@ -927,74 +932,124 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
       b <- rep(0, m)
       mask <- rep(FALSE, m)
       lambda <- rep(ve/vb,m)
+
+      for (run in 1:nrun) {
+        
+        if (run > 1) {
+          seed[run] <- sample.int(.Machine$integer.max, 1)
+        }
+        if(algorithm==1) {
+          fit <- .Call("_qgg_sbayes_reg",
+                       yy=yy,
+                       wy=stat$wy[rws],
+                       ww=stat$ww[rws],
+                       LDvalues=LDvalues,
+                       LDindices=LDindices,
+                       b = b,
+                       lambda = lambda,
+                       mask=mask,
+                       pi = pi,
+                       gamma = gamma,
+                       vb = vb,
+                       vg = vg,
+                       ve = ve,
+                       ssb_prior=ssb_prior,
+                       ssg_prior=ssg_prior,
+                       sse_prior=sse_prior,
+                       nub=nub,
+                       nug=nug,
+                       nue=nue,
+                       mh_p=mh_p,
+                       mh_r2=mh_r2,
+                       updateB = updateB,
+                       updateG = updateG,
+                       updateE = updateE,
+                       updatePi = updatePi,
+                       updateMH = updateMH,
+                       n=n,
+                       nit=nit,
+                       nburn=nburn,
+                       nthin=nthin,
+                       method=as.integer(method),
+                       algo=as.integer(algorithm),
+                       seed=as.integer(seed[run]))
+        }   
+        if(algorithm==3) {
+          fit <- .Call("_qgg_sbayes_reg_eigen",
+                       wy=wy,
+                       ww=ww,
+                       LDvalues=LDvalues,
+                       LDindices=LDindices,
+                       b = b,
+                       lambda = lambda,
+                       mask=mask,
+                       pi = pi,
+                       gamma = gamma,
+                       vb = vb,
+                       vg = vg,
+                       ve = ve,
+                       ssb_prior=ssb_prior,
+                       ssg_prior=ssg_prior,
+                       sse_prior=sse_prior,
+                       nub=nub,
+                       nug=nug,
+                       nue=nue,
+                       mh_p=mh_p,
+                       mh_r2=mh_r2,
+                       updateB = updateB,
+                       updateG = updateG,
+                       updateE = updateE,
+                       updatePi = updatePi,
+                       updateMH = updateMH,
+                       n=n,
+                       nit=nit,
+                       nburn=nburn,
+                       nthin=nthin,
+                       method=as.integer(method),
+                       algo=as.integer(algorithm),
+                       seed=as.integer(seed[run]))
+        }   
+        names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param","bs","ds","prob")
+        if(nrun>1) {
+          if (run==1) {
+            rbm <- rep(0,length(fit$bm)) 
+            rdm <- rep(0,length(fit$dm)) 
+            rvbs <- rep(0,length(fit$vbs)) 
+            rvgs <- rep(0,length(fit$vgs)) 
+            rves <- rep(0,length(fit$ves)) 
+            rpis <- rep(0,length(fit$pis)) 
+            rpim <- rep(0,length(fit$pim)) 
+            rbs <- rep(0,length(fit$bs)) 
+            rds <- rep(0,length(fit$ds)) 
+            rprob <- rep(0,length(fit$prob)) 
+          }
+          
+          
+          rbm <- rbm + fit$bm/nrun
+          rdm <- rdm + fit$dm/nrun
+          rvbs <- rvbs + fit$vbs/nrun
+          rvgs <- rvgs + fit$vgs/nrun
+          rves <- rves + fit$ves/nrun
+          rpis <- rpis + fit$pis/nrun
+          rpim <- rpim + fit$pim/nrun
+          rbs <- rbs + fit$bs/nrun
+          rds <- rds + fit$ds/nrun
+          rprob <- rprob + fit$prob/nrun
+          if(run==nrun) {
+            fit$bm <- rbm
+            fit$dm <- rdm
+            fit$vbs <- rvbs
+            fit$vgs <- rvgs
+            fit$ves <- rves
+            fit$pis <- rpis
+            fit$pim <- rpim
+            fit$bs <- rbs
+            fit$ds <- rds
+            fit$prob <- rprob
+          }
+        }
+      }
       
-      if(algorithm==1) {
-        fit <- .Call("_qgg_sbayes_reg",
-                     yy=yy,
-                     wy=stat$wy[rws],
-                     ww=stat$ww[rws],
-                     LDvalues=LDvalues,
-                     LDindices=LDindices,
-                     b = b,
-                     lambda = lambda,
-                     mask=mask,
-                     pi = pi,
-                     gamma = gamma,
-                     vb = vb,
-                     vg = vg,
-                     ve = ve,
-                     ssb_prior=ssb_prior,
-                     ssg_prior=ssg_prior,
-                     sse_prior=sse_prior,
-                     nub=nub,
-                     nug=nug,
-                     nue=nue,
-                     updateB = updateB,
-                     updateG = updateG,
-                     updateE = updateE,
-                     updatePi = updatePi,
-                     n=n,
-                     nit=nit,
-                     nburn=nburn,
-                     nthin=nthin,
-                     method=as.integer(method),
-                     algo=as.integer(algorithm),
-                     seed=as.integer(seed))
-      }   
-      if(algorithm==3) {
-        fit <- .Call("_qgg_sbayes_reg_eigen",
-                     wy=wy,
-                     ww=ww,
-                     LDvalues=LDvalues,
-                     LDindices=LDindices,
-                     b = b,
-                     lambda = lambda,
-                     mask=mask,
-                     pi = pi,
-                     gamma = gamma,
-                     vb = vb,
-                     vg = vg,
-                     ve = ve,
-                     ssb_prior=ssb_prior,
-                     ssg_prior=ssg_prior,
-                     sse_prior=sse_prior,
-                     nub=nub,
-                     nug=nug,
-                     nue=nue,
-                     updateB = updateB,
-                     updateG = updateG,
-                     updateE = updateE,
-                     updatePi = updatePi,
-                     n=n,
-                     nit=nit,
-                     nburn=nburn,
-                     nthin=nthin,
-                     method=as.integer(method),
-                     algo=as.integer(algorithm),
-                     seed=as.integer(seed))
-      }   
-      
-      names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param","bs","ds","prob")
       if(algorithm==3) fit$bm <- fit$bm/scaleb
       names(fit$bm) <- names(fit$dm) <- names(fit$b) <- names(LDvalues)
       fit$bs <- matrix(fit$bs,nrow=length(fit$bm))
@@ -1210,6 +1265,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   fit$ve <- mean(ve)
   fit$vg <- sum(vg)
   fit$b <- b
+  fit$seed <- seed
   return(fit)
 }
 
