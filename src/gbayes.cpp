@@ -1360,10 +1360,10 @@ std::vector<std::vector<double>>  sbayes_reg( double yy,
           }
           
           // Update effects and inclusion indicators
-          b[i] = 0.0;
           b[j] = bn;
+          b[i] = 0.0;
+          d[j] = d[i];
           d[i] = 0;
-          d[j] = 1;
         }
       }
       // End MH step
@@ -1740,10 +1740,10 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double>& wy,
           }
           
           // Update effects and inclusion indicators
-          b[i] = 0.0;
           b[j] = bn;
+          b[i] = 0.0;
+          d[j] = d[i];
           d[i] = 0;
-          d[j] = 1;
         }
       }
       // End MH step
