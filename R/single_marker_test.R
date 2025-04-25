@@ -222,6 +222,13 @@ sma <- function(y = NULL, X = NULL, W = NULL, Glist = NULL, chr=NULL, ids = NULL
         cls <- match(rsidsChr,Glist$rsids[[chr]])
       }
       sets <- split(cls, ceiling(seq_along(cls) / msize))
+      # Check if the last set has length 1
+      if (length(sets[[length(sets)]]) == 1 && length(sets) > 1) {
+        # Merge the last element with the second-last
+        sets[[length(sets) - 1]] <- c(sets[[length(sets) - 1]], sets[[length(sets)]])
+        # Remove the last element
+        sets <- sets[-length(sets)]
+      }
       nsets <- length(sets)
       for (i in 1:nsets) {
         cls <- sets[[i]]
