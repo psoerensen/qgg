@@ -814,7 +814,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
                  cs_threshold=0.9, cs_r2=0.5, cs_method="CS2",
                  mh_p=0.05, mh_r2=0.95,
                  nit=1000, nburn=100, nthin=1, nrun=1, output="summary",
-                 method="bayesR", algorithm="mcmc-eigen", seed=10) {
+                 method="bayesR", algorithm="mcmc", seed=10) {
   
   
   # Check methods and parameter settings
@@ -1094,7 +1094,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
         })
         pdiv <- pdiv/length(nburn:ncol(tstat))
         pdiv <- pdiv[is.finite(pdiv)]
-        if(any(pdiv<0.95)) plot(pdiv)
+        if(any(pdiv<0.95) && verbose ) plot(pdiv)
         critb1 <- !any(pdiv<0.95)    # FALSE if any pdiv is less than 0.95
         if(!critb1) message(paste("Convergence not reached for critB1 "))
         critb <- critb1
