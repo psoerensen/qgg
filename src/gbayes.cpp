@@ -1292,83 +1292,6 @@ std::vector<std::vector<double>>  sbayes_reg( double yy,
         b[i] = bn;
       }
 
-      // MH step
-      if (updateMH) {
-        for (int i = 0; i < m; i++) {
-          
-          if (mask[i]) continue;     // Skip masked SNPs
-          if (d[i] == 0) continue;   // Only consider SNPs currently included
-          
-          int nc = LDindices[i].size();  
-          if (nc == 0) continue;
-          
-          // Sample whether to attempt a jump
-          std::uniform_real_distribution<double> runif(0.0, 1.0);
-          double mh_u = runif(gen);
-          if (mh_u > mh_p) continue;         // Skip with 1 - mh_p probability
-          
-          // Copy LD values and indices
-          std::vector<double> pld = LDvalues[i];
-          std::vector<int> indices = LDindices[i];
-          
-          // Compute squared LD, apply r² threshold, and normalize
-          double sumsq = 0.0;
-          for (int j = 0; j < nc; j++) {
-            pld[j] *= pld[j];  // r²
-            if (pld[j] < mh_r2) pld[j] = 0.0;
-            sumsq += pld[j];
-          }
-          
-          if (sumsq == 0.0) continue;  // No strong LD neighbors, skip
-          
-          // Normalize LD-based probabilities
-          for (int j = 0; j < nc; j++) {
-            pld[j] /= sumsq;
-          }
-          
-          // Build cumulative distribution
-          std::vector<double> cumpld(nc);
-          cumpld[0] = pld[0];
-          for (int j = 1; j < nc; j++) {
-            cumpld[j] = cumpld[j - 1] + pld[j];
-          }
-          
-          // Sample target SNP j from LD cluster
-          double u = runif(gen);
-          int tj = 0;
-          while (tj < nc && u > cumpld[tj]) {
-            tj++;
-          }
-          if (tj >= nc) continue;  // Safety
-          int j = indices[tj];
-          
-          if (j == i) continue;  // No-op (stay), skip
-          
-          // Effect transfer
-          double diff = -b[i];  // Remove i's effect
-          for (size_t k = 0; k < LDindices[i].size(); k++) {
-            r[LDindices[i][k]] += XXvalues[i][k] * diff;
-          }
-          
-          // Transferring scaled effect
-          double bn = b[i] * LDvalues[i][tj]; 
-          
-          // Update residuals for j
-          diff = bn - b[j];
-          for (size_t k = 0; k < LDindices[j].size(); k++) {
-            r[LDindices[j][k]] += XXvalues[j][k] * diff;
-          }
-          
-          // Update effects and inclusion indicators
-          b[j] = bn;
-          b[i] = 0.0;
-          d[j] = d[i];
-          d[i] = 0;
-        }
-      }
-      // End MH step
-      
-
       // Sample pi for Bayes R
       if(updatePi) {
         std::vector<double> mc(nc);
@@ -1390,6 +1313,82 @@ std::vector<std::vector<double>>  sbayes_reg( double yy,
         pis[it] = 1.0 - pi[0];
       }
     }
+    
+    // MH step
+    if (updateMH) {
+      for (int i = 0; i < m; i++) {
+        
+        if (mask[i]) continue;     // Skip masked SNPs
+        if (d[i] == 0) continue;   // Only consider SNPs currently included
+        
+        int nc = LDindices[i].size();  
+        if (nc == 0) continue;
+        
+        // Sample whether to attempt a jump
+        std::uniform_real_distribution<double> runif(0.0, 1.0);
+        double mh_u = runif(gen);
+        if (mh_u > mh_p) continue;         // Skip with 1 - mh_p probability
+        
+        // Copy LD values and indices
+        std::vector<double> pld = LDvalues[i];
+        std::vector<int> indices = LDindices[i];
+        
+        // Compute squared LD, apply r² threshold, and normalize
+        double sumsq = 0.0;
+        for (int j = 0; j < nc; j++) {
+          pld[j] *= pld[j];  // r²
+          if (pld[j] < mh_r2) pld[j] = 0.0;
+          sumsq += pld[j];
+        }
+        
+        if (sumsq == 0.0) continue;  // No strong LD neighbors, skip
+        
+        // Normalize LD-based probabilities
+        for (int j = 0; j < nc; j++) {
+          pld[j] /= sumsq;
+        }
+        
+        // Build cumulative distribution
+        std::vector<double> cumpld(nc);
+        cumpld[0] = pld[0];
+        for (int j = 1; j < nc; j++) {
+          cumpld[j] = cumpld[j - 1] + pld[j];
+        }
+        
+        // Sample target SNP j from LD cluster
+        double u = runif(gen);
+        int tj = 0;
+        while (tj < nc && u > cumpld[tj]) {
+          tj++;
+        }
+        if (tj >= nc) continue;  // Safety
+        int j = indices[tj];
+        
+        if (j == i) continue;  // No-op (stay), skip
+        
+        // Effect transfer
+        double diff = -b[i];  // Remove i's effect
+        for (size_t k = 0; k < LDindices[i].size(); k++) {
+          r[LDindices[i][k]] += XXvalues[i][k] * diff;
+        }
+        
+        // Transferring scaled effect
+        double bn = b[i] * LDvalues[i][tj]; 
+        
+        // Update residuals for j
+        diff = bn - b[j];
+        for (size_t k = 0; k < LDindices[j].size(); k++) {
+          r[LDindices[j][k]] += XXvalues[j][k] * diff;
+        }
+        
+        // Update effects and inclusion indicators
+        b[j] = bn;
+        b[i] = 0.0;
+        d[j] = d[i];
+        d[i] = 0;
+      }
+    }
+    // End MH step
     
     // Sample marker variance
     ssb = 0.0;
@@ -1672,82 +1671,6 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double>& wy,
         b[i] = bn;
       }
       
-      // MH step
-      if (updateMH) {
-        for (int i = 0; i < m; i++) {
-          
-          if (mask[i]) continue;     // Skip masked SNPs
-          if (d[i] == 0) continue;   // Only consider SNPs currently included
-          
-          int nc = LDindices[i].size();  
-          if (nc == 0) continue;
-          
-          // Sample whether to attempt a jump
-          std::uniform_real_distribution<double> runif(0.0, 1.0);
-          double mh_u = runif(gen);
-          if (mh_u > mh_p) continue;         // Skip with 1 - mh_p probability
-          
-          // Copy LD values and indices
-          std::vector<double> pld = LDvalues[i];
-          std::vector<int> indices = LDindices[i];
-          
-          // Compute squared LD, apply r² threshold, and normalize
-          double sumsq = 0.0;
-          for (int j = 0; j < nc; j++) {
-            pld[j] *= pld[j];  // r²
-            if (pld[j] < mh_r2) pld[j] = 0.0;
-            sumsq += pld[j];
-          }
-          
-          if (sumsq == 0.0) continue;  // No strong LD neighbors, skip
-          
-          // Normalize LD-based probabilities
-          for (int j = 0; j < nc; j++) {
-            pld[j] /= sumsq;
-          }
-          
-          // Build cumulative distribution
-          std::vector<double> cumpld(nc);
-          cumpld[0] = pld[0];
-          for (int j = 1; j < nc; j++) {
-            cumpld[j] = cumpld[j - 1] + pld[j];
-          }
-          
-          // Sample target SNP j from LD cluster
-          double u = runif(gen);
-          int tj = 0;
-          while (tj < nc && u > cumpld[tj]) {
-            tj++;
-          }
-          if (tj >= nc) continue;  // Safety
-          int j = indices[tj];
-          
-          if (j == i) continue;  // No-op (stay), skip
-          
-          // Effect transfer
-          double diff = -b[i];  // Remove i's effect
-          for (size_t k = 0; k < LDindices[i].size(); k++) {
-            r[LDindices[i][k]] += LDvalues[i][k] * diff;
-          }
-          
-          // Transferring scaled effect
-          double bn = b[i] * LDvalues[i][tj]; 
-          
-          // Update residuals for j
-          diff = bn - b[j];
-          for (size_t k = 0; k < LDindices[j].size(); k++) {
-            r[LDindices[j][k]] += LDvalues[j][k] * diff;
-          }
-          
-          // Update effects and inclusion indicators
-          b[j] = bn;
-          b[i] = 0.0;
-          d[j] = d[i];
-          d[i] = 0;
-        }
-      }
-      // End MH step
-      
       // Sample pi for Bayes R
       if(updatePi) {
         std::vector<double> mc(nc);
@@ -1769,6 +1692,82 @@ std::vector<std::vector<double>>  sbayes_reg_eigen( std::vector<double>& wy,
         pis[it] = 1.0 - pi[0];
       }
     }
+    
+    // MH step
+    if (updateMH) {
+      for (int i = 0; i < m; i++) {
+        
+        if (mask[i]) continue;     // Skip masked SNPs
+        if (d[i] == 0) continue;   // Only consider SNPs currently included
+        
+        int nc = LDindices[i].size();  
+        if (nc == 0) continue;
+        
+        // Sample whether to attempt a jump
+        std::uniform_real_distribution<double> runif(0.0, 1.0);
+        double mh_u = runif(gen);
+        if (mh_u > mh_p) continue;         // Skip with 1 - mh_p probability
+        
+        // Copy LD values and indices
+        std::vector<double> pld = LDvalues[i];
+        std::vector<int> indices = LDindices[i];
+        
+        // Compute squared LD, apply r² threshold, and normalize
+        double sumsq = 0.0;
+        for (int j = 0; j < nc; j++) {
+          pld[j] *= pld[j];  // r²
+          if (pld[j] < mh_r2) pld[j] = 0.0;
+          sumsq += pld[j];
+        }
+        
+        if (sumsq == 0.0) continue;  // No strong LD neighbors, skip
+        
+        // Normalize LD-based probabilities
+        for (int j = 0; j < nc; j++) {
+          pld[j] /= sumsq;
+        }
+        
+        // Build cumulative distribution
+        std::vector<double> cumpld(nc);
+        cumpld[0] = pld[0];
+        for (int j = 1; j < nc; j++) {
+          cumpld[j] = cumpld[j - 1] + pld[j];
+        }
+        
+        // Sample target SNP j from LD cluster
+        double u = runif(gen);
+        int tj = 0;
+        while (tj < nc && u > cumpld[tj]) {
+          tj++;
+        }
+        if (tj >= nc) continue;  // Safety
+        int j = indices[tj];
+        
+        if (j == i) continue;  // No-op (stay), skip
+        
+        // Effect transfer
+        double diff = -b[i];  // Remove i's effect
+        for (size_t k = 0; k < LDindices[i].size(); k++) {
+          r[LDindices[i][k]] += LDvalues[i][k] * diff;
+        }
+        
+        // Transferring scaled effect
+        double bn = b[i] * LDvalues[i][tj]; 
+        
+        // Update residuals for j
+        diff = bn - b[j];
+        for (size_t k = 0; k < LDindices[j].size(); k++) {
+          r[LDindices[j][k]] += LDvalues[j][k] * diff;
+        }
+        
+        // Update effects and inclusion indicators
+        b[j] = bn;
+        b[i] = 0.0;
+        d[j] = d[i];
+        d[i] = 0;
+      }
+    }
+    // End MH step
     
     // Sample marker variance
     ssb = 0.0;
