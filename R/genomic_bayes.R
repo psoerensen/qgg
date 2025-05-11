@@ -841,7 +841,7 @@ gmap <- function(Glist=NULL, stat=NULL, sets=NULL, models=NULL,
   
   # Prepare starting parameters
   
-  if(method==4 && is.null(pi)) pi <- c(1-0.001,0.001)
+  if(method==4 && is.null(pi)) pi <- c(1-0.01,0.01)
   if(method==5 && is.null(pi)) pi <- c(0.990,0.006,0.003,0.001)
   if(method==4 && is.null(gamma)) gamma <- c(0,1.0)
   if(method==5 && is.null(gamma)) gamma <- c(0,0.01,0.1,1.0)
