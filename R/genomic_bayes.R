@@ -600,7 +600,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL,
   
   pi <- c(1-pi,pi)
   gamma <- c(0,1.0)
-  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
+  if(method==5) pi <- c(0.990,0.006,0.003,0.001)
   if(method==5) gamma <- c(0,0.01,0.1,1.0)
 
   seed <- sample.int(.Machine$integer.max, 1)
