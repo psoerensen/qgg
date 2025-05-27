@@ -4,18 +4,20 @@
 \alias{gsimR}
 \title{Simulate Genetic Data Based on Given Parameters}
 \usage{
-gsimR(Glist = NULL, h2 = NULL, m = NULL, prp.cau = NULL, n = NULL)
+gsimR(Glist = NULL, h2 = NULL, pi = NULL, pv = NULL, m = NULL, n = NULL)
 }
 \arguments{
 \item{Glist}{A list containing genetic data. If NULL, the function will stop with an error.}
 
 \item{h2}{Heritability. If NULL, heritability of 0.5 is assumed.}
 
+\item{pi}{Proportion of causal markers. The values for either `m` or `pi` should be provided at any given time.}
+
+\item{pv}{Prevalence. A value between >0 and <1. If NULL then trait is continuous.}
+
 \item{m}{Number of causal markers. The values for either `m` or `prp.cau` should be provided at any given time. 
 If the list of quality controlled markers is not available then list of raw markers is used.  
-If `m` is NULL and `prp.cau` is also NULL, `prp.cau` will default to 0.001.}
-
-\item{prp.cau}{Proportion of causal markers. The values for either `m` or `prp.cau` should be provided at any given time.}
+If `m` is NULL and `pi` is also NULL, `pi` will default to 0.001.}
 
 \item{n}{Number of individuals randomly sampled from `Glist`. If NULL, all the individuals on `Glist` is used.}
 }

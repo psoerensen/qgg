@@ -34,6 +34,7 @@ gmap(
   updateG = TRUE,
   updateE = TRUE,
   updatePi = TRUE,
+  updateMH = FALSE,
   formatLD = "dense",
   checkLD = FALSE,
   shrinkLD = FALSE,
@@ -51,12 +52,16 @@ gmap(
   eigen_threshold = 0.995,
   cs_threshold = 0.9,
   cs_r2 = 0.5,
+  cs_method = "CS2",
+  mh_p = 0.05,
+  mh_r2 = 0.95,
   nit = 1000,
   nburn = 100,
   nthin = 1,
+  nrun = 1,
   output = "summary",
   method = "bayesR",
-  algorithm = "mcmc-eigen",
+  algorithm = "mcmc",
   seed = 10
 )
 }
@@ -101,6 +106,8 @@ gmap(
 
 \item{updateB, updateG, updateE, updatePi}{Logical values specifying whether to update marker effects, genetic variance, residual variance, and inclusion probabilities, respectively.}
 
+\item{updateMH}{Logical values specifying whether to update marker effects using a Metropolis-Hasting algorithm.}
+
 \item{formatLD}{Format of LD matrix ("dense" by default).}
 
 \item{checkLD}{Logical, whether to check the LD matrix for inconsistencies (default: FALSE).}
@@ -119,11 +126,15 @@ gmap(
 
 \item{cs_threshold, cs_r2}{PIP and r2 thresholds credible set construction (default: cs_threshold=0.9, cs_r2=0.5)}
 
+\item{mh_p, mh_r2}{Probability and r2 thresholds used in MH step (default: mh_p=0.05, mh_r2=0.95)}
+
 \item{nit}{Number of iterations in the MCMC sampler (default: 5000).}
 
 \item{nburn}{Number of burn-in iterations (default: 500).}
 
 \item{nthin}{Thinning interval for MCMC (default: 5).}
+
+\item{nrun}{Number of parallel runs MCMC (default: 1).}
 
 \item{output}{Level of output, options include "summary", "full".}
 
