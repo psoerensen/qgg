@@ -109,6 +109,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
     }  
   }
   
+  
   # Partioned h2 - test version
   if(!is.null(sets)) {
     if(is.null(z)) stop("Please provide a vector/matrix of z-statistics") 
@@ -117,14 +118,15 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
     if(!what=="h2") stop("Only h2 is currently only possible for partitioning")
     h2set <- NULL
     z <- as.matrix(z[rownames(z)%in%names(ldscores),,drop=FALSE])
-    n <- n[rownames(z),]
+    if(is.matrix(n)) n <- n[rownames(z),]
     ldscores <- ldscores[rownames(z)]
     nt <- ncol(z)
     if(residual) sets <- append(sets, list(Residual=rownames(z)[!rownames(z)%in%unique(unlist(sets))]))
     sets <- mapSets(sets=sets, rsids=rownames(z), index=FALSE)
     for (i in 1:nt) {
       y <- z[,i]**2  
-      X <- designMatrix(sets = sets, rowids = names(y), values=n*ldscores)
+      if(is.matrix(n)) X <- designMatrix(sets = sets, rowids = names(y), values=n[,i]*ldscores)
+      if(is.vector(n)) X <- designMatrix(sets = sets, rowids = names(y), values=n[i]*ldscores)
       X <- X%*%Diagonal(x = 1/sapply(sets,length))
       Xmu <- Matrix(1, nrow = nrow(X), ncol = 1, sparse = TRUE)
       X <- cbind2(Xmu, X)
@@ -146,33 +148,37 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
   } 
 
   if(!is.null(z)) nt <- ncol(z)
+  if(is.matrix(n)) n <- n[rownames(z),]
+  if(is.vector(n)) n <- as.matrix(n,nrow=1)
   
-  if(!is.null(b)) {
-    nt <- ncol(b)
-    for (t in 1:nt) {
-      z <- cbind(z,(b[,t]/seb[,t]))
-    }
-    colnames(z) <- colnames(b)
-    rownames(z) <- rownames(b)
-  }  
+  # if(!is.null(b)) {
+  #   nt <- ncol(b)
+  #   for (t in 1:nt) {
+  #     z <- cbind(z,(b[,t]/seb[,t]))
+  #   }
+  #   colnames(z) <- colnames(b)
+  #   rownames(z) <- rownames(b)
+  # }  
   z <- as.matrix(z[rownames(z)%in%names(ldscores),,drop=FALSE])
   ldscores <- ldscores[rownames(z)]
-  if(is.null(n)) {
-    n <- NULL
-    if(is.null(seb)) stop("Please provide n or alternatively seb")
-    if(is.null(af)) stop("Please provide af")
-    for ( t in 1:nt) {
-      n <- c(n,neff(seb[,t],af[,t]))
-    }
-  }
+  # if(is.null(n)) {
+  #   n <- NULL
+  #   if(is.null(seb)) stop("Please provide n or alternatively seb")
+  #   if(is.null(af)) stop("Please provide af")
+  #   for ( t in 1:nt) {
+  #     n <- c(n,neff(seb[,t],af[,t]))
+  #   }
+  # }
   if(is.null(maxZ2)) maxZ2 <- max(0.001 * max(n), 80)
   h2 <- NULL
   for ( t in 1:nt) {
     z2 <- z[,t]**2
     z2 <- z2[!is.na(z2)] 
     z2 <- z2[z2<maxZ2]
-    if(intercept) X <- cbind(1,n[t]*ldscores[names(z2)]/length(z2))
-    if(!intercept) X <- matrix(n[t]*ldscores[names(z2)]/length(z2),ncol=1)
+    #if(intercept) X <- cbind(1,n[t]*ldscores[names(z2)]/length(z2))
+    #if(!intercept) X <- matrix(n[t]*ldscores[names(z2)]/length(z2),ncol=1)
+    if(intercept) X <- cbind(1,n[,t]*ldscores[names(z2)]/length(z2))
+    if(!intercept) X <- matrix(n[,t]*ldscores[names(z2)]/length(z2),ncol=1)
     y <- z2
     XtX <- crossprod(X)
     Xy <- crossprod(X,y)
@@ -212,7 +218,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
         z2 <- z[,t]**2
         z2 <- z2[!is.na(z2)]
         z2 <- z2[z2<maxZ2]
-        X <- cbind(1,n[t]*ldscores[names(z2)]/length(z2))
+        X <- cbind(1,n[,t]*ldscores[names(z2)]/length(z2))
         y <- z2
         XtX <- crossprod(X)
         Xy <- crossprod(X,y)
@@ -239,7 +245,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
         z2 <- z[,t]**2
         z2 <- z2[!is.na(z2)]
         z2 <- z2[z2<maxZ2]
-        X <- matrix(n[t]*ldscores[names(z2)]/length(z2),ncol=1)
+        X <- matrix(n[,t]*ldscores[names(z2)]/length(z2),ncol=1)
         y <- z2
         XtX <- crossprod(X)
         Xy <- crossprod(X,y)
@@ -275,7 +281,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
         rws2 <- Z2_2<maxZ2
         rws <- rws1 & rws2
         m <- sum(rws)
-        X <- cbind(1,sqrt(n[t1])*sqrt(n[t2])*ldscores[rws]/m)
+        X <- cbind(1,sqrt(n[,t1])*sqrt(n[,t2])*ldscores[rws]/m)
         y <- Z1[rws]*Z2[rws]
         XtX <- crossprod(X)
         Xy <- crossprod(X,y)
@@ -322,9 +328,9 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
               rws <- rws1 & rws2
               m <- sum(rws)
               
-              X1 <- cbind(1,n[t1]*ldscores[rws]/sum(rws))
+              X1 <- cbind(1,n[,t1]*ldscores[rws]/sum(rws))
               y1 <- Z2_1[rws]
-              X2 <- cbind(1,n[t2]*ldscores[rws]/sum(rws))
+              X2 <- cbind(1,n[,t2]*ldscores[rws]/sum(rws))
               y2 <- Z2_2[rws]
               
               XtX1 <- crossprod(X1)
@@ -332,7 +338,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
               XtX2 <- crossprod(X2)
               Xy2 <- crossprod(X2,y2)
               
-              X <- cbind(1,sqrt(n[t1])*sqrt(n[t2])*ldscores[rws]/m)
+              X <- cbind(1,sqrt(n[,t1])*sqrt(n[,t2])*ldscores[rws]/m)
               y <- Z1[rws]*Z2[rws]
               XtX <- crossprod(X)
               Xy <- crossprod(X,y)
@@ -385,9 +391,9 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
               rws <- rws1 & rws2
               m <- sum(rws)
               
-              X1 <- matrix(n[t1]*ldscores[rws]/sum(rws),ncol=1)
+              X1 <- matrix(n[,t1]*ldscores[rws]/sum(rws),ncol=1)
               y1 <- Z2_1[rws]
-              X2 <- matrix(n[t2]*ldscores[rws]/sum(rws),ncol=1)
+              X2 <- matrix(n[,t2]*ldscores[rws]/sum(rws),ncol=1)
               y2 <- Z2_2[rws]
               
               XtX1 <- crossprod(X1)
@@ -395,7 +401,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
               XtX2 <- crossprod(X2)
               Xy2 <- crossprod(X2,y2)
               
-              X <- matrix(1,sqrt(n[t1])*sqrt(n[t2])*ldscores[rws]/m,ncol=1)
+              X <- matrix(1,sqrt(n[,t1])*sqrt(n[,t2])*ldscores[rws]/m,ncol=1)
               y <- Z1[rws]*Z2[rws]
               XtX <- crossprod(X)
               Xy <- crossprod(X,y)
