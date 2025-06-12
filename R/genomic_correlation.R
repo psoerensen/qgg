@@ -149,7 +149,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
 
   if(!is.null(z)) nt <- ncol(z)
   if(is.matrix(n)) n <- n[rownames(z),]
-  if(is.vector(n)) n <- as.matrix(n,nrow=1)
+  if(is.vector(n)) n <- matrix(n,nrow=1)
   
   # if(!is.null(b)) {
   #   nt <- ncol(b)
