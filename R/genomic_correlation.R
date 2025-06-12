@@ -161,7 +161,7 @@ ldsc <- function(Glist=NULL, ldscores=NULL, sets=NULL, method="regression", resi
   ldscores <- ldscores[rownames(z)]
   if(is.matrix(n)) n <- n[rownames(z),]
   if(is.vector(n)) {
-    n <- matrix(n,nrow=nrow(z))
+    n <- matrix(rep(n, each = nrow(z)), nrow = nrow(z), byrow = FALSE)
     colnames(n) <- colnames(z)
     rownames(n) <- rownames(z)
   }
