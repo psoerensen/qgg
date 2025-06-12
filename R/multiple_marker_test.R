@@ -577,8 +577,10 @@ vegas <- function(Glist=NULL, sets=NULL, stat=NULL, p=NULL, threshold=1e-10, tol
       } 
     }
     zstat <- -qnorm(pg/2,TRUE)
-    df <- data.frame(Gene=names(pg),Chr=chr,m=m,x=chistat,z=zstat,p=pg)
-    colnames(df) <- c("EnsemblID", "Chr", "m", "X2","z","p")
+    #df <- data.frame(Gene=names(pg),Chr=chr,m=m,x=chistat,z=zstat,p=pg)
+    #colnames(df) <- c("EnsemblID", "Chr", "m", "X2","z","p")
+    df <- data.frame(Gene=names(pg),m=m,x=chistat,z=zstat,p=pg)
+    colnames(df) <- c("EnsemblID", "m", "X2","z","p")
     return(df)
   }
   if(!is.null(p)) {
