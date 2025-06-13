@@ -144,7 +144,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                    chr=NULL, rsids=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,formatLD="dense",
                    vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
                    h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
-                   nug=4, nub=4, nue=4, verbose=FALSE,msize=100, mask=NULL,
+                   nug=4, nub=4, nue=4, verbose=FALSE,msize=100, mask=NULL, checkConvergence=FALSE,
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nthin=1, nit_local=NULL,nit_global=NULL,
                    method="mixed", algorithm="mcmc") {
@@ -388,10 +388,13 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$param <- lapply(fit[chromosomes],function(x){x$param})
     
     fit$mask <- mask
-    zve <- sapply(fit$ves[chromosomes],function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-    zvg <- sapply(fit$vgs[chromosomes],function(x){coda::geweke.diag (x[nburn:length(x)])$z})
-    zvb <- sapply(fit$vbs[chromosomes],function(x){coda::geweke.diag(x[nburn:length(x)])$z})
-    zpi <- sapply(fit$pis[chromosomes],function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+    zve <- zvg <- zvb <- zpi <- NULL
+    if(checkConvergence) {
+      zve <- sapply(fit$ves[chromosomes],function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+      zvg <- sapply(fit$vgs[chromosomes],function(x){coda::geweke.diag (x[nburn:length(x)])$z})
+      zvb <- sapply(fit$vbs[chromosomes],function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+      zpi <- sapply(fit$pis[chromosomes],function(x){coda::geweke.diag(x[nburn:length(x)])$z})
+    }
     ve <- sapply(fit$ves[chromosomes],function(x){mean(x[nburn:length(x)])})
     vg <- sapply(fit$vgs[chromosomes],function(x){mean(x[nburn:length(x)])})
     vb <- sapply(fit$vbs[chromosomes],function(x){mean(x[nburn:length(x)])})
