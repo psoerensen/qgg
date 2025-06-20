@@ -1278,9 +1278,14 @@ createMarkerSets <- function(Glist=NULL, rsids=NULL,
 #' @export
 #' 
 getMarkers <- function(Glist = NULL, chr = NULL, region = NULL) {
+  # minpos <- min(region)
+  # maxpos <- max(region)
+  # select <-  Glist$pos[[chr]] > minpos & Glist$pos[[chr]] < maxpos
+  # Glist$rsids[[chr]][select]
   minpos <- min(region)
   maxpos <- max(region)
   select <-  Glist$pos[[chr]] > minpos & Glist$pos[[chr]] < maxpos
+  if (sum(select) == 0) return(NULL)  # no SNPs in region
   Glist$rsids[[chr]][select]
 }
 
