@@ -124,6 +124,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
                 }
               }
               if(scaleGRS) prs <- scale(prs[,1:ncol(prs),drop=FALSE])
+              setNames(as.numeric(prs), rownames(prs))
             })
             # Apply weights if sets.weights is not NULL
             if (!is.null(sets.weights)) {
