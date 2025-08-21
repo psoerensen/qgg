@@ -318,6 +318,13 @@ std::vector<std::vector<double>>  bayes(   std::vector<double> y,
           }
           probc[j] = 1.0/logLcAdj;
         }
+        // variance class probability (potential improved version)
+        //double m = *std::max_element(logLc.begin(), logLc.end());
+        //double denom = 0.0;
+        //for (int k = 0; k < nc; ++k) denom += std::exp(logLc[k] - m);
+        //for (int j = 0; j < nc; ++j) probc[j] = std::exp(logLc[j] - m) / denom;
+        
+        
         // sample variance class indicator
         std::uniform_real_distribution<double> runif(0.0, 1.0);
         u = runif(gen);
