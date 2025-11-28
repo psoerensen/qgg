@@ -105,8 +105,13 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
               if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                 prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
                                      ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose)
-                if (is.null(prs)) prs <- prschr
-                if (!is.null(prs)) prs <- prs + prschr
+                #if (is.null(prs)) prs <- prschr
+                #if (!is.null(prs)) prs <- prs + prschr
+                if (is.null(prs)) {
+                  prs <- prschr
+                } else {
+                  prs <- prs + prschr
+                }
               }
             }
             if(scaleGRS) prs <- scale(prs[,1:ncol(prs),drop=FALSE])
@@ -119,8 +124,13 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
                 if( any(stat$rsids[x] %in% Glist$rsids[[chr]]) ) {
                   prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat[x,], 
                                        ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose)
-                  if (is.null(prs)) prs <- prschr
-                  if (!is.null(prs)) prs <- prs + prschr
+                  #if (is.null(prs)) prs <- prschr
+                  #if (!is.null(prs)) prs <- prs + prschr
+                  if (is.null(prs)) {
+                    prs <- prschr
+                  } else {
+                    prs <- prs + prschr
+                  }
                 }
               }
               if(scaleGRS) prs <- scale(prs[,1:ncol(prs),drop=FALSE])
@@ -137,7 +147,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
      }
      if ( !is.null(bedfiles))  {
           prs <- run_gscore(bedfiles=bedfiles, bimfiles=bimfiles, famfiles=famfiles, stat = stat, 
-                            ids = ids, scale = scale, impute = impute, msize = msize, ncores = ncores, verbose=verbose)
+                            ids = ids, scale = scaleMarker, impute = impute, msize = msize, ncores = ncores, verbose=verbose)
      }   
      return(prs)
 }
