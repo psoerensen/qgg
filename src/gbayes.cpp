@@ -594,7 +594,7 @@ std::vector<std::vector<double>>  sbayes( double yy,
   std::vector<double> r(m),vei(m);
   
   std::vector<double> dm(m),bm(m);
-  std::vector<double> ves(nit+nburn),vbs(nit+nburn),vgs(nit+nburn),pis(nit+nburn);
+  std::vector<double> ves(nit+nburn),vbs(nit+nburn),vgs(nit+nburn),pis(nit+nburn),ssbs(nit+nburn);
   
   std::vector<double> x2(m),vadj(m),vbi(m);
   std::vector<int> order(m);
@@ -613,6 +613,7 @@ std::vector<std::vector<double>>  sbayes( double yy,
   std::fill(vgs.begin(), vgs.end(), 0.0);
   std::fill(ves.begin(), ves.end(), 0.0);
   std::fill(pis.begin(), pis.end(), 0.0);
+  std::fill(ssbs.begin(), ssbs.end(), 0.0);
   std::fill(pim.begin(), pim.end(), 0.0);
   
   // adjust sparseld
@@ -997,6 +998,7 @@ std::vector<std::vector<double>>  sbayes( double yy,
       chi2 = rchisq(gen);
       vb = (ssb + ssb_prior*nub)/chi2 ;
       vbs[it] = vb;
+      ssbs[it] = ssb;
     }
 
     // Sample residual variance
@@ -1062,7 +1064,7 @@ std::vector<std::vector<double>>  sbayes( double yy,
   }
   for (int i=0; i < nit+nburn; i++) {
     //result[2][i] = mus[i];
-    result[2][i] = 0.0;
+    result[2][i] = ssbs[i];
     result[3][i] = vbs[i];
     result[4][i] = vgs[i];
     result[5][i] = ves[i];

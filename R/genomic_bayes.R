@@ -383,6 +383,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$ves <- lapply(fit[chromosomes],function(x){x$ves})
     fit$vgs <- lapply(fit[chromosomes],function(x){x$vgs})
     fit$vbs <- lapply(fit[chromosomes],function(x){x$vbs})
+    fit$ssbs <- lapply(fit[chromosomes],function(x){x$ssbs})
     fit$pis <- lapply(fit[chromosomes],function(x){x$pis})
     fit$pim <- lapply(fit[chromosomes],function(x){x$pim})
     fit$param <- lapply(fit[chromosomes],function(x){x$param})
@@ -642,7 +643,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL,
                seed=seed)
   
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
+  names(fit) <- c("bm","dm","ssbs","vbs","vgs","ves","pis","pim","r","b","param")
   return(fit)
 }
 
@@ -735,7 +736,7 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                algo=as.integer(algorithm),
                seed=seed)
   names(fit[[1]]) <- names(XXvalues)
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
+  names(fit) <- c("bm","dm","ssbs","vbs","vgs","ves","pis","pim","r","b","param")
   return(fit)
 }
 
@@ -2094,7 +2095,7 @@ sblr <- function(stat=NULL, b=NULL, seb=NULL, n=NULL, vy=1,
                algo=as.integer(algorithm),
                seed=seed)
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","r","b","param")
+  names(fit) <- c("bm","dm","ssbs","vbs","vgs","ves","pis","pim","r","b","param")
   return(fit)
 }
 
