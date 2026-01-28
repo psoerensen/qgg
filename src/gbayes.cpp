@@ -634,11 +634,34 @@ std::vector<std::vector<double>> bayes(
   
   std::vector<double> pim(nc, 0.0), probc(nc, 0.0), logLc(nc, 0.0);
   
+  // ---- Posterior storage (post-burn only) ----
+  int nstore = 0;
+  for (int it = 0; it < total_it; ++it) {
+    if (it >= nburn && ((it - nburn) % nthin == 0)) {
+      nstore++;
+    }
+  }
+  std::vector<std::vector<double>> bs(nstore, std::vector<double>(m));
+
+  std::vector<double> gs(n, 0.0);
+  std::vector<double> ys(n, 0.0);
+  
+  std::vector<double> vas(total_it, 0.0);
+  std::vector<double> vqs(total_it, 0.0);
+  std::vector<double> pmse2(total_it, 0.0);
+  std::vector<double> pmse3(total_it, 0.0);
+  
+  // log-CPO accumulator
+  double sumpyinvt = 0.0;
+  
   // BayesA full (global scale + local scales)
   double s2 = 1.0;
   double a0 = 3.0, b0 = 2.0;               // matches your R defaults
   std::vector<double> vba(m, vb);          // local scales (tau_i), init to vb like R's vba <- rep(vb,m)
+
   
+  
+    
   // -----------------------------
   // Initialize mu and residuals e
   // (R starts with mu=0 and e=y; your observed-level code centers y once.
@@ -646,6 +669,8 @@ std::vector<std::vector<double>> bayes(
   // -----------------------------
   double mu = std::accumulate(y.begin(), y.end(), 0.0) / std::max(n, 1);
   for (int i = 0; i < n; i++) e[i] = y[i] - mu;
+
+  std::vector<double> varw(m, 0.0);
   
   // Precompute wy and ww based on centered residuals
   for (int i = 0; i < m; i++) {
@@ -657,10 +682,11 @@ std::vector<std::vector<double>> bayes(
     }
     wy[i] = sum_wye;
     ww[i] = std::max(sum_ww, 1e-300);
+    varw[i] = ww[i] / std::max(n - 1.0, 1.0);
     double bhat = wy[i] / ww[i];
     x2[i] = bhat * bhat;
   }
-  
+
   // Sort markers by descending x2
   std::iota(order.begin(), order.end(), 0);
   std::sort(order.begin(), order.end(),
@@ -680,6 +706,7 @@ std::vector<std::vector<double>> bayes(
   // Sampling counters
   // -----------------------------
   double nsamples = 0.0;
+  int store_idx = 0;
   
   // -----------------------------
   // Gibbs sampler
@@ -688,11 +715,7 @@ std::vector<std::vector<double>> bayes(
     
     if (is_kept_sample(it)) nsamples += 1.0;
     
-    // ---- Sample intercept mu (matches your R blr) ----
-    // R:
-    //   e <- e + mu_old
-    //   mu <- rnorm(mean=sum(e)/n, sd=sqrt(ve/n))
-    //   e <- e - mu
+    // ---- Sample intercept mu ----
     {
       // add back previous mu
       for (int j = 0; j < n; j++) e[j] += mu;
@@ -1002,13 +1025,15 @@ std::vector<std::vector<double>> bayes(
       for (int i = 0; i < m; i++) {
         if (!mask[i]) continue;
         bm[i] += b[i];
-        
+
         if (method < 4) dm[i] += 1.0;
         else if (method == 4) dm[i] += (d[i] == 1) ? 1.0 : 0.0;
         else if (method == 5) dm[i] += (d[i] > 0) ? 1.0 : 0.0;
       }
+      bs[store_idx] = b;   // copy current marker effects
+      store_idx++;
     }
-    
+
     // -------------------------
     // Sample vb (matches your R "common vb update" logic)
     // -------------------------
@@ -1083,14 +1108,105 @@ std::vector<std::vector<double>> bayes(
       vgs[it] = vg_now;
       if (updateG) vg = vg_now;
     }
+    
+    // ---- Posterior diagnostics (post-burn only; NOT thinned) ----
+    
+    // g = y - e - mu
+    double mean_g = 0.0;
+    for (int j = 0; j < n; j++) {
+      g[j] = y[j] - e[j] - mu;
+      mean_g += g[j];
+    }
+    mean_g /= n;
+    
+    // center g
+    for (int j = 0; j < n; j++) {
+      g[j] -= mean_g;
+    }
+    
+    // vas[k] = sum(g^2)/(n-1)
+    double ss_g = 0.0;
+    for (int j = 0; j < n; j++) {
+      ss_g += g[j] * g[j];
+    }
+    vas[it] = ss_g / (n - 1.0);
+    
+    // vqs[k] = sum(varw * b^2)
+    double vq = 0.0;
+    for (int i = 0; i < m; i++) {
+      vq += varw[i] * b[i] * b[i];
+    }
+    vqs[it] = vq;
+    
+    
+    // fitted values: yhat = y - e
+    for (int j = 0; j < n; j++) {
+      gs[j] = y[j] - e[j];
+    }
+    
+    // posterior predictive: yhat + N(0, ve)
+    std::normal_distribution<double> rnorm(0.0, std::sqrt(ve));
+    for (int j = 0; j < n; j++) {
+      ys[j] = gs[j] + rnorm(gen);
+    }
+    
+    // PMSE2 / PMSE3
+    double mse2 = 0.0, mse3 = 0.0;
+    for (int j = 0; j < n; j++) {
+      double d2 = y[j] - gs[j];
+      double d3 = y[j] - ys[j];
+      mse2 += d2 * d2;
+      mse3 += d3 * d3;
+    }
+    pmse2[it] = mse2 / static_cast<double>(n);
+    pmse3[it] = mse3 / static_cast<double>(n);
+    
+    if (it >= nburn) {
+      // log-CPO contribution (harmonic mean estimator)
+      const double log_norm = std::log(2.0 * M_PI * ve);
+      for (int j = 0; j < n; j++) {
+        double diff = y[j] - gs[j];
+        double logdens = -0.5 * (log_norm + (diff * diff) / ve);
+        sumpyinvt += std::exp(-logdens);
+      }
+    }
+    
   }
+
+  // ---- Posterior summaries ----
+  int K = nit;   // number of post-burn diagnostic samples
   
+  // posterior mean residual variance
+  double mve = 0.0;
+  for (int k = 0; k < K; k++) {
+    mve += ves[nburn + k];
+  }
+  mve /= static_cast<double>(K);
+  
+  // posterior mean variance of fitted values
+  // use vas (already computed per iteration)
+  double mvxb = 0.0;
+  for (int k = 0; k < K; k++) {
+    mvxb += vas[nburn + k];
+  }
+  mvxb /= static_cast<double>(K);
+  
+  // log-CPO
+  double phatyt = static_cast<double>(K) / sumpyinvt;
+  double logcpo = static_cast<double>(n) * std::log(phatyt);
+  
+  // EpMSE
+  double epmse1 = mve + mvxb;
+  double epmse2 = mve + 2.0 * mvxb;
+  double epmse3 = 2.0 * mve + 2.0 * mvxb;
+  
+    
   // -----------------------------
   // Summarize results (same layout as your current function)
   // -----------------------------
   if (nsamples <= 0.0) nsamples = 1.0;
   
-  std::vector<std::vector<double>> result(12);
+  std::vector<std::vector<double>> result(13);
   result[0].resize(m);        // bm
   result[1].resize(m);        // dm
   result[2] = mus;            // mus
@@ -1103,6 +1219,7 @@ std::vector<std::vector<double>> bayes(
   result[9].resize(m);        // b
   result[10].resize(m);       // d
   result[11].resize(3);       // param
+  result[12].resize(4);       // diagnostics
   
   for (int i = 0; i < m; i++) {
     result[0][i] = bm[i] / nsamples;
@@ -1126,6 +1243,12 @@ std::vector<std::vector<double>> bayes(
   result[11][0] = vb;
   result[11][1] = ve;
   result[11][2] = (nc > 0 ? pi[0] : 0.0);
+  
+  // diagnostics
+  result[12][0] = logcpo;
+  result[12][1] = epmse1;
+  result[12][2] = epmse2;
+  result[12][3] = epmse3;
   
   return result;
 }
@@ -1705,6 +1828,7 @@ std::vector<std::vector<double>> sbayes(
     // -------------------------
     if (updateB) {
       double ssb = 0.0;
+      double ssbr = 0.0;
       double dfb = 0.0;
       
       if (method < 4) {
@@ -1713,6 +1837,7 @@ std::vector<std::vector<double>> sbayes(
           ssb += b[i] * b[i];
           dfb += 1.0;
         }
+        ssbs[it] = ssb;
       } else if (method == 4) {
         for (int i = 0; i < m; i++) {
           if (mask[i]) continue;
@@ -1721,14 +1846,17 @@ std::vector<std::vector<double>> sbayes(
             dfb += 1.0;
           }
         }
+        ssbs[it] = ssb;
       } else if (method == 5) {
         for (int i = 0; i < m; i++) {
           if (mask[i]) continue;
           if (d[i] > 0) {
             ssb += (b[i] * b[i]) / std::max(gamma[d[i]], 1e-300);
+            ssbr += (b[i]* b[i]);
             dfb += 1.0;
           }
         }
+        ssbs[it] = ssbr;
       }
       
       std::chi_squared_distribution<double> rchisq(dfb + nub);
@@ -1736,7 +1864,6 @@ std::vector<std::vector<double>> sbayes(
       vb = (ssb + ssb_prior * nub) / chi2;
       
       vbs[it]  = vb;
-      ssbs[it] = ssb;
     } else {
       vbs[it] = vb;
       // ssbs[it] left as 0 unless you want it always recorded; keep current behavior
