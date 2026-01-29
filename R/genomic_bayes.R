@@ -568,8 +568,8 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, scaled=TRUE,
   ids <- rownames(W)
   names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[11]]) <- colnames(W)
   names(fit[[9]]) <- ids
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","g","b","d","param")
-  
+  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","g","b","d","param","diagnostic")
+  names(fit$diagnostic) <- c("logcpo","epmse1","epmse2","epmse3")
   return(fit)
 }
 
