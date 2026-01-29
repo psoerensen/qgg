@@ -652,7 +652,7 @@ std::vector<std::vector<double>> bayes(
   std::vector<double> pmse3(total_it, 0.0);
   
   // log-CPO accumulator
-  double sumpyinvt = 0.0;
+  std::vector<double> sumpyinvt(n, 0.0);
   
   // BayesA full (global scale + local scales)
   double s2 = 1.0;
@@ -701,6 +701,11 @@ std::vector<std::vector<double>> bayes(
     double init_lambda = std::sqrt(std::max(ve / vb, 1e-12));
     for (int i = 0; i < m; i++) lambda[i] = init_lambda;
   }
+  
+  std::vector<double> yhat_mean(n, 0.0);
+  std::vector<double> yhat_M2(n, 0.0);
+  int Kpost = 0;  // number of post-burn iterations actually accumulated
+  
   
   // -----------------------------
   // Sampling counters
@@ -1144,11 +1149,23 @@ std::vector<std::vector<double>> bayes(
       gs[j] = y[j] - e[j];
     }
     
+    Kpost++;
+    
+    for (int j = 0; j < n; j++) {
+      double x = gs[j];                 // yhat_j at this iteration
+      double delta = x - yhat_mean[j];
+      yhat_mean[j] += delta / Kpost;
+      double delta2 = x - yhat_mean[j];
+      yhat_M2[j] += delta * delta2;
+    }
+    
     // posterior predictive: yhat + N(0, ve)
     std::normal_distribution<double> rnorm(0.0, std::sqrt(ve));
     for (int j = 0; j < n; j++) {
       ys[j] = gs[j] + rnorm(gen);
     }
+    
+    
     
     // PMSE2 / PMSE3
     double mse2 = 0.0, mse3 = 0.0;
@@ -1162,14 +1179,14 @@ std::vector<std::vector<double>> bayes(
     pmse3[it] = mse3 / static_cast<double>(n);
     
     if (it >= nburn) {
-      // log-CPO contribution (harmonic mean estimator)
       const double log_norm = std::log(2.0 * M_PI * ve);
       for (int j = 0; j < n; j++) {
-        double diff = y[j] - gs[j];
+        double diff = y[j] - gs[j];   // yhat
         double logdens = -0.5 * (log_norm + (diff * diff) / ve);
-        sumpyinvt += std::exp(-logdens);
+        sumpyinvt[j] += std::exp(-logdens);  // 1 / dnorm
       }
     }
+    
     
   }
 
@@ -1186,14 +1203,23 @@ std::vector<std::vector<double>> bayes(
   // posterior mean variance of fitted values
   // use vas (already computed per iteration)
   double mvxb = 0.0;
-  for (int k = 0; k < K; k++) {
-    mvxb += vas[nburn + k];
+  if (Kpost > 1) {
+    for (int j = 0; j < n; j++) {
+      mvxb += yhat_M2[j] / (Kpost - 1.0);   // Var(yhat_j) across draws
+    }
+    mvxb /= static_cast<double>(n);         // mean across j
+  } else {
+    mvxb = 0.0;
   }
-  mvxb /= static_cast<double>(K);
   
+    
   // log-CPO
-  double phatyt = static_cast<double>(K) / sumpyinvt;
-  double logcpo = static_cast<double>(n) * std::log(phatyt);
+  double logcpo = 0.0;
+  for (int j = 0; j < n; j++) {
+    double denom = std::max(sumpyinvt[j], 1e-300);
+    double phatyt_j = static_cast<double>(K) / denom;
+    logcpo += std::log(phatyt_j);
+  }
   
   // EpMSE
   double epmse1 = mve + mvxb;
