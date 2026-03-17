@@ -143,7 +143,7 @@
 gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit=NULL, Glist=NULL, 
                    chr=NULL, rsids=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,formatLD="dense",
                    vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
-                   h2=NULL, pi=0.001, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
+                   h2=NULL, pi=0.001, gamma=1, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
                    nug=4, nub=4, nue=4, verbose=FALSE,msize=100, mask=NULL, checkConvergence=FALSE,
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nthin=1, nit_local=NULL,nit_global=NULL,
@@ -230,7 +230,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
   if(nt==1 && !is.null(y) && !is.null(W) && formatLD=="dense") {
     
     fit <- bayes(y=y, X=X, W=W, b=b, scaled=TRUE,
-                 h2=h2, pi=pi, lambda=lambda, 
+                 h2=h2, pi=pi, gamma=gamma, lambda=lambda, 
                  vg=vg, vb=vb, ve=ve, 
                  nub=nub, nug=nug, nue=nue, 
                  ssb_prior=ssb_prior, ssg_prior=ssg_prior, sse_prior=sse_prior, 
@@ -387,6 +387,9 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
     fit$pis <- lapply(fit[chromosomes],function(x){x$pis})
     fit$pim <- lapply(fit[chromosomes],function(x){x$pim})
     fit$param <- lapply(fit[chromosomes],function(x){x$param})
+    fit$bs <- lapply(fit[chromosomes], function(x) {
+      matrix(x$bs, ncol = length(x$b), byrow = TRUE)
+    })
     
     fit$mask <- mask
     zve <- zvg <- zvb <- zpi <- NULL
@@ -503,7 +506,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
 
 # Single trait BLR based on individual level data 
 bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, scaled=TRUE,
-                  h2=0.5, pi=0.001, lambda=NULL, 
+                  h2=0.5, pi=NULL, gamma=NULL, lambda=NULL, 
                   vb=NULL, vg=NULL, ve=NULL, 
                   nub=4, nug=4, nue=4, 
                   ssb_prior=NULL, ssg_prior=NULL, sse_prior=NULL, 
@@ -520,24 +523,23 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, scaled=TRUE,
     if(any(is.na(match(ids,rownames(W))))) stop("Names/rownames for y does match rownames for W")
   }
   vy <- var(y)
-  if(is.null(pi)) pi <- 0.001
+  if(length(pi)==1 && method==4) pi <- c(0.99,0.01)
+  if(length(gamma)==1 && method==4) gamma <- c(0,1.0)
+  if(length(pi)==1 && method==5) pi <- c(0.99,0.006,0.03,0.01)
+  if(length(gamma)==1 && method==5) gamma <- c(0,0.01,0.1,1.0)
+  #if(is.null(pi)) pi <- 0.001
   if(is.null(h2)) h2 <- 0.5
   if(is.null(vg)) vg <- vy*h2
   if(is.null(ve)) ve <- vy*(1-h2)
   if(method<4 && is.null(vb)) vb <- vg/m
-  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
+  if(method>=4 && is.null(vb)) vb <- vg/(m*sum(pi*gamma))
   if(is.null(lambda)) lambda <- rep(ve/vb,m)
   if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*sum(pi*gamma)))
   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
   if(is.null(ssg_prior)) ssg_prior=((nug-2.0)/nug)*vg;
   if(is.null(b)) b <- rep(0,m)
 
-  pi <- c(1-pi,pi)
-  gamma <- c(0,1.0)
-  if(method==5) pi <- c(0.95,0.02,0.02,0.01)
-  if(method==5) gamma <- c(0,0.01,0.1,1.0)
-  
   seed <- sample.int(.Machine$integer.max, 1)
   
   fit <- .Call("_qgg_bayes",
@@ -568,7 +570,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, scaled=TRUE,
   ids <- rownames(W)
   names(fit[[1]]) <- names(fit[[2]]) <- names(fit[[11]]) <- colnames(W)
   names(fit[[9]]) <- ids
-  names(fit) <- c("bm","dm","coef","vbs","vgs","ves","pis","pim","g","b","d","param","diagnostic")
+  names(fit) <- c("bm","dm","vqs","vbs","vgs","ves","pis","pim","g","b","d","param","diagnostic")
   names(fit$diagnostic) <- c("logcpo","epmse1","epmse2","epmse3")
   return(fit)
 }
@@ -643,7 +645,7 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL,
                seed=seed)
   
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","ssbs","vbs","vgs","ves","pis","pim","r","b","param")
+  names(fit) <- c("bm","dm","ssbs","vbs","vgs","ves","pis","pim","r","b","param","bs")
   return(fit)
 }
 
@@ -736,7 +738,7 @@ blr <- function(yy=NULL, Xy=NULL, XX=NULL, n=NULL,
                algo=as.integer(algorithm),
                seed=seed)
   names(fit[[1]]) <- names(XXvalues)
-  names(fit) <- c("bm","dm","ssbs","vbs","vgs","ves","pis","pim","r","b","param")
+  names(fit) <- c("bm","dm","ssbs","vbs","vgs","ves","pis","pim","r","b","param","bs")
   return(fit)
 }
 
@@ -2095,7 +2097,7 @@ sblr <- function(stat=NULL, b=NULL, seb=NULL, n=NULL, vy=1,
                algo=as.integer(algorithm),
                seed=seed)
   names(fit[[1]]) <- names(LDvalues)
-  names(fit) <- c("bm","dm","ssbs","vbs","vgs","ves","pis","pim","r","b","param")
+  names(fit) <- c("bm","dm","ssbs","vbs","vgs","ves","pis","pim","r","b","param","bs")
   return(fit)
 }
 

@@ -193,9 +193,40 @@ remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
       if (i < np) s[i, 1] <- -0.5 * (sum(G[[i]] * P) - sum(u[, i] * Py))
       if (i == np) s[i, 1] <- -0.5 * (sum(diag(P)) - sum(Py * Py))
     }
+    
+    
+    ###########################################################
+    # Inside your while loop, after calculating 'ai' and 's':
+    theta_ai <- theta + solve(ai) %*% s
+    
+    # --- STABILIZATION HACK: RIDGE PENALTY ---
+    # Add a tiny fraction (lambda) of the diagonal to the AI matrix
+    # This prevents the matrix from being nearly singular (determinant ~ 0)
+    #lambda <- 1e-3 
+    #ai_stable <- ai + diag(diag(ai) * lambda + 1e-9)
+    #message("lambda")
+    # Now use the stabilized matrix for the update
+    #theta_ai <- theta + solve(ai_stable) %*% s
+    
+    # If AI produces a value that is too far from the current theta 
+    # (e.g., more than a 50% jump in one iteration) or is negative:
+    if (any(theta_ai < 0) || any(theta_ai > 1.5 * theta)) {
+      if (verbose) message("AI+EM-step")
+      theta_new <- em_step(y, P, G, theta)
+    } else {
+      if (verbose) message("AI")
+      theta_new <- theta_ai
+    }
+    
+    # Update delta and theta
+    #delta <- max(abs(theta - theta_new))
+    theta0 <- theta_new
+    ###########################################################
+    
     theta.cov <- solve(ai)
-    theta0 <- theta + solve(ai) %*% s
-    theta0[theta0 < 0] <- 0.000000001
+    #theta0 <- theta + solve(ai) %*% s
+    #theta0[theta0 < 0] <- 0.000000001
+    
     delta <- abs(theta - theta0)
     theta <- theta0
     output <- c(1:10, seq(11, maxit, 5))
@@ -257,6 +288,113 @@ remlr <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, id
     trVG = trVG, ids = names(y), yVy = yVy
   ))
 }
+
+em_step <- function(y, P, G_list, theta) {
+  # n: number of observations
+  # P: Current Projection matrix (Vi - ViX %*% solve(XViX) %*% t(ViX))
+  # G_list: List of relationship matrices (including Identity for Error)
+  # theta: Current vector of variance components
+  
+  n <- length(y)
+  np <- length(theta)
+  theta_new <- rep(0, np)
+  Py <- P %*% y
+  
+  for (i in 1:np) {
+    # 1. Calculate the quadratic form: y' P G_i P y
+    # This is equivalent to u' G_inv u where u is the BLUP
+    yPGPy <- as.numeric(crossprod(Py, G_list[[i]] %*% Py))
+    
+    # 2. Calculate the trace of P * G_i
+    trPG <- sum(P * G_list[[i]])
+    
+    # 3. EM Update formula
+    # This keeps the estimate positive and stable
+    theta_new[i] <- (theta[i]^2 * yPGPy + theta[i] * (n - theta[i] * trPG)) / n
+    
+    # Floor to prevent numerical zero issues
+    if(theta_new[i] < 1e-9) theta_new[i] <- 1e-9
+  }
+  
+  return(theta_new)
+}
+
+efficient_trPG <- function(Vi, G_i, X, XViX_inv) {
+  # Term 1: tr(Vi %*% G_i)
+  # sum(Vi * G_i) is the fastest way to get tr(Vi %*% G_i) for symmetric matrices
+  term1 <- sum(Vi * G_i)
+  
+  # Term 2: tr((X'ViX)^-1 %*% X'Vi %*% G_i %*% ViX)
+  # We calculate ViX (n x p) and G_iViX (n x p)
+  ViX <- Vi %*% X
+  GiViX <- G_i %*% ViX
+  
+  # This result is a small p x p matrix
+  inner_mat <- crossprod(ViX, GiViX) 
+  term2 <- sum(XViX_inv * inner_mat)
+  
+  return(term1 - term2)
+}
+
+hutchinson_trPG <- function(y, X, Vi, G_i, n_samples = 10) {
+  n <- length(y)
+  tr_est <- 0
+  
+  # Pre-calculate ViX and the fixed effect projector component
+  ViX <- Vi %*% X
+  XViX_inv <- solve(crossprod(X, ViX))
+  
+  for(s in 1:n_samples) {
+    z <- sample(c(-1, 1), n, replace = TRUE)
+    
+    # 1. Compute Pz = Vi*z - ViX * solve(X'ViX) * (X'Vi*z)
+    XViz <- crossprod(ViX, z)
+    Pz <- Vi %*% z - ViX %*% (XViX_inv %*% XViz)
+    
+    # 2. Compute z' * P * G_i * z
+    # Note: P is symmetric, so z'PGz = (Pz)' * (Gz)
+    Giz <- G_i %*% z
+    tr_est <- tr_est + sum(Pz * Giz)
+  }
+  
+  return(tr_est / n_samples)
+}
+
+run_he_regression <- function(y, G, X = NULL) {
+  # 1. Adjust y for fixed effects (Locations) if provided
+  if (!is.null(X)) {
+    y_adj <- residuals(lm(y ~ X))
+  } else {
+    y_adj <- y - mean(y)
+  }
+  
+  # 2. Get the off-diagonal elements (pairs)
+  # We only use the upper triangle to avoid duplicating pairs (i,j and j,i)
+  upper_tri <- upper.tri(G)
+  
+  # Phenotypic products: y_i * y_j
+  Y_pairs <- tcrossprod(y_adj)[upper_tri]
+  
+  # Genomic relationships: G_ij
+  G_pairs <- G[upper_tri]
+  
+  # 3. Perform the Regression
+  # The slope of this regression is the estimate of Var(g)
+  he_model <- lm(Y_pairs ~ G_pairs)
+  
+  # 4. Extract Results
+  vg_he <- coef(he_model)[2]
+  se_vg <- summary(he_model)$coefficients[2, 2]
+  
+  cat("\n--- Haseman-Elston Results ---\n")
+  cat(sprintf("Estimated Realized Genetic Var (Vg): %.4f\n", vg_he))
+  cat(sprintf("Standard Error of Vg: %.4f\n", se_vg))
+  cat(sprintf("P-value: %.4e\n", summary(he_model)$coefficients[2, 4]))
+  
+  return(list(vg = vg_he, model = he_model))
+}
+
+
 
 cvreml <- function(y = NULL, X = NULL, GRMlist = NULL, G = NULL, theta = NULL, ids = NULL, validate = NULL,
                    maxit = 100, tol = 0.00001, bin = NULL, ncores = 1, wkdir = getwd(), verbose = FALSE) 

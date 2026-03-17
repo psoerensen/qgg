@@ -646,7 +646,6 @@ std::vector<std::vector<double>> bayes(
   std::vector<double> gs(n, 0.0);
   std::vector<double> ys(n, 0.0);
   
-  std::vector<double> vas(total_it, 0.0);
   std::vector<double> vqs(total_it, 0.0);
   std::vector<double> pmse2(total_it, 0.0);
   std::vector<double> pmse3(total_it, 0.0);
@@ -1095,25 +1094,19 @@ std::vector<std::vector<double>> bayes(
     }
     
     // -------------------------
-    // Compute/store vg as in your R "vgs" logic (derived, not separately sampled)
+    // Sample vg (should in principal be a derived parameter)
     // -------------------------
-    {
-      double vg_now = 0.0;
-      if (method <= 3) {
-        vg_now = static_cast<double>(m) * vb;
-      } else if (method == 4) {
-        double inc = 0.0;
-        for (int i = 0; i < m; i++) inc += (d[i] == 1) ? 1.0 : 0.0;
-        vg_now = inc * vb;
-      } else if (method == 5) {
-        double sumg = 0.0;
-        for (int i = 0; i < m; i++) sumg += gamma[d[i]]; // gamma[0] should be 0
-        vg_now = sumg * vb;
-      }
-      vgs[it] = vg_now;
-      if (updateG) vg = vg_now;
+    double ssg = 0.0;
+    for ( int i = 0; i < n; i++) {
+      g[i] = y[i] - e[i] - mu;
+      ssg = ssg + g[i]*g[i];
     }
-    
+    double dfg = static_cast<double>(n) + nug;
+    std::chi_squared_distribution<double> rchisq(dfg);
+    double chi2 = std::max(rchisq(gen), 1e-300);
+    vg = (ssg + ssg_prior * nug) / chi2;
+    vgs[it] = vg;
+
     // ---- Posterior diagnostics (post-burn only; NOT thinned) ----
     
     // g = y - e - mu
@@ -1128,13 +1121,6 @@ std::vector<std::vector<double>> bayes(
     for (int j = 0; j < n; j++) {
       g[j] -= mean_g;
     }
-    
-    // vas[k] = sum(g^2)/(n-1)
-    double ss_g = 0.0;
-    for (int j = 0; j < n; j++) {
-      ss_g += g[j] * g[j];
-    }
-    vas[it] = ss_g / (n - 1.0);
     
     // vqs[k] = sum(varw * b^2)
     double vq = 0.0;
@@ -1201,7 +1187,6 @@ std::vector<std::vector<double>> bayes(
   mve /= static_cast<double>(K);
   
   // posterior mean variance of fitted values
-  // use vas (already computed per iteration)
   double mvxb = 0.0;
   if (Kpost > 1) {
     for (int j = 0; j < n; j++) {
@@ -1235,7 +1220,7 @@ std::vector<std::vector<double>> bayes(
   std::vector<std::vector<double>> result(13);
   result[0].resize(m);        // bm
   result[1].resize(m);        // dm
-  result[2] = mus;            // mus
+  result[2] = vqs;            // mus
   result[3] = vbs;            // vbs
   result[4] = vgs;            // vgs
   result[5] = ves;            // ves
@@ -1365,8 +1350,20 @@ std::vector<std::vector<double>> sbayes(
   std::vector<double> bm(m, 0.0), dm(m, 0.0);
   
   std::vector<double> ves(total_it, 0.0), vbs(total_it, 0.0), vgs(total_it, 0.0),
-  pis(total_it, 0.0), ssbs(total_it, 0.0);
+  pis(total_it, 0.0), vqs(total_it, 0.0);
+
+  //std::vector<std::vector<double>> bs(nit+nburn, std::vector<double>(m, 0.0));  
+
+  // ---- Posterior storage (post-burn only) ----
+  int nstore = 0;
+  for (int it = 0; it < total_it; ++it) {
+    if (it >= nburn && ((it - nburn) % nthin == 0)) {
+      nstore++;
+    }
+  }
+  std::vector<std::vector<double>> bs(nstore, std::vector<double>(m));
   
+    
   std::vector<double> pim(nc, 0.0);
   std::vector<double> x2(m, 0.0);
   std::vector<int> order(m, 0);
@@ -1450,6 +1447,10 @@ std::vector<std::vector<double>> sbayes(
   // -----------------------------
   // Gibbs sampler
   // -----------------------------
+  
+  int store_idx = 0;
+  
+  
   for (int it = 0; it < total_it; it++) {
     
     if (is_kept_sample(it)) nsamples += 1.0;
@@ -1847,7 +1848,13 @@ std::vector<std::vector<double>> sbayes(
           dm[i] += (d[i] > 0) ? 1.0 : 0.0;
         }
       }
+      bs[store_idx] = b;   // copy current marker effects
+      store_idx++;
     }
+    
+    
+
+    
     
     // -------------------------
     // Update vb (marker variance)
@@ -1863,7 +1870,7 @@ std::vector<std::vector<double>> sbayes(
           ssb += b[i] * b[i];
           dfb += 1.0;
         }
-        ssbs[it] = ssb;
+        vqs[it] = ssb;
       } else if (method == 4) {
         for (int i = 0; i < m; i++) {
           if (mask[i]) continue;
@@ -1872,7 +1879,7 @@ std::vector<std::vector<double>> sbayes(
             dfb += 1.0;
           }
         }
-        ssbs[it] = ssb;
+        vqs[it] = ssb;
       } else if (method == 5) {
         for (int i = 0; i < m; i++) {
           if (mask[i]) continue;
@@ -1882,7 +1889,7 @@ std::vector<std::vector<double>> sbayes(
             dfb += 1.0;
           }
         }
-        ssbs[it] = ssbr;
+        vqs[it] = ssbr;
       }
       
       std::chi_squared_distribution<double> rchisq(dfb + nub);
@@ -1955,10 +1962,10 @@ std::vector<std::vector<double>> sbayes(
   // -----------------------------
   if (nsamples <= 0.0) nsamples = 1.0;
   
-  std::vector<std::vector<double>> result(11);
+  std::vector<std::vector<double>> result(12);
   result[0].assign(m, 0.0);          // bm
   result[1].assign(m, 0.0);          // dm
-  result[2] = ssbs;                  // ssbs
+  result[2] = vqs;                  // ssbs
   result[3] = vbs;                   // vbs
   result[4] = vgs;                   // vgs
   result[5] = ves;                   // ves
@@ -1967,6 +1974,7 @@ std::vector<std::vector<double>> sbayes(
   result[8] = r;                     // r (final)
   result[9] = b;                     // b (final)
   result[10].assign(3, 0.0);         // param
+  result[11].resize(nstore*m);
   
   for (int i = 0; i < m; i++) {
     result[0][i] = bm[i] / nsamples;
@@ -1983,9 +1991,16 @@ std::vector<std::vector<double>> sbayes(
   result[10][0] = vb;
   result[10][1] = ve;
   result[10][2] = (nc > 0 ? pi[0] : 0.0);
+
+  for ( int it = 0; it < nstore; it++) {
+    for ( int i = 0; i < m; i++) {
+      result[11][it*m + i] = bs[it][i];
+    }
+  }
   
   return result;
 }
+
 
 
 
