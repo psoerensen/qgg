@@ -110,8 +110,10 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
                 if (is.null(prs)) {
                   prs <- prschr
                 } else {
-                  prs <- prs + prschr
+                  prs[] <- prs + prschr
                 }
+                rm(prschr)
+                gc()
               }
             }
             if(scaleGRS) prs <- scale(prs[,1:ncol(prs),drop=FALSE])
