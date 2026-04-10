@@ -11,6 +11,7 @@ extern SEXP _qgg_freqbed(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_summarybed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_grsbed(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_mtgrsbed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _qgg_mtgrsbed_omp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_solvebed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_mtsolvebed(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _qgg_readG(SEXP, SEXP, SEXP);
@@ -33,6 +34,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_qgg_summarybed",            (DL_FUNC) &_qgg_summarybed,             6},
     {"_qgg_grsbed",                (DL_FUNC) &_qgg_grsbed,                 5},
     {"_qgg_mtgrsbed",              (DL_FUNC) &_qgg_mtgrsbed,               6},
+    {"_qgg_mtgrsbed_omp",          (DL_FUNC) &_qgg_mtgrsbed_omp,           7},
     {"_qgg_solvebed",              (DL_FUNC) &_qgg_solvebed,               8},
     {"_qgg_mtsolvebed",            (DL_FUNC) &_qgg_mtsolvebed,             8},
     {"_qgg_readG",                 (DL_FUNC) &_qgg_readG,                  3},
