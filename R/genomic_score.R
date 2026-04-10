@@ -240,7 +240,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
          af       = as.numeric(af),
          scale    = isTRUE(scale),
          S        = S,
-         nthreads = as.integer(threads)
+         nthreads = as.integer(ncores)
        )
        
        rownames(grs) <- Glist$ids
