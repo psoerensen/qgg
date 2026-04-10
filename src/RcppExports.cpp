@@ -259,6 +259,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mtgrsbed_omp
+std::vector<std::vector<double>> mtgrsbed_omp(const char* file, int n, const std::vector<int>& cls, const std::vector<double>& af, bool scale, const std::vector<std::vector<double>>& b, int nthreads);
+RcppExport SEXP _qgg_mtgrsbed_omp(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP, SEXP scaleSEXP, SEXP bSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const char* >::type file(fileSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type cls(clsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type af(afSEXP);
+    Rcpp::traits::input_parameter< bool >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(mtgrsbed_omp(file, n, cls, af, scale, b, nthreads));
+    return rcpp_result_gen;
+END_RCPP
+}
 // mvrnormARMA
 arma::mat mvrnormARMA(arma::mat sigma);
 RcppExport SEXP _qgg_mvrnormARMA(SEXP sigmaSEXP) {

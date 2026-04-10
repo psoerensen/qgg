@@ -41,6 +41,10 @@ mtgrsbed <- function(file, n, cls, af, scale, b) {
     .Call(`_qgg_mtgrsbed`, file, n, cls, af, scale, b)
 }
 
+mtgrsbed_omp <- function(file, n, cls, af, scale, b, nthreads = 1L) {
+    .Call(`_qgg_mtgrsbed_omp`, file, n, cls, af, scale, b, nthreads)
+}
+
 mvrnormARMA <- function(sigma) {
     .Call(`_qgg_mvrnormARMA`, sigma)
 }

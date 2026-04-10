@@ -228,22 +228,52 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      
      # multiple core using openblas
      if(ncores>1) {
-          message(paste("Processing bed file", Glist$bedfiles[chr]))
-          nt <- ncol(S)
-          grs <- matrix(0,nrow=nt,ncol=Glist$n)
-          sets <- splitWithOverlap(1:length(rsids),msize,0)
-          nsets <- length(sets)
-          print(paste("Processing chromosome", chr))
-          for (set in 1:nsets) {
-               cls <- match(rsids[sets[[set]]],Glist$rsids[[chr]])
-               W <- getG(Glist=Glist, cls=cls, chr=chr, scale=scale)
-               grs <- grs + tcrossprod(t(S[sets[[set]],]),W)
-               if(verbose) print(paste("Processing segment",set, "of", nsets,"on chromosome", chr))
-          }
-          grs <- t(grs)
-          rownames(grs) <- Glist$ids
-          colnames(grs) <- colnames(S)
-          gc()
+       message(paste("Processing bed file", Glist$bedfiles[chr]))
+       
+       # Build Slist (unchanged)
+       Slist <- vector(ncol(S), mode = "list")
+       for (j in seq_len(ncol(S))) {
+         Slist[[j]] <- S[, j]
+       }
+       
+       # Match SNPs (unchanged)
+       cls <- match(stat$rsids, Glist$rsids[[chr]])
+       af  <- Glist$af[[chr]][cls]
+       
+       # Call new C++ function
+       grs <- .Call(
+         "_qgg_mtgrsbed_omp",     # <-- new symbol name
+         Glist$bedfiles[chr],
+         as.integer(Glist$n),
+         as.integer(cls),
+         as.numeric(af),
+         as.logical(scale),
+         Slist,                   # still list of vectors
+         as.integer(ncores)      # NEW argument
+       )
+       
+       # Combine results (unchanged)
+       grs <- do.call(cbind, grs)
+       
+       # Add names (unchanged)
+       rownames(grs) <- Glist$ids
+       colnames(grs) <- colnames(S)
+       # nt <- ncol(S)
+       # grs <- matrix(0,nrow=nt,ncol=Glist$n)
+       # sets <- splitWithOverlap(1:length(rsids),msize,0)
+       # nsets <- length(sets)
+       # print(paste("Processing chromosome", chr))
+       # for (set in 1:nsets) {
+       #      cls <- match(rsids[sets[[set]]],Glist$rsids[[chr]])
+       #      W <- getG(Glist=Glist, cls=cls, chr=chr, scale=scale)
+       #      grs <- grs + tcrossprod(t(S[sets[[set]],]),W)
+       #      if(verbose) print(paste("Processing segment",set, "of", nsets,"on chromosome", chr))
+       # }
+       # grs <- t(grs)
+       # rownames(grs) <- Glist$ids
+       # colnames(grs) <- colnames(S)
+       # gc()
+       
      }
      
      # single core
