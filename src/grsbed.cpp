@@ -324,6 +324,110 @@ using namespace Rcpp;
 // b_snp is SNP-major: b_snp[i * nt + t]
 // grs_flat is individual-major: grs_flat[j * nt + t]
 // -----------------------------------------------------------------------------
+// void mtgrsbed_core(
+//     const char* file,
+//     int n,
+//     const int* cls,
+//     const double* af,
+//     int m,
+//     int nt,
+//     bool scale,
+//     const double* b_snp,
+//     double* grs_flat,
+//     int nthreads
+// ) {
+//   FILE* file_stream = std::fopen(file, "rb");
+//   if (!file_stream) {
+//     throw std::runtime_error("Could not open BED file.");
+//   }
+//   
+//   const size_t nbytes = (n + 3) / 4;
+//   
+//   unsigned char* buffer = (unsigned char*) std::malloc(nbytes);
+//   if (!buffer) {
+//     std::fclose(file_stream);
+//     throw std::runtime_error("Failed to allocate BED buffer.");
+//   }
+//   
+//   std::vector<double> x(n);
+//   
+// #ifdef _OPENMP
+//   if (nthreads > 0) omp_set_num_threads(nthreads);
+// #endif
+//   
+// #pragma omp parallel
+// {
+//   std::vector<double> map(4);
+//   
+//   for (int i = 0; i < m; ++i) {
+//     
+// #pragma omp single
+// {
+//   long long offset = (long long)(cls[i] - 1) * (long long)nbytes + 3LL;
+//   
+//   if (std::fseek(file_stream, offset, SEEK_SET) != 0) {
+//     std::free(buffer);
+//     std::fclose(file_stream);
+//     throw std::runtime_error("fseek failed.");
+//   }
+//   
+//   size_t nbytes_read = std::fread(buffer, sizeof(unsigned char), nbytes, file_stream);
+//   if (nbytes_read != nbytes) {
+//     std::free(buffer);
+//     std::fclose(file_stream);
+//     throw std::runtime_error("Error reading BED data: nbytes_read != nbytes.");
+//   }
+//   
+//   const double p = af[i];
+//   if (scale) {
+//     const double denom = std::sqrt(2.0 * p * (1.0 - p));
+//     if (denom <= 0.0 || !std::isfinite(denom)) {
+//       map[0] = 0.0;
+//       map[1] = 0.0;
+//       map[2] = 0.0;
+//       map[3] = 0.0;
+//     } else {
+//       map[0] = (2.0 - 2.0 * p) / denom;
+//       map[1] = 0.0;
+//       map[2] = (1.0 - 2.0 * p) / denom;
+//       map[3] = (-2.0 * p) / denom;
+//     }
+//   } else {
+//     map[0] = 2.0;
+//     map[1] = -2.0 * p;
+//     map[2] = 1.0;
+//     map[3] = 0.0;
+//   }
+//   
+//   int j = 0;
+//   for (size_t k = 0; k < nbytes; ++k) {
+//     unsigned char buf_k = buffer[k];
+//     for (int pos = 0; pos < 4 && j < n; ++pos, ++j) {
+//       x[j] = map[buf_k & 3];
+//       buf_k >>= 2;
+//     }
+//   }
+// }
+// 
+// const double* bi = &b_snp[(size_t)i * nt];
+// 
+// #pragma omp for schedule(static)
+// for (int j = 0; j < n; ++j) {
+//   const double xj = x[j];
+//   double* gj = &grs_flat[(size_t)j * nt];
+//   
+// #pragma omp simd
+//   for (int t = 0; t < nt; ++t) {
+//     gj[t] += bi[t] * xj;
+//   }
+// }
+//   }
+// }
+// 
+// std::free(buffer);
+// std::fclose(file_stream);
+// }
+
 void mtgrsbed_core(
     const char* file,
     int n,
@@ -349,7 +453,8 @@ void mtgrsbed_core(
     throw std::runtime_error("Failed to allocate BED buffer.");
   }
   
-  std::vector<double> x(n);
+  const int JB = 2048;
+  const int TB = 64;
   
 #ifdef _OPENMP
   if (nthreads > 0) omp_set_num_threads(nthreads);
@@ -357,13 +462,14 @@ void mtgrsbed_core(
   
 #pragma omp parallel
 {
-  std::vector<double> map(4);
+  double map0, map1, map2, map3;
   
   for (int i = 0; i < m; ++i) {
     
 #pragma omp single
 {
-  long long offset = (long long)(cls[i] - 1) * (long long)nbytes + 3LL;
+  const long long offset =
+    (long long)(cls[i] - 1) * (long long)nbytes + 3LL;
   
   if (std::fseek(file_stream, offset, SEEK_SET) != 0) {
     std::free(buffer);
@@ -371,7 +477,9 @@ void mtgrsbed_core(
     throw std::runtime_error("fseek failed.");
   }
   
-  size_t nbytes_read = std::fread(buffer, sizeof(unsigned char), nbytes, file_stream);
+  const size_t nbytes_read =
+    std::fread(buffer, sizeof(unsigned char), nbytes, file_stream);
+  
   if (nbytes_read != nbytes) {
     std::free(buffer);
     std::fclose(file_stream);
@@ -382,43 +490,66 @@ void mtgrsbed_core(
   if (scale) {
     const double denom = std::sqrt(2.0 * p * (1.0 - p));
     if (denom <= 0.0 || !std::isfinite(denom)) {
-      map[0] = 0.0;
-      map[1] = 0.0;
-      map[2] = 0.0;
-      map[3] = 0.0;
+      map0 = 0.0;
+      map1 = 0.0;
+      map2 = 0.0;
+      map3 = 0.0;
     } else {
-      map[0] = (2.0 - 2.0 * p) / denom;
-      map[1] = 0.0;
-      map[2] = (1.0 - 2.0 * p) / denom;
-      map[3] = (-2.0 * p) / denom;
+      map0 = (2.0 - 2.0 * p) / denom;
+      map1 = 0.0;
+      map2 = (1.0 - 2.0 * p) / denom;
+      map3 = (-2.0 * p) / denom;
     }
   } else {
-    map[0] = 2.0;
-    map[1] = -2.0 * p;
-    map[2] = 1.0;
-    map[3] = 0.0;
+    map0 = 2.0;
+    map1 = -2.0 * p;
+    map2 = 1.0;
+    map3 = 0.0;
   }
-  
-  int j = 0;
-  for (size_t k = 0; k < nbytes; ++k) {
-    unsigned char buf_k = buffer[k];
-    for (int pos = 0; pos < 4 && j < n; ++pos, ++j) {
-      x[j] = map[buf_k & 3];
-      buf_k >>= 2;
-    }
-  }
-}
+} // implicit barrier
 
 const double* bi = &b_snp[(size_t)i * nt];
 
 #pragma omp for schedule(static)
-for (int j = 0; j < n; ++j) {
-  const double xj = x[j];
-  double* gj = &grs_flat[(size_t)j * nt];
+for (int j0 = 0; j0 < n; j0 += JB) {
+  const int jmax = std::min(j0 + JB, n);
   
+  const int byte0 = j0 >> 2;
+  const int byte1 = (jmax + 3) >> 2;
+  
+  for (int t0 = 0; t0 < nt; t0 += TB) {
+    const int tmax = std::min(t0 + TB, nt);
+    const int tlen = tmax - t0;
+    const double* bij = bi + t0;
+    
+    for (int kb = byte0; kb < byte1; ++kb) {
+      unsigned char buf_k = buffer[kb];
+      const int jbase = kb << 2;
+      
+      for (int pos = 0; pos < 4; ++pos) {
+        const int j = jbase + pos;
+        if (j < j0 || j >= jmax || j >= n) {
+          buf_k >>= 2;
+          continue;
+        }
+        
+        double xj;
+        switch (buf_k & 3u) {
+        case 0u: xj = map0; break; // BED 00 -> 2 copies
+        case 1u: xj = map1; break; // BED 01 -> missing
+        case 2u: xj = map2; break; // BED 10 -> 1 copy
+        default: xj = map3; break; // BED 11 -> 0 copies
+        }
+        buf_k >>= 2;
+        
+        double* gj = &grs_flat[(size_t)j * nt + t0];
+        
 #pragma omp simd
-  for (int t = 0; t < nt; ++t) {
-    gj[t] += bi[t] * xj;
+        for (int t = 0; t < tlen; ++t) {
+          gj[t] += bij[t] * xj;
+        }
+      }
+    }
   }
 }
   }
@@ -427,6 +558,7 @@ for (int j = 0; j < n; ++j) {
 std::free(buffer);
 std::fclose(file_stream);
 }
+
 
 // -----------------------------------------------------------------------------
 // Thin R wrapper
