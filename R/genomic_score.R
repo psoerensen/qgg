@@ -230,34 +230,52 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
      if(ncores>1) {
        message(paste("Processing bed file", Glist$bedfiles[chr]))
        
-       # Build Slist (unchanged)
-       Slist <- vector(ncol(S), mode = "list")
-       for (j in seq_len(ncol(S))) {
-         Slist[[j]] <- S[, j]
-       }
-       
-       # Match SNPs (unchanged)
        cls <- match(stat$rsids, Glist$rsids[[chr]])
        af  <- Glist$af[[chr]][cls]
        
-       # Call new C++ function
-       grs <- .Call(
-         "_qgg_mtgrsbed_omp",     # <-- new symbol name
-         Glist$bedfiles[chr],
-         as.integer(Glist$n),
-         as.integer(cls),
-         as.numeric(af),
-         as.logical(scale),
-         Slist,                   # still list of vectors
-         as.integer(ncores)      # NEW argument
+       grs <- mtgrsbed_matrix(
+         file     = Glist$bedfiles[chr],
+         n        = as.integer(Glist$n),
+         cls      = as.integer(cls),
+         af       = as.numeric(af),
+         scale    = isTRUE(scale),
+         S        = S,
+         nthreads = as.integer(threads)
        )
        
-       # Combine results (unchanged)
-       grs <- do.call(cbind, grs)
-       
-       # Add names (unchanged)
        rownames(grs) <- Glist$ids
        colnames(grs) <- colnames(S)
+       
+       # message(paste("Processing bed file", Glist$bedfiles[chr]))
+       # 
+       # # Build Slist (unchanged)
+       # Slist <- vector(ncol(S), mode = "list")
+       # for (j in seq_len(ncol(S))) {
+       #   Slist[[j]] <- S[, j]
+       # }
+       # 
+       # # Match SNPs (unchanged)
+       # cls <- match(stat$rsids, Glist$rsids[[chr]])
+       # af  <- Glist$af[[chr]][cls]
+       # 
+       # # Call new C++ function
+       # grs <- .Call(
+       #   "_qgg_mtgrsbed_omp",     # <-- new symbol name
+       #   Glist$bedfiles[chr],
+       #   as.integer(Glist$n),
+       #   as.integer(cls),
+       #   as.numeric(af),
+       #   as.logical(scale),
+       #   Slist,                   # still list of vectors
+       #   as.integer(ncores)      # NEW argument
+       # )
+       # 
+       # # Combine results (unchanged)
+       # grs <- do.call(cbind, grs)
+       # 
+       # # Add names (unchanged)
+       # rownames(grs) <- Glist$ids
+       # colnames(grs) <- colnames(S)
        # nt <- ncol(S)
        # grs <- matrix(0,nrow=nt,ncol=Glist$n)
        # sets <- splitWithOverlap(1:length(rsids),msize,0)
