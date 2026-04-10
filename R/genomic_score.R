@@ -152,167 +152,285 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
      return(prs)
 }
 
-
-run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = NULL, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
-     
-     if(sum(is.na(stat))>0) {
-       warning("stat object contains NAs")
-       stat <- na.omit(stat)
-     }
-     #if(is.null(Glist) & is.null(bedfiles)) stop("Please provide Glist or bedfile")
-     
-     if (!is.null(bedfiles)) {
-          if(!file.exists(bedfiles)) stop(paste("bedfiles does not exists:"),bedfiles) 
-          Glist <- NULL
-          Glist$bedfiles <- bedfiles[1]
-          if (!is.null(bimfiles)) Glist$bimfiles <- bimfiles[1]
-          if (!is.null(famfiles)) Glist$famfiles <- famfiles[1]
-          if (is.null(bimfiles)) Glist$bimfiles <- gsub(".bed", ".bim", bedfiles[1])
-          if (is.null(famfiles)) Glist$famfiles <- gsub(".bed", ".fam", bedfiles[1])
-          if(!file.exists(Glist$bedfiles)) stop(paste("bedfiles does not exists:"),Glist$famfiles) 
-          if(!file.exists(Glist$famfiles)) stop(paste("famfiles does not exists:"),Glist$famfiles) 
-          if(!file.exists(Glist$bimfiles)) stop(paste("bimfiles does not exists:"),Glist$bimfiles) 
-          
-          # Read fam information
-          fam <- fread(input = Glist$famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
-          Glist$ids <- as.character(fam[, 2])
-          if (any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
-          message(paste("Finished processing fam file", famfiles[1]))
-          
-          # Read bim information
-          bim <- fread(input = Glist$bimfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
-          Glist$rsids <- list(as.character(bim[, 2]))
-          Glist$a1 <- list(as.character(bim[, 5]))
-          Glist$a2 <- list(as.character(bim[, 6]))
-          Glist$pos <- list(as.numeric(bim[, 4]))
-          Glist$chr <- as.character(bim[, 1])
-          message(paste("Finished processing bim file", bimfiles[1]))
-          
-          Glist$n <- length(Glist$ids)
-          Glist$m <- length(Glist$rsids)
-          chr <- 1
-     }
-     
-     
-     # Prepase summary stat
-     if (!sum(colnames(stat)[1:6] == c("rsids","chr","pos", "ea","nea", "eaf")) == 6) {
-       stop("First six columns in data frame stat should be: rsids, chr, pos, ea, nea, eaf")
-     }
-       
-     rsidsOK <- stat$rsids %in% Glist$rsids[[chr]]
-     
-     if (any(!rsidsOK)) {
-       message(paste("Number of variants used:", sum(rsidsOK)))
-       stat <- stat[rsidsOK, ]
-     }
-     S <- stat[, -c(1:6),drop=FALSE]
-     if (is.vector(S)) S <- as.matrix(S)
-     if(sum(rsidsOK>1)) S <- apply(S, 2, as.numeric)
-     if(sum(rsidsOK==1)) t(as.matrix(apply(S, 2, as.numeric)))
-     colnames(S) <- colnames(stat)[-c(1:6)]
-     rownames(S) <- rownames(stat)
-     rsids <- as.character(stat$rsids)
-     af <- stat$eaf
-     
-     # Prepare input data for mpgrs
-     rws <- 1:Glist$n
-     if (!is.null(ids)) rws <- match(ids, Glist$ids)
-     cls <- match(rsids, Glist$rsids[[chr]])
-     if(any( !stat$ea == Glist$a1[[chr]][cls] )) {
-       message("Some variants appear to be flipped => changing sign of variant effect for those variants ")
-       flipped <- !stat$ea == Glist$a1[[chr]][cls]
-       S[flipped,] <- -S[flipped,]  
-     }
-     if(!file.exists(Glist$bedfiles[chr])) stop(paste("bed file does not exists:"),Glist$bedfiles[chr]) 
-     
-     
-     # multiple core using openblas
-     if(ncores>1) {
-       message(paste("Processing bed file", Glist$bedfiles[chr]))
-       
-       cls <- match(stat$rsids, Glist$rsids[[chr]])
-       af  <- Glist$af[[chr]][cls]
-       
-       grs <- mtgrsbed_matrix(
-         file     = Glist$bedfiles[chr],
-         n        = as.integer(Glist$n),
-         cls      = as.integer(cls),
-         af       = as.numeric(af),
-         scale    = isTRUE(scale),
-         S        = S,
-         nthreads = as.integer(ncores)
-       )
-       
-       rownames(grs) <- Glist$ids
-       colnames(grs) <- colnames(S)
-       
-       # message(paste("Processing bed file", Glist$bedfiles[chr]))
-       # 
-       # # Build Slist (unchanged)
-       # Slist <- vector(ncol(S), mode = "list")
-       # for (j in seq_len(ncol(S))) {
-       #   Slist[[j]] <- S[, j]
-       # }
-       # 
-       # # Match SNPs (unchanged)
-       # cls <- match(stat$rsids, Glist$rsids[[chr]])
-       # af  <- Glist$af[[chr]][cls]
-       # 
-       # # Call new C++ function
-       # grs <- .Call(
-       #   "_qgg_mtgrsbed_omp",     # <-- new symbol name
-       #   Glist$bedfiles[chr],
-       #   as.integer(Glist$n),
-       #   as.integer(cls),
-       #   as.numeric(af),
-       #   as.logical(scale),
-       #   Slist,                   # still list of vectors
-       #   as.integer(ncores)      # NEW argument
-       # )
-       # 
-       # # Combine results (unchanged)
-       # grs <- do.call(cbind, grs)
-       # 
-       # # Add names (unchanged)
-       # rownames(grs) <- Glist$ids
-       # colnames(grs) <- colnames(S)
-       # nt <- ncol(S)
-       # grs <- matrix(0,nrow=nt,ncol=Glist$n)
-       # sets <- splitWithOverlap(1:length(rsids),msize,0)
-       # nsets <- length(sets)
-       # print(paste("Processing chromosome", chr))
-       # for (set in 1:nsets) {
-       #      cls <- match(rsids[sets[[set]]],Glist$rsids[[chr]])
-       #      W <- getG(Glist=Glist, cls=cls, chr=chr, scale=scale)
-       #      grs <- grs + tcrossprod(t(S[sets[[set]],]),W)
-       #      if(verbose) print(paste("Processing segment",set, "of", nsets,"on chromosome", chr))
-       # }
-       # grs <- t(grs)
-       # rownames(grs) <- Glist$ids
-       # colnames(grs) <- colnames(S)
-       # gc()
-       
-     }
-     
-     # single core
-     if(ncores==1) {
-          message(paste("Processing bed file", Glist$bedfiles[chr]))
-       
-          Slist <- vector(ncol(S),mode="list")
-          for (j in 1:ncol(S)) {
-               Slist[[j]] <- S[,j]
-          }
-          cls <- match(stat$rsids, Glist$rsids[[chr]])
-          af <- Glist$af[[chr]][cls]
-          if(scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=TRUE, Slist=Slist)
-          if(!scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=FALSE, Slist=Slist)
-          grs <- do.call(cbind, grs)
-          rownames(grs) <- Glist$ids
-          colnames(grs) <- colnames(S)
-     }
-
-     return(grs)
+run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL,
+                       stat = NULL, ids = NULL, scale = NULL, impute = TRUE,
+                       msize = 100, ncores = 1, verbose=FALSE) {
+  
+  if (sum(is.na(stat)) > 0) {
+    warning("stat object contains NAs")
+    stat <- na.omit(stat)
+  }
+  
+  if (!is.null(bedfiles)) {
+    if (!file.exists(bedfiles)) stop(paste("bedfiles does not exists:", bedfiles))
+    Glist <- NULL
+    Glist$bedfiles <- bedfiles[1]
+    if (!is.null(bimfiles)) Glist$bimfiles <- bimfiles[1]
+    if (!is.null(famfiles)) Glist$famfiles <- famfiles[1]
+    if (is.null(bimfiles)) Glist$bimfiles <- gsub(".bed", ".bim", bedfiles[1], fixed = TRUE)
+    if (is.null(famfiles)) Glist$famfiles <- gsub(".bed", ".fam", bedfiles[1], fixed = TRUE)
+    
+    if (!file.exists(Glist$bedfiles)) stop(paste("bedfiles does not exists:", Glist$bedfiles))
+    if (!file.exists(Glist$famfiles)) stop(paste("famfiles does not exists:", Glist$famfiles))
+    if (!file.exists(Glist$bimfiles)) stop(paste("bimfiles does not exists:", Glist$bimfiles))
+    
+    fam <- fread(input = Glist$famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+    Glist$ids <- as.character(fam[, 2])
+    if (any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
+    message(paste("Finished processing fam file", Glist$famfiles[1]))
+    
+    bim <- fread(input = Glist$bimfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+    Glist$rsids <- list(as.character(bim[, 2]))
+    Glist$a1 <- list(as.character(bim[, 5]))
+    Glist$a2 <- list(as.character(bim[, 6]))
+    Glist$pos <- list(as.numeric(bim[, 4]))
+    Glist$chr <- as.character(bim[, 1])
+    message(paste("Finished processing bim file", Glist$bimfiles[1]))
+    
+    Glist$n <- length(Glist$ids)
+    Glist$m <- length(Glist$rsids[[1]])
+    chr <- 1
+  }
+  
+  if (!all(colnames(stat)[1:6] == c("rsids","chr","pos","ea","nea","eaf"))) {
+    stop("First six columns in data frame stat should be: rsids, chr, pos, ea, nea, eaf")
+  }
+  
+  rsidsOK <- stat$rsids %in% Glist$rsids[[chr]]
+  
+  if (any(!rsidsOK)) {
+    message(paste("Number of variants used:", sum(rsidsOK)))
+    stat <- stat[rsidsOK, , drop = FALSE]
+  }
+  
+  if (nrow(stat) == 0) stop("No overlapping variants between stat and genotype data.")
+  
+  S <- as.matrix(stat[, -c(1:6), drop = FALSE])
+  storage.mode(S) <- "double"
+  
+  colnames(S) <- colnames(stat)[-c(1:6)]
+  rownames(S) <- stat$rsids
+  
+  rsids <- as.character(stat$rsids)
+  af <- as.numeric(stat$eaf)
+  
+  rws <- seq_len(Glist$n)
+  if (!is.null(ids)) rws <- match(ids, Glist$ids)
+  
+  cls <- match(rsids, Glist$rsids[[chr]])
+  
+  if (any(is.na(cls))) stop("Some rsids in stat could not be matched after filtering.")
+  
+  flipped <- stat$ea != Glist$a1[[chr]][cls]
+  if (any(flipped)) {
+    message("Some variants appear to be flipped => changing sign of variant effect for those variants")
+    S[flipped, ] <- -S[flipped, ]
+  }
+  
+  if (!file.exists(Glist$bedfiles[chr])) {
+    stop(paste("bed file does not exists:", Glist$bedfiles[chr]))
+  }
+  
+  message(paste("Processing bed file", Glist$bedfiles[chr]))
+  
+  if (ncores > 1) {
+    grs <- mtgrsbed_matrix(
+      file     = Glist$bedfiles[chr],
+      n        = as.integer(Glist$n),
+      cls      = as.integer(cls),
+      af       = af,
+      scale    = isTRUE(scale),
+      S        = S,
+      nthreads = as.integer(ncores)
+    )
+  } else {
+    Slist <- vector(ncol(S), mode = "list")
+    for (j in seq_len(ncol(S))) {
+      Slist[[j]] <- S[, j]
+    }
+    
+    grs <- .Call(
+      "_qgg_mtgrsbed",
+      Glist$bedfiles[chr],
+      n = as.integer(Glist$n),
+      cls = as.integer(cls),
+      af = af,
+      scale = isTRUE(scale),
+      Slist = Slist
+    )
+    grs <- do.call(cbind, grs)
+  }
+  
+  rownames(grs) <- Glist$ids
+  colnames(grs) <- colnames(S)
+  
+  if (!is.null(ids)) {
+    grs <- grs[rws, , drop = FALSE]
+  }
+  
+  grs
 }
+
+# run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, ids = NULL, scale = NULL, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
+#      
+#      if(sum(is.na(stat))>0) {
+#        warning("stat object contains NAs")
+#        stat <- na.omit(stat)
+#      }
+#      #if(is.null(Glist) & is.null(bedfiles)) stop("Please provide Glist or bedfile")
+#      
+#      if (!is.null(bedfiles)) {
+#           if(!file.exists(bedfiles)) stop(paste("bedfiles does not exists:"),bedfiles) 
+#           Glist <- NULL
+#           Glist$bedfiles <- bedfiles[1]
+#           if (!is.null(bimfiles)) Glist$bimfiles <- bimfiles[1]
+#           if (!is.null(famfiles)) Glist$famfiles <- famfiles[1]
+#           if (is.null(bimfiles)) Glist$bimfiles <- gsub(".bed", ".bim", bedfiles[1])
+#           if (is.null(famfiles)) Glist$famfiles <- gsub(".bed", ".fam", bedfiles[1])
+#           if(!file.exists(Glist$bedfiles)) stop(paste("bedfiles does not exists:"),Glist$famfiles) 
+#           if(!file.exists(Glist$famfiles)) stop(paste("famfiles does not exists:"),Glist$famfiles) 
+#           if(!file.exists(Glist$bimfiles)) stop(paste("bimfiles does not exists:"),Glist$bimfiles) 
+#           
+#           # Read fam information
+#           fam <- fread(input = Glist$famfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+#           Glist$ids <- as.character(fam[, 2])
+#           if (any(duplicated(Glist$ids))) stop("Duplicated ids found in famfiles")
+#           message(paste("Finished processing fam file", famfiles[1]))
+#           
+#           # Read bim information
+#           bim <- fread(input = Glist$bimfiles[1], header = FALSE, data.table = FALSE, colClasses = "character")
+#           Glist$rsids <- list(as.character(bim[, 2]))
+#           Glist$a1 <- list(as.character(bim[, 5]))
+#           Glist$a2 <- list(as.character(bim[, 6]))
+#           Glist$pos <- list(as.numeric(bim[, 4]))
+#           Glist$chr <- as.character(bim[, 1])
+#           message(paste("Finished processing bim file", bimfiles[1]))
+#           
+#           Glist$n <- length(Glist$ids)
+#           Glist$m <- length(Glist$rsids)
+#           chr <- 1
+#      }
+#      
+#      
+#      # Prepase summary stat
+#      if (!sum(colnames(stat)[1:6] == c("rsids","chr","pos", "ea","nea", "eaf")) == 6) {
+#        stop("First six columns in data frame stat should be: rsids, chr, pos, ea, nea, eaf")
+#      }
+#        
+#      rsidsOK <- stat$rsids %in% Glist$rsids[[chr]]
+#      
+#      if (any(!rsidsOK)) {
+#        message(paste("Number of variants used:", sum(rsidsOK)))
+#        stat <- stat[rsidsOK, ]
+#      }
+#      S <- stat[, -c(1:6),drop=FALSE]
+#      if (is.vector(S)) S <- as.matrix(S)
+#      if(sum(rsidsOK>1)) S <- apply(S, 2, as.numeric)
+#      if(sum(rsidsOK==1)) t(as.matrix(apply(S, 2, as.numeric)))
+#      colnames(S) <- colnames(stat)[-c(1:6)]
+#      rownames(S) <- rownames(stat)
+#      rsids <- as.character(stat$rsids)
+#      af <- stat$eaf
+#      
+#      # Prepare input data for mpgrs
+#      rws <- 1:Glist$n
+#      if (!is.null(ids)) rws <- match(ids, Glist$ids)
+#      cls <- match(rsids, Glist$rsids[[chr]])
+#      if(any( !stat$ea == Glist$a1[[chr]][cls] )) {
+#        message("Some variants appear to be flipped => changing sign of variant effect for those variants ")
+#        flipped <- !stat$ea == Glist$a1[[chr]][cls]
+#        S[flipped,] <- -S[flipped,]  
+#      }
+#      if(!file.exists(Glist$bedfiles[chr])) stop(paste("bed file does not exists:"),Glist$bedfiles[chr]) 
+#      
+#      
+#      # multiple core using openblas
+#      if(ncores>1) {
+#        message(paste("Processing bed file", Glist$bedfiles[chr]))
+#        
+#        cls <- match(stat$rsids, Glist$rsids[[chr]])
+#        af  <- Glist$af[[chr]][cls]
+#        
+#        grs <- mtgrsbed_matrix(
+#          file     = Glist$bedfiles[chr],
+#          n        = as.integer(Glist$n),
+#          cls      = as.integer(cls),
+#          af       = as.numeric(af),
+#          scale    = isTRUE(scale),
+#          S        = S,
+#          nthreads = as.integer(ncores)
+#        )
+#        
+#        rownames(grs) <- Glist$ids
+#        colnames(grs) <- colnames(S)
+#        
+#        # message(paste("Processing bed file", Glist$bedfiles[chr]))
+#        # 
+#        # # Build Slist (unchanged)
+#        # Slist <- vector(ncol(S), mode = "list")
+#        # for (j in seq_len(ncol(S))) {
+#        #   Slist[[j]] <- S[, j]
+#        # }
+#        # 
+#        # # Match SNPs (unchanged)
+#        # cls <- match(stat$rsids, Glist$rsids[[chr]])
+#        # af  <- Glist$af[[chr]][cls]
+#        # 
+#        # # Call new C++ function
+#        # grs <- .Call(
+#        #   "_qgg_mtgrsbed_omp",     # <-- new symbol name
+#        #   Glist$bedfiles[chr],
+#        #   as.integer(Glist$n),
+#        #   as.integer(cls),
+#        #   as.numeric(af),
+#        #   as.logical(scale),
+#        #   Slist,                   # still list of vectors
+#        #   as.integer(ncores)      # NEW argument
+#        # )
+#        # 
+#        # # Combine results (unchanged)
+#        # grs <- do.call(cbind, grs)
+#        # 
+#        # # Add names (unchanged)
+#        # rownames(grs) <- Glist$ids
+#        # colnames(grs) <- colnames(S)
+#        # nt <- ncol(S)
+#        # grs <- matrix(0,nrow=nt,ncol=Glist$n)
+#        # sets <- splitWithOverlap(1:length(rsids),msize,0)
+#        # nsets <- length(sets)
+#        # print(paste("Processing chromosome", chr))
+#        # for (set in 1:nsets) {
+#        #      cls <- match(rsids[sets[[set]]],Glist$rsids[[chr]])
+#        #      W <- getG(Glist=Glist, cls=cls, chr=chr, scale=scale)
+#        #      grs <- grs + tcrossprod(t(S[sets[[set]],]),W)
+#        #      if(verbose) print(paste("Processing segment",set, "of", nsets,"on chromosome", chr))
+#        # }
+#        # grs <- t(grs)
+#        # rownames(grs) <- Glist$ids
+#        # colnames(grs) <- colnames(S)
+#        # gc()
+#        
+#      }
+#      
+#      # single core
+#      if(ncores==1) {
+#           message(paste("Processing bed file", Glist$bedfiles[chr]))
+#        
+#           Slist <- vector(ncol(S),mode="list")
+#           for (j in 1:ncol(S)) {
+#                Slist[[j]] <- S[,j]
+#           }
+#           cls <- match(stat$rsids, Glist$rsids[[chr]])
+#           af <- Glist$af[[chr]][cls]
+#           if(scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=TRUE, Slist=Slist)
+#           if(!scale) grs <- .Call("_qgg_mtgrsbed", Glist$bedfiles[chr], n=Glist$n, cls=cls, af=af, scale=FALSE, Slist=Slist)
+#           grs <- do.call(cbind, grs)
+#           rownames(grs) <- Glist$ids
+#           colnames(grs) <- colnames(S)
+#      }
+# 
+#      return(grs)
+# }
 
 
 # compute effective number of observations
