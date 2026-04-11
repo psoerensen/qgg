@@ -253,7 +253,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
       scale    = isTRUE(scale),
       S        = S,
       nthreads = as.integer(ncores),
-      MG = as.integer(MG),
+      MB = as.integer(MB),
       JB = as.integer(JB),
       TB = as.integer(TB)
     )    
