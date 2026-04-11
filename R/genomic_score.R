@@ -51,7 +51,9 @@
 #'
 
 gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, 
-                   sets = NULL, sets.weights = NULL, ids = NULL, scaleMarker = TRUE, scaleGRS=TRUE, impute = TRUE, msize = 100, ncores = 1, verbose=FALSE) {
+                   sets = NULL, sets.weights = NULL, ids = NULL, scaleMarker = TRUE, scaleGRS=TRUE, 
+                   impute = TRUE, msize = 100, ncores = 1, verbose=FALSE,
+                   MB = 64, JB = 2048, TB = 10) {
      
      if ( !is.null(Glist))  {
           if (!is.null(chr)) chromosomes <- chr
@@ -104,7 +106,8 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
             for (chr in chromosomes) {
               if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                 prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
-                                     ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose)
+                                     ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose,
+                                     MB = MB, JB = JB, TB = TB)
                 #if (is.null(prs)) prs <- prschr
                 #if (!is.null(prs)) prs <- prs + prschr
                 if (is.null(prs)) {
@@ -156,7 +159,8 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
 
 run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL,
                        stat = NULL, ids = NULL, scale = NULL, impute = TRUE,
-                       msize = 100, ncores = 1, verbose=FALSE) {
+                       msize = 100, ncores = 1, verbose=FALSE,
+                       MB = 64, JB = 2048, TB = 1) {
   
   if (sum(is.na(stat)) > 0) {
     warning("stat object contains NAs")
@@ -236,7 +240,23 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
   message(paste("Processing bed file", Glist$bedfiles[chr]))
   
   if (ncores > 1) {
-    
+
+    # Get tuning parameters (with defaults)
+    #MG <- getOption("qgg.MG", 64L)
+    #JB <- getOption("qgg.JB", 2048L)
+    #TB <- getOption("qgg.TB", 32L)
+    grs <- mtgrsbed_matrix(
+      file     = Glist$bedfiles[chr],
+      n        = as.integer(Glist$n),
+      cls      = as.integer(cls),
+      af       = as.numeric(af),
+      scale    = isTRUE(scale),
+      S        = S,
+      nthreads = as.integer(ncores),
+      MG = as.integer(MG),
+      JB = as.integer(JB),
+      TB = as.integer(TB)
+    )    
     # grs <- mtgrsbed_matrix(
     #   file     = Glist$bedfiles[chr],
     #   n        = as.integer(Glist$n),
@@ -247,30 +267,30 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
     #   nthreads = as.integer(ncores)
     # )
     
-    af_use <- as.numeric(stat$eaf)
-    
-    denom <- sqrt(2 * af_use * (1 - af_use))
-    ok <- is.finite(denom) & denom > 0
-    
-    S2 <- S
-    S2[ok, ] <- S2[ok, , drop = FALSE] / denom[ok]
-    S2[!ok, ] <- 0
-    
-    # offset (trait-specific)
-    offset <- colSums((2 * af_use) * S2)
-    
-    grs <- mtgrsbed_matrix_fast01(
-      file     = Glist$bedfiles[chr],
-      n        = as.integer(Glist$n),
-      cls      = as.integer(cls),
-      af       = af_use,
-      scale    = FALSE,
-      S        = S2,
-      nthreads = as.integer(ncores)
-    )
-    
-    # subtract offset (exact equivalence)
-    grs <- sweep(grs, 2, offset, FUN = "-")
+    # af_use <- as.numeric(stat$eaf)
+    # 
+    # denom <- sqrt(2 * af_use * (1 - af_use))
+    # ok <- is.finite(denom) & denom > 0
+    # 
+    # S2 <- S
+    # S2[ok, ] <- S2[ok, , drop = FALSE] / denom[ok]
+    # S2[!ok, ] <- 0
+    # 
+    # # offset (trait-specific)
+    # offset <- colSums((2 * af_use) * S2)
+    # 
+    # grs <- mtgrsbed_matrix_fast01(
+    #   file     = Glist$bedfiles[chr],
+    #   n        = as.integer(Glist$n),
+    #   cls      = as.integer(cls),
+    #   af       = af_use,
+    #   scale    = FALSE,
+    #   S        = S2,
+    #   nthreads = as.integer(ncores)
+    # )
+    # 
+    # # subtract offset (exact equivalence)
+    # grs <- sweep(grs, 2, offset, FUN = "-")
     
   } else {
     Slist <- vector(ncol(S), mode = "list")
@@ -470,6 +490,68 @@ neff <- function(seb=NULL,af=NULL,Vy=1) {
   return(neff)
 }
 
+autotune_prs <- function(
+    Glist,
+    stat,
+    chr = 1,
+    ncores = 32,
+    MG_vals = c(32L, 64L, 128L),
+    JB_vals = c(1024L, 2048L, 4096L),
+    TB_vals = c(16L, 32L, 64L)
+) {
+  
+  # subset for speed
+  stat_sub <- stat[1:min(10000, nrow(stat)), , drop=FALSE]
+  
+  rsidsOK <- stat_sub$rsids %in% Glist$rsids[[chr]]
+  stat_sub <- stat_sub[rsidsOK, , drop=FALSE]
+  
+  S <- as.matrix(stat_sub[, -c(1:6), drop=FALSE])
+  storage.mode(S) <- "double"
+  
+  cls <- match(stat_sub$rsids, Glist$rsids[[chr]])
+  af  <- stat_sub$eaf
+  
+  grid <- expand.grid(MG=MG_vals, JB=JB_vals, TB=TB_vals)
+  grid$time <- NA_real_
+  
+  for (k in seq_len(nrow(grid))) {
+    
+    MG <- grid$MG[k]
+    JB <- grid$JB[k]
+    TB <- grid$TB[k]
+    
+    cat(sprintf("Testing MG=%d JB=%d TB=%d\n", MG, JB, TB))
+    
+    t <- system.time({
+      mtgrsbed_matrix(
+        file     = Glist$bedfiles[chr],
+        n        = Glist$n,
+        cls      = cls,
+        af       = af,
+        scale    = FALSE,
+        S        = S,
+        nthreads = ncores,
+        MG = MG,
+        JB = JB,
+        TB = TB
+      )
+    })["elapsed"]
+    
+    grid$time[k] <- t
+  }
+  
+  grid <- grid[order(grid$time), ]
+  
+  print(grid)
+  
+  best <- grid[1, ]
+  
+  cat("\nBest configuration:\n")
+  print(best)
+  
+  return(best)
+}
 
 
 #' Adjustment of marker effects using correlated trait information

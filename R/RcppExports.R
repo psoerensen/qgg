@@ -45,8 +45,8 @@ mtgrsbed_omp <- function(file, n, cls, af, scale, b, nthreads = 1L) {
     .Call(`_qgg_mtgrsbed_omp`, file, n, cls, af, scale, b, nthreads)
 }
 
-mtgrsbed_matrix <- function(file, n, cls, af, scale, S, nthreads = 1L) {
-    .Call(`_qgg_mtgrsbed_matrix`, file, n, cls, af, scale, S, nthreads)
+mtgrsbed_matrix <- function(file, n, cls, af, scale, S, nthreads = 1L, MG = 64L, JB = 2048L, TB = 32L) {
+    .Call(`_qgg_mtgrsbed_matrix`, file, n, cls, af, scale, S, nthreads, MG, JB, TB)
 }
 
 mtgrsbed_matrix_fast01 <- function(file, n, cls, af, scale, S, nthreads = 1L) {

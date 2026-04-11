@@ -277,8 +277,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // mtgrsbed_matrix
-Rcpp::NumericMatrix mtgrsbed_matrix(std::string file, int n, const std::vector<int>& cls, const std::vector<double>& af, bool scale, Rcpp::NumericMatrix S, int nthreads);
-RcppExport SEXP _qgg_mtgrsbed_matrix(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP, SEXP scaleSEXP, SEXP SSEXP, SEXP nthreadsSEXP) {
+Rcpp::NumericMatrix mtgrsbed_matrix(std::string file, int n, const std::vector<int>& cls, const std::vector<double>& af, bool scale, Rcpp::NumericMatrix S, int nthreads, int MG, int JB, int TB);
+RcppExport SEXP _qgg_mtgrsbed_matrix(SEXP fileSEXP, SEXP nSEXP, SEXP clsSEXP, SEXP afSEXP, SEXP scaleSEXP, SEXP SSEXP, SEXP nthreadsSEXP, SEXP MGSEXP, SEXP JBSEXP, SEXP TBSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -289,7 +289,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type scale(scaleSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type S(SSEXP);
     Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(mtgrsbed_matrix(file, n, cls, af, scale, S, nthreads));
+    Rcpp::traits::input_parameter< int >::type MG(MGSEXP);
+    Rcpp::traits::input_parameter< int >::type JB(JBSEXP);
+    Rcpp::traits::input_parameter< int >::type TB(TBSEXP);
+    rcpp_result_gen = Rcpp::wrap(mtgrsbed_matrix(file, n, cls, af, scale, S, nthreads, MG, JB, TB));
     return rcpp_result_gen;
 END_RCPP
 }
