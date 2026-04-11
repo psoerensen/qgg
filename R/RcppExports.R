@@ -49,6 +49,10 @@ mtgrsbed_matrix <- function(file, n, cls, af, scale, S, nthreads = 1L) {
     .Call(`_qgg_mtgrsbed_matrix`, file, n, cls, af, scale, S, nthreads)
 }
 
+mtgrsbed_matrix_fast01 <- function(file, n, cls, af, scale, S, nthreads = 1L) {
+    .Call(`_qgg_mtgrsbed_matrix_fast01`, file, n, cls, af, scale, S, nthreads)
+}
+
 mvrnormARMA <- function(sigma) {
     .Call(`_qgg_mvrnormARMA`, sigma)
 }

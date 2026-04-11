@@ -559,6 +559,129 @@ std::free(buffer);
 std::fclose(file_stream);
 }
 
+void mtgrsbed_core_fast01(
+    const char* file,
+    int n,
+    const int* cls,
+    int m,
+    int nt,
+    const double* b_snp,
+    double* grs_flat,
+    int nthreads
+) {
+  FILE* file_stream = std::fopen(file, "rb");
+  if (!file_stream) {
+    throw std::runtime_error("Could not open BED file.");
+  }
+  
+  const size_t nbytes = (n + 3) / 4;
+  unsigned char* buffer = (unsigned char*) std::malloc(nbytes);
+  if (!buffer) {
+    std::fclose(file_stream);
+    throw std::runtime_error("Failed to allocate BED buffer.");
+  }
+  
+  const int JB = 2048;
+  const int TB = 64;
+  
+#ifdef _OPENMP
+  if (nthreads > 0) omp_set_num_threads(nthreads);
+#endif
+  
+#pragma omp parallel
+{
+  for (int i = 0; i < m; ++i) {
+    
+#pragma omp single
+{
+  const long long offset =
+    (long long)(cls[i] - 1) * (long long)nbytes + 3LL;
+  
+  if (std::fseek(file_stream, offset, SEEK_SET) != 0) {
+    std::free(buffer);
+    std::fclose(file_stream);
+    throw std::runtime_error("fseek failed.");
+  }
+  
+  const size_t nbytes_read =
+    std::fread(buffer, sizeof(unsigned char), nbytes, file_stream);
+  
+  if (nbytes_read != nbytes) {
+    std::free(buffer);
+    std::fclose(file_stream);
+    throw std::runtime_error("Error reading BED data: nbytes_read != nbytes.");
+  }
+}
+
+const double* bi = &b_snp[(size_t)i * nt];
+
+#pragma omp for schedule(static)
+for (int j0 = 0; j0 < n; j0 += JB) {
+  const int jmax = std::min(j0 + JB, n);
+  
+  const int byte0 = j0 >> 2;
+  const int byte1 = (jmax + 3) >> 2;
+  
+  for (int t0 = 0; t0 < nt; t0 += TB) {
+    const int tmax = std::min(t0 + TB, nt);
+    const int tlen = tmax - t0;
+    const double* bij = bi + t0;
+    
+    for (int kb = byte0; kb < byte1; ++kb) {
+      unsigned char buf_k = buffer[kb];
+      const int jbase = kb << 2;
+      
+      for (int pos = 0; pos < 4; ++pos) {
+        const int j = jbase + pos;
+        if (j < j0 || j >= jmax || j >= n) {
+          buf_k >>= 2;
+          continue;
+        }
+        
+        const unsigned code = (unsigned)(buf_k & 3u);
+        buf_k >>= 2;
+        
+        // BED:
+        // 00 -> 2
+        // 01 -> missing
+        // 10 -> 1
+        // 11 -> 0
+        
+        if (code == 3u) {
+          continue; // genotype 0, skip
+        }
+        
+        double* gj = &grs_flat[(size_t)j * nt + t0];
+        
+        if (code == 2u) {
+          // genotype 1
+#pragma omp simd
+          for (int t = 0; t < tlen; ++t) {
+            gj[t] += bij[t];
+          }
+        } else if (code == 0u) {
+          // genotype 2
+#pragma omp simd
+          for (int t = 0; t < tlen; ++t) {
+            gj[t] += 2.0 * bij[t];
+          }
+        } else {
+          // missing (01)
+          // if you want mean imputation on raw scale, add 2p * b here.
+          // for the transformed-weight trick, it's often simplest to leave
+          // this as zero and handle consistency separately if needed.
+        }
+      }
+    }
+  }
+}
+  }
+}
+
+std::free(buffer);
+std::fclose(file_stream);
+}
+
 
 // -----------------------------------------------------------------------------
 // Thin R wrapper
@@ -697,3 +820,75 @@ Rcpp::NumericMatrix mtgrsbed_matrix(
   
   return out;
 }
+
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix mtgrsbed_matrix_fast01(
+    std::string file,
+    int n,
+    const std::vector<int>& cls,
+    const std::vector<double>& af,
+    bool scale,
+    Rcpp::NumericMatrix S,
+    int nthreads = 1
+) {
+  if (scale) {
+    Rcpp::stop("mtgrsbed_matrix_fast01 requires scale = FALSE");
+  }
+  
+  const int m  = S.nrow();
+  const int nt = S.ncol();
+  
+  if ((int)cls.size() != m) {
+    Rcpp::stop("cls.size() must match number of rows in S");
+  }
+  
+  if ((int)af.size() != m) {
+    Rcpp::stop("af.size() must match number of rows in S");
+  }
+  
+  // pointer to matrix
+  const double* s = REAL(S);
+  
+  // convert to SNP-major layout
+  std::vector<double> b_snp((size_t)m * nt);
+  
+  for (int t = 0; t < nt; ++t) {
+    for (int i = 0; i < m; ++i) {
+      b_snp[(size_t)i * nt + t] = s[i + (size_t)t * m];
+    }
+  }
+  
+  // output buffer
+  std::vector<double> grs_flat((size_t)n * nt, 0.0);
+  
+  try {
+    mtgrsbed_core_fast01(
+      file.c_str(),
+      n,
+      cls.data(),
+      m,
+      nt,
+      b_snp.data(),
+      grs_flat.data(),
+      nthreads
+    );
+  } catch (const std::exception& e) {
+    Rcpp::stop(e.what());
+  }
+  
+  // return matrix
+  Rcpp::NumericMatrix out(n, nt);
+  
+  for (int t = 0; t < nt; ++t) {
+    for (int j = 0; j < n; ++j) {
+      out(j, t) = grs_flat[(size_t)j * nt + t];
+    }
+  }
+  
+  return out;
+}
+
+
+  
+  

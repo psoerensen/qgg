@@ -236,15 +236,42 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
   message(paste("Processing bed file", Glist$bedfiles[chr]))
   
   if (ncores > 1) {
-    grs <- mtgrsbed_matrix(
+    
+    # grs <- mtgrsbed_matrix(
+    #   file     = Glist$bedfiles[chr],
+    #   n        = as.integer(Glist$n),
+    #   cls      = as.integer(cls),
+    #   af       = af,
+    #   scale    = isTRUE(scale),
+    #   S        = S,
+    #   nthreads = as.integer(ncores)
+    # )
+    
+    af_use <- as.numeric(stat$eaf)
+    
+    denom <- sqrt(2 * af_use * (1 - af_use))
+    ok <- is.finite(denom) & denom > 0
+    
+    S2 <- S
+    S2[ok, ] <- S2[ok, , drop = FALSE] / denom[ok]
+    S2[!ok, ] <- 0
+    
+    # offset (trait-specific)
+    offset <- colSums((2 * af_use) * S2)
+    
+    grs <- mtgrsbed_matrix_fast01(
       file     = Glist$bedfiles[chr],
       n        = as.integer(Glist$n),
       cls      = as.integer(cls),
-      af       = af,
-      scale    = isTRUE(scale),
-      S        = S,
+      af       = af_use,
+      scale    = FALSE,
+      S        = S2,
       nthreads = as.integer(ncores)
     )
+    
+    # subtract offset (exact equivalence)
+    grs <- sweep(grs, 2, offset, FUN = "-")
+    
   } else {
     Slist <- vector(ncol(S), mode = "list")
     for (j in seq_len(ncol(S))) {
