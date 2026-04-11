@@ -53,7 +53,7 @@
 gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, 
                    sets = NULL, sets.weights = NULL, ids = NULL, scaleMarker = TRUE, scaleGRS=TRUE, 
                    impute = TRUE, msize = 100, ncores = 1, verbose=FALSE,
-                   MB = 64, JB = 2048, TB = 10) {
+                   MG = 64, JB = 2048, TB = 10) {
      
      if ( !is.null(Glist))  {
           if (!is.null(chr)) chromosomes <- chr
@@ -107,7 +107,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
               if( any(stat$rsids %in% Glist$rsids[[chr]]) ) {
                 prschr <- run_gscore(Glist=Glist, chr=chr, stat = stat, 
                                      ids = ids, scale = scaleMarker, ncores = ncores, msize = msize, verbose=verbose,
-                                     MB = MB, JB = JB, TB = TB)
+                                     MG = MG, JB = JB, TB = TB)
                 #if (is.null(prs)) prs <- prschr
                 #if (!is.null(prs)) prs <- prs + prschr
                 if (is.null(prs)) {
@@ -160,7 +160,7 @@ gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfi
 run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL,
                        stat = NULL, ids = NULL, scale = NULL, impute = TRUE,
                        msize = 100, ncores = 1, verbose=FALSE,
-                       MB = 64, JB = 2048, TB = 1) {
+                       MG = 64, JB = 2048, TB = 1) {
   
   if (sum(is.na(stat)) > 0) {
     warning("stat object contains NAs")
@@ -253,7 +253,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
       scale    = isTRUE(scale),
       S        = S,
       nthreads = as.integer(ncores),
-      MB = as.integer(MB),
+      MG = as.integer(MG),
       JB = as.integer(JB),
       TB = as.integer(TB)
     )    
