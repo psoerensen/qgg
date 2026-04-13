@@ -166,8 +166,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
     warning("stat object contains NAs")
     stat <- na.omit(stat)
   }
-  TB <- min(ncol(stat),TB)
-  
+
   if (!is.null(bedfiles)) {
     if (!file.exists(bedfiles)) stop(paste("bedfiles does not exists:", bedfiles))
     Glist <- NULL
@@ -242,6 +241,8 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
   
   if (ncores > 1) {
 
+    TB <- min(ncol(S),TB)
+    
     # Get tuning parameters (with defaults)
     grs <- mtgrsbed_matrix(
       file     = Glist$bedfiles[chr],
