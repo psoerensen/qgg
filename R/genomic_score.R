@@ -53,7 +53,7 @@
 gscore <- function(Glist = NULL, chr = NULL, bedfiles=NULL, bimfiles=NULL, famfiles=NULL, stat = NULL, 
                    sets = NULL, sets.weights = NULL, ids = NULL, scaleMarker = TRUE, scaleGRS=TRUE, 
                    impute = TRUE, msize = 100, ncores = 1, verbose=FALSE,
-                   MG = 64, JB = 2048, TB = 10) {
+                   MG = 64, JB = 1048, TB = 32) {
      
      if ( !is.null(Glist))  {
           if (!is.null(chr)) chromosomes <- chr
@@ -166,6 +166,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
     warning("stat object contains NAs")
     stat <- na.omit(stat)
   }
+  TB <- min(ncol(S),TB)
   
   if (!is.null(bedfiles)) {
     if (!file.exists(bedfiles)) stop(paste("bedfiles does not exists:", bedfiles))
@@ -242,9 +243,6 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
   if (ncores > 1) {
 
     # Get tuning parameters (with defaults)
-    #MG <- getOption("qgg.MG", 64L)
-    #JB <- getOption("qgg.JB", 2048L)
-    #TB <- getOption("qgg.TB", 32L)
     grs <- mtgrsbed_matrix(
       file     = Glist$bedfiles[chr],
       n        = as.integer(Glist$n),

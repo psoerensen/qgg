@@ -440,8 +440,8 @@ void mtgrsbed_core(
     double* grs_flat,
     int nthreads,
     int MG = 64,
-    int JB = 2048,
-    int TB = 64
+    int JB = 1024,
+    int TB = 32
 ) {
   FILE* file_stream = std::fopen(file, "rb");
   if (!file_stream) {
