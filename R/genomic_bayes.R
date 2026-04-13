@@ -57,6 +57,7 @@
 #' @param nit_local is the number of local iterations
 #' @param pi is the proportion of markers in each marker variance class (e.g. pi=c(0.999,0.001),used if method="ssvs")
 #' @param h2 is the trait heritability
+#' @param mc Number of potentiel genome-wide causal markers for the trait analysed - only used for specification of ssb_prior (default: 5000).
 #' @param method specifies the methods used (method="bayesN","bayesA","bayesL","bayesC","bayesR")
 #' @param algorithm specifies the algorithm
 #' @param tol is tolerance, i.e. convergence criteria used in gbayes
@@ -143,7 +144,7 @@
 gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit=NULL, Glist=NULL, 
                    chr=NULL, rsids=NULL, b=NULL, bm=NULL, seb=NULL, LD=NULL, n=NULL,formatLD="dense",
                    vg=NULL, vb=NULL, ve=NULL, ssg_prior=NULL, ssb_prior=NULL, sse_prior=NULL, lambda=NULL, scaleY=TRUE,
-                   h2=NULL, pi=0.001, gamma=1, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
+                   h2=NULL, pi=0.001, gamma=1, mc=NULL, updateB=TRUE, updateG=TRUE, updateE=TRUE, updatePi=TRUE, adjustE=TRUE, models=NULL,
                    nug=4, nub=4, nue=4, verbose=FALSE,msize=100, mask=NULL, checkConvergence=FALSE,
                    GRMlist=NULL, ve_prior=NULL, vg_prior=NULL,tol=0.001,
                    nit=100, nburn=0, nthin=1, nit_local=NULL,nit_global=NULL,
@@ -259,6 +260,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       nt <- 1
       rsidsLD <- unlist(Glist$rsidsLD)
       m <- length(rsidsLD)
+      if(is.null(mc)) mc <- length(rsidsLD)
       b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
       mask <- matrix(TRUE,nrow=length(rsidsLD),ncol=nt)
       rownames(b) <- rownames(wy) <- rownames(ww) <- rownames(mask) <- rsidsLD
@@ -290,6 +292,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
       if(is.null(trait_names)) trait_names <- paste0("T",1:nt)
       rsidsLD <- unlist(Glist$rsidsLD)
       m <- length(rsidsLD)
+      if(is.null(mc)) mc <- length(rsidsLD)
       b <- wy <- ww <- matrix(0,nrow=length(rsidsLD),ncol=nt)
       mask <- matrix(TRUE,nrow=length(rsidsLD),ncol=nt)
       rownames(b) <- rownames(wy) <- rownames(ww) <- rownames(mask) <- rsidsLD
@@ -347,6 +350,7 @@ gbayes <- function(y=NULL, X=NULL, W=NULL, stat=NULL, covs=NULL, trait=NULL, fit
                                     nthin=nthin,
                                     n=n[trait],
                                     m=m,
+                                    mc=mc,
                                     pi=pi,
                                     nue=nue, 
                                     nub=nub, 
@@ -580,7 +584,7 @@ bayes <- function(y=NULL, X=NULL, W=NULL, b=NULL, scaled=TRUE,
 # Single trait BLR using summary statistics and sparse LD provided in Glist 
 sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL, 
                           LDvalues=NULL,LDindices=NULL, b=NULL,  
-                          n=NULL, m=NULL, 
+                          n=NULL, m=NULL, mc=NULL, 
                           h2=NULL, pi=NULL, lambda=NULL, mask=NULL,
                           vb=NULL, vg=NULL, ve=NULL, 
                           nub=4, nug=4, nue=4, 
@@ -595,11 +599,11 @@ sbayes_sparse <- function(yy=NULL, wy=NULL, ww=NULL,
   if(is.null(h2)) h2 <- 0.5
   if(is.null(ve)) ve <- vy*(1-h2)
   if(is.null(vg)) vg <- vy*h2
-  if(method<4 && is.null(vb)) vb <- vg/m
-  if(method>=4 && is.null(vb)) vb <- vg/(m*pi)
-  if(is.null(lambda)) lambda <- rep(ve/vb,m)
-  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/m)
-  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(m*pi))
+  if(method<4 && is.null(vb)) vb <- vg/mc
+  if(method>=4 && is.null(vb)) vb <- vg/(mc*pi)
+  if(is.null(lambda)) lambda <- rep(ve/vb,mc)
+  if(method<4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/mc)
+  if(method>=4 && is.null(ssb_prior))  ssb_prior <-  ((nub-2.0)/nub)*(vg/(mc*pi))
   if(is.null(ssg_prior)) ssg_prior <- ((nug-2.0)/nug)*vg
   if(is.null(sse_prior)) sse_prior <- ((nue-2.0)/nue)*ve
   if(is.null(b)) b <- rep(0,m)
