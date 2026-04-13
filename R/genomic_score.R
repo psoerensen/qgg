@@ -166,7 +166,7 @@ run_gscore <- function(Glist = NULL, chr=NULL, bedfiles=NULL, bimfiles=NULL, fam
     warning("stat object contains NAs")
     stat <- na.omit(stat)
   }
-  TB <- min(ncol(S),TB)
+  TB <- min(ncol(stat),TB)
   
   if (!is.null(bedfiles)) {
     if (!file.exists(bedfiles)) stop(paste("bedfiles does not exists:", bedfiles))
